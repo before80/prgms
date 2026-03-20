@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="380" viewBox="0 0 480 380">
+  <!-- Background -->
+  <rect width="480" height="380" fill="#f8f9fa" rx="8"/>
+
+  <!-- Title -->
+  <text x="240" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="bold" fill="#333">Go 栈帧结构与栈生长方向</text>
+
+  <!-- Stack frame box -->
+  <rect x="40" y="50" width="200" height="260" fill="none" stroke="#555" stroke-width="2" rx="4"/>
+  <text x="140" y="68" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#333">单个栈帧</text>
+
+  <!-- Return address -->
+  <rect x="55" y="80" width="170" height="40" fill="#ff9999" stroke="#c00" stroke-width="1.5" rx="3"/>
+  <text x="140" y="105" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#333">返回地址 return address</text>
+
+  <!-- Parameters -->
+  <rect x="55" y="128" width="170" height="40" fill="#99ccff" stroke="#06c" stroke-width="1.5" rx="3"/>
+  <text x="140" y="153" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#333">参数区 parameters</text>
+
+  <!-- Local variables -->
+  <rect x="55" y="176" width="170" height="40" fill="#99ff99" stroke="#060" stroke-width="1.5" rx="3"/>
+  <text x="140" y="201" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#333">局部变量 local variables</text>
+
+  <!-- Saved registers -->
+  <rect x="55" y="224" width="170" height="40" fill="#ffcc99" stroke="#c60" stroke-width="1.5" rx="3"/>
+  <text x="140" y="249" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#333">保存的寄存器 saved regs</text>
+
+  <!-- Arrow: return addr points down -->
+  <line x1="280" y1="100" x2="320" y2="100" stroke="#888" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="300" y="93" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#666">返回时跳转</text>
+
+  <!-- Stack growth direction panel -->
+  <rect x="330" y="50" width="120" height="260" fill="none" stroke="#555" stroke-width="2" rx="4"/>
+  <text x="390" y="68" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#333">栈生长方向</text>
+
+  <!-- High address -->
+  <rect x="345" y="82" width="90" height="35" fill="#ddd" stroke="#999" stroke-width="1.5" rx="3"/>
+  <text x="390" y="105" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#555">高地址（栈底）</text>
+
+  <!-- Down arrow -->
+  <text x="390" y="168" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#c00">↓</text>
+  <text x="390" y="190" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#c00">向低地址生长</text>
+
+  <!-- Low address -->
+  <rect x="345" y="205" width="90" height="35" fill="#ddd" stroke="#999" stroke-width="1.5" rx="3"/>
+  <text x="390" y="228" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#555">低地址（栈顶）</text>
+
+  <!-- Multiple frames panel (right) -->
+  <rect x="30" y="325" width="420" height="45" fill="none" stroke="#aaa" stroke-width="1" stroke-dasharray="4,3" rx="3"/>
+  <text x="240" y="345" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" fill="#888">调用前一个函数 → 分配新栈帧 → 函数返回 → 栈帧回收（遵循 LIFO）</text>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#888"/>
+    </marker>
+  </defs>
+</svg>
