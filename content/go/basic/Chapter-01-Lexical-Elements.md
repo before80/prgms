@@ -312,7 +312,7 @@ func main() {
 
 ```
 
-> **血泪教训**：这一点特别容易在 Windows 系统上踩坑，因为 Windows 的文件系统是大小写不敏感的。你在 Windows 上创建了 `myFile.go`，然后同事在 Mac 上 clone 了代码，想创建 `MyFile.go`——结果发现 Git 说"没变化"。所以，养成好习惯，从一开始就使用一致的大小写！
+> **血泪教训**：这一点在 Windows 系统上特别容易踩坑，因为 Windows 的文件系统是大小写不敏感的。比如在 macOS 上，`myFile.go` 和 `MyFile.go` 是两个不同的文件，但在 Windows 上却会被当成同一个文件，从而导致 Git 无法正确识别大小写变更。因此，养成统一的命名规范非常重要。
 
 **规则四：不能是关键字**
 
@@ -339,7 +339,14 @@ func main() {
 
 **核心法则：首字母大写 = 导出，首字母小写 = 不导出**
 
-这是 Go 语言的一条黄金法则，也是 Go 区别于其他语言的重要设计。简单得就像"大乐透"——只要你的标识符首字母是大写的，它就被"导出"了，可以被其他包访问；如果是小写的，对不起，这个成员是"私人定制"，不对外开放。
+这是 Go 语言的一条黄金法则，也是它最简洁、最高效的设计之一：**可见性仅由首字母的大小写决定**。
+
+你可以把它想象成一道**自动感应的门禁**：
+
+- **大写字母开头**：相当于拥有了“全域通行证”。它是**导出（Exported）**的，意味着其他包（package）可以自由访问它。
+- **小写字母开头**：则是“内部专属”。它是**非导出（Unexported）**的，属于包内的“私人领地”，外部代码无法窥探，更无法调用。
+
+这种设计直接省去了其他语言（如 Java 或 C++）中繁琐的 `public`、`private` 关键字，让代码的“权限控制”一眼便知。
 
 
 ```go
@@ -623,13 +630,13 @@ import "fmt"
 func main() {
     score := 85
     if score >= 90 {
-        fmt.Println("成绩等级：优秀！你真棒！") // 成绩等级：优秀！你真棒！
+        fmt.Println("成绩等级：优秀！你真棒！") 
     } else if score >= 70 {
         fmt.Println("成绩等级：良好。还需继续努力！") // 成绩等级：良好。还需继续努力！
     } else if score >= 60 {
-        fmt.Println("成绩等级：及格。勉强过关啦～") // 成绩等级：及格。勉强过关啦～
+        fmt.Println("成绩等级：及格。勉强过关啦～") 
     } else {
-        fmt.Println("成绩等级：不及格。挂科警告！🚨") // 成绩等级：不及格。挂科警告！🚨
+        fmt.Println("成绩等级：不及格。挂科警告！🚨") 
     }
 }
 
@@ -647,17 +654,17 @@ func main() {
     day := 3
     switch day {
     case 1:
-        fmt.Println("今天是星期一，Monday Blues 开始！") // 今天是星期一，Monday Blues 开始！
+        fmt.Println("今天是星期一，Monday Blues 开始！") 
     case 2:
-        fmt.Println("今天是星期二，还在适应期～") // 今天是星期二，还在适应期～
+        fmt.Println("今天是星期二，还在适应期～") 
     case 3:
         fmt.Println("今天是星期三，小周末来了！") // 今天是星期三，小周末来了！
     case 4:
-        fmt.Println("今天是星期四，明天就是周五啦！") // 今天是星期四，明天就是周五啦！
+        fmt.Println("今天是星期四，明天就是周五啦！") 
     case 5:
-        fmt.Println("今天是星期五，解放啦！🎉") // 今天是星期五，解放啦！🎉
+        fmt.Println("今天是星期五，解放啦！🎉") 
     default:
-        fmt.Println("这是周末还是外星日历？") // 这是周末还是外星日历？}
+        fmt.Println("这是周末还是外星日历？") 
     // 输出：今天是星期三，小周末来了！
 }
 
@@ -694,7 +701,7 @@ import "fmt"
 func main() {
     fruits := []string{"苹果", "香蕉", "橙子"}
     for index, fruit := range fruits {
-        fmt.Printf("第%d个水果：%s\n", index, fruit) // 第?个水果：?\n
+        fmt.Printf("第%d个水果：%s\n", index, fruit) 
     }
     // 第0个水果：苹果
     // 第1个水果：香蕉
@@ -914,7 +921,7 @@ flowchart TB
     style E fill:#FFD700
 ```
 
-> **小贴士**：并发和并行是两回事！**并发**（Concurrency）就像是你一边走路一边打电话，虽然你实际上还是在交替处理，但看起来像是同时进行。**并行**（Parallelism）则是你雇了三个助手同时给三个人打电话。Go 的 goroutine 是"并发"模型，但如果你的机器有多个 CPU 核心，Go 运行时会把它们变成"并行"执行。所以，下次有人问你"Go 支持并发还是并行？"你可以淡定地回答："都要。"然后享受对方崇拜的目光。
+> **小贴士**：并发和并行是两回事！**并发**（Concurrency）就像是你一边走路一边打电话，虽然你实际上还是在交替处理，但看起来像是同时进行。**并行**（Parallelism）则是你雇了三个助手同时给三个人打电话。Go 的 goroutine 是"并发"模型，但如果你的机器有多个 CPU 核心，Go 运行时会把它们变成"并行"执行。所以，下次有人问你"Go 支持并发还是并行？"你可以淡定地回答："都支持。"然后享受对方崇拜的目光。
 
 
 
@@ -1059,7 +1066,7 @@ func main() {
 &   // 按位与（AND）
 |   // 按位或（OR）
 ^   // 按位异或（XOR）
-&^  // 位清除（AND NOT）
+&^  // 位清除（AND NOT）位清除常用于操作标志位，例如从一个位掩码中移除某个标志。
 <<  // 左移
 >>  // 右移
 ```
@@ -1080,33 +1087,35 @@ func main() {
     fmt.Println()
 
     // 按位与：都是1才为1
-    fmt.Println("a & b =", a&b, "(二进制:", fmt.Sprintf("%04b", a&b), ")") // a & b = 8 (1000)
+    fmt.Println("a & b =", a&b, "(二进制:", fmt.Sprintf("%04b", a&b), ")") // a & b = 8 (二进制: 1000 )
 
     // 按位或：至少一个1就为1
-    fmt.Println("a | b =", a|b, "(二进制:", fmt.Sprintf("%04b", a|b), ")") // a | b = 14 (1110)
+    fmt.Println("a | b =", a|b, "(二进制:", fmt.Sprintf("%04b", a|b), ")") // a | b = 14 (二进制: 1110 )
 
     // 按位异或：不一样才为1
-    fmt.Println("a ^ b =", a^b, "(二进制:", fmt.Sprintf("%04b", a^b), ")") // a ^ b = 6 (0110)
+    fmt.Println("a ^ b =", a^b, "(二进制:", fmt.Sprintf("%04b", a^b), ")") // a ^ b = 6 (二进制: 0110 )
 
-    // 位清除：左边是1则清除右边相应位
-    fmt.Println("a &^ b =", a&^b, "(二进制:", fmt.Sprintf("%04b", a&^b), ")") // a &^ b = 4 (0100)
+    // 位清除：a &^ b 等价于 a & (^b)，即先对 b 按位取反，再与 a 进行按位与运算
+    // 如果右操作数的某位为 1，则结果对应位为 0。
+    // 如果右操作数的某位为 0，则结果对应位等于左操作数的该位。
+    fmt.Println("a &^ b =", a&^b, "(二进制:", fmt.Sprintf("%04b", a&^b), ")") // a &^ b = 4 (二进制: 0100 )
 
     fmt.Println()
 
     // 左移和右移
     c := 3 // 二进制: 00000011
-    fmt.Printf("c = %d (二进制: %08b)\n", c, c) // c = 12 (二进制: 1100)
+    fmt.Printf("c = %d (二进制: %08b)\n", c, c) // c = 3 (二进制: 00000011)
 
     c = c << 2 // 左移2位
-    fmt.Printf("c << 2 = %d (二进制: %08b)\n", c, c) // c << 2 = 12 (00001100)
+    fmt.Printf("c << 2 = %d (二进制: %08b)\n", c, c) // c << 2 = 12 (二进制: 00001100)
 
     c = c >> 1 // 右移1位
-    fmt.Printf("c >> 1 = %d (二进制: %08b)\n", c, c) // c >> 1 = 6 (00000110)
+    fmt.Printf("c >> 1 = %d (二进制: %08b)\n", c, c) // c >> 1 = 6 (二进制: 00000110)
 }
 
 ```
 
-> **有趣的应用**：位运算符可以用来做"奇技淫巧"。比如判断一个数是奇数还是偶数，只需要 `n & 1` 就行了——如果是1就是奇数，如果是0就是偶数。这比 `n % 2 == 0` 快多了（虽然现代编译器已经优化得很好了）。
+> **有趣的应用**：位运算符可以用来做"奇技淫巧"。比如判断`n`这个数是奇数还是偶数，只需要 `n & 1` 就行了——如果是1就是奇数，如果是0就是偶数。这比 `n % 2 == 0` 快多了（虽然现代编译器已经优化得很好了）。
 
 #### 1.4.5 赋值运算符
 
@@ -1241,15 +1250,15 @@ func main() {
 ```go
 // 最高
 *   /   %   <<  >>  &   &^
-//
+
 +   -   |   ^
-//
+
 ==  !=  <   <=  >   >=
-//
-<-  //
-//
-//
+
+<- 
+
 &&
+
 // 最低
 ||  
 ```
@@ -1320,7 +1329,7 @@ Go 语言的分隔符包括：
 ```go
 ( )  // 圆括号，用于函数调用、分组表达式
 { }  // 大括号，用于代码块、复合字面量
-[ ]  // 方括号，用于数组、切片、映射的索引
+[ ]  // 方括号，用于数组、切片、map的索引
 ,   // 逗号，用于分隔列表中的元素
 ;   // 分号，用于语句结束（通常由编译器自动添加）
 :   // 冒号，用于标签、键值对、类型声明
@@ -1475,7 +1484,7 @@ import "fmt"
 func main() {
     hex := 0xFF
     fmt.Printf("十六进制 0xFF = 十进制 %d\n", hex) // 十六进制 0xFF = 十进制 255
-    fmt.Printf("十进制 %d 的十六进制表示是: %x\n", hex, hex) // 十进制 255 的十六进制表示是: ff
+    fmt.Printf("十进制 %d 的十六进制表示是: %#X\n", hex, hex) // 十进制 255 的十六进制表示是: 0XFF
 }
 
 ```
@@ -1595,7 +1604,7 @@ import "fmt"
 func main() {
     // 十六进制浮点数：0x1.fp+10 = (1 + 15/16) × 2^10
     hexFloat := 0x1.fp+10
-    fmt.Println("十六进制浮点数:", hexFloat) // 十六进制浮点数: 1920
+    fmt.Println("十六进制浮点数:", hexFloat) // 十六进制浮点数: 1984
 }
 
 ```
@@ -1659,13 +1668,10 @@ func main() {
     symbol := '#'
 
     fmt.Printf("letter: %c (Unicode: U+%04X, ASCII: %d)\n", letter, letter, letter) // letter: A (Unicode: U+0041, ASCII: 65)
-    // letter: A (Unicode: U+0041, ASCII: 65)
 
-    fmt.Printf("digit: %c (Unicode: U+%04X, ASCII: %d)\n", digit, digit, digit) // digit: 5 (Unicode: U+0035, ASCII: 53)
-    // digit: 7 (Unicode: U+0037, ASCII: 55)
+    fmt.Printf("digit: %c (Unicode: U+%04X, ASCII: %d)\n", digit, digit, digit) // digit: 7 (Unicode: U+0037, ASCII: 55)
 
-    fmt.Printf("symbol: %c (Unicode: U+%04X, ASCII: %d)\n", symbol, symbol, symbol) // symbol: @ (Unicode: U+0040, ASCII: 64)
-    // symbol: # (Unicode: U+0023, ASCII: 35)
+    fmt.Printf("symbol: %c (Unicode: U+%04X, ASCII: %d)\n", symbol, symbol, symbol) // symbol: # (Unicode: U+0023, ASCII: 35)
 }
 
 ```
@@ -1683,18 +1689,15 @@ import "fmt"
 func main() {
     // 中文符文
     chinese := '中'
-    fmt.Printf("中文 x27 中 x27: %c (Unicode: U+%04X)\n", chinese, chinese) // 中文 中: 中 (Unicode: U+4E2D)
-    // 中文 '中': 中 (Unicode: U+4E2D)
+    fmt.Printf("中文 '中' : %c (Unicode: U+%04X)\n", chinese, chinese) // 中文 '中' : 中 (Unicode: U+4E2D)
 
     // 日文
     japanese := '日'
     fmt.Printf("日文 '日': %c (Unicode: U+%04X)\n", japanese, japanese) // 日文 '日': 日 (Unicode: U+65E5)
-    // 日文 '日': 日 (Unicode: U+65E5)
 
     // emoji
     emoji := '🎉'
     fmt.Printf("emoji '🎉': %c (Unicode: U+%04X)\n", emoji, emoji) // emoji '🎉': 🎉 (Unicode: U+1F389)
-    // emoji '🎉': 🎉 (Unicode: U+1F389)
 }
 
 ```
@@ -1711,26 +1714,24 @@ import "fmt"
 
 func main() {
     // 常见的转义序列
-    fmt.Println("换行符:\n第一行\n第二行") // 换行符: 第一行 第二行
+    fmt.Println("换行符:\n第一行\n第二行") 
     // 换行符:
     // 第一行
     // 第二行
 
-    fmt.Println("制表符:\t左\t右\t中间") // 制表符: 左 右 中间
-    // 制表符: 左	右	中间
+    fmt.Println("制表符:\t左\t右\t中间") // 制表符:	左	右	中间
 
-    fmt.Println("反斜杠:\\") // 反斜杠: \
-    // 反斜杠: \
 
-    fmt.Println("双引号:\"") // 双引号: "
-    // 双引号: "
+    fmt.Println("反斜杠:\\") // 反斜杠:\
 
-    fmt.Println("单引号:\'") // 单引号: '
+    fmt.Println("双引号:\"") // 双引号:"
+ 
 
-    fmt.Println("Unicode字符:\u4e2d\u6587") // 中文
-    // Unicode字符:中文
+    fmt.Println("单引号:'") // 单引号:'
 
-    fmt.Println("警报声:\a") // 会响一声（如果有蜂鸣器）
+    fmt.Println("Unicode字符:\u4e2d\u6587") // Unicode字符:中文
+
+    fmt.Println("警报声:\a") // 警报声:      需要编译成可执行文件再运行才会出现响一声
 }
 
 ```
@@ -1749,6 +1750,7 @@ func main() {
 | `\f` | 换页 |
 | `\r` | 回车 |
 | `\v` | 垂直制表符 |
+| `\ooo` | 八进制字节（三个八进制数字，如 `\123`，范围 0-255） |
 | `\uxxxx` | Unicode 字符（4位十六进制） |
 | `\Uxxxxxxxx` | Unicode 字符（8位十六进制） |
 | `\xNN` | 十六进制字节 |
@@ -1780,9 +1782,13 @@ func main() {
     multi := "第一行\n第二行"
     fmt.Println("多行:") // 多行:
 
-    fmt.Println(multi) // 第一行 第二行
-    fmt.Println(multi) // 第一行 第二行 (multi 包含换行符)
-
+    fmt.Println(multi) 
+    // 第一行
+	// 第二行
+    fmt.Println(multi)
+    // 第一行
+	// 第二行
+}
 
 ```
 
@@ -2121,6 +2127,9 @@ func main() {
         age     int
         address string
     )
+    _ = name
+    _ = age
+    _ = address
 
     // 映射字面量对齐
     scores := map[string]int{
@@ -2128,9 +2137,10 @@ func main() {
         "Bob":     95,
         "Charlie": 88,
     }
+    _ = scores
 
-    fmt.Println("Person:", Person{Name: "张三", Age: 25, Address: "北京"}) // Person: {Name:张三 Age:25 Address:北京}
-    fmt.Println("Person:", Person{Name: "张三", Age: 25, Address: "北京"}) // Person: {Name:张三 Age:25 Address:北京}
+    fmt.Println("Person:", Person{Name: "张三", Age: 25, Address: "北京"}) // Person: {张三 25 北京}
+    fmt.Println("Person:", Person{Name: "张三", Age: 25, Address: "北京"}) // Person: {张三 25 北京}
 }
 
 ```
@@ -2198,7 +2208,7 @@ var maxSize int = 100        // 导出变量
 func main() {
     // 局部变量可以短一些
     for i := 0; i < 10; i++ {
-        fmt.Println("i =", i) // i = 0
+        fmt.Println("i =", i) 
     }
 
     // 有意义的变量名
