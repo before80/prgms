@@ -1,0 +1,1020 @@
+<!doctype html><html itemscope itemtype=http://schema.org/WebPage lang=zh-cn class=no-js data-theme-init><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=color-scheme content="light dark"><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#000000"><style>html{background:Canvas;color:CanvasText}@media(prefers-color-scheme:dark){html{background:#0b0d12;color:#e6e6e6}}html[data-theme-init] *{transition:none!important}</style><script>(function(){const t="td-color-theme",n=localStorage.getItem(t);let e=n||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");e==="auto"&&(e=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),document.documentElement.setAttribute("data-bs-theme",e)})()</script><meta name=robots content="index, follow"><link rel="shortcut icon" href=/prgms/favicons/favicon.ico><link rel=apple-touch-icon href=/prgms/favicons/apple-touch-icon-180x180.png sizes=180x180><link rel=icon type=image/png href=/prgms/favicons/favicon-16x16.png sizes=16x16><link rel=icon type=image/png href=/prgms/favicons/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=/prgms/favicons/android-36x36.png sizes=36x36><link rel=icon type=image/png href=/prgms/favicons/android-48x48.png sizes=48x48><link rel=icon type=image/png href=/prgms/favicons/android-72x72.png sizes=72x72><link rel=icon type=image/png href=/prgms/favicons/android-96x96.png sizes=96x96><link rel=icon type=image/png href=/prgms/favicons/android-144x144.png sizes=144x144><link rel=icon type=image/png href=/prgms/favicons/android-192x192.png sizes=192x192><title>第65章：阿里云 | 编程那些事儿</title><meta name=description content='第六十五章：阿里云 65.1 ECS 实例 什么是 ECS？ ECS（Elastic Compute Service）是阿里云的弹性计算服务，说白了就是"云服务器"——你不用买服务器，直接在云上租一台来用。'><meta property="og:url" content="https://before80.github.io/prgms/linux/cloud_cal/Chapter-65-ALIYUN/"><meta property="og:site_name" content="编程那些事儿"><meta property="og:title" content="第65章：阿里云"><meta property="og:description" content='第六十五章：阿里云 65.1 ECS 实例 什么是 ECS？ ECS（Elastic Compute Service）是阿里云的弹性计算服务，说白了就是"云服务器"——你不用买服务器，直接在云上租一台来用。'><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="linux"><meta property="article:published_time" content="2026-03-24T13:18:28+08:00"><meta property="article:modified_time" content="2026-03-24T22:14:42+08:00"><meta itemprop=name content="第65章：阿里云"><meta itemprop=description content='第六十五章：阿里云 65.1 ECS 实例 什么是 ECS？ ECS（Elastic Compute Service）是阿里云的弹性计算服务，说白了就是"云服务器"——你不用买服务器，直接在云上租一台来用。'><meta itemprop=datePublished content="2026-03-24T13:18:28+08:00"><meta itemprop=dateModified content="2026-03-24T22:14:42+08:00"><meta itemprop=wordCount content="4703"><meta name=twitter:card content="summary"><meta name=twitter:title content="第65章：阿里云"><meta name=twitter:description content='第六十五章：阿里云 65.1 ECS 实例 什么是 ECS？ ECS（Elastic Compute Service）是阿里云的弹性计算服务，说白了就是"云服务器"——你不用买服务器，直接在云上租一台来用。'><link rel=preload href=/prgms/scss/main.min.6493eeac8161e52866670fd3d82fea10f8b9f1ca39f8f69aaf1021c77867b96c.css as=style integrity="sha256-ZJPurIFh5ShmZw/T2C/qEPi58co5+PaarxAhx3hnuWw=" crossorigin=anonymous><link href=/prgms/scss/main.min.6493eeac8161e52866670fd3d82fea10f8b9f1ca39f8f69aaf1021c77867b96c.css rel=stylesheet integrity="sha256-ZJPurIFh5ShmZw/T2C/qEPi58co5+PaarxAhx3hnuWw=" crossorigin=anonymous><link href=/go_docs/css/extra.css rel=stylesheet><script src=https://code.jquery.com/jquery-3.7.1.min.js integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin=anonymous></script><link rel=stylesheet href=https://unpkg.com/@docsearch/css@3.8.2/dist/style.css integrity="sha512-l7pkV1dOURFyHCeH8I4fK9lCkQKuqhlsTCqRl3zktifDlB8oTUJ+mJPgYkK9kHpUut8j1iPquTv32t6hvTPv3g==" crossorigin=anonymous></head><body class=td-page><header><nav class="td-navbar js-navbar-scroll"><div class="td-navbar-container container-fluid flex-column flex-md-row"><a class=navbar-brand href=/prgms/><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class=navbar-brand__name>编程那些事儿</span></a><div class="td-navbar-nav-scroll td-navbar-nav-scroll--indicator" id=main_navbar><div class="scroll-indicator scroll-left"></div><ul class=navbar-nav><li class="nav-item mr-4 mb-2 mb-lg-0"><a class=nav-link href=javascript:; id=show-timer style=color:#fe4512f5!important></a></li><li class=nav-item><a class=nav-link href=/prgms/docs/><span>文档</span></a></li><li class=nav-item><a class=nav-link href=/prgms/go/><span>Go</span></a></li><li class=nav-item><a class="nav-link active" href=/prgms/linux/><span>Linux</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Js/><span>JavaScript</span></a></li><li class="nav-item td-navbar__light-dark-menu"><div class="td-light-dark-menu dropdown"><svg class="d-none"><symbol id="check2" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5.0 010 .708l-7 7a.5.5.0 01-.708.0l-3.5-3.5a.5.5.0 11.708-.708L6.5 10.293l6.646-6.647a.5.5.0 01.708.0z"/></symbol><symbol id="circle-half" viewBox="0 0 16 16"><path d="M8 15A7 7 0 108 1v14zm0 1A8 8 0 118 0a8 8 0 010 16z"/></symbol><symbol id="moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.768.768.0 01.08.858 7.208 7.208.0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527.0 1.04-.055 1.533-.16a.787.787.0 01.81.316.733.733.0 01-.031.893A8.349 8.349.0 018.344 16C3.734 16 0 12.286.0 7.71.0 4.266 2.114 1.312 5.124.06A.752.752.0 016 .278z"/><path d="M10.794 3.148a.217.217.0 01.412.0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217.0 010 .412l-1.162.387A1.734 1.734.0 0011.593 7.69l-.387 1.162a.217.217.0 01-.412.0l-.387-1.162A1.734 1.734.0 009.31 6.593l-1.162-.387a.217.217.0 010-.412l1.162-.387a1.734 1.734.0 001.097-1.097l.387-1.162zM13.863.099a.145.145.0 01.274.0l.258.774c.115.346.386.617.732.732l.774.258a.145.145.0 010 .274l-.774.258a1.156 1.156.0 00-.732.732l-.258.774a.145.145.0 01-.274.0l-.258-.774a1.156 1.156.0 00-.732-.732l-.774-.258a.145.145.0 010-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/></symbol><symbol id="sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 0zm0 13a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 13zm8-5a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2a.5.5.0 01.5.5zM3 8a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2A.5.5.0 013 8zm10.657-5.657a.5.5.0 010 .707l-1.414 1.415a.5.5.0 11-.707-.708l1.414-1.414a.5.5.0 01.707.0zm-9.193 9.193a.5.5.0 010 .707L3.05 13.657a.5.5.0 01-.707-.707l1.414-1.414a.5.5.0 01.707.0zm9.193 2.121a.5.5.0 01-.707.0l-1.414-1.414a.5.5.0 01.707-.707l1.414 1.414a.5.5.0 010 .707zM4.464 4.465a.5.5.0 01-.707.0L2.343 3.05a.5.5.0 11.707-.707l1.414 1.414a.5.5.0 010 .708z"/></symbol></svg>
+<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" id=bd-theme type=button aria-expanded=false data-bs-toggle=dropdown aria-label="Toggle theme (auto)">
+<svg class="bi my-1 theme-icon-active"><use href="#circle-half"/></svg></button><ul class=dropdown-menu aria-labelledby=bd-theme><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=light aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#sun-fill"/></svg>
+Light
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=dark aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"/></svg>
+Dark
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center active" data-bs-theme-value=auto aria-pressed=true>
+<svg class="bi me-2 opacity-50"><use href="#circle-half"/></svg>
+Auto
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul></div></li></ul><div class="scroll-indicator scroll-right"></div></div><div class="d-none d-lg-block td-navbar__search"><div class=td-search><div class=td-search--algolia id=docsearch-1></div></div></div></div></nav></header><div class="container-fluid td-outer"><div class=td-main data-bs-spy=scroll data-bs-target=.td-toc data-bs-root-margin="0px 0px -10%"><div class="row flex-xl-nowrap"><aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none"><div id=td-sidebar-menu class=td-sidebar__inner><form class="td-sidebar__search d-flex align-items-center"><div class=td-search><div class=td-search--algolia id=docsearch-0></div></div><button class="btn btn-link td-sidebar__toggle" type=button data-bs-toggle=collapse data-bs-target=#td-section-nav aria-controls=td-section-nav aria-expanded=false aria-label="Toggle section navigation"></button></form><nav class="td-sidebar-nav collapse foldable-nav" id=td-section-nav data-sidebar-root-id=/prgms/linux/><ul class="td-sidebar-nav__section pe-md-3 ul-0"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-prgmslinux-li><a href=/prgms/linux/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id=m-prgmslinux><span>Linux</span></a><ul class=ul-1><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxbasic-li><input type=checkbox id=m-prgmslinuxbasic-check>
+<label for=m-prgmslinuxbasic-check><a href=/prgms/linux/basic/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxbasic><span>第1卷：计算机基础与 Linux 起源</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxbasicchapter-01-computer-history-li><input type=checkbox id=m-prgmslinuxbasicchapter-01-computer-history-check>
+<label for=m-prgmslinuxbasicchapter-01-computer-history-check><a href=/prgms/linux/basic/Chapter-01-Computer-History/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxbasicchapter-01-computer-history><span>第1章：计算机发展简史</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxbasicchapter-02-linux-introduction-li><input type=checkbox id=m-prgmslinuxbasicchapter-02-linux-introduction-check>
+<label for=m-prgmslinuxbasicchapter-02-linux-introduction-check><a href=/prgms/linux/basic/Chapter-02-Linux-Introduction/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxbasicchapter-02-linux-introduction><span>第2章：Linux 简介与生态</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxinstall-li><input type=checkbox id=m-prgmslinuxinstall-check>
+<label for=m-prgmslinuxinstall-check><a href=/prgms/linux/install/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxinstall><span>第2卷：环境准备与安装</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxinstallchapter-03-choosing-and-installing-linux-li><input type=checkbox id=m-prgmslinuxinstallchapter-03-choosing-and-installing-linux-check>
+<label for=m-prgmslinuxinstallchapter-03-choosing-and-installing-linux-check><a href=/prgms/linux/install/Chapter-03-choosing-and-installing-linux/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxinstallchapter-03-choosing-and-installing-linux><span>第3章：选择与安装 Linux</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxinstallchapter-04-linux-desktop-environment-introduction-li><input type=checkbox id=m-prgmslinuxinstallchapter-04-linux-desktop-environment-introduction-check>
+<label for=m-prgmslinuxinstallchapter-04-linux-desktop-environment-introduction-check><a href=/prgms/linux/install/Chapter-04-linux-desktop-environment-introduction/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxinstallchapter-04-linux-desktop-environment-introduction><span>第4章：Linux 桌面环境入门</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxcli_basic-li><input type=checkbox id=m-prgmslinuxcli_basic-check>
+<label for=m-prgmslinuxcli_basic-check><a href=/prgms/linux/cli_basic/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxcli_basic><span>第3卷：命令行基础</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcli_basicchapter-05-terminal-and-shell-introduction-li><input type=checkbox id=m-prgmslinuxcli_basicchapter-05-terminal-and-shell-introduction-check>
+<label for=m-prgmslinuxcli_basicchapter-05-terminal-and-shell-introduction-check><a href=/prgms/linux/cli_basic/Chapter-05-Terminal-and-Shell-Introduction/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcli_basicchapter-05-terminal-and-shell-introduction><span>第5章：终端与 Shell 入门</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcli_basicchapter-06-file-and-directory-operations-li><input type=checkbox id=m-prgmslinuxcli_basicchapter-06-file-and-directory-operations-check>
+<label for=m-prgmslinuxcli_basicchapter-06-file-and-directory-operations-check><a href=/prgms/linux/cli_basic/Chapter-06-File-and-Directory-Operations/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcli_basicchapter-06-file-and-directory-operations><span>第6章：文件与目录操作</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcli_basicchapter-07-file-viewing-and-editors-li><input type=checkbox id=m-prgmslinuxcli_basicchapter-07-file-viewing-and-editors-check>
+<label for=m-prgmslinuxcli_basicchapter-07-file-viewing-and-editors-check><a href=/prgms/linux/cli_basic/Chapter-07-File-Viewing-and-Editors/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcli_basicchapter-07-file-viewing-and-editors><span>第7章：文件查看与编辑器</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcli_basicchapter-08-file-finding-and-text-searching-li><input type=checkbox id=m-prgmslinuxcli_basicchapter-08-file-finding-and-text-searching-check>
+<label for=m-prgmslinuxcli_basicchapter-08-file-finding-and-text-searching-check><a href=/prgms/linux/cli_basic/Chapter-08-File-Finding-and-Text-Searching/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcli_basicchapter-08-file-finding-and-text-searching><span>第8章：文件查找与文本搜索</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcli_basicchapter-09-pipes-and-redirection-li><input type=checkbox id=m-prgmslinuxcli_basicchapter-09-pipes-and-redirection-check>
+<label for=m-prgmslinuxcli_basicchapter-09-pipes-and-redirection-check><a href=/prgms/linux/cli_basic/Chapter-09-Pipes-and-Redirection/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcli_basicchapter-09-pipes-and-redirection><span>第9章：管道与重定向</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcli_basicchapter-10-compression-and-archiving-li><input type=checkbox id=m-prgmslinuxcli_basicchapter-10-compression-and-archiving-check>
+<label for=m-prgmslinuxcli_basicchapter-10-compression-and-archiving-check><a href=/prgms/linux/cli_basic/Chapter-10-Compression-and-Archiving/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcli_basicchapter-10-compression-and-archiving><span>第10章：压缩与归档</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxfile_system_basic-li><input type=checkbox id=m-prgmslinuxfile_system_basic-check>
+<label for=m-prgmslinuxfile_system_basic-check><a href=/prgms/linux/file_system_basic/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxfile_system_basic><span>第4卷：文件系统的奥秘</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxfile_system_basicchapter-11-filesystem-basics-li><input type=checkbox id=m-prgmslinuxfile_system_basicchapter-11-filesystem-basics-check>
+<label for=m-prgmslinuxfile_system_basicchapter-11-filesystem-basics-check><a href=/prgms/linux/file_system_basic/Chapter-11-Filesystem-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxfile_system_basicchapter-11-filesystem-basics><span>第11章：文件系统基础</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxfile_system_basicchapter-12-linux-directory-structure-li><input type=checkbox id=m-prgmslinuxfile_system_basicchapter-12-linux-directory-structure-check>
+<label for=m-prgmslinuxfile_system_basicchapter-12-linux-directory-structure-check><a href=/prgms/linux/file_system_basic/Chapter-12-Linux-Directory-Structure/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxfile_system_basicchapter-12-linux-directory-structure><span>第12章：Linux 目录结构详解</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxfile_system_basicchapter-13-disk-management-li><input type=checkbox id=m-prgmslinuxfile_system_basicchapter-13-disk-management-check>
+<label for=m-prgmslinuxfile_system_basicchapter-13-disk-management-check><a href=/prgms/linux/file_system_basic/Chapter-13-Disk-Management/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxfile_system_basicchapter-13-disk-management><span>第13章：磁盘管理入门</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxfile_system_basicchapter-14-linking-files-li><input type=checkbox id=m-prgmslinuxfile_system_basicchapter-14-linking-files-check>
+<label for=m-prgmslinuxfile_system_basicchapter-14-linking-files-check><a href=/prgms/linux/file_system_basic/Chapter-14-Linking-Files/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxfile_system_basicchapter-14-linking-files><span>第14章：链接文件</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxuser_auth-li><input type=checkbox id=m-prgmslinuxuser_auth-check>
+<label for=m-prgmslinuxuser_auth-check><a href=/prgms/linux/user_auth/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxuser_auth><span>第5卷：用户与权限</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxuser_authchapter-15-user-management-basics-li><input type=checkbox id=m-prgmslinuxuser_authchapter-15-user-management-basics-check>
+<label for=m-prgmslinuxuser_authchapter-15-user-management-basics-check><a href=/prgms/linux/user_auth/Chapter-15-User-Management-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxuser_authchapter-15-user-management-basics><span>第15章：用户管理基础</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxuser_authchapter-16-user-group-management-li><input type=checkbox id=m-prgmslinuxuser_authchapter-16-user-group-management-check>
+<label for=m-prgmslinuxuser_authchapter-16-user-group-management-check><a href=/prgms/linux/user_auth/Chapter-16-User-Group-Management/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxuser_authchapter-16-user-group-management><span>第16章：用户组管理</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxuser_authchapter-17-sudo-permission-management-li><input type=checkbox id=m-prgmslinuxuser_authchapter-17-sudo-permission-management-check>
+<label for=m-prgmslinuxuser_authchapter-17-sudo-permission-management-check><a href=/prgms/linux/user_auth/Chapter-17-sudo-Permission-Management/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxuser_authchapter-17-sudo-permission-management><span>第17章：sudo 权限管理</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxuser_authchapter-18-file-permission-details-li><input type=checkbox id=m-prgmslinuxuser_authchapter-18-file-permission-details-check>
+<label for=m-prgmslinuxuser_authchapter-18-file-permission-details-check><a href=/prgms/linux/user_auth/Chapter-18-File-Permission-Details/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxuser_authchapter-18-file-permission-details><span>第18章：文件权限详解</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxuser_authchapter-19-special-permissions-and-acl-li><input type=checkbox id=m-prgmslinuxuser_authchapter-19-special-permissions-and-acl-check>
+<label for=m-prgmslinuxuser_authchapter-19-special-permissions-and-acl-check><a href=/prgms/linux/user_auth/Chapter-19-Special-Permissions-and-ACL/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxuser_authchapter-19-special-permissions-and-acl><span>第19章：特殊权限与 ACL</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxsoftware_manage-li><input type=checkbox id=m-prgmslinuxsoftware_manage-check>
+<label for=m-prgmslinuxsoftware_manage-check><a href=/prgms/linux/software_manage/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxsoftware_manage><span>第6卷：软件包管理</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxsoftware_managechapter-20-package-manager-overview-li><input type=checkbox id=m-prgmslinuxsoftware_managechapter-20-package-manager-overview-check>
+<label for=m-prgmslinuxsoftware_managechapter-20-package-manager-overview-check><a href=/prgms/linux/software_manage/Chapter-20-Package-Manager-Overview/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxsoftware_managechapter-20-package-manager-overview><span>第20章：包管理器概述</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxsoftware_managechapter-21-ubuntu-debian-package-management-apt-li><input type=checkbox id=m-prgmslinuxsoftware_managechapter-21-ubuntu-debian-package-management-apt-check>
+<label for=m-prgmslinuxsoftware_managechapter-21-ubuntu-debian-package-management-apt-check><a href=/prgms/linux/software_manage/Chapter-21-Ubuntu-Debian-Package-Management-APT/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxsoftware_managechapter-21-ubuntu-debian-package-management-apt><span>第21章：Ubuntu/Debian 包管理（APT）</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxsoftware_managechapter-22-apt-fast-multi-threaded-acceleration-li><input type=checkbox id=m-prgmslinuxsoftware_managechapter-22-apt-fast-multi-threaded-acceleration-check>
+<label for=m-prgmslinuxsoftware_managechapter-22-apt-fast-multi-threaded-acceleration-check><a href=/prgms/linux/software_manage/Chapter-22-apt-fast-Multi-threaded-Acceleration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxsoftware_managechapter-22-apt-fast-multi-threaded-acceleration><span>第22章：apt-fast 多线程加速</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxsoftware_managechapter-23-redhat-centos-package-management-yum-dnf-li><input type=checkbox id=m-prgmslinuxsoftware_managechapter-23-redhat-centos-package-management-yum-dnf-check>
+<label for=m-prgmslinuxsoftware_managechapter-23-redhat-centos-package-management-yum-dnf-check><a href=/prgms/linux/software_manage/Chapter-23-RedHat-CentOS-Package-Management-YUM-DNF/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxsoftware_managechapter-23-redhat-centos-package-management-yum-dnf><span>第23章：RedHat/CentOS 包管理（YUM/DNF）</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxsoftware_managechapter-24-other-package-management-methods-li><input type=checkbox id=m-prgmslinuxsoftware_managechapter-24-other-package-management-methods-check>
+<label for=m-prgmslinuxsoftware_managechapter-24-other-package-management-methods-check><a href=/prgms/linux/software_manage/Chapter-24-Other-Package-Management-Methods/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxsoftware_managechapter-24-other-package-management-methods><span>第24章：其他包管理方式</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxprocess_service-li><input type=checkbox id=m-prgmslinuxprocess_service-check>
+<label for=m-prgmslinuxprocess_service-check><a href=/prgms/linux/process_service/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxprocess_service><span>第7卷：进程与服务管理</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxprocess_servicechapter-25-process-basics-li><input type=checkbox id=m-prgmslinuxprocess_servicechapter-25-process-basics-check>
+<label for=m-prgmslinuxprocess_servicechapter-25-process-basics-check><a href=/prgms/linux/process_service/Chapter-25-Process-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxprocess_servicechapter-25-process-basics><span>第25章：进程基础</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxprocess_servicechapter-26-process-control-li><input type=checkbox id=m-prgmslinuxprocess_servicechapter-26-process-control-check>
+<label for=m-prgmslinuxprocess_servicechapter-26-process-control-check><a href=/prgms/linux/process_service/Chapter-26-Process-Control/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxprocess_servicechapter-26-process-control><span>第26章：进程控制</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxprocess_servicechapter-27-service-management-systemd-li><input type=checkbox id=m-prgmslinuxprocess_servicechapter-27-service-management-systemd-check>
+<label for=m-prgmslinuxprocess_servicechapter-27-service-management-systemd-check><a href=/prgms/linux/process_service/Chapter-27-Service-Management-Systemd/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxprocess_servicechapter-27-service-management-systemd><span>第27章：服务管理（Systemd）</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxprocess_servicechapter-28-scheduled-tasks-li><input type=checkbox id=m-prgmslinuxprocess_servicechapter-28-scheduled-tasks-check>
+<label for=m-prgmslinuxprocess_servicechapter-28-scheduled-tasks-check><a href=/prgms/linux/process_service/Chapter-28-Scheduled-Tasks/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxprocess_servicechapter-28-scheduled-tasks><span>第28章：定时任务</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxnet_basic-li><input type=checkbox id=m-prgmslinuxnet_basic-check>
+<label for=m-prgmslinuxnet_basic-check><a href=/prgms/linux/net_basic/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxnet_basic><span>第8卷：网络基础</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxnet_basicchapter-29-network-fundamentals-li><input type=checkbox id=m-prgmslinuxnet_basicchapter-29-network-fundamentals-check>
+<label for=m-prgmslinuxnet_basicchapter-29-network-fundamentals-check><a href=/prgms/linux/net_basic/Chapter-29-Network-Fundamentals/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxnet_basicchapter-29-network-fundamentals><span>第29章：网络基础概念</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxnet_basicchapter-30-network-configuration-li><input type=checkbox id=m-prgmslinuxnet_basicchapter-30-network-configuration-check>
+<label for=m-prgmslinuxnet_basicchapter-30-network-configuration-check><a href=/prgms/linux/net_basic/Chapter-30-Network-Configuration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxnet_basicchapter-30-network-configuration><span>第30章：网络配置</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxnet_basicchapter-31-network-diagnostic-tools-li><input type=checkbox id=m-prgmslinuxnet_basicchapter-31-network-diagnostic-tools-check>
+<label for=m-prgmslinuxnet_basicchapter-31-network-diagnostic-tools-check><a href=/prgms/linux/net_basic/Chapter-31-Network-Diagnostic-Tools/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxnet_basicchapter-31-network-diagnostic-tools><span>第31章：网络诊断工具</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxnet_basicchapter-32-ssh-remote-management-li><input type=checkbox id=m-prgmslinuxnet_basicchapter-32-ssh-remote-management-check>
+<label for=m-prgmslinuxnet_basicchapter-32-ssh-remote-management-check><a href=/prgms/linux/net_basic/Chapter-32-SSH-Remote-Management/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxnet_basicchapter-32-ssh-remote-management><span>第32章：SSH 远程管理</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxnet_basicchapter-33-dns-server-li><input type=checkbox id=m-prgmslinuxnet_basicchapter-33-dns-server-check>
+<label for=m-prgmslinuxnet_basicchapter-33-dns-server-check><a href=/prgms/linux/net_basic/Chapter-33-DNS-Server/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxnet_basicchapter-33-dns-server><span>第33章：DNS 服务器</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxfirewall_safe-li><input type=checkbox id=m-prgmslinuxfirewall_safe-check>
+<label for=m-prgmslinuxfirewall_safe-check><a href=/prgms/linux/firewall_safe/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxfirewall_safe><span>第9卷：防火墙与安全</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxfirewall_safechapter-34-firewall-basics-li><input type=checkbox id=m-prgmslinuxfirewall_safechapter-34-firewall-basics-check>
+<label for=m-prgmslinuxfirewall_safechapter-34-firewall-basics-check><a href=/prgms/linux/firewall_safe/Chapter-34-Firewall-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxfirewall_safechapter-34-firewall-basics><span>第34章：防火墙基础</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxfirewall_safechapter-35-ufw-firewall-li><input type=checkbox id=m-prgmslinuxfirewall_safechapter-35-ufw-firewall-check>
+<label for=m-prgmslinuxfirewall_safechapter-35-ufw-firewall-check><a href=/prgms/linux/firewall_safe/Chapter-35-UFW-Firewall/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxfirewall_safechapter-35-ufw-firewall><span>第35章：UFW 防火墙（Ubuntu）</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxfirewall_safechapter-36-firewalld-li><input type=checkbox id=m-prgmslinuxfirewall_safechapter-36-firewalld-check>
+<label for=m-prgmslinuxfirewall_safechapter-36-firewalld-check><a href=/prgms/linux/firewall_safe/Chapter-36-firewalld/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxfirewall_safechapter-36-firewalld><span>第36章：firewalld 防火墙（CentOS/RHEL）</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxfirewall_safechapter-37-iptables-li><input type=checkbox id=m-prgmslinuxfirewall_safechapter-37-iptables-check>
+<label for=m-prgmslinuxfirewall_safechapter-37-iptables-check><a href=/prgms/linux/firewall_safe/Chapter-37-iptables/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxfirewall_safechapter-37-iptables><span>第37章：iptables 底层配置</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxfirewall_safechapter-38-system-security-hardening-li><input type=checkbox id=m-prgmslinuxfirewall_safechapter-38-system-security-hardening-check>
+<label for=m-prgmslinuxfirewall_safechapter-38-system-security-hardening-check><a href=/prgms/linux/firewall_safe/Chapter-38-System-Security-Hardening/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxfirewall_safechapter-38-system-security-hardening><span>第38章：系统安全加固</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxweb_service-li><input type=checkbox id=m-prgmslinuxweb_service-check>
+<label for=m-prgmslinuxweb_service-check><a href=/prgms/linux/web_service/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxweb_service><span>第10卷：Web 服务器</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxweb_servicechapter-39-web-server-fundamentals-li><input type=checkbox id=m-prgmslinuxweb_servicechapter-39-web-server-fundamentals-check>
+<label for=m-prgmslinuxweb_servicechapter-39-web-server-fundamentals-check><a href=/prgms/linux/web_service/Chapter-39-Web-Server-Fundamentals/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxweb_servicechapter-39-web-server-fundamentals><span>第39章：Web 服务器基础</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxweb_servicechapter-40-nginx-in-depth-li><input type=checkbox id=m-prgmslinuxweb_servicechapter-40-nginx-in-depth-check>
+<label for=m-prgmslinuxweb_servicechapter-40-nginx-in-depth-check><a href=/prgms/linux/web_service/Chapter-40-Nginx-In-Depth/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxweb_servicechapter-40-nginx-in-depth><span>第40章：Nginx 深入详解</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxweb_servicechapter-41-apache-li><input type=checkbox id=m-prgmslinuxweb_servicechapter-41-apache-check>
+<label for=m-prgmslinuxweb_servicechapter-41-apache-check><a href=/prgms/linux/web_service/Chapter-41-Apache/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxweb_servicechapter-41-apache><span>第41章：Apache</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxweb_servicechapter-42-lamp-lemp-environment-li><input type=checkbox id=m-prgmslinuxweb_servicechapter-42-lamp-lemp-environment-check>
+<label for=m-prgmslinuxweb_servicechapter-42-lamp-lemp-environment-check><a href=/prgms/linux/web_service/Chapter-42-LAMP-LEMP-Environment/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxweb_servicechapter-42-lamp-lemp-environment><span>第42章：LAMP/LEMP 环境搭建</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxweb_servicechapter-43-database-basics-li><input type=checkbox id=m-prgmslinuxweb_servicechapter-43-database-basics-check>
+<label for=m-prgmslinuxweb_servicechapter-43-database-basics-check><a href=/prgms/linux/web_service/Chapter-43-Database-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxweb_servicechapter-43-database-basics><span>第43章：数据库基础</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxdatabase-li><input type=checkbox id=m-prgmslinuxdatabase-check>
+<label for=m-prgmslinuxdatabase-check><a href=/prgms/linux/database/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxdatabase><span>第11卷：数据库</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxdatabasechapter-43-database-basics-li><input type=checkbox id=m-prgmslinuxdatabasechapter-43-database-basics-check>
+<label for=m-prgmslinuxdatabasechapter-43-database-basics-check><a href=/prgms/linux/database/Chapter-43-Database-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxdatabasechapter-43-database-basics><span>第43章：数据库基础</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxdatabasechapter-44-mysql-and-mariadb-li><input type=checkbox id=m-prgmslinuxdatabasechapter-44-mysql-and-mariadb-check>
+<label for=m-prgmslinuxdatabasechapter-44-mysql-and-mariadb-check><a href=/prgms/linux/database/Chapter-44-MySQL-and-MariaDB/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxdatabasechapter-44-mysql-and-mariadb><span>第44章：MySQL/MariaDB</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxdatabasechapter-45-postgresql-li><input type=checkbox id=m-prgmslinuxdatabasechapter-45-postgresql-check>
+<label for=m-prgmslinuxdatabasechapter-45-postgresql-check><a href=/prgms/linux/database/Chapter-45-PostgreSQL/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxdatabasechapter-45-postgresql><span>第45章：PostgreSQL</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxdatabasechapter-46-redis-li><input type=checkbox id=m-prgmslinuxdatabasechapter-46-redis-check>
+<label for=m-prgmslinuxdatabasechapter-46-redis-check><a href=/prgms/linux/database/Chapter-46-Redis/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxdatabasechapter-46-redis><span>第46章：Redis</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxdatabasechapter-47-message-queue-li><input type=checkbox id=m-prgmslinuxdatabasechapter-47-message-queue-check>
+<label for=m-prgmslinuxdatabasechapter-47-message-queue-check><a href=/prgms/linux/database/Chapter-47-Message-Queue/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxdatabasechapter-47-message-queue><span>第47章：消息队列</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxcontainer-li><input type=checkbox id=m-prgmslinuxcontainer-check>
+<label for=m-prgmslinuxcontainer-check><a href=/prgms/linux/container/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxcontainer><span>第12卷：容器技术</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcontainerchapter-48-container-basics-li><input type=checkbox id=m-prgmslinuxcontainerchapter-48-container-basics-check>
+<label for=m-prgmslinuxcontainerchapter-48-container-basics-check><a href=/prgms/linux/container/Chapter-48-Container-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcontainerchapter-48-container-basics><span>第48章：容器基础概念</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcontainerchapter-49-docker-basics-li><input type=checkbox id=m-prgmslinuxcontainerchapter-49-docker-basics-check>
+<label for=m-prgmslinuxcontainerchapter-49-docker-basics-check><a href=/prgms/linux/container/Chapter-49-Docker-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcontainerchapter-49-docker-basics><span>第49章：Docker 入门</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcontainerchapter-50-docker-advanced-li><input type=checkbox id=m-prgmslinuxcontainerchapter-50-docker-advanced-check>
+<label for=m-prgmslinuxcontainerchapter-50-docker-advanced-check><a href=/prgms/linux/container/Chapter-50-Docker-Advanced/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcontainerchapter-50-docker-advanced><span>第50章：Docker 进阶</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcontainerchapter-51-containerd-and-podman-li><input type=checkbox id=m-prgmslinuxcontainerchapter-51-containerd-and-podman-check>
+<label for=m-prgmslinuxcontainerchapter-51-containerd-and-podman-check><a href=/prgms/linux/container/Chapter-51-Containerd-and-Podman/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcontainerchapter-51-containerd-and-podman><span>第51章：Containerd 与 Podman</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcontainerchapter-52-kubernetes-li><input type=checkbox id=m-prgmslinuxcontainerchapter-52-kubernetes-check>
+<label for=m-prgmslinuxcontainerchapter-52-kubernetes-check><a href=/prgms/linux/container/Chapter-52-Kubernetes/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcontainerchapter-52-kubernetes><span>第52章：Kubernetes</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxshell-li><input type=checkbox id=m-prgmslinuxshell-check>
+<label for=m-prgmslinuxshell-check><a href=/prgms/linux/shell/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxshell><span>第13卷：Shell 脚本编程</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxshellchapter-53-bash-scripting-basics-li><input type=checkbox id=m-prgmslinuxshellchapter-53-bash-scripting-basics-check>
+<label for=m-prgmslinuxshellchapter-53-bash-scripting-basics-check><a href=/prgms/linux/shell/Chapter-53-Bash-Scripting-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxshellchapter-53-bash-scripting-basics><span>第53章：Bash 脚本基础</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxshellchapter-54-bash-scripting-advanced-li><input type=checkbox id=m-prgmslinuxshellchapter-54-bash-scripting-advanced-check>
+<label for=m-prgmslinuxshellchapter-54-bash-scripting-advanced-check><a href=/prgms/linux/shell/Chapter-54-Bash-Scripting-Advanced/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxshellchapter-54-bash-scripting-advanced><span>第54章：Bash 脚本进阶</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxversion_ctrl-li><input type=checkbox id=m-prgmslinuxversion_ctrl-check>
+<label for=m-prgmslinuxversion_ctrl-check><a href=/prgms/linux/version_ctrl/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxversion_ctrl><span>第14卷：版本控制</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxversion_ctrlchapter-55-git-basics-li><input type=checkbox id=m-prgmslinuxversion_ctrlchapter-55-git-basics-check>
+<label for=m-prgmslinuxversion_ctrlchapter-55-git-basics-check><a href=/prgms/linux/version_ctrl/Chapter-55-Git-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxversion_ctrlchapter-55-git-basics><span>第55章：Git 基础</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxversion_ctrlchapter-56-git-advanced-li><input type=checkbox id=m-prgmslinuxversion_ctrlchapter-56-git-advanced-check>
+<label for=m-prgmslinuxversion_ctrlchapter-56-git-advanced-check><a href=/prgms/linux/version_ctrl/Chapter-56-Git-Advanced/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxversion_ctrlchapter-56-git-advanced><span>第56章：Git 进阶与远程协作</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxmonitor_log-li><input type=checkbox id=m-prgmslinuxmonitor_log-check>
+<label for=m-prgmslinuxmonitor_log-check><a href=/prgms/linux/monitor_log/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxmonitor_log><span>第15卷：监控与日志</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxmonitor_logchapter-57-system-monitoring-li><input type=checkbox id=m-prgmslinuxmonitor_logchapter-57-system-monitoring-check>
+<label for=m-prgmslinuxmonitor_logchapter-57-system-monitoring-check><a href=/prgms/linux/monitor_log/Chapter-57-System-Monitoring/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxmonitor_logchapter-57-system-monitoring><span>第57章：系统监控</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxmonitor_logchapter-58-log-management-li><input type=checkbox id=m-prgmslinuxmonitor_logchapter-58-log-management-check>
+<label for=m-prgmslinuxmonitor_logchapter-58-log-management-check><a href=/prgms/linux/monitor_log/Chapter-58-Log-Management/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxmonitor_logchapter-58-log-management><span>第58章：日志管理</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxbak_recover-li><input type=checkbox id=m-prgmslinuxbak_recover-check>
+<label for=m-prgmslinuxbak_recover-check><a href=/prgms/linux/bak_recover/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxbak_recover><span>第16卷：备份与恢复</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxbak_recoverchapter-59-data-backup-li><input type=checkbox id=m-prgmslinuxbak_recoverchapter-59-data-backup-check>
+<label for=m-prgmslinuxbak_recoverchapter-59-data-backup-check><a href=/prgms/linux/bak_recover/Chapter-59-Data-Backup/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxbak_recoverchapter-59-data-backup><span>第59章：数据备份</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxbak_recoverchapter-60-data-recovery-li><input type=checkbox id=m-prgmslinuxbak_recoverchapter-60-data-recovery-check>
+<label for=m-prgmslinuxbak_recoverchapter-60-data-recovery-check><a href=/prgms/linux/bak_recover/Chapter-60-Data-Recovery/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxbak_recoverchapter-60-data-recovery><span>第60章：数据恢复</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxauto_maintenance-li><input type=checkbox id=m-prgmslinuxauto_maintenance-check>
+<label for=m-prgmslinuxauto_maintenance-check><a href=/prgms/linux/auto_maintenance/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxauto_maintenance><span>第17卷：自动化运维</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxauto_maintenancechapter-61-ansible-basics-li><input type=checkbox id=m-prgmslinuxauto_maintenancechapter-61-ansible-basics-check>
+<label for=m-prgmslinuxauto_maintenancechapter-61-ansible-basics-check><a href=/prgms/linux/auto_maintenance/Chapter-61-Ansible-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxauto_maintenancechapter-61-ansible-basics><span>第61章：Ansible 入门</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxauto_maintenancechapter-62-automation-tools-li><input type=checkbox id=m-prgmslinuxauto_maintenancechapter-62-automation-tools-check>
+<label for=m-prgmslinuxauto_maintenancechapter-62-automation-tools-check><a href=/prgms/linux/auto_maintenance/Chapter-62-Automation-Tools/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxauto_maintenancechapter-62-automation-tools><span>第62章：其他自动化工具</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxload_balance_high_availability-li><input type=checkbox id=m-prgmslinuxload_balance_high_availability-check>
+<label for=m-prgmslinuxload_balance_high_availability-check><a href=/prgms/linux/load_balance_high_availability/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxload_balance_high_availability><span>第十八卷：负载均衡与高可用</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxload_balance_high_availabilitychapter-63-load-balancing-li><input type=checkbox id=m-prgmslinuxload_balance_high_availabilitychapter-63-load-balancing-check>
+<label for=m-prgmslinuxload_balance_high_availabilitychapter-63-load-balancing-check><a href=/prgms/linux/load_balance_high_availability/Chapter-63-Load-Balancing/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxload_balance_high_availabilitychapter-63-load-balancing><span>第63章：负载均衡</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxload_balance_high_availabilitychapter-64-high-availability-li><input type=checkbox id=m-prgmslinuxload_balance_high_availabilitychapter-64-high-availability-check>
+<label for=m-prgmslinuxload_balance_high_availabilitychapter-64-high-availability-check><a href=/prgms/linux/load_balance_high_availability/Chapter-64-High-Availability/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxload_balance_high_availabilitychapter-64-high-availability><span>第64章：高可用</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-prgmslinuxcloud_cal-li><input type=checkbox id=m-prgmslinuxcloud_cal-check checked>
+<label for=m-prgmslinuxcloud_cal-check><a href=/prgms/linux/cloud_cal/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxcloud_cal><span>第19卷：云计算</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id=m-prgmslinuxcloud_calchapter-65-aliyun-li><input type=checkbox id=m-prgmslinuxcloud_calchapter-65-aliyun-check checked>
+<label for=m-prgmslinuxcloud_calchapter-65-aliyun-check><a href=/prgms/linux/cloud_cal/Chapter-65-ALIYUN/ class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcloud_calchapter-65-aliyun><span class=td-sidebar-nav-active-item>第65章：阿里云</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcloud_calchapter-66-aws-li><input type=checkbox id=m-prgmslinuxcloud_calchapter-66-aws-check>
+<label for=m-prgmslinuxcloud_calchapter-66-aws-check><a href=/prgms/linux/cloud_cal/Chapter-66-AWS/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcloud_calchapter-66-aws><span>第66章：AWS</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcloud_calchapter-67-tencentcloud-li><input type=checkbox id=m-prgmslinuxcloud_calchapter-67-tencentcloud-check>
+<label for=m-prgmslinuxcloud_calchapter-67-tencentcloud-check><a href=/prgms/linux/cloud_cal/Chapter-67-TencentCloud/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcloud_calchapter-67-tencentcloud><span>第67章：腾讯云</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcloud_calchapter-68-iac-li><input type=checkbox id=m-prgmslinuxcloud_calchapter-68-iac-check>
+<label for=m-prgmslinuxcloud_calchapter-68-iac-check><a href=/prgms/linux/cloud_cal/Chapter-68-IaC/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcloud_calchapter-68-iac><span>第68章：IaC（基础设施即代码）</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxcloud_calchapter-69-kvm-qemu-li><input type=checkbox id=m-prgmslinuxcloud_calchapter-69-kvm-qemu-check>
+<label for=m-prgmslinuxcloud_calchapter-69-kvm-qemu-check><a href=/prgms/linux/cloud_cal/Chapter-69-KVM-QEMU/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxcloud_calchapter-69-kvm-qemu><span>第69章：KVM/QEMU 虚拟化</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxvirtualization-li><input type=checkbox id=m-prgmslinuxvirtualization-check>
+<label for=m-prgmslinuxvirtualization-check><a href=/prgms/linux/virtualization/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxvirtualization><span>第20卷：虚拟化</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxvirtualizationchapter-69-kvm-qemu-li><input type=checkbox id=m-prgmslinuxvirtualizationchapter-69-kvm-qemu-check>
+<label for=m-prgmslinuxvirtualizationchapter-69-kvm-qemu-check><a href=/prgms/linux/virtualization/Chapter-69-KVM-QEMU/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxvirtualizationchapter-69-kvm-qemu><span>第69章：KVM/QEMU 虚拟化</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxvirtualizationchapter-70-other-virtualization-li><input type=checkbox id=m-prgmslinuxvirtualizationchapter-70-other-virtualization-check>
+<label for=m-prgmslinuxvirtualizationchapter-70-other-virtualization-check><a href=/prgms/linux/virtualization/Chapter-70-Other-Virtualization/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxvirtualizationchapter-70-other-virtualization><span>第70章：其他虚拟化技术</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxsafe_test-li><input type=checkbox id=m-prgmslinuxsafe_test-check>
+<label for=m-prgmslinuxsafe_test-check><a href=/prgms/linux/safe_test/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxsafe_test><span>第21卷：安全测试</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxsafe_testchapter-71-information-gathering-li><input type=checkbox id=m-prgmslinuxsafe_testchapter-71-information-gathering-check>
+<label for=m-prgmslinuxsafe_testchapter-71-information-gathering-check><a href=/prgms/linux/safe_test/Chapter-71-Information-Gathering/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxsafe_testchapter-71-information-gathering><span>第71章：信息收集</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxsafe_testchapter-72-vulnerability-scanning-li><input type=checkbox id=m-prgmslinuxsafe_testchapter-72-vulnerability-scanning-check>
+<label for=m-prgmslinuxsafe_testchapter-72-vulnerability-scanning-check><a href=/prgms/linux/safe_test/Chapter-72-Vulnerability-Scanning/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxsafe_testchapter-72-vulnerability-scanning><span>第72章：漏洞扫描</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxsafe_testchapter-73-penetration-testing-li><input type=checkbox id=m-prgmslinuxsafe_testchapter-73-penetration-testing-check>
+<label for=m-prgmslinuxsafe_testchapter-73-penetration-testing-check><a href=/prgms/linux/safe_test/Chapter-73-Penetration-Testing/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxsafe_testchapter-73-penetration-testing><span>第73章：渗透测试</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxsafe_testchapter-74-network-security-tools-li><input type=checkbox id=m-prgmslinuxsafe_testchapter-74-network-security-tools-check>
+<label for=m-prgmslinuxsafe_testchapter-74-network-security-tools-check><a href=/prgms/linux/safe_test/Chapter-74-Network-Security-Tools/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxsafe_testchapter-74-network-security-tools><span>第74章：网络安全工具</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxperformance_optimization-li><input type=checkbox id=m-prgmslinuxperformance_optimization-check>
+<label for=m-prgmslinuxperformance_optimization-check><a href=/prgms/linux/performance_optimization/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxperformance_optimization><span>第22卷：性能优化</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxperformance_optimizationchapter-75-cpu-optimization-li><input type=checkbox id=m-prgmslinuxperformance_optimizationchapter-75-cpu-optimization-check>
+<label for=m-prgmslinuxperformance_optimizationchapter-75-cpu-optimization-check><a href=/prgms/linux/performance_optimization/Chapter-75-CPU-Optimization/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxperformance_optimizationchapter-75-cpu-optimization><span>第75章：CPU 优化</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxperformance_optimizationchapter-76-memory-optimization-li><input type=checkbox id=m-prgmslinuxperformance_optimizationchapter-76-memory-optimization-check>
+<label for=m-prgmslinuxperformance_optimizationchapter-76-memory-optimization-check><a href=/prgms/linux/performance_optimization/Chapter-76-Memory-Optimization/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxperformance_optimizationchapter-76-memory-optimization><span>第76章：内存优化</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxperformance_optimizationchapter-77-disk-io-optimization-li><input type=checkbox id=m-prgmslinuxperformance_optimizationchapter-77-disk-io-optimization-check>
+<label for=m-prgmslinuxperformance_optimizationchapter-77-disk-io-optimization-check><a href=/prgms/linux/performance_optimization/Chapter-77-Disk-IO-Optimization/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxperformance_optimizationchapter-77-disk-io-optimization><span>第77章：磁盘 IO 优化</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxperformance_optimizationchapter-78-network-optimization-li><input type=checkbox id=m-prgmslinuxperformance_optimizationchapter-78-network-optimization-check>
+<label for=m-prgmslinuxperformance_optimizationchapter-78-network-optimization-check><a href=/prgms/linux/performance_optimization/Chapter-78-Network-Optimization/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxperformance_optimizationchapter-78-network-optimization><span>第78章：网络优化</span></a></label></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-prgmslinuxtroubleshooting-li><input type=checkbox id=m-prgmslinuxtroubleshooting-check>
+<label for=m-prgmslinuxtroubleshooting-check><a href=/prgms/linux/troubleshooting/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmslinuxtroubleshooting><span>第23卷：故障排查</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmslinuxtroubleshootingchapter-79-troubleshooting-li><input type=checkbox id=m-prgmslinuxtroubleshootingchapter-79-troubleshooting-check>
+<label for=m-prgmslinuxtroubleshootingchapter-79-troubleshooting-check><a href=/prgms/linux/troubleshooting/Chapter-79-Troubleshooting/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmslinuxtroubleshootingchapter-79-troubleshooting><span>第79章：故障排查方法论</span></a></label></li></ul></li></ul></li></ul></nav></div></aside><aside class=td-sidebar-toc><div class="td-page-meta ms-2 pb-1 pt-2 mb-0"><a href=https://before80.github.io/go_docs/comm/coffee class="td-page-meta--view td-page-meta__view" style=color:#2bf518!important target=_blank rel=noopener><i class="fa-solid fa-mug-hot fa-fw"></i> 请作者喝杯咖啡吧</a>
+<a href=https://github.com/before80/prgms/tree/main/content/linux/cloud_cal/Chapter-65-ALIYUN.md class="td-page-meta--view td-page-meta__view" target=_blank rel=noopener><i class="fa-solid fa-file-lines fa-fw"></i> 查看页面源码</a>
+<a href=https://github.com/before80/prgms/edit/main/content/linux/cloud_cal/Chapter-65-ALIYUN.md class="td-page-meta--edit td-page-meta__edit" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> 编辑此页</a>
+<a href="https://github.com/before80/prgms/new/main/content/linux/cloud_cal?filename=change-me.md&amp;value=---%0Atitle%3A+%22Long+Page+Title%22%0AlinkTitle%3A+%22Short+Nav+Title%22%0Aweight%3A+100%0Adescription%3A+%3E-%0A+++++Page+description+for+heading+and+indexes.%0A---%0A%0A%23%23+Heading%0A%0AEdit+this+template+to+create+your+new+page.%0A%0A%2A+Give+it+a+good+name%2C+ending+in+%60.md%60+-+e.g.+%60getting-started.md%60%0A%2A+Edit+the+%22front+matter%22+section+at+the+top+of+the+page+%28weight+controls+how+its+ordered+amongst+other+pages+in+the+same+directory%3B+lowest+number+first%29.%0A%2A+Add+a+good+commit+message+at+the+bottom+of+the+page+%28%3C80+characters%3B+use+the+extended+description+field+for+more+detail%29.%0A%2A+Create+a+new+branch+so+you+can+preview+your+new+file+and+request+a+review+via+Pull+Request.%0A" class="td-page-meta--child td-page-meta__child" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> 添加子页面</a>
+<a href="https://github.com/before80/prgms/issues/new?title=%e7%ac%ac65%e7%ab%a0%ef%bc%9a%e9%98%bf%e9%87%8c%e4%ba%91" class="td-page-meta--issue td-page-meta__issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> 提交文档问题</a>
+<a href=https://github.com/before80/prgms/issues/new class="td-page-meta--project td-page-meta__project-issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> 提交项目问题</a></div><div class=td-toc data-proofer-ignore><div class=td-toc-title><span class=td-toc-title__text>本页目录</span>
+<a class=td-toc-title__link title=回到顶部 href=#></a></div><nav id=TableOfContents><ul><li><a href=#第六十五章阿里云>第六十五章：阿里云</a><ul><li><a href=#651-ecs-实例>65.1 ECS 实例</a><ul><li><a href=#什么是-ecs>什么是 ECS？</a></li><li><a href=#ecs-的优势>ECS 的优势</a></li><li><a href=#创建-ecs-实例>创建 ECS 实例</a></li><li><a href=#ecs-实例类型>ECS 实例类型</a></li><li><a href=#连接-ecs-实例>连接 ECS 实例</a></li><li><a href=#ecs-日常管理>ECS 日常管理</a></li></ul></li><li><a href=#652-vpc-网络>65.2 VPC 网络</a><ul><li><a href=#什么是-vpc>什么是 VPC？</a></li><li><a href=#vpc-的核心概念>VPC 的核心概念</a></li><li><a href=#创建-vpc>创建 VPC</a></li><li><a href=#vpc-网络规划>VPC 网络规划</a></li><li><a href=#经典网络-vs-vpc>经典网络 vs VPC</a></li></ul></li><li><a href=#653-安全组>65.3 安全组</a><ul><li><a href=#安全组是什么>安全组是什么？</a></li><li><a href=#安全组规则>安全组规则</a></li><li><a href=#出方向规则>出方向规则</a></li><li><a href=#安全组最佳实践>安全组最佳实践</a></li><li><a href=#常用端口参考>常用端口参考</a></li></ul></li><li><a href=#654-oss>65.4 OSS</a><ul><li><a href=#什么是-oss>什么是 OSS？</a></li><li><a href=#oss-vs-自建存储>OSS vs 自建存储</a></li><li><a href=#使用-oss>使用 OSS</a></li><li><a href=#oss-sdk-使用>OSS SDK 使用</a></li><li><a href=#oss-权限控制>OSS 权限控制</a></li></ul></li><li><a href=#655-cdn>65.5 CDN</a><ul><li><a href=#什么是-cdn>什么是 CDN？</a></li><li><a href=#cdn-工作原理>CDN 工作原理</a></li><li><a href=#配置-cdn>配置 CDN</a></li><li><a href=#cdn-优化配置>CDN 优化配置</a></li></ul></li><li><a href=#656-ack>65.6 ACK</a><ul><li><a href=#什么是-ack>什么是 ACK？</a></li><li><a href=#ack-vs-自建-k8s>ACK vs 自建 K8s</a></li><li><a href=#使用-ack>使用 ACK</a></li><li><a href=#ack-常用操作>ACK 常用操作</a></li><li><a href=#ack-网络插件>ACK 网络插件</a></li><li><a href=#ack-存储插件>ACK 存储插件</a></li></ul></li><li><a href=#本章小结>本章小结</a></li></ul></li></ul></nav></div></aside><main class="col-12 col-md-9 col-xl-8 ps-md-5" role=main><nav aria-label=breadcrumb class=td-breadcrumbs><ol class=breadcrumb><li class=breadcrumb-item><a href=/prgms/linux/>Linux</a></li><li class=breadcrumb-item><a href=/prgms/linux/cloud_cal/>第19卷：云计算</a></li><li class="breadcrumb-item active" aria-current=page>第65章：阿里云</li></ol></nav><div class=td-content><h1>第65章：阿里云</h1><header class=article-meta><p class=reading-time><i class="fa-solid fa-clock" style=color:#e90 aria-hidden=true></i>&nbsp; <span style=font-size:3rem;color:#006400 id=advice-reading-time>10 </span>分钟阅读 &nbsp;</p></header><h1 id=第六十五章阿里云>第六十五章：阿里云</h1><h2 id=651-ecs-实例>65.1 ECS 实例</h2><h3 id=什么是-ecs>什么是 ECS？</h3><p>ECS（Elastic Compute Service）是阿里云的弹性计算服务，说白了就是"云服务器"——你不用买服务器，直接在云上租一台来用。</p><blockquote><p>💡 <strong>类比理解</strong>：</p><ul><li>传统服务器 = 买房：首付贵、装修累、坏了还得自己修</li><li>云服务器 ECS = 租房：拎包入住、想换就换、房东管维修</li></ul><p>选择哪个？看你是想"安家落户"还是"灵活漂泊"！</p></blockquote><pre class=mermaid>graph LR
+    A[你] --&gt;|申请| B[阿里云]
+    B --&gt; C[ECS 实例]
+    C --&gt; D[操作系统]
+    D --&gt; E[应用软件]
+    
+    F[物理服务器] --&gt;|虚拟化| G[KVM]
+    G --&gt;|隔离| C
+    G --&gt;|隔离| H[另一个ECS]</pre><h3 id=ecs-的优势>ECS 的优势</h3><table><thead><tr><th>特性</th><th>说明</th><th>类比</th></tr></thead><tbody><tr><td>即开即用</td><td>几分钟就能用</td><td>扫码即骑的共享单车</td></tr><tr><td>弹性伸缩</td><td>想大就大，想小就小</td><td>橡皮筋</td></tr><tr><td>按量付费</td><td>用多少付多少</td><td>吃多少打多少饭</td></tr><tr><td>高可用</td><td>多副本自动备份</td><td>狡兔三窟</td></tr><tr><td>免维护</td><td>不用管硬件</td><td>住酒店不用修电梯</td></tr></tbody></table><h3 id=创建-ecs-实例>创建 ECS 实例</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 登录阿里云控制台</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># https://www.aliyun.com</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 选择地域和可用区</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 地域：华北2（北京）、华东1（杭州）、华南1（深圳）等</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 选择实例规格</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 入门：ecs.t5-lc1m2.small（1核1G）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 进阶：ecs.c5.large（2核4G）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 高性能：ecs.g5.xlarge（4核16G）</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 4. 选择操作系统</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 公共镜像：CentOS、Ubuntu、Windows</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 自定义镜像：从快照创建</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=ecs-实例类型>ECS 实例类型</h3><table><thead><tr><th>类型</th><th>特点</th><th>适用场景</th></tr></thead><tbody><tr><td>共享型</td><td>性价比高</td><td>个人网站、测试环境</td></tr><tr><td>计算型</td><td>高 CPU 性能</td><td>Web 服务器</td></tr><tr><td>内存型</td><td>大内存</td><td>数据库、缓存</td></tr><tr><td>GPU 型</td><td>图形处理</td><td>AI、深度学习</td></tr><tr><td>弹性裸金属</td><td>物理机性能</td><td>核心数据库</td></tr></tbody></table><h3 id=连接-ecs-实例>连接 ECS 实例</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">31
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Linux 实例 - 使用 SSH</span>
+</span></span><span style=display:flex><span>ssh root@你的公网IP
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 首次连接会要求输入密码（在控制台重置密码后）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 如果使用密钥对</span>
+</span></span><span style=display:flex><span>ssh -i ~/.ssh/your_key.pem root@你的公网IP
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Windows 实例 - 使用 MSTSC 或 PowerShell</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># PowerShell 连接</span>
+</span></span><span style=display:flex><span>ssh administrator@你的公网IP
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 使用阿里云 CLI 管理实例</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装阿里云 CLI</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 注意：下载地址可能更新，建议访问官方文档获取最新地址：https://help.aliyun.com/document_detail/121541.html</span>
+</span></span><span style=display:flex><span>curl -sL https://aliyuncli.alibaba.com/download/aliyun-cli-linux-latest-amd64.tgz <span style=color:#abb2bf>|</span> tar -xz -C /usr/local/bin/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 或者使用官方推荐方式（更稳定）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># curl -fsSL https://raw.githubusercontent.com/aliyun/aliyun-cli/master/install.sh | bash</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 配置凭证（交互式）</span>
+</span></span><span style=display:flex><span>aliyun configure
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 会提示输入 AccessKey ID、AccessKey Secret、region 等信息</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 或者直接指定</span>
+</span></span><span style=display:flex><span>aliyun configure <span style=color:#e5c07b>set</span> <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --access-key-id 你的AccessKeyID <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --access-key-secret 你的AccessKeySecret <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --region cn-hangzhou
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看实例</span>
+</span></span><span style=display:flex><span>aliyun ecs DescribeInstances
+</span></span></code></pre></td></tr></table></div></div><h3 id=ecs-日常管理>ECS 日常管理</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 启动实例</span>
+</span></span><span style=display:flex><span>aliyun ecs StartInstance --InstanceId i-xxxxxxxxx
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 停止实例</span>
+</span></span><span style=display:flex><span>aliyun ecs StopInstance --InstanceId i-xxxxxxxxx
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 重启实例</span>
+</span></span><span style=display:flex><span>aliyun ecs RebootInstance --InstanceId i-xxxxxxxxx
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 更换操作系统</span>
+</span></span><span style=display:flex><span>aliyun ecs ReplaceSystemDisk --InstanceId i-xxxxxxxxx --ImageId ubuntu_22_04
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 调整实例规格</span>
+</span></span><span style=display:flex><span>aliyun ecs ModifyInstanceSpec --InstanceId i-xxxxxxxxx --InstanceType ecs.c5.xlarge
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 创建快照</span>
+</span></span><span style=display:flex><span>aliyun ecs CreateSnapshot --DiskId d-xxxxxxxxx --SnapshotName <span style=color:#63c381>&#34;backup-</span><span style=color:#76a9f9>$(</span>date +%Y%m%d<span style=color:#76a9f9>)</span><span style=color:#63c381>&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=652-vpc-网络>65.2 VPC 网络</h2><h3 id=什么是-vpc>什么是 VPC？</h3><p>VPC（Virtual Private Cloud）是阿里云的私有网络，相当于在云上给你划了一块"私人领地"，你可以自己定义 IP 地址范围、创建子网、配置路由表。</p><pre class=mermaid>graph TB
+    subgraph VPC[ VPC 私有网络 ]
+        subgraph 子网1[子网1 - 可用区A]
+            S1[ECS 实例1]
+            S2[ECS 实例2]
+        end
+        
+        subgraph 子网2[子网2 - 可用区B]
+            S3[ECS 实例3]
+        end
+        
+        R[路由表] --&gt; 子网1
+        R --&gt; 子网2
+        
+        E[弹性IP] --&gt; S1
+    end
+    
+    I[公网] --&gt; R
+    I --&gt; E</pre><h3 id=vpc-的核心概念>VPC 的核心概念</h3><table><thead><tr><th>概念</th><th>说明</th></tr></thead><tbody><tr><td>VPC</td><td>私有网络，逻辑隔离的网络空间</td></tr><tr><td>vSwitch</td><td>虚拟交换机，连接 VPC 内的资源</td></tr><tr><td>路由表</td><td>控制网络流量的走向</td></tr><tr><td>安全组</td><td>实例级别的防火墙</td></tr><tr><td>网络ACL</td><td>子网级别的防火墙</td></tr></tbody></table><h3 id=创建-vpc>创建 VPC</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 创建 VPC</span>
+</span></span><span style=display:flex><span>aliyun vpc CreateVpc --CidrBlock 10.0.0.0/8 --VpcName my-vpc
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 创建交换机（子网）</span>
+</span></span><span style=display:flex><span>aliyun vpc CreateVSwitch --VpcId vpc-xxxxxxxxx --CidrBlock 10.0.1.0/24 --ZoneId cn-hangzhou-f --VSwitchName my-subnet
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 创建路由表并添加路由</span>
+</span></span><span style=display:flex><span>aliyun vpc CreateRouteTable --VpcId vpc-xxxxxxxxx --RouteTableName my-route-table
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 4. 添加路由条目</span>
+</span></span><span style=display:flex><span>aliyun vpc CreateRouteEntry --RouteTableId vtb-xxxxxxxxx --DestinationCidrBlock 0.0.0.0/0 --NextHopType Internet
+</span></span></code></pre></td></tr></table></div></div><h3 id=vpc-网络规划>VPC 网络规划</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 常用 VPC 网段规划</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 小型项目：10.0.0.0/16</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 中型项目：172.16.0.0/12</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 大型项目：192.168.0.0/16</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 子网规划示例</span>
+</span></span><span style=display:flex><span>VPC: 10.0.0.0/8
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Web 层</span>
+</span></span><span style=display:flex><span>子网: 10.0.1.0/24  <span style=color:#54b1c7>(</span>可用区A<span style=color:#54b1c7>)</span>
+</span></span><span style=display:flex><span>子网: 10.0.2.0/24  <span style=color:#54b1c7>(</span>可用区B<span style=color:#54b1c7>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 应用层</span>
+</span></span><span style=display:flex><span>子网: 10.0.11.0/24 <span style=color:#54b1c7>(</span>可用区A<span style=color:#54b1c7>)</span>
+</span></span><span style=display:flex><span>子网: 10.0.12.0/24 <span style=color:#54b1c7>(</span>可用区B<span style=color:#54b1c7>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 数据层</span>
+</span></span><span style=display:flex><span>子网: 10.0.21.0/24 <span style=color:#54b1c7>(</span>可用区A<span style=color:#54b1c7>)</span>
+</span></span><span style=display:flex><span>子网: 10.0.22.0/24 <span style=color:#54b1c7>(</span>可用区B<span style=color:#54b1c7>)</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=经典网络-vs-vpc>经典网络 vs VPC</h3><table><thead><tr><th>特性</th><th>经典网络</th><th>VPC</th></tr></thead><tbody><tr><td>网络隔离</td><td>共享网络</td><td>完全隔离</td></tr><tr><td>IP 地址</td><td>自动分配</td><td>可自定义</td></tr><tr><td>安全控制</td><td>安全组</td><td>安全组 + 网络ACL</td></tr><tr><td>灵活扩展</td><td>一般</td><td>强</td></tr><tr><td>费用</td><td>较低</td><td>略高</td></tr></tbody></table><h2 id=653-安全组>65.3 安全组</h2><h3 id=安全组是什么>安全组是什么？</h3><p>安全组是 ECS 实例的"门卫"，决定哪些流量能进、哪些流量能出。你可以把它理解为云服务器自带的功能强大的防火墙。</p><pre class=mermaid>graph LR
+    A[外部请求] --&gt;|安全组规则| B{允许?}
+    B --&gt;|是| C[ECS 实例]
+    B --&gt;|否| D[拒绝]
+    
+    E[ECS 实例] --&gt;|出方向| F[外部]
+    
+    style B fill:#f9f
+    style D fill:#f99</pre><h3 id=安全组规则>安全组规则</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">47
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 授权对象格式</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 单个 IP：192.168.1.1/32</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># IP 段：10.0.0.0/8</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安全组：sg-xxxxxxxxx（引用其他安全组）</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 入方向规则示例</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 允许 SSH 访问（Linux）</span>
+</span></span><span style=display:flex><span>aliyun ecs AuthorizeSecurityGroup <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --RegionId cn-hangzhou <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SecurityGroupId sg-xxxxxxxxx <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --IpProtocol tcp <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --PortRange 22/22 <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SourceCidrIp 0.0.0.0/0 <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --Policy accept
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 允许 RDP 访问（Windows）</span>
+</span></span><span style=display:flex><span>aliyun ecs AuthorizeSecurityGroup <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --RegionId cn-hangzhou <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SecurityGroupId sg-xxxxxxxxx <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --IpProtocol tcp <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --PortRange 3389/3389 <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SourceCidrIp 0.0.0.0/0
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 允许 HTTP/HTTPS</span>
+</span></span><span style=display:flex><span>aliyun ecs AuthorizeSecurityGroup <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --RegionId cn-hangzhou <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SecurityGroupId sg-xxxxxxxxx <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --IpProtocol tcp <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --PortRange 80/80,443/443 <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SourceCidrIp 0.0.0.0/0
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 允许 MySQL 远程访问（限制 IP）</span>
+</span></span><span style=display:flex><span>aliyun ecs AuthorizeSecurityGroup <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --RegionId cn-hangzhou <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SecurityGroupId sg-xxxxxxxxx <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --IpProtocol tcp <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --PortRange 3306/3306 <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SourceCidrIp 10.0.1.0/24
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 拒绝特定 IP</span>
+</span></span><span style=display:flex><span>aliyun ecs AuthorizeSecurityGroup <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --RegionId cn-hangzhou <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SecurityGroupId sg-xxxxxxxxx <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --IpProtocol tcp <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --PortRange 80/80 <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SourceCidrIp 1.2.3.4/32 <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --Policy drop
+</span></span></code></pre></td></tr></table></div></div><h3 id=出方向规则>出方向规则</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 允许所有出站</span>
+</span></span><span style=display:flex><span>aliyun ecs AuthorizeSecurityGroup <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --RegionId cn-hangzhou <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SecurityGroupId sg-xxxxxxxxx <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --IpProtocol all <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --PortRange -1/-1 <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --DestCidrIp 0.0.0.0/0
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 限制只访问特定地址</span>
+</span></span><span style=display:flex><span>aliyun ecs AuthorizeSecurityGroup <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --RegionId cn-hangzhou <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SecurityGroupId sg-xxxxxxxxx <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --IpProtocol tcp <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --PortRange 80/80,443/443 <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --DestCidrIp 10.0.0.0/8
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 禁止访问特定端口（如禁止下载）</span>
+</span></span><span style=display:flex><span>aliyun ecs AuthorizeSecurityGroup <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --RegionId cn-hangzhou <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SecurityGroupId sg-xxxxxxxxx <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --IpProtocol tcp <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --PortRange 445/445 <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --DestCidrIp 0.0.0.0/0 <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --Policy drop
+</span></span></code></pre></td></tr></table></div></div><h3 id=安全组最佳实践>安全组最佳实践</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 最小权限原则</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># ✓ 只开放需要的端口</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># ✗ 0.0.0.0/0 开放所有端口</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 分类管理</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安全组1：Web 服务器（80, 443）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安全组2：数据库服务器（3306，仅允许应用服务器访问）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安全组3：Redis 服务器（6379，仅允许应用服务器访问）</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 使用标签管理</span>
+</span></span><span style=display:flex><span>aliyun ecs AddTags --ResourceType securitygroup <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --ResourceId sg-xxxxxxxxx <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --Tag.1.Key Env --Tag.1.Value Production
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 4. 定期审计</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看安全组规则</span>
+</span></span><span style=display:flex><span>aliyun ecs DescribeSecurityGroupPolicy --SecurityGroupId sg-xxxxxxxxx --RegionId cn-hangzhou
+</span></span></code></pre></td></tr></table></div></div><h3 id=常用端口参考>常用端口参考</h3><table><thead><tr><th>端口</th><th>服务</th><th>说明</th></tr></thead><tbody><tr><td>22</td><td>SSH</td><td>Linux 远程管理</td></tr><tr><td>3389</td><td>RDP</td><td>Windows 远程桌面</td></tr><tr><td>80</td><td>HTTP</td><td>Web 服务</td></tr><tr><td>443</td><td>HTTPS</td><td>安全 Web</td></tr><tr><td>3306</td><td>MySQL</td><td>数据库</td></tr><tr><td>5432</td><td>PostgreSQL</td><td>数据库</td></tr><tr><td>6379</td><td>Redis</td><td>缓存</td></tr><tr><td>27017</td><td>MongoDB</td><td>数据库</td></tr><tr><td>8080</td><td>Tomcat</td><td>Java Web</td></tr><tr><td>9200</td><td>Elasticsearch</td><td>搜索引擎</td></tr></tbody></table><h2 id=654-oss>65.4 OSS</h2><h3 id=什么是-oss>什么是 OSS？</h3><p>OSS（Object Storage Service）是阿里云的对象存储服务，专门存储"文件"——图片、视频、日志、静态资源，统统可以往里扔。</p><pre class=mermaid>graph LR
+    A[本地文件] --&gt;|上传| B[OSS Bucket]
+    A --&gt;|SDK| B
+    A --&gt;|CLI| B
+    
+    B --&gt; C[图片]
+    B --&gt; D[视频]
+    B --&gt; E[日志]
+    B --&gt; F[备份]
+    
+    G[应用] --&gt;|CDN加速| B
+    H[用户] --&gt;|下载| B</pre><h3 id=oss-vs-自建存储>OSS vs 自建存储</h3><table><thead><tr><th>对比项</th><th>OSS</th><th>自建存储</th></tr></thead><tbody><tr><td>成本</td><td>按量付费</td><td>买服务器、带宽、电费</td></tr><tr><td>可靠性</td><td>99.999999999%</td><td>看硬盘心情</td></tr><tr><td>扩展性</td><td>无限</td><td>受限于服务器容量</td></tr><tr><td>全球加速</td><td>内置 CDN</td><td>需额外配置</td></tr><tr><td>维护</td><td>免维护</td><td>要 RAID、要备份</td></tr></tbody></table><h3 id=使用-oss>使用 OSS</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 创建 Bucket（存储桶）</span>
+</span></span><span style=display:flex><span>aliyun oss mb oss://my-bucket-name --region cn-hangzhou
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 上传文件</span>
+</span></span><span style=display:flex><span>aliyun oss cp /path/to/file.txt oss://my-bucket-name/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 下载文件</span>
+</span></span><span style=display:flex><span>aliyun oss cp oss://my-bucket-name/file.txt /path/to/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 4. 列出文件</span>
+</span></span><span style=display:flex><span>aliyun oss ls oss://my-bucket-name/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 5. 删除文件</span>
+</span></span><span style=display:flex><span>aliyun oss rm oss://my-bucket-name/file.txt
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 6. 设置存储类型</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 标准存储（频繁访问）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 低频访问存储（30天访问一次）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 归档存储（90天访问一次，便宜）</span>
+</span></span><span style=display:flex><span>aliyun oss set-class oss://my-bucket-name/file.txt --class IA
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 7. 设置生命周期</span>
+</span></span><span style=display:flex><span>aliyun oss lifecycle <span style=color:#e5c07b>set</span> oss://my-bucket-name <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --expiry-days <span style=color:#d19a66>30</span> <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --file-suffix .log
+</span></span></code></pre></td></tr></table></div></div><h3 id=oss-sdk-使用>OSS SDK 使用</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">27
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装 Python SDK</span>
+</span></span><span style=display:flex><span>pip install oss2
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Python 上传示例</span>
+</span></span><span style=display:flex><span>cat &gt; upload.py <span style=color:#98c379>&lt;&lt; &#39;EOF&#39;
+</span></span></span><span style=display:flex><span><span style=color:#98c379>import oss2
+</span></span></span><span style=display:flex><span><span style=color:#98c379>
+</span></span></span><span style=display:flex><span><span style=color:#98c379># 初始化
+</span></span></span><span style=display:flex><span><span style=color:#98c379>auth = oss2.Auth(&#39;你的AccessKeyId&#39;, &#39;你的AccessKeySecret&#39;)
+</span></span></span><span style=display:flex><span><span style=color:#98c379>bucket = oss2.Bucket(auth, &#39;oss-cn-hangzhou.aliyuncs.com&#39;, &#39;my-bucket&#39;)
+</span></span></span><span style=display:flex><span><span style=color:#98c379>
+</span></span></span><span style=display:flex><span><span style=color:#98c379># 上传文件
+</span></span></span><span style=display:flex><span><span style=color:#98c379>bucket.put_object(&#39;hello.txt&#39;, &#39;Hello OSS!&#39;)
+</span></span></span><span style=display:flex><span><span style=color:#98c379>
+</span></span></span><span style=display:flex><span><span style=color:#98c379># 上传图片
+</span></span></span><span style=display:flex><span><span style=color:#98c379>with open(&#39;image.jpg&#39;, &#39;rb&#39;) as f:
+</span></span></span><span style=display:flex><span><span style=color:#98c379>    bucket.put_object(&#39;images/image.jpg&#39;, f)
+</span></span></span><span style=display:flex><span><span style=color:#98c379>
+</span></span></span><span style=display:flex><span><span style=color:#98c379># 生成下载链接（带签名，临时访问）
+</span></span></span><span style=display:flex><span><span style=color:#98c379>url = bucket.sign_url(&#39;hello.txt&#39;, expires=3600)
+</span></span></span><span style=display:flex><span><span style=color:#98c379>print(f&#34;下载链接：{url}&#34;)
+</span></span></span><span style=display:flex><span><span style=color:#98c379>
+</span></span></span><span style=display:flex><span><span style=color:#98c379># 下载文件
+</span></span></span><span style=display:flex><span><span style=color:#98c379>bucket.get_object_to_file(&#39;hello.txt&#39;, &#39;downloaded.txt&#39;)
+</span></span></span><span style=display:flex><span><span style=color:#98c379>EOF</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>python3 upload.py
+</span></span></code></pre></td></tr></table></div></div><h3 id=oss-权限控制>OSS 权限控制</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">26
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 设置 Bucket 访问权限</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># private：私有（需要签名）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># public-read：公共读</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># public-read-write：公共读写</span>
+</span></span><span style=display:flex><span>aliyun oss set-acl oss://my-bucket --acl public-read
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. RAM 授权（细粒度控制）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 创建 RAM 用户 → 授予 OSS 权限 → 使用 RAM 凭证访问</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. Bucket Policy（JSON 策略）</span>
+</span></span><span style=display:flex><span>aliyun oss policy oss://my-bucket <span style=color:#98c379>&lt;&lt; &#39;EOF&#39;
+</span></span></span><span style=display:flex><span><span style=color:#98c379>{
+</span></span></span><span style=display:flex><span><span style=color:#98c379>  &#34;Statement&#34;: [
+</span></span></span><span style=display:flex><span><span style=color:#98c379>    {
+</span></span></span><span style=display:flex><span><span style=color:#98c379>      &#34;Effect&#34;: &#34;Allow&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#98c379>      &#34;Action&#34;: [&#34;oss:GetObject&#34;],
+</span></span></span><span style=display:flex><span><span style=color:#98c379>      &#34;Resource&#34;: [&#34;acs:oss:*:*:my-bucket/*&#34;],
+</span></span></span><span style=display:flex><span><span style=color:#98c379>      &#34;Condition&#34;: {
+</span></span></span><span style=display:flex><span><span style=color:#98c379>        &#34;IpAddress&#34;: {
+</span></span></span><span style=display:flex><span><span style=color:#98c379>          &#34;acs:SourceIp&#34;: [&#34;10.0.0.0/8&#34;]
+</span></span></span><span style=display:flex><span><span style=color:#98c379>        }
+</span></span></span><span style=display:flex><span><span style=color:#98c379>      }
+</span></span></span><span style=display:flex><span><span style=color:#98c379>    }
+</span></span></span><span style=display:flex><span><span style=color:#98c379>  ]
+</span></span></span><span style=display:flex><span><span style=color:#98c379>}
+</span></span></span><span style=display:flex><span><span style=color:#98c379>EOF</span>
+</span></span></code></pre></td></tr></table></div></div><h2 id=655-cdn>65.5 CDN</h2><h3 id=什么是-cdn>什么是 CDN？</h3><p>CDN（Content Delivery Network）是内容分发网络，让用户从最近的节点获取资源，加速网站访问。</p><pre class=mermaid>graph LR
+    A[用户] --&gt;|访问| B[CDN 节点]
+    B --&gt;|缓存未命中| C[源站]
+    B --&gt;|缓存命中| D[直接返回]
+    
+    subgraph CDN网络
+        B
+        E[CDN节点-北京]
+        F[CDN节点-上海]
+        G[CDN节点-广州]
+    end
+    
+    A --&gt; E
+    A --&gt; F
+    A --&gt; G
+    
+    style C fill:#f99</pre><h3 id=cdn-工作原理>CDN 工作原理</h3><table><thead><tr><th>流程</th><th>说明</th></tr></thead><tbody><tr><td>1. 用户请求</td><td>用户访问 cdn.example.com</td></tr><tr><td>2. DNS 解析</td><td>调度到最近节点</td></tr><tr><td>3. 节点检查</td><td>看缓存有没有</td></tr><tr><td>4. 缓存命中</td><td>直接返回（快！）</td></tr><tr><td>5. 缓存未命中</td><td>回源获取（慢一次）</td></tr><tr><td>6. 返回内容</td><td>并缓存到节点</td></tr></tbody></table><h3 id=配置-cdn>配置 CDN</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 添加加速域名</span>
+</span></span><span style=display:flex><span>aliyun cdn AddCdnDomain <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --DomainName cdn.example.com <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SourceType oss <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --SourceDomain my-bucket.oss-cn-hangzhou.aliyuncs.com <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --CdnType web
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 配置缓存规则</span>
+</span></span><span style=display:flex><span>aliyun cdn SetCacheConfig <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --DomainName cdn.example.com <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --CacheType <span style=color:#d19a66>0</span> <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --CacheContent /static/*.js,/static/*.css <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --TTL <span style=color:#d19a66>3600</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 配置 HTTP -&gt; HTTPS 跳转</span>
+</span></span><span style=display:flex><span>aliyun cdn SetDomainServerCertificate <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --DomainName cdn.example.com <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --ServerCertificate your-certificate <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --PrivateKey your-private-key <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --CertType upload
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 4. 刷新缓存</span>
+</span></span><span style=display:flex><span>aliyun cdn PushObjectCache <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --ObjectPath cdn.example.com/static/* <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --ObjectType File
+</span></span></code></pre></td></tr></table></div></div><h3 id=cdn-优化配置>CDN 优化配置</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 开启 Gzip 压缩</span>
+</span></span><span style=display:flex><span>aliyun cdn SetReqHeaderConfig <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --DomainName cdn.example.com <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --Key <span style=color:#63c381>&#34;Accept-Encoding&#34;</span> <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --Value <span style=color:#63c381>&#34;gzip, deflate, br&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 配置防盗链（Referer 白名单）</span>
+</span></span><span style=display:flex><span>aliyun cdn SetRefererConfig <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --DomainName cdn.example.com <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --RefererType blacklist <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --Referers <span style=color:#63c381>&#34;https://example.com,https://www.example.com&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 设置 IP 黑名单</span>
+</span></span><span style=display:flex><span>aliyun cdn SetIpBlackListConfig <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --DomainName cdn.example.com <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --IpList <span style=color:#63c381>&#34;1.2.3.4,5.6.7.8&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 4. 配置访问日志分析</span>
+</span></span><span style=display:flex><span>aliyun cdn DescribeCdnDomainLogs <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --DomainName cdn.example.com <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --LogDay 2024-01-15
+</span></span></code></pre></td></tr></table></div></div><h2 id=656-ack>65.6 ACK</h2><h3 id=什么是-ack>什么是 ACK？</h3><p>ACK（Alibaba Cloud Container Service for Kubernetes）是阿里云的 Kubernetes 服务，让你不用自己搭 K8s 集群，直接用现成的。</p><pre class=mermaid>graph TB
+    subgraph ACK集群
+        subgraph Master
+            M1[API Server]
+            M2[Scheduler]
+            M3[Controller]
+        end
+        
+        subgraph Node1
+            N1[Pod-Web]
+            N2[Pod-App]
+        end
+        
+        subgraph Node2
+            N3[Pod-DB]
+            N4[Pod-Cache]
+        end
+    end
+    
+    U[用户] --&gt; M1
+    M1 --&gt; N1
+    M1 --&gt; N2
+    M1 --&gt; N3
+    M1 --&gt; N4</pre><h3 id=ack-vs-自建-k8s>ACK vs 自建 K8s</h3><table><thead><tr><th>对比</th><th>ACK</th><th>自建 K8s</th></tr></thead><tbody><tr><td>运维</td><td>托管 Master</td><td>全部自己来</td></tr><tr><td>成本</td><td>略高</td><td>机器成本</td></tr><tr><td>可用性</td><td>多可用区容灾</td><td>看技术</td></tr><tr><td>升级</td><td>一键升级</td><td>手动升级</td></tr><tr><td>网络</td><td>Terway/VPC CNI</td><td>自己配</td></tr></tbody></table><h3 id=使用-ack>使用 ACK</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 安装 kubectl</span>
+</span></span><span style=display:flex><span>curl -LO <span style=color:#63c381>&#34;https://dl.k8s.io/release/</span><span style=color:#76a9f9>$(</span>curl -L -s https://dl.k8s.io/release/stable.txt<span style=color:#76a9f9>)</span><span style=color:#63c381>/bin/linux/amd64/kubectl&#34;</span>
+</span></span><span style=display:flex><span>chmod +x kubectl
+</span></span><span style=display:flex><span>sudo mv kubectl /usr/local/bin/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 配置集群凭证</span>
+</span></span><span style=display:flex><span>aliyun cs GET /clusters/集群ID/config &gt; ~/.kube/config
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 验证连接</span>
+</span></span><span style=display:flex><span>kubectl get nodes
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 4. 部署应用</span>
+</span></span><span style=display:flex><span>kubectl create deployment web --image<span style=color:#54b1c7>=</span>nginx:latest --replicas<span style=color:#54b1c7>=</span><span style=color:#d19a66>3</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 5. 暴露服务</span>
+</span></span><span style=display:flex><span>kubectl expose deployment web --port<span style=color:#54b1c7>=</span><span style=color:#d19a66>80</span> --type<span style=color:#54b1c7>=</span>LoadBalancer
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 6. 查看服务</span>
+</span></span><span style=display:flex><span>kubectl get svc
+</span></span></code></pre></td></tr></table></div></div><h3 id=ack-常用操作>ACK 常用操作</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 创建集群</span>
+</span></span><span style=display:flex><span>aliyun cs POST /clusters <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --region cn-hangzhou <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --name my-cluster <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --vpcid vpc-xxxxxxxxx <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --vswitchid vsw-xxxxxxxxx
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 扩容节点池</span>
+</span></span><span style=display:flex><span>aliyun cs POST /clusters/集群ID/scalinggroups <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --count <span style=color:#d19a66>5</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看集群信息</span>
+</span></span><span style=display:flex><span>aliyun cs GET /clusters/集群ID
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 升级集群</span>
+</span></span><span style=display:flex><span>aliyun cs POST /clusters/集群ID/upgrade <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --component kubernetes
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 删除集群</span>
+</span></span><span style=display:flex><span>aliyun cs DELETE /clusters/集群ID
+</span></span></code></pre></td></tr></table></div></div><h3 id=ack-网络插件>ACK 网络插件</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Terway（阿里自研，高性能）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 特点：Pod 直接获取 VPC IP，性能好</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 配置：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># - Terway.trunk Network：支持 IPVLAN</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Flannel（经典方案）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 特点：VXLAN 封装，简单易用</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 配置：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># - Network：Pod CIDR</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># - Service CIDR：Service 网段</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=ack-存储插件>ACK 存储插件</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装 CSI 组件</span>
+</span></span><span style=display:flex><span>aliyun cs POST /clusters/集群ID/components <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --name csi-plugin <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>    --version latest
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 创建 PV</span>
+</span></span><span style=display:flex><span>cat &gt; pv.yaml <span style=color:#98c379>&lt;&lt; &#39;EOF&#39;
+</span></span></span><span style=display:flex><span><span style=color:#98c379>apiVersion: v1
+</span></span></span><span style=display:flex><span><span style=color:#98c379>kind: PersistentVolume
+</span></span></span><span style=display:flex><span><span style=color:#98c379>metadata:
+</span></span></span><span style=display:flex><span><span style=color:#98c379>  name: my-pv
+</span></span></span><span style=display:flex><span><span style=color:#98c379>spec:
+</span></span></span><span style=display:flex><span><span style=color:#98c379>  capacity:
+</span></span></span><span style=display:flex><span><span style=color:#98c379>    storage: 20Gi
+</span></span></span><span style=display:flex><span><span style=color:#98c379>  accessModes:
+</span></span></span><span style=display:flex><span><span style=color:#98c379>    - ReadWriteOnce
+</span></span></span><span style=display:flex><span><span style=color:#98c379>  storageClassName: alicloud-disk-topo
+</span></span></span><span style=display:flex><span><span style=color:#98c379>  flexVolume:
+</span></span></span><span style=display:flex><span><span style=color:#98c379>    driver: alicloud/disk
+</span></span></span><span style=display:flex><span><span style=color:#98c379>    fsType: ext4
+</span></span></span><span style=display:flex><span><span style=color:#98c379>    options:
+</span></span></span><span style=display:flex><span><span style=color:#98c379>      volumeId: d-xxxxxxxxx
+</span></span></span><span style=display:flex><span><span style=color:#98c379>EOF</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>kubectl apply -f pv.yaml
+</span></span></code></pre></td></tr></table></div></div><h2 id=本章小结>本章小结</h2><p>本章我们学习了阿里云的核心服务：</p><table><thead><tr><th>服务</th><th>说明</th></tr></thead><tbody><tr><td>ECS</td><td>云服务器，弹性计算</td></tr><tr><td>VPC</td><td>私有网络，网络隔离</td></tr><tr><td>安全组</td><td>实例级防火墙</td></tr><tr><td>OSS</td><td>对象存储，海量文件</td></tr><tr><td>CDN</td><td>内容分发网络，加速访问</td></tr><tr><td>ACK</td><td>容器服务 Kubernetes</td></tr></tbody></table><p>阿里云就像一个"云端大礼包"，从计算到网络到存储，应有尽有！</p><hr><blockquote><p>💡 <strong>温馨提示</strong>：
+阿里云产品众多，但核心思想都是"按需使用，按量付费"。善用阿里云的免费额度和新用户优惠，小成本玩转大云服务！</p></blockquote><hr><p><strong>第六十五章：阿里云 — 完结！</strong> 🎉</p><p>下一章我们将学习"AWS"，掌握亚马逊云服务的核心服务。敬请期待！ 🚀</p><div class=td-page-meta__lastmod>最后修改 March 24, 2026: <a data-proofer-ignore href=https://github.com/before80/prgms/commit/37305c49ced95d74530dc129cfc417f6c0b8c7a9>新增JavaScript教程 (37305c4)</a></div></div></main></div></div><footer class="td-footer row d-print-none"><div class=container-fluid><div class="row mx-md-2"><div class="td-footer__left col-6 col-sm-4 order-sm-1"><ul class=td-footer__links-list><li class=td-footer__links-item data-bs-toggle=tooltip title="User mailing list" aria-label="User mailing list"><a target=_blank rel=noopener href=https://example.org/mail aria-label="User mailing list"><i class="fa fa-envelope"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title=Twitter aria-label=Twitter><a target=_blank rel=noopener href=https://example.org/twitter aria-label=Twitter><i class="fab fa-twitter"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title="Stack Overflow" aria-label="Stack Overflow"><a target=_blank rel=noopener href=https://example.org/stack aria-label="Stack Overflow"><i class="fab fa-stack-overflow"></i></a></li></ul></div><div class="td-footer__right col-6 col-sm-4 order-sm-3"><ul class=td-footer__links-list><li class=td-footer__links-item data-bs-toggle=tooltip title=GitHub aria-label=GitHub><a target=_blank rel=noopener href=https://github.com/before80/prgms aria-label=GitHub><i class="fab fa-github"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title=Slack aria-label=Slack><a target=_blank rel=noopener href=https://example.org/slack aria-label=Slack><i class="fab fa-slack"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title="Developer mailing list" aria-label="Developer mailing list"><a target=_blank rel=noopener href=https://example.org/mail aria-label="Developer mailing list"><i class="fa fa-envelope"></i></a></li></ul></div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2"><span class=td-footer__copyright>&copy;
+2026
+<span class=td-footer__authors>作者zlongx</span></span><span class=td-footer__all_rights_reserved>保留所有权利</span><span class=ms-2><a href=https://policies.google.com/privacy target=_blank rel=noopener>隐私政策</a></span></div></div></div></footer></div><style>.markmap>svg{width:100%;height:300px}</style><script>window.markmap={autoLoader:{manual:!0,onReady(){const{autoLoader:e,builtInPlugins:t}=window.markmap;e.transformPlugins=t.filter(e=>e.name!=="prism")}}}</script><script src=https://unpkg.com/markmap-autoloader@latest></script><script type=module async>
+  import mermaid from "https:\/\/unpkg.com\/mermaid@latest\/dist\/mermaid.esm.min.mjs";
+
+  (function ($) {
+    if ($('.mermaid').length == 0) {
+      mermaid.initialize({ startOnLoad: false });
+      return;
+    }
+
+    var params = {};
+
+    
+    
+    var norm = function (defaultConfig, params) {
+      var result = {};
+      for (const key in defaultConfig) {
+        const keyLower = key.toLowerCase();
+        if (defaultConfig.hasOwnProperty(key) && params.hasOwnProperty(keyLower)) {
+          if (typeof defaultConfig[key] === "object") {
+            result[key] = norm(defaultConfig[key], params[keyLower]);
+          } else {
+            result[key] = params[keyLower];
+          }
+        }
+      }
+      return result;
+    };
+
+    var settings = norm(mermaid.mermaidAPI.defaultConfig, params);
+    settings.startOnLoad = true;
+    if ($('html[data-bs-theme="dark"]').length) {
+      settings.theme = 'dark';
+    }
+    mermaid.initialize(settings);
+
+    
+    const lightDarkModeThemeChangeHandler = function (mutationsList, observer) {
+      for (const mutation of mutationsList) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-bs-theme') {
+          
+          
+          
+          location.reload();
+        }
+      }
+    };
+
+    const observer = new MutationObserver(lightDarkModeThemeChangeHandler);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-bs-theme']
+    });
+    
+
+  })(jQuery);
+</script><script src=/prgms/js/main.min.2358e7822956705373a61d2fdc0068abdf87f2c76a23be412ddf2546cbe54a97.js integrity="sha256-I1jngilWcFNzph0v3ABoq9+H8sdqI75BLd8lRsvlSpc=" crossorigin=anonymous></script><script defer src=/prgms/js/click-to-copy.min.14c7dd84004258325d147b971421f1d4dfd3f28500954f32ef71d1cfd0938f51.js integrity="sha256-FMfdhABCWDJdFHuXFCHx1N/T8oUAlU8y73HRz9CTj1E=" crossorigin=anonymous></script><script src=https://unpkg.com/@docsearch/js@3.8.2/dist/umd/index.js integrity="sha512-lsD+XVzdBI6ZquXc8gqbw0/bgrfIsMJwY/8xvmvbN+U3gZSeG7BXQoCq4zv/yCmntR2GLHtgB+bD4ESPsKIbIA==" crossorigin=anonymous></script><script type=text/javascript>const containers=["#docsearch-0","#docsearch-1"];for(let e of containers)docsearch({container:e,appId:"DV76UK9EIH",apiKey:"227dec0ac6cbc8dfad748f27b2974507",indexName:"go-"})</script><script src=/prgms/js/tabpane-persist.js></script><script src=/go_docs/js/tocbot.min.js></script><script src=/go_docs/js/markmap-autoloader.js></script><script type=text/javascript>window.addEventListener("load",function(){tocbot.init({tocSelector:".td-toc",contentSelector:".td-content",headingSelector:"h2, h3, h4, h5, h6",ignoreHiddenElements:!0,collapseDepth:6});let t=0,e=0,n=document.getElementById("show-timer"),s=document.getElementById("advice-reading-time"),o=s.textContent.trim();function i(){e++,e>=60&&(e=0,t++);let i=e<10?"0"+e:e;s!==null?n.textContent=t+":"+i+" <- "+o:n.textContent=t+":"+i}setInterval(i,1e3)})</script><script src=/go_docs/js/jquery-3.6.3.min.js></script><script src=/go_docs/js/deal-zero-width-space.js></script><script src=/go_docs/js/tabpane-persist.js></script></body></html>
