@@ -532,6 +532,7 @@ const numbers = "1,2,3,4,5";
 
 console.log(numbers.split(","));       // ["1", "2", "3", "4", "5"]
 console.log(numbers.split(",", 3));    // ["1", "2", "3"] — 只返回前3个
+console.log(numbers.split(",", 9));    // ["1", "2", "3", "4", "5"] - 不够9个, 返回全部的5个
 ```
 
 `split` 方法在处理 CSV 数据、解析路径、拆分单词等场景中非常有用：
