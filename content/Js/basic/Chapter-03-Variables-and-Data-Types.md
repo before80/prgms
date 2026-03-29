@@ -471,6 +471,8 @@ class User {
 // ES6 新增：class, const, let, static
 // ES6 严格模式保留字：implements, interface, package, private, protected, public
 
+```
+
 ## 3.2 数据类型
 
 JavaScript 的数据类型分为两大类：**原始类型**（基本类型）和**引用类型**。理解它们的区别，是理解 JavaScript 的关键。
@@ -1010,6 +1012,8 @@ const original = { name: "张三", info: { age: 25 } };
 const cloned = deepClone(original);
 cloned.info.age = 30;
 console.log(original.info.age); // 25（完美独立！）
+```
+
 
 ## 3.3 数字类型详解
 
@@ -1353,6 +1357,8 @@ function isBigInt(value) {
 
 console.log(isBigInt(10n)); // true
 console.log(isBigInt(10));  // false
+```
+
 
 ## 3.4 字符串
 
@@ -1620,6 +1626,8 @@ console.log(isEmoji("A")); // false
 console.log(isEmoji("中")); // false
 console.log(isEmoji("😀")); // true
 console.log(isEmoji("🚀")); // true
+```
+
 
 ## 3.5 类型转换
 
