@@ -1,12 +1,13 @@
-﻿+++
++++
 title = "第3章 C++程序基本结构"
 weight = 30
-date = "2026-03-29T21:03:00+08:00"
+date = "2026-03-29T21:43:08+08:00"
 type = "docs"
 description = ""
 isCJKLanguage = true
 draft = false
 +++
+
 # 第3章 C++程序基本结构
 
 > 🎭 欢迎来到C++的"装修手册"！你以为会写`cout << "Hello World"`就学会C++了？太天真了！让我们来看看代码背后那些不为人知的秘密——或者说，让你的代码看起来像专业人士写的那些套路。
@@ -177,12 +178,14 @@ graph LR
 #define MY_HEADER_HPP           // "...那就定义它！"（并开始读取内容）
 
 // 头文件内容可以放这里了
+#include <string>  // 别忘了包含！否则 std::string 找不到
+
 namespace my_space {
     class Robot {
     public:
         std::string name_;
         void greet() const;
-    };
+    };  // 类定义需要分号结尾！
 }
 
 #endif  // MY_HEADER_HPP        // "好了，这个头文件读完了"
@@ -424,6 +427,7 @@ namespace {
 ```cpp
 #include <iostream>
 
+// 先定义旧版本
 namespace v1 {
     void display() {
         std::cout << "Version 1" << std::endl;  // 输出: Version 1
@@ -434,6 +438,7 @@ namespace v1 {
     }
 }
 
+// 再定义新版本，并用inline标记
 inline namespace v2 {  // C++11特性：内联命名空间
     void display() {
         std::cout << "Version 2" << std::endl;  // 输出: Version 2
@@ -443,6 +448,8 @@ inline namespace v2 {  // C++11特性：内联命名空间
         return 2;
     }
 }
+
+using namespace v1;  // 引入v1（可选，不影响inline行为）
 
 // ============================================
 int main() {
@@ -1010,14 +1017,14 @@ void* riskyAlloc(size_t size) {
 // ============================================
 // C++20: [[no_unique_address]] - 节省空间的优化
 // ============================================
-struct Empty {};  // 空结构体，按理说应该不占空间
+struct Empty {};  // 空结构体，按C++标准大小至少为1
 
 struct Person {
-    [[no_unique_address]] Empty e;  // 告诉编译器：如果e和其他成员不冲突，可以共享地址
+    [[no_unique_address]] Empty e;  // 告诉编译器：如果e和其他成员地址不重叠，可以共享存储
     int age;
     std::string name;
 };
-// Person的大小可能比预期小，因为Empty e不占额外空间
+// Person的大小可能比预期小，因为编译器可以优化Empty e的存储位置
 
 // ============================================
 // C++23: [[assume(expr)]] - 告诉编译器"假设这个条件成立"
@@ -1064,11 +1071,13 @@ struct AlignedStruct {
 };
 
 // [[gnu::packed]] - 紧凑布局，不对齐
+// C++11 推荐写法：把属性放在前面
+[[gnu::packed]]
 struct PackedStruct {
     char a;
     int b;
     char c;
-} __attribute__((packed));
+};
 // 大小会尽可能小，但访问可能变慢
 
 int main() {

@@ -1,12 +1,13 @@
-﻿+++
++++
 title = "第7章 数组与字符串"
 weight = 70
-date = "2026-03-29T21:03:00+08:00"
+date = "2026-03-29T21:43:08+08:00"
 type = "docs"
 description = ""
 isCJKLanguage = true
 draft = false
 +++
+
 # 第7章 数组与字符串
 
 想象一下，你是一名仓库管理员，现在有100个一模一样的盒子要装货。你会怎么管理？如果每个盒子都起个名字——"盒子一"、"盒子二"、"盒子三"...恭喜你，你已经理解了数组的精髓！只不过在编程世界里，我们叫它们"数组元素"，而你从1开始数，我们要从0开始数（别问为什么，问就是C语言的传统）。
@@ -167,7 +168,7 @@ int main() {
     };
     
     // 访问元素
-    std::cout << "matrix[1][2] = " << matrix[1][2] << std::endl;  // 输出: matrix[1][2] = 7
+    std::cout << "matrix[1][2] = " << matrix[1][2] << std::endl;  // 第1行(0-based)第2列(0-based)的元素 = 7
     
     // 遍历2D数组
     std::cout << "Matrix:" << std::endl;
@@ -264,7 +265,7 @@ int main() {
     
     // 注意：arrPtr 和 ptr（普通指针）值不同
     std::cout << "arrPtr = " << arrPtr << ", *arrPtr = " << *arrPtr << std::endl;
-    // arrPtr 是指向整个数组的指针，*arrPtr 解引用后才是指向首元素的普通指针
+    // arrPtr 是指向整个数组的指针，*arrPtr 是数组本身（参与运算时退化为指向首元素的指针）
     
     return 0;
 }

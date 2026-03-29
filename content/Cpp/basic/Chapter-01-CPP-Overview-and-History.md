@@ -1,12 +1,13 @@
-﻿+++
++++
 title = "第1章 C++概述与历史演进"
 weight = 10
-date = "2026-03-29T21:03:00+08:00"
+date = "2026-03-29T21:43:08+08:00"
 type = "docs"
 description = ""
 isCJKLanguage = true
 draft = false
 +++
+
 # 第1章 C++概述与历史演进
 
 ## 1.1 C++的诞生与发展历程
@@ -230,7 +231,7 @@ int main() {
     // p2的x和y是0
     
     std::cout << "malloc分配的Point: (" << p1->x << ", " << p1->y << ")" << std::endl;
-    // 输出（垃圾值，每次运行可能不同）: malloc分配的Point: (chedan, 某个随机数)
+    // 输出（垃圾值，每次运行可能不同）: malloc分配的Point: (未定义, 未定义)
     
     std::cout << "new分配的Point: (" << p2->x << ", " << p2->y << ")" << std::endl;
     // 输出: new分配的Point: (0, 0)
@@ -277,7 +278,7 @@ int main() {
     Widget* w2 = new Widget(2);  // 调用构造函数，id=2
     
     std::cout << "\n--- 释放内存 ---" << std::endl;
-    free(w1);   // 不调用析构函数！Widget 1 的析构函数不会被调用！
+    free(w1);   // 不调用析构函数！且malloc的内存用free释放是合法的（但id是垃圾值）
     delete w2;  // 调用析构函数！Widget 2 的析构函数被调用！
     
     // 输出:
@@ -288,6 +289,9 @@ int main() {
     // 
     // --- 释放内存 ---
     // Widget 2 析构函数被调用
+    //
+    // 注意：如果用malloc分配的内存有非平凡析构函数，free不会调用它！
+    // 这是未定义行为！正确做法：malloc + placement new，或者直接用new/delete
 }
 ```
 
@@ -916,23 +920,40 @@ int main() {
 ```cpp
 #include <iostream>
 #include <coroutine>
-#include <future>
 
-// 简单的协程示例
-std::future<int> async_add(int a, int b) {
-    std::cout << "协程开始计算 " << a << " + " << b << std::endl;
-    co_return a + b;  // co_return表示协程的返回值
+// C++20协程的返回类型需要定义promise_type，比较繁琐
+// 这里展示核心概念，实际使用请参考专业教程
+
+struct Task {
+    struct promise_type {
+        Task get_return_object() { return {}; }
+        std::suspend_never initial_suspend() { return {}; }
+        std::suspend_never final_suspend() noexcept { return {}; }
+        void return_void() {}
+        void unhandled_exception() {}
+    };
+};
+
+// 协程函数：co_await挂起，co_return返回值
+Task async_task() {
+    std::cout << "协程开始执行..." << std::endl;
+    co_await std::suspend_never{};  // 立即继续执行
+    std::cout << "协程恢复执行..." << std::endl;
+    co_return;  // 协程结束
 }
 
 int main() {
-    auto result = async_add(40, 2);
-    std::cout << "等待结果..." << std::endl;
-    std::cout << "结果是: " << result.get() << std::endl;
-    // 输出顺序可能因实现而异
+    auto task = async_task();
+    std::cout << "main继续执行..." << std::endl;
+    // 协程自动清理
+    // 输出:
+    // 协程开始执行...
+    // main继续执行...
+    // 协程恢复执行...
 }
 ```
 
-> 注意：协程是C++20的复杂特性，上述示例是最简化的版本，实际使用需要更多的学习成本。
+> 注意：协程是C++20最复杂的特性之一，完整的协程需要定义 `promise_type`、处理生命周期等。实际项目中推荐使用现成的协程库（如Boost.Coroutine2、libco等），或者等待标准库提供更易用的封装。
 
 #### Ranges范围库
 
@@ -985,7 +1006,6 @@ int main() {
 
 ```cpp
 // module.ixx (模块接口文件)
-// module;
 export module my_module;  // 导出这个模块
 
 export int add(int a, int b) {
@@ -1013,7 +1033,7 @@ int main() {
 
 2023年发布的C++23是目前的最新标准，带来了更多现代化改进。
 
-#### std::expected、std::expected
+#### std::expected、std::generator
 
 **std::expected**：处理"可能失败"的返回值，类型安全！
 
@@ -1122,13 +1142,13 @@ int main() {
 struct Point {
     int x, y;
     
-    // 显式对象参数：&self 让方法像普通函数一样被调用
-    void print(const Point& self) const {
+    // C++23显式对象参数：用this作为第一个参数
+    void print(this const Point& self) const {
         std::cout << "(" << self.x << ", " << self.y << ")" << std::endl;
     }
     
-    // 或者用 && 调用
-    void format(const Point& self, std::string& out) const {
+    // 显式对象参数也可以重载
+    void format(this const Point& self, std::string& out) const {
         out = "(" + std::to_string(self.x) + ", " + std::to_string(self.y) + ")";
     }
 };
@@ -1137,8 +1157,8 @@ int main() {
     Point p{3, 4};
     
     // 两种调用方式都可以
-    p.print(p);  // 输出: (3, 4)
-    Point::print(p);  // 像静态方法一样调用
+    p.print();        // 输出: (3, 4) —— this被隐式传递
+    Point::print(p);  // 像静态方法一样调用 —— 显式传递this
 }
 ```
 
@@ -1274,7 +1294,9 @@ struct Packet {
     int payload;       // 4字节的数据
     char checksum;     // 1字节的校验和
     
-    // C++11: 可以强制指定内存布局
+    // C++11/14/17/20本身不提供强制指定内存布局的语法，
+    // 但可以用编译器的扩展：__attribute__((packed)) (GCC/Clang)
+    // 或 #pragma pack(push, 1) (MSVC)
 };
 
 int main() {
@@ -1490,7 +1512,7 @@ int main() {
     
     // 如果你真的需要强制转换，C++提供了更安全的转换方式
     std::cout << "安全的隐式转换演示" << std::endl;
-    std::cout << "int to double: " << static_cast<double>>(x) << std::endl;
+    std::cout << "int to double: " << static_cast<double>(x) << std::endl;
     // 输出: int to double: 42
 }
 ```

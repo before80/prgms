@@ -1,12 +1,13 @@
-﻿+++
++++
 title = "第6章 流程控制"
 weight = 60
-date = "2026-03-29T21:03:00+08:00"
+date = "2026-03-29T21:43:08+08:00"
 type = "docs"
 description = ""
 isCJKLanguage = true
 draft = false
 +++
+
 # 第6章 流程控制
 
 > 📚 流程控制，听起来像是"控制水流"的科学术语，但在编程世界里，它是控制程序执行顺序的神秘力量。没有流程控制，你的程序就像一杯白开水——按顺序流过每一条语句，平淡无奇。有了它，你的程序就能像苏打水一样：跳跃、选择、循环，精彩纷呈！
@@ -119,9 +120,8 @@ Welcome to the concert!
 flowchart TD
     A[开始] --> B{score >= 60?}
     B -->|是| C[打印 Passed!]
-    B -->|否| D[打印 Failed...]
+    B -->|否| D[打印 Failed... → 直接结束]
     C --> E{score >= 90?}
-    D --> E
     E -->|是| F[Grade: A]
     E -->|否| G{score >= 80?}
     G -->|是| H[Grade: B]
@@ -135,6 +135,7 @@ flowchart TD
     J --> N
     L --> N
     M --> N
+    D --> N
 ```
 
 ### switch-case语句
@@ -453,16 +454,17 @@ int main() {
     }
     
     // 典型用法：直到满足某个条件才停止
-    // 比如：验证密码
-    int password;
-    password = 12345;  // 假设这是用户输入
-    while (password != 0) {  // 假设0是退出码
-        // 模拟用户输入检查
+    // 比如：验证密码（模拟多次尝试）
+    int attempts = 3;  // 模拟最多尝试3次
+    while (attempts > 0) {
+        int password = 12345;  // 假设这是本次用户输入
+        --attempts;
         if (password == 12345) {
             std::cout << "Correct password!" << std::endl;  // 输出: Correct password!
             break;  // 密码对了，跳出循环
         }
-        break;  // 防止无限循环（实际场景中会重新输入）
+        std::cout << "Wrong password, " << attempts << " attempts left" << std::endl;
+        // 若3次都错，循环自然结束（attempts减到0）
     }
     
     // 无限循环的两种写法（配合break使用）
@@ -958,7 +960,7 @@ int main() {
 #include <iostream>
 #include <vector>
 #include <map>
-#include <tuple>
+#include <tuple>   // std::tuple 需要此头文件
 
 int main() {
     // 结构化绑定：让你用多个变量同时绑定到组合值
@@ -1040,7 +1042,7 @@ int main() {
     // [[deprecated]] auto [a, b] = pair;
     
     // C++26草案（可能）：在特定绑定上添加属性
-    // auto [start [[deprecated]], end] = range;  // 标记start为废弃
+    // auto [low [[deprecated]], high] = range;  // 标记low为废弃（草案语法，待定）
     
     std::pair<int, int> range = {1, 10};
     
