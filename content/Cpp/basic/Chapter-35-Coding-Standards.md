@@ -1,12 +1,13 @@
-﻿+++
-title = "第35章 编码规范——程序员的"交通规则""
+title = "第35章 编码规范——程序员的'交通规则'"
 weight = 350
 date = "2026-03-29T21:03:00+08:00"
 type = "docs"
 description = ""
 isCJKLanguage = true
 draft = false
+
 +++
+
 # 第35章 编码规范——程序员的"交通规则"
 
 想象一下，如果你开车上路，所有的车都不靠右行驶、不打转向灯、红灯直接闯过去——那将是一场灾难。代码世界也是如此。如果没有一套大家共同遵守的编码规范，团队协作就像一群人在没有红绿灯的十字路口"自由发挥"，结局往往是代码"车祸现场"。
@@ -327,6 +328,7 @@ SortIncludes: true            // 自动排序 #include
 ```
 
 > **格式化工具推荐**：
+>
 > - `clang-format`：C++最强大的格式化工具，LLVM/Google/clang都在用
 > - `cmake-format`：如果你用CMake，它能帮你格式化CMakeLists.txt
 > - IDE插件：CLion自带格式化，VS Code + C++扩展也可以，配置`.clang-format`后一键美化

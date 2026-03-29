@@ -1,5 +1,5 @@
 ﻿+++
-title = "第41章 C++游戏开发：从"Hello World"到"拯救公主""
+title = "第41章 C++游戏开发：从'Hello World'到'拯救公主'"
 weight = 410
 date = "2026-03-29T21:03:00+08:00"
 type = "docs"
