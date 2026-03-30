@@ -70,7 +70,7 @@ int main(void) {
 
 > **浮点是啥意思？** 简单说就是"小数点可以浮动的数"。比如 123.45 也可以写成 1.2345e2（科学计数法），小数点位置不固定，这就是"浮点"的含义。
 
-- **`float`**（单精度浮点）——像普通卷尺，精度有限，能表示大约 7 位有效数字
+- **`float`**（单精度浮点）——像普通卷尺，精度有限，能表示大约 6-7 位有效数字（C 标准保证至少 6 位不丢精度）
 - **`double`**（双精度浮点）——像游标卡尺，精度更高，能表示大约 15-16 位有效数字
 - **`long double`**（扩展精度浮点）——像激光测距仪，在 x86 架构上通常是 80 位扩展精度精度变态高（在某些平台上相当于 80 位，在其他平台上可能只是 double）
 
@@ -87,8 +87,11 @@ int main(void) {
     printf("float 能存的最大数: %e\n", FLT_MAX);
     // 输出: float 能存的最大数: 3.402823e+38
 
-    printf("float 小数精度: %d 位\n", FLT_DIG);
-    // 输出: float 小数精度: 6 位
+    printf("float 十进制有效数字位数: %d 位\n", FLT_DIG);
+    // 输出: float 十进制有效数字位数: 6 位
+    // 说明：FLT_DIG=6 表示 float 可以"安全地"表示和还原最多 6 位十进制数。
+    //       这不是说 float 只有 6 位有效数字——实际上 float 有约 24 位二进制尾数，
+    //       折合约 7 位十进制有效数字。FLT_DIG 是用于"十进制字符串往返"的精度。
 
     printf("double 精度: %d 位\n", DBL_DIG);
     // 输出: double 精度: 15 位
@@ -139,7 +142,7 @@ int main(void) {
 
 它的名字叫"字符"，但它实际上存的是**整数**！
 
-`char`本质上就是一个字节（8 位）的整数。你可以把它当作 -128 到 127 的有符号数，或者 0 到 255 的无符号数来用。但同时，你也可以把它当作字符来用——比如字符`'A'`对应的 ASCII 码是 65。
+`char`本质上就是一个字节的整数（"一个字节"是 C 标准的最低保证，实际上可能是 8 位、16 位或更多，但现代几乎都是 8 位）。你可以把它当作 -128 到 127 的有符号数，或者 0 到 255 的无符号数来用。但同时，你也可以把它当作字符来用——比如字符`'A'`对应的 ASCII 码是 65。
 
 ```c
 #include <stdio.h>
@@ -484,8 +487,7 @@ enum Weekday {
     SUNDAY        // 7
 };
 
-// 枚举类型也支持只读变量（结合 const）
-enum { MAX_BUFFER_SIZE = 1024 };  // 匿名枚举，创建一个常量
+enum { MAX_BUFFER_SIZE = 1024 };  // 匿名枚举，直接创建一个整型常量（不是变量！）
 
 int main(void) {
     enum Color c = RED;
@@ -544,14 +546,20 @@ int main(void) {
 }
 ```
 
-> **小技巧：** 在没有后缀的情况下：
-> - `42` → `int`
-> - `42U` → `unsigned int`
-> - `42L` → `long`
-> - `42LL` → `long long`
-> - `3.14` → `double`
-> - `3.14f` → `float`
-> - `3.14L` → `long double`
+> **小技巧：** 整数字面量的类型由**值**和**后缀**共同决定：
+> - `42` → `int`（值太小，直接用 int）
+> - `42U` / `42u` → `unsigned int`
+> - `42L` / `42l` → `long`
+> - `42LL` / `42ll` → `long long`
+> - `42UL` / `42LU` → `unsigned long`（U 和 L 可以组合）
+> - `42ULL` → `unsigned long long`
+>
+> 浮点字面量：
+> - `3.14` → `double`（默认！）
+> - `3.14f` / `3.14F` → `float`
+> - `3.14L` / `3.14l` → `long double`
+>
+> ⚠️ **新手常犯的错误：** 以为 `3.14` 可以直接赋给 `float`——错！`float f = 3.14;` 虽然能编译（因为 double 会自动缩窄），但会有**精度警告**。正确写法是 `float f = 3.14f;`，加那个 `f` 后缀！
 
 > **C23 新增：** C23 引入了二进制字面量（`0b`前缀）和更明确的后缀组合，比如`0b1010ULL`表示无符号长长整型的二进制值 1010。
 
@@ -885,21 +893,23 @@ int main(void) {
 ```c
 #include <stdio.h>
 #include <stdint.h>
-#include <stdio.h>
 
 int main(void) {
     int n = 42;
     int *ptr = &n;
 
-    // intptr_t：能完整存储指针值的整数类型
+    // intptr_t：能完整存储指针值的整数类型（可以安全地在指针和整数之间互转）
     intptr_t iptr = (intptr_t)ptr;
     uintptr_t uptr = (uintptr_t)ptr;
 
     printf("指针地址: %p\n", (void *)ptr);
     // 输出: 指针地址: 0x...（具体值）
 
-    printf("intptr_t: %ld\n", (long)iptr);
-    // 输出: intptr_t: （对应地址的整数值）
+    printf("intptr_t 值: %jd\n", (intmax_t)iptr);
+    // 输出: intptr_t 值: （对应地址的整数值，64位系统上是一个大整数）
+    // 注意：这里转成 intmax_t 再用 %jd 打印，是跨平台安全做法。
+    //       切勿在 64 位 Windows 上把 intptr_t 强制转成 long 再用 %ld 打印！
+    //       因为 Windows 上 long 只有 32 位，而 intptr_t 是 64 位，会截断成错误的值。
 
     printf("指针转回整数再转回指针: %p\n",
            (void *)(intptr_t)iptr);
@@ -1175,7 +1185,10 @@ int main(void) {
     for (int i = 0; i < 1023; i++) {
         big *= 2;  // 计算 2^1023
     }
-    printf("2^1023 的位数: %d\n", _BitInt_max(1024) != 0 ? 1024 : 1024);
+    // _BitInt_max(N) 宏返回 N 位有符号 _BitInt 类型能表示的最大值
+    _BitInt(1024) max_val = _BitInt_max(1024);
+    printf("1024 位整数的最大值位数验证: %d\n", 1024);
+    printf("big = 2^1023（这是一个约 309 位的十进制数，循环乘了 1023 次）\n");
     // _BitInt 在大数计算、密码学等领域非常有用
 
     return 0;
@@ -1200,13 +1213,13 @@ int main(void) {
     // _Decimal64：64 位十进制浮点，约 16 位十进制精度
     // _Decimal128：128 位十进制浮点，约 34 位十进制精度
 
-    _Decimal64 price = 19.99DD;  // 注意后缀 DD
-    _Decimal64 tax = price * 0.08DD;  // 8% 税
+    _Decimal64 price = 19.99DF;  // 注意后缀 DF（_Decimal64 用 DF，_Decimal128 才用 DD）
+    _Decimal64 tax = price * 0.08DF;  // 8% 税
     _Decimal64 total = price + tax;
 
-    printf("商品价格: %DD\n", price);
-    printf("税额(8%%): %DD\n", tax);
-    printf("总价: %DD\n", total);
+    printf("商品价格: %Df\n", price);
+    printf("税额(8%%): %Df\n", tax);
+    printf("总价: %Df\n", total);
 
     // 十进制浮点能精确表示 0.1、0.2 等
     _Decimal64 a = 0.1DD;
@@ -1333,10 +1346,11 @@ int main(void) {
 
 > **有符号整数溢出是未定义行为（Undefined Behavior）**！这意味着编译器可以"假设它不会发生"，然后把你的代码优化得面目全非。比如：
 > ```c
-> if (x + 1 > x) {  // 如果 x + 1 溢出，编译器可能直接优化成 "永远为真" 或 "永远为假"
->     // ...
+> if (x + 1 > x) {  // 如果 x + 1 溢出，编译器可能直接优化成 "永远为真"
+>     safe_printf("不会执行到这里！\n");
 > }
 > ```
+> 编译器一看：哦，x + 1 肯定大于 x 啊（溢出是 UB 嘛），直接把这个 if 块删了！然后你发现 safe_printf 永远不执行。这就是 UB 的可怕之处——它让"看起来没问题"的代码悄悄消失。
 > **无符号整数溢出是定义良好的行为**——它保证绕回到 0。但别因此就放松警惕，溢出仍然是不应该发生的事。
 
 ---

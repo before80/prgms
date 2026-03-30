@@ -329,7 +329,7 @@ int main(void) {
     int age;
 
     printf("请输入你的名字: ");  /* 输出到屏幕 */
-    scanf("%s", name);           /* 从键盘读取 */
+    scanf("%49s", name);         /* 从键盘读取，%49s 限流防止溢出 */
 
     printf("请输入你的年龄: ");
     scanf("%d", &age);           /* & 是取地址符 */

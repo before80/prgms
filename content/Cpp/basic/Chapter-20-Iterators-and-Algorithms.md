@@ -186,7 +186,7 @@ int main() {
 
 int main() {
     // C++17: 连续迭代器 (Contiguous Iterator)
-    // 概念：连续内存，p和p+1的地址相差1个元素大小
+    // 概念：连续内存，p和p+1在内存中紧紧相邻
     // vector、array、string的迭代器是连续的
     
     std::vector<int> v = {1, 2, 3, 4, 5};
@@ -247,7 +247,7 @@ int main() {
 
 > **`std::advance` vs `std::next`**：
 > - `std::advance(it, n)`：**原地**推进迭代器，无返回值
-> - `std::next(it, n)`：**返回新的**迭代器，原始迭代器不变（`const`安全）
+> - `std::next(it, n)`：**返回新的**迭代器，原始迭代器不变（不修改原迭代器）
 > - 简单记法：想修改原迭代器用`advance`，想保留原迭代器用`next`
 
 > **`std::distance`的性能坑**：对于前向/双向迭代器（`list`、`forward_list`等），`std::distance`是O(n)的！如果每次循环都要算距离，性能可能很惨。随机访问迭代器的距离运算是O(1)的——这又体现了随机访问的"超能力"！

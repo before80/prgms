@@ -400,8 +400,8 @@ int main() {
         // 输出: i=0, j=10; i=1, j=9; i=2, j=8; i=3, j=7; i=4, j=6
     }
     
-    // 循环变量类型推导（C++11）
-    // auto让编译器自动推断类型，这里推断为int
+    // auto类型推导：让编译器自动推断循环变量类型
+    // 这里i的类型被推断为int（因为0是int）
     for (auto i = 0; i < 3; ++i) {
         std::cout << "auto i = " << i << std::endl;  // 输出: auto i = 0, 1, 2
     }
@@ -455,7 +455,7 @@ int main() {
     
     // 典型用法：直到满足某个条件才停止
     // 比如：验证密码（模拟多次尝试）
-    int attempts = 3;  // 模拟最多尝试3次
+    int attempts = 3;  // 模拟最多尝试3次（实际检查2次：attempts从3减到1）
     while (attempts > 0) {
         int password = 12345;  // 假设这是本次用户输入
         --attempts;
@@ -533,7 +533,7 @@ int main() {
     } while (guess != 0 && guess != secret);  // 条件判断在这里
     
     // 典型场景：用户菜单
-    char choice;
+    char choice = 0;  // 初始化，避免未定义行为
     do {
         std::cout << "\nMenu: (a)dd, (s)ubtract, (q)uit: ";
         choice = 'a';  // 模拟输入
@@ -960,7 +960,7 @@ int main() {
 #include <iostream>
 #include <vector>
 #include <map>
-#include <tuple>   // std::tuple 需要此头文件
+#include <tuple>
 
 int main() {
     // 结构化绑定：让你用多个变量同时绑定到组合值

@@ -234,7 +234,7 @@ double my_sqrt(double x) [[ pre: x >= 0 ]] [[ post: result >= 0 ]] {
 }
 
 // 一个带断言的函数
-// [[ assert: n > 0 ]] 表示"函数执行过程中，n必须始终>0"
+// [[ assert: n >= 0 ]] 表示"函数执行过程中，n必须始终>=0（非负整数）"
 int factorial(int n) [[ assert: n >= 0 ]] {
     if (n == 0 || n == 1) return 1;
     return n * factorial(n - 1);
@@ -717,7 +717,7 @@ int main() {
     
     template<typename T, typename... Ts>
     T getLast(T..., Ts... last) {
-        return last;  // args[sizeof...(Ts)]
+        return last;  // 返回最后一个参数包中的值
     }
     
     // 或者更直接：
@@ -1074,10 +1074,9 @@ int main() {
     std::cout << R"(
     std::variant<int, std::string> getData();
     
-    // C++26:
-    if (auto [isInt, intVal] = std::holds_alternative<int>(getData());
-        isInt) {
-        std::cout << "是整数: " << intVal << std::endl;
+    // C++26: 检查variant并提取值
+    if (auto pval = std::get_if<int>(&getData()); pval) {
+        std::cout << "是整数: " << *pval << std::endl;
     }
     )" << std::endl;
     std::cout << std::endl;
@@ -1118,11 +1117,11 @@ int main() {
     // 输出: 
     // 输出: 场景4：std::variant
     // 输出: 
-    // 输出:     std::optional<int> findScore(const std::string& name);
-    // 输出: 
-    // 输出:     // C++26:
-    // 输出:     if (auto [value, exists] = findScore("Alice"); exists) {
-    // 输出:         std::cout << "Alice的成绩是: " << *value << std::endl;
+    // 输出:     std::variant<int, std::string> getData();
+    // 输出:     
+    // 输出:     // C++26: 检查variant并提取值
+    // 输出:     if (auto pval = std::get_if<int>(&getData()); pval) {
+    // 输出:         std::cout << "是整数: " << *pval << std::endl;
     // 输出:     }
     // 输出: 
     // 输出: 场景5：std::try_lock

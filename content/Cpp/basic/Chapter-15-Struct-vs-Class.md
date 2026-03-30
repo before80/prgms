@@ -76,17 +76,17 @@ int main() {
 ```mermaid
 classDiagram
     class StructDemo {
-        +int x public
-        +int y public
-        +void print() public
+        +int x
+        +int y
+        +void print()
     }
     
     class ClassDemo {
-        -int x private
-        -int y private
-        +void setX() public
-        +void setY() public
-        +void print() public
+        -int x
+        -int y
+        +void setX()
+        +void setY()
+        +void print()
     }
     
     note for StructDemo "struct: 默认public\n（透明玻璃房）"
@@ -391,8 +391,8 @@ int main() {
 
 要成为聚合类，必须满足以下"六不要"原则：
 
-1. **不要**有private或protected的直接成员
-2. **不要**有用户声明的构造函数
+1. **不要**有private或protected的直接成员（所有成员必须是public）
+2. **不要**有用户声明的构造函数（包括默认构造函数！）
 3. **不要**有virtual函数
 4. **不要**有基类
 5. **不要**是虚基类
@@ -419,7 +419,7 @@ Type var{.member1 = value1, .member2 = value2};
 
 // 聚合类的条件：
 // 1. 所有成员public（必须是public！private直接出局）
-// 2. 没有用户声明的构造函数（默认构造函数不算）
+// 2. 没有用户声明的构造函数（包括默认构造函数也不可以有！）
 // 3. 没有virtual函数
 // 4. 没有private/protected直接成员
 // 5. 没有基类
@@ -431,12 +431,12 @@ struct AggregateStruct {
     std::string name;   // public，OK
 };
 
-// 下面这个就不是聚合类
+// 下面这个就不是聚合类（因为有用户声明的构造函数）
 class NonAggregate {
 public:
     int x;
     int y;
-    // NonAggregate() {}  // 有用户声明的构造函数，不算聚合类
+    NonAggregate() {}  // 有用户声明的构造函数 → 不是聚合类
 };
 
 // 还有这些情况也不是聚合类：
@@ -490,18 +490,18 @@ int main() {
 ```mermaid
 classDiagram
     class AggregateOK {
-        +int x public
-        +double y public
-        +std::string z public
+        +int x
+        +double y
+        +std::string z
     }
     
     class AggregateNO {
-        -int x private
-        +double y public
+        -int x
+        +double y
     }
     
     class AggregateNO2 {
-        +int x public
+        +int x
         +AggregateNO2()
     }
     
@@ -685,7 +685,6 @@ flowchart TD
 | 对比项 | struct | class |
 |--------|--------|-------|
 | **默认访问权限** | public | private |
-| **本质区别** | 无 | 无（除了默认访问权限） |
 | **适用场景** | 纯数据聚合、POD类型 | 有不变式、需要封装 |
 | **封装** | 不封装，裸奔 | 封装，保护数据 |
 | **代码风格** | 透明、简单 | 防御、安全 |

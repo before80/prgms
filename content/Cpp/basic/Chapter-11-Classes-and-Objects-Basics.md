@@ -214,7 +214,7 @@ class Stack {
 private:
     static const int MAX_SIZE = 100;  // 最大容量
     int data_[MAX_SIZE];               // 存储数据的数组
-    int top_;  // 栈顶指针，不变式：top_始终在[-1, MAX_SIZE-1)范围内，栈空时为-1
+    int top_;  // 栈顶指针，不变式：top_始终在[-1, MAX_SIZE-1]范围内，栈空时为-1，栈满时为MAX_SIZE-1
     
 public:
     // 构造函数：初始化为空栈
@@ -862,7 +862,9 @@ int main() {
     std::cout << "\n=== 移动构造obj2 ===" << std::endl;
     // std::move把obj1变成右值，触发移动构造函数
     // 移动后obj1的data和numbers变成空！
-    BigObject obj2(std::move(obj1));
+    BigObject obj2(std::move(obj1));  // std::move把obj1变成右值，触发移动构造函数
+    // 注意！移动后obj1的data和numbers被"掏空"了，
+    // 下面的调试输出是在obj1已被移动之后的状态！
     
     std::cout << "\n=== 检查obj2 ===" << std::endl;
     obj2.print();
@@ -1408,6 +1410,7 @@ public:
     shallow_ptr(const char* str) {
         data = new char[strlen(str) + 1];
         strcpy(data, str);
+        std::cout << "shallow_ptr created: " << data << std::endl;
     }
     
     // 显式声明浅拷贝：默认拷贝构造函数只做简单的位拷贝
@@ -1417,7 +1420,7 @@ public:
     
     ~shallow_ptr() {
         std::cout << "Destroying: " << (void*)data << " -> " << (data ? data : "null") << std::endl;
-        delete[] data;  // 这里会导致double delete！
+        delete[] data;  // 这里会导致double delete（如果两个对象指向同一块内存）
     }
 };
 
@@ -1464,7 +1467,32 @@ public:
 };
 
 int main() {
-    std::cout << "=== 深拷贝演示 ===" << std::endl;
+    std::cout << "=== 浅拷贝的危险（切勿模仿！） ===" << std::endl;
+    {
+        shallow_ptr s1("Danger!");
+        shallow_ptr s2("Will Robinson");  // s2和s1的data指向同一块内存！
+        
+        std::cout << "s1和s2的data指针地址相同: " << (void*)s1.data << " == " << (void*)s2.data << std::endl;
+        
+        // 这里赋值会发生什么？s2的旧内存没人管了，内存泄漏！
+        s2 = s1;
+        std::cout << "赋值后s2.data已指向s1的内存，s2原来的内存泄漏了" << std::endl;
+        
+        // 作用域结束时：
+        // s1析构：delete[] s1.data（OK）
+        // s2析构：delete[] s2.data——但这和s1是同一块内存！
+        // 结果：经典的double free！程序可能崩溃！
+        std::cout << "作用域即将结束，s1和s2即将被销毁..." << std::endl;
+    }
+    // 上面的大括号确保s1和s2在同一时刻离开作用域
+    // 结局：s1和s2指向同一块内存，析构时double free！
+    // 运气好的话程序直接崩溃，运气不好则踩到脏数据debug半天
+    // 这就是浅拷贝管理动态内存的经典陷阱！
+    // 注意：此程序可能直接崩溃，不会执行到最后的cout语句
+    
+    std::cout << "\n（如果上面的演示导致程序崩溃，请不要惊慌——这正是我们想要展示的效果！）" << std::endl;
+    
+    std::cout << "\n=== 深拷贝演示 ===" << std::endl;
     
     deep_ptr d1("Hello");
     deep_ptr d2("World");
@@ -1613,8 +1641,11 @@ int main() {
     RuleOfFive r2("World");
     
     std::cout << "\n=== 移动赋值 ===" << std::endl;
-    r2 = std::move(r1);  // 使用移动赋值
-    
+    r2 = std::move(r1);  // r2的旧资源("World")被释放，r1的资源被"偷"给r2
+    // 注意：std::move(r1)将r1转换为右值引用，触发移动赋值运算符
+    // 移动赋值后，r1的资源被转交给r2，r1本身在作用域结束前仍然存在（只是变成了"空壳"）
+    // r2原来的"World"资源被释放，所以先打印"RuleOfFive destroyed"
+
     std::cout << "After move: " << r2.get() << std::endl;
     
     std::cout << "\n=== 作用域结束 ===" << std::endl;

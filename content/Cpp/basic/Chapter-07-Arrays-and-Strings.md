@@ -114,9 +114,9 @@ graph LR
 #include <iostream>
 
 void printArray(int arr[], int size) {
-    // 注意：数组作为函数参数时会"退化"成指针
-    // int arr[] 等价于 int* arr
-    // sizeof(arr) 在函数内得到的是指针大小，不是数组大小！
+    // 注意：数组作为函数参数时会"退化"成指向首元素的指针
+    // int arr[] 并不等价于 int* —— 前者有数组类型信息，后者是纯指针
+    // 但在sizeof求值时，arr 退化为指针，因此得到的是指针大小（64位系统下为8字节），而非数组大小！
     std::cout << "Inside function - sizeof(arr) = " << sizeof(arr) << std::endl;
     // 输出: Inside function - sizeof(arr) = 8 (64位指针大小)
     
@@ -286,7 +286,9 @@ int main() {
 #include <span>
 
 void printSpan(std::span<int> data) {
-    // span 知道自己的大小，不会退化！
+    // std::span 始终携带大小信息，不再像裸数组那样sizeof失效！
+    // 传入数组时，数组退化为指针，但 span 通过 CTAD 在调用点保留了数组边界，
+    // 并在构造时将大小信息记录下来，所以 data.size() 始终有效。
     std::cout << "span size: " << data.size() << std::endl;
     for (int i = 0; i < data.size(); ++i) {
         std::cout << data[i] << " ";

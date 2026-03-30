@@ -16,7 +16,7 @@ draft = false
 
 ### Bjarne Stroustrup：那个改变了一切的男人
 
-Bjarne Stroustrup（比雅尼·斯特劳斯特鲁普），1950年出生于丹麦奥林匹克游泳选手世家（别问为什么计算机科学家也要扯上游泳，可能是因为都需要"憋气"——憋出bug的时候）。他在剑桥大学获得博士学位后，加入了贝尔实验室，开始了他的"造梦"之旅。
+Bjarne Stroustrup（比雅尼·斯特劳斯特鲁普），1950年出生于丹麦。他在剑桥大学获得博士学位后，加入了贝尔实验室，开始了他的"造梦"之旅。
 
 > 有趣的是，Bjarne本人曾说过："我设计C++是为了让我的同事们不用那么频繁地来烦我。" 原来，懒，是推动科技进步的第一生产力！
 
@@ -38,7 +38,7 @@ Bjarne Stroustrup（比雅尼·斯特劳斯特鲁普），1950年出生于丹麦
 - 所以 C++ = C + 1 = "比C更进一步"
 - 同时也暗含了"C语言的超集"这层意思
 
-> 当然，还有人调侃说：`++` 在前面就是"先加再赋值"，在后面就是"先赋值再加"。所以 C++ 的命名体现了"后置++"的哲学——**先让你用着，以后再慢慢进化**。这大概也是为什么C++的标准一直在"后置++"吧……
+> 当然，还有人调侃说：`++` 在前面就是"**先加再赋值**"（`++a`：a先变成2，表达式用2），在后面就是"**先赋值再加**"（`a++`：表达式先用a的旧值1，然后再把a变成2）。所以 C++ 的命名体现了"后置++"的哲学——**先让你用着，以后再慢慢进化**。这大概也是为什么C++的标准一直在"后置++"吧……
 
 ### C++的哲学：不给你任何借口写烂代码
 
@@ -356,8 +356,8 @@ timeline
     2014 : C++14 小修小补
     2017 : C++17 重要特性集
     2020 : C++20 重大更新
-    2023 : C++23 最新标准
-    2026 : C++26 草案进行中
+    2024 : C++23 最新正式标准
+    2026 : C++26 标准进程中（计划2026年发布）
 ```
 
 ### C++98/03：标准化基础
@@ -506,7 +506,9 @@ int main() {
     
     // Lambda方式：一行搞定
     auto it2 = std::find_if(nums.begin(), nums.end(), [](int n) { return n % 2 == 0; });
-    std::cout << "第一个偶数: " << *it2 << std::endl;  // 输出: 第一个偶数: 2
+    if (it2 != nums.end()) {
+        std::cout << "第一个偶数: " << *it2 << std::endl;  // 输出: 第一个偶数: 2
+    }
     
     // Lambda配合for_each
     std::cout << "所有数加10: ";
@@ -707,8 +709,9 @@ int main() {
     std::map<std::string, int> m = {{"apple", 1}, {"banana", 2}};
     for (const auto& [key, val] : m) {
         std::cout << key << " -> " << val << std::endl;
-        // 输出: apple -> 1
-        //       banana -> 2
+        // 输出: (顺序不确定，取决于map内部实现)
+        //       可能是 apple -> 1
+        //       也可能是 banana -> 2
     }
 }
 ```
@@ -890,6 +893,7 @@ int main() {
 ```cpp
 #include <iostream>
 #include <concepts>
+#include <type_traits>  // std::is_integral_v 在此头文件中
 
 // 定义一个"概念"：必须是整数类型
 template<typename T>
@@ -983,7 +987,7 @@ int main() {
     
     std::cout << "Ranges管道结果: ";
     for (int x : view) {
-        std::cout << x << " ";  // 输出: Ranges管道结果: 20 16 12 8 4
+        std::cout << x << " ";  // 输出: Ranges管道结果: 20 16 12 8 4 (偶数2,4,6,8,10乘2后反转)
     }
     std::cout << std::endl;
     
@@ -1031,7 +1035,7 @@ int main() {
 
 ### C++23：最新正式标准
 
-2023年发布的C++23是目前的最新标准，带来了更多现代化改进。
+2024年发布的C++23是目前的最新标准，带来了更多现代化改进。
 
 #### std::expected、std::generator
 
@@ -1094,7 +1098,8 @@ int main() {
 ```cpp
 #include <iostream>
 
-// C++17：constexpr函数有限制
+// C++14：constexpr函数已经相当强大
+// C++17：constexpr lambda登场
 // C++20：constexpr virtual函数、try-catch等
 // C++23：更强大！
 
@@ -1294,8 +1299,8 @@ struct Packet {
     int payload;       // 4字节的数据
     char checksum;     // 1字节的校验和
     
-    // C++11/14/17/20本身不提供强制指定内存布局的语法，
-    // 但可以用编译器的扩展：__attribute__((packed)) (GCC/Clang)
+    // C++11引入了alignas关键字来控制内存对齐，
+    // 也可以用编译器的扩展：__attribute__((packed)) (GCC/Clang)
     // 或 #pragma pack(push, 1) (MSVC)
 };
 

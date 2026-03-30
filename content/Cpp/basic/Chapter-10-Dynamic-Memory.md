@@ -183,10 +183,16 @@ int main() {
     // 不分配内存，只调用构造函数
     
     // 1. 在栈上
-    char buffer[sizeof(int)];
-    int* p = new(buffer) int(42);  // 在buffer地址构造int
-    std::cout << "*p = " << *p << std::endl;  // 输出: *p = 42
-    p->~int();  // 手动调用析构函数（placement new不自动调用）
+    struct Tracer {
+        int value;
+        Tracer(int v) : value(v) { std::cout << "Tracer(" << value << ") constructed" << std::endl; }
+        ~Tracer() { std::cout << "Tracer(" << value << ") destroyed" << std::endl; }
+    };
+    
+    alignas(Tracer) char buffer[sizeof(Tracer)];
+    Tracer* p = new(buffer) Tracer(42);  // 在buffer地址构造Tracer
+    std::cout << "p->value = " << p->value << std::endl;  // 输出: p->value = 42
+    p->~Tracer();  // 手动调用析构函数（placement new不自动调用）
     
     // 2. 预分配的内存池
     static char memoryPool[1024];
@@ -424,8 +430,8 @@ shared_ptr有个致命弱点——**循环引用**。想象两个互相依赖的
 
 struct Node {
     int value;
-    std::shared_ptr<Node> next;
-    // std::weak_ptr<Node> prev;  // 用weak_ptr解决循环引用！
+    std::shared_ptr<Node> next;  // shared_ptr会形成循环引用！
+    // std::weak_ptr<Node> prev;  // 解决方案：把next或prev改成weak_ptr
     
     Node(int v) : value(v) {
         std::cout << "Node(" << value << ") created" << std::endl;
@@ -515,9 +521,10 @@ struct Widget {
 };
 
 void processAndThrow() {
-    // 危险写法
-    Widget* w = new Widget();  // 分配成功
-    throw std::runtime_error("Oops!");  // 异常！w泄漏！
+    // 危险写法：new Widget()分配内存后，如果构造函数抛出异常，
+    // 我们根本得不到w指针（w未定义），之前分配的内存就泄漏了！
+    Widget* w = new Widget();  // 如果构造失败，分配的内存泄漏！
+    throw std::runtime_error("Oops!");
     delete w;  // 永远不会执行
 }
 

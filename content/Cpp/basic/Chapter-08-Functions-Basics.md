@@ -460,8 +460,8 @@ void print(int x) {
     std::cout << "non-const: " << x << std::endl;  // 输出: non-const: 10
 }
 
-void print(const int x) {  // 这不是重载！编译器会把它当作重复声明
-    std::cout << "const: " << x << std::endl;
+void print(const int x) {  // 这不是重载！编译器把它当作重复声明
+    std::cout << "const: " << x << std::endl;  // 实际上这行代码根本不会被编译通过，因为签名相同
 }
 
 // 正确做法：用指针或引用来区分const
@@ -478,7 +478,7 @@ int main() {
     const int b = 20;
     
     print(a);  // 调用non-const版本，输出: non-const: 10
-    // print(b);  // 编译错误！两个print函数被编译器认为是同一个
+    // print(b);  // 编译错误！因为第二个print是重复声明，程序根本编译不过
     
     printPtr(&a);  // 调用int*版本，a可以被修改
     printPtr(&b);  // 调用const int*版本，b不能被修改
@@ -711,19 +711,21 @@ long long fibMemo(int n, long long memo[]) {
 int main() {
     std::cout << "factorial(5) = " << factorial(5) << std::endl;  // 输出: factorial(5) = 120
     
-    // 递归深度注意：太深会栈溢出
-    // factorial(10000) 可能会让你的程序崩溃
     std::cout << "fibonacci(10) = " << fibonacci(10) << std::endl;  // 输出: fibonacci(10) = 55
     
     // 使用记忆化（Memoization）优化：时间复杂度从O(2^n)降到O(n)
     long long memo[100] = {0};  // 初始化为0，表示"还没算过"
     std::cout << "fibMemo(50) = " << fibMemo(50, memo) << std::endl;
-    // 输出: fibMemo(50) = 12586269025（巨大的数字）
+    // 输出: fibMemo(50) = 12586269025
     
     // 尾递归优化（Tail Recursion Optimization）
     // 普通递归：return f(n-1) + f(n-2)，需要在返回后做加法
     // 尾递归：return tailCall(...)，没有任何后续操作
     // 编译器可以把尾递归优化成循环，避免栈增长
+    
+    // 注意：fibonacci的递归不是尾递归（因为有加法操作），无法被尾递归优化
+    // factorial的递归也不是尾递归（因为有乘法操作）
+    // 真正的尾递归示例：return tailCall(n-1)，函数最后一步就是调用自身
     
     return 0;
 }

@@ -218,7 +218,7 @@ int main() {
     std::optional<int> opt = 42;
 
     // map: 转换值——如果有值，就对它进行转换
-    // opt.map([](int x) { return x * 2; });  // 返回 optional<int>，值为84
+    // opt.map([](int x) { return x * 2; });  // 若opt有值42，结果为optional<int>(84)
 
     // transform: 类似map但更灵活
     // std::transform(opt, [](int x) { return x * 2; });
@@ -590,8 +590,8 @@ int main() {
     // 设置和翻转
     bits.set(0, 0);  // 设置第0位为0
     bits.flip();     // 所有位取反
-    std::cout << "After set(0,0) and flip: " << bits << std::endl;
-    // 原来是10110011，set(0,0)后10110010，flip后01001101
+    // 10110011 → set(0,0) → 10110010 → flip → 01001101
+    std::cout << "After set(0,0) and flip: " << bits << std::endl;  // 输出: 01001101
 
     return 0;
 }
@@ -747,7 +747,7 @@ int main() {
     //│  转换时间单位，就像换算货币                                      │
     //└─────────────────────────────────────────────────────────────┘
 
-    auto mins = duration_cast<minutes>(90s);  // 把90秒转换成分钟
+    auto mins = duration_cast<minutes>(90s);  // 把90秒转换成分钟（90s = 1.5min，向下取整得1）
     std::cout << "90 seconds = " << mins.count() << " minutes" << std::endl;  // 输出: 1
 
     // ┌─────────────────────────────────────────────────────────────┐

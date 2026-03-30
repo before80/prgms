@@ -191,7 +191,7 @@ int* createAndReturn() {
 
 int main() {
     // 原因1：未初始化 - 最常见的野指针来源
-    int* uninit;  // 此时ptr的值是随机的，可能是0x00000000，也可能是0xfeeefeee
+    int* uninit;  // 此时uninit的值是随机的，可能是0x00000000，也可能是0xfeeefeee
     // std::cout << *uninit << std::endl;  // 危险！可能崩溃！
     
     // 原因2：返回局部变量地址
@@ -201,14 +201,15 @@ int main() {
     // 原因3：delete后未置空
     int* dynamic = new int(100);  // 分配内存
     delete dynamic;  // 释放内存
-    dynamic = nullptr;  // 正确做法！释放后立即置空
+    // dynamic = nullptr;  // 错误！忘记置空，dynamic现在是一个悬空指针
     
-    // 原因4：指向已删除的对象（悬空指针）
+    // 原因4：指向已删除的对象（悬空指针/野指针）
     int* dangling = new int(200);  // 分配内存
     int* alias = dangling;  // alias和dangling指向同一块内存
     delete dangling;  // 释放内存
     dangling = nullptr;  // dangling置空了
     // alias现在是悬空指针！它还指向那块已经释放的内存！
+    // 注意：悬空指针(dangling pointer)是野指针(wild pointer)的一种
     // std::cout << *alias << std::endl;  // 危险！
     
     std::cout << "Safe usage demonstrated" << std::endl;
@@ -355,7 +356,7 @@ int main() {
 | 特性 | 数组 | 指针 |
 |------|------|------|
 | `sizeof` | 整个数组的大小 | 指针本身的大小（8字节） |
-| `&` 运算 | 获得指向数组的指针 | 获得指向指针的指针 |
+| `&` 运算 | 对数组名取地址得到指向整个数组的指针（如 `int(*)[5]`） | 对指针取地址得到指向指针本身的指针（如 `int**`） |
 | `+1` 语义 | 跳过1个元素 | 跳过1个元素 |
 | 可赋值性 | 不可修改（常量） | 可以重新赋值 |
 
@@ -537,8 +538,8 @@ int main() {
     int z = 100;
     int& ref4 = z;  // ref4绑定到z
     int w = 200;
-    // ref4 = w;  // 这不是让ref4重新绑定到w！
-    // 实际上是：把w的值赋给z！因为ref4就是z的别名
+    // ref4 = w;  // 这不是让ref4重新绑定到w！引用一旦绑定就不能改变
+    // 实际上是：把w的值赋给z！因为ref4就是z的别名，两者是同一个东西
     
     std::cout << "z = " << z << std::endl;  // 输出: z = 200（被w赋值了）
     // 如果你想让另一个变量也有引用，需要重新定义
@@ -1001,7 +1002,7 @@ int main() {
         ptr = &local;     // ptr指向local
     }  // local在这里被销毁，栈帧弹出
     
-    // 此时ptr指向的内存已经无效了！它是一个悬空指针（ dangling pointer）
+    // 此时ptr存储的地址指向的内存已经无效了！ptr现在是一个悬空指针
     // std::cout << *ptr << std::endl;  // 危险！可能读到垃圾值或直接崩溃
     
     // 正确做法：使用nullptr标记无效指针（悬空指针必须手动置空）

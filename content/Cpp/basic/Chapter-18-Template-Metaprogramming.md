@@ -536,14 +536,15 @@ auto describe() {
     }
 }
 
-// 示例3：与 requires 概念结合（C++20 引入，这里用类似的方式演示）
-// 检查类型是否支持 +1 操作（即 value + 1 是否有意义）
+// 示例3：使用 std::is_integral 检查类型是否支持整数运算
+// 注意：is_invocable_v<T, int> 检查的是"T本身是否可调用"，而非"T + int"是否有定义
+// 这里用 is_integral_v 来演示整数类型的编译期判断
 template<typename T>
 auto process(T value) {
-    // 用 is_invocable 检查 T + int 是否有定义
-    // 相当于检查 T 是否支持"加一个整数"的操作
-    if constexpr (std::is_invocable_v<T, int>) {
-        // 如果 T + int 有定义（即 value + 1 可以调用）
+    // 用 is_integral 检查 T 是否是整数类型
+    // 如果是整数类型，返回 value + 1；否则原样返回
+    if constexpr (std::is_integral_v<T>) {
+        // 如果 T 是整型，执行这个分支
         return value + 1;
     } else {
         return value;
@@ -654,24 +655,20 @@ C++23 扩展了 constexpr 的能力，允许在常量求值上下文中使用更
 // C++23: constexpr for (compile-time iteration)
 // 编译期循环终于可以写成更像普通 for 循环的样子了！
 
-// 使用模板参数包 + 折叠表达式创建数组
-// 这是 C++17/20 的传统方式
+// 使用模板参数包展开创建数组
+// C++17 支持参数包展开，可以直接在初始化列表中使用 values...
 template<auto... values>
 constexpr auto make_array_v1() {
     // 使用初始化列表和参数包展开
     return std::array<int, sizeof...(values)>{values...};
 }
 
-// C++23: constexpr 扩展，允许更多语句
-// 注意：这是一个假设的 C++23 特性示例
-// 目前主流编译器对 constexpr for 的支持还在完善中
+// C++17: 使用模板参数包展开创建数组
+// 参数包展开 `values...` 将所有传入的值展开为初始化列表
 template<auto... values>
 constexpr auto make_array() {
-    // C++23: constexpr 上下文中的 for 循环
     // 将参数包展开为数组字面量
-    // 这是简化表示，实际语法可能略有不同
-    
-    // 参数包展开语法：将 sizeof...(values) 个值放入数组
+    // 这是 C++17 的标准语法，无需特殊扩展
     return std::array<int, sizeof...(values)>{values...};
 }
 
@@ -778,9 +775,9 @@ C++14 开始，标准库提供了大量 `_v` 变量模板来简化代码：
 | `std::add_pointer<T>::type` | `std::add_pointer_t<T>` |
 | `std::make_unsigned<T>::type` | `std::make_unsigned_t<T>` |
 
-## 18.10 折叠表达式与约束排序（C++26）
+## 18.10 折叠表达式（C++17）与 C++26 展望
 
-折叠表达式是 C++17 引入的特性，让处理**参数包**变得前所未有的简单。而 C++26 可能会进一步增强折叠表达式的能力，包括约束排序等高级特性。
+折叠表达式是 C++17 引入的特性，让处理**参数包**变得前所未有的简单。而 C++26 草案进一步扩展了泛型 lambda 和模板参数包的能力，允许使用 `auto...` 作为非类型模板参数。
 
 ### 折叠表达式基础
 
@@ -788,7 +785,7 @@ C++14 开始，标准库提供了大量 `_v` 变量模板来简化代码：
 
 ```cpp
 // 一元折叠
-(... op pack)     // 左折叠：(pack1 op pack2 op ... op packN)
+(... op pack)     // 左折叠：(((pack1 op pack2) op pack3) op ... op packN)
 (pack op ...)      // 右折叠：(pack1 op (pack2 op (... op packN)))
 
 // 二元折叠
@@ -818,12 +815,13 @@ auto sum_with_initial(T init, Args... args) {
     return (init + ... + args);
 }
 
-// C++26 可能增强：约束排序等
-// 这是一个概念性的示例，展示未来可能的特性
+// C++26（草案）: 折叠表达式与 variadic auto
+// C++26 允许在泛型 lambda 和模板参数中使用 variadic auto
+// 以下示例展示使用 variadic auto（非类型模板参数包）的折叠表达式
 template<auto... values>
 constexpr auto make_sum() {
-    // C++26 可能支持更复杂的折叠表达式
-    // 约束排序可以在折叠过程中自动排序参数
+    // C++26 支持 auto... 作为非类型模板参数包
+    // 使用折叠表达式对所有参数求和
     return (... + values);
 }
 

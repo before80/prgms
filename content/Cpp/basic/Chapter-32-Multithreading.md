@@ -466,6 +466,7 @@ int main() {
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <chrono>
 
 /*
  * std::unique_lock 示例：灵活的锁管理
@@ -559,6 +560,7 @@ graph TB
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <chrono>
 
 /*
  * std::scoped_lock 示例：C++17的多锁管理器
@@ -1519,6 +1521,7 @@ graph TB
 #include <iostream>
 #include <thread>
 #include <stop_token>
+#include <chrono>
 
 /*
  * std::stop_token 示例：C++20停止令牌
@@ -1606,6 +1609,7 @@ int main() {
 ```cpp
 #include <iostream>
 #include <thread>
+#include <chrono>
 
 /*
  * std::jthread 自动停止令牌示例

@@ -79,24 +79,24 @@ int main(int argc, char* argv[]) {
 // return 0：程序正常退出，意思是"搞定了，没问题！"
 int success() {
     return 0;  // 操作系统收到这个会说："哦，成功了，记下了"
-// 输出: 进程退出码 = 0
+// 输出: 进程退出状态 = 0
 }
 
 // return 非零值：程序异常退出，不同值表示不同错误
 // 这就像是不同的"病情诊断书"
 int failure() {
     return 1;  // 一般错误
-    // 输出: 进程退出码 = 1
+    // 输出: 进程退出状态 = 1
 }
 
 int not_found() {
     return 404;  // 文件没找到（程序员的小幽默）
-    // 输出: 进程退出码 = 404
+    // 输出: 进程退出状态 = 404
 }
 
 int permission_denied() {
     return 13;  // 权限不足（为什么是13？因为Unix传统）
-    // 输出: 进程退出码 = 13
+    // 输出: 进程退出状态 = 13
 }
 ```
 
@@ -449,8 +449,6 @@ inline namespace v2 {  // C++11特性：内联命名空间
     }
 }
 
-using namespace v1;  // 引入v1（可选，不影响inline行为）
-
 // ============================================
 int main() {
     // v2 是内联命名空间，所以 display() 直接解析到 v2::display()
@@ -740,8 +738,8 @@ int main() {
     // ============================================
     // cerr: 无缓冲错误输出（Console ERROR）
     //       - 专门用于错误信息
-    //       - 没有缓冲区，数据直接输出
-    //       - 不重定向到文件（通常）
+    //       - 没有缓冲区，数据直接输出（即时可见）
+    //       - 通常不重定向到文件，但通过 2> 可以强制重定向
     // ============================================
     std::cerr << "Error: something went wrong!" << std::endl;
     // 输出: Error: something went wrong!
@@ -875,9 +873,10 @@ int main() {
     // 错误用法：忽略了返回值
     calculateScore();  // 编译器：嘿！你怎么不要这个分数？
     
-    // 但注意，只有 [[nodiscard]] 的函数被普通调用时才会警告
-    // 如果返回值被用于表达式，编译器可能不会警告
-    int x = calculateScore() + 10;  // 用上了，没问题
+    // 注意：只有返回值被真正"丢弃"时（即直接调用而不使用结果）才会触发警告。
+    // 如果把返回值用于表达式（如 calculateScore() + 10），它并没有被丢弃，
+    // 所以不会触发 [[nodiscard]] 警告。但无论如何，显式赋值给变量总是最佳实践。
+    int x = calculateScore() + 10;  // 显式使用返回值
     
     // isValid 示例
     if (isValid(10)) {  // 用在条件表达式里
@@ -986,6 +985,7 @@ int main() {
 
 ```cpp
 #include <iostream>
+#include <cstdlib>
 
 // ============================================
 // C++17: [[fallthrough]] - 故意不加break
@@ -997,7 +997,8 @@ void handle(char c) {
             [[fallthrough]];  // 我知道我在干什么，不要警告！
         case 'A':
             std::cout << "Found letter A (any case)" << std::endl;
-            // 输出: Found A 和 Found letter A (any case)
+            // 输出: c='a' 时输出两行（"Found A" + "Found letter A..."）
+            //       c='A' 时只输出第二行
             break;
         case 'b':
         case 'B':
@@ -1011,7 +1012,11 @@ void handle(char c) {
 // ============================================
 [[nodiscard("Memory allocation may fail")]]
 void* riskyAlloc(size_t size) {
-    return nullptr;
+    // 模拟：分配失败返回nullptr（真实场景中这里会调用malloc/new）
+    if (size > 1024 * 1024 * 1024) {  // 超过1GB就"失败"
+        return nullptr;
+    }
+    return malloc(size);  // 真实场景会这样分配内存
 }
 
 // ============================================
@@ -1029,8 +1034,10 @@ struct Person {
 // ============================================
 // C++23: [[assume(expr)]] - 告诉编译器"假设这个条件成立"
 // ============================================
-int fastAbs(int x) {
+int absAssumingNonNegative(int x) {
     [[assume(x >= 0)]];  // 编译器可以假设x非负，做激进优化
+    // 注意：这里没有做任何abs运算，只是"告诉"编译器x>=0
+    // 如果传入负数，后果自负（未定义行为）！
     return x;
 }
 
@@ -1038,9 +1045,16 @@ int main() {
     handle('a');  // 输出: Found A 和 Found letter A (any case)
     handle('b');  // 输出: Found B
     
-    void* p = riskyAlloc(100);
+    void* p = riskyAlloc(100);  // 分配100字节，应该成功
     if (!p) {
         std::cout << "Allocation failed" << std::endl;
+    } else {
+        std::cout << "Allocation succeeded" << std::endl;
+    }
+    
+    void* big = riskyAlloc(1024 * 1024 * 1024 * 2ULL);  // 分配2GB，注定失败
+    if (!big) {
+        std::cout << "Large allocation failed (as expected)" << std::endl;
     }
     
     return 0;
@@ -1071,7 +1085,7 @@ struct AlignedStruct {
 };
 
 // [[gnu::packed]] - 紧凑布局，不对齐
-// C++11 推荐写法：把属性放在前面
+// GCC/Clang 扩展写法：把属性放在前面（C++标准中要到 C++23 才原生支持 [[packed]]）
 [[gnu::packed]]
 struct PackedStruct {
     char a;

@@ -887,13 +887,15 @@ int main() {
     std::vector<int> data = {1, 2, 3, 4, 5};
     
     // 使用初始化捕获移动data到Lambda中
-    // 然后用结构化绑定(C++17特性，这里是简化的写法)
     auto result = [data = std::move(data)]() {
         auto minmax = std::minmax_element(data.begin(), data.end());
         return std::pair<int, int>(*minmax.first, *minmax.second);
     };
     
-    auto [minVal, maxVal] = result();
+    // C++14写法：用auto接收pair，再分别提取
+    auto result_pair = result();
+    int minVal = result_pair.first;
+    int maxVal = result_pair.second;
     std::cout << "min=" << minVal << ", max=" << maxVal << std::endl;  // 输出: min=1, max=5
     
     // data现在已经被移动走了

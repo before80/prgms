@@ -44,7 +44,7 @@ graph TB
     A["std::pair<int, std::string>"] --> B["结构化绑定"]
     B --> C["auto [key, value] = p;"]
     C --> D["key = 1 (int)"]
-    C --> E["value = 'one' (string)"]
+    C --> E["value = \"one\" (string)"]
 ```
 
 ### 25.1.3 绑定数组
@@ -83,7 +83,7 @@ int main() {
     Point pt{1.0, 2.0};
     auto [px, py] = pt;
     std::cout << "px=" << px << ", py=" << py << std::endl;
-    // 输出: px=1, py=2
+    // 输出: px=1.0, py=2.0
     
     // map遍历
     std::map<std::string, int> m = {{"a", 1}, {"b", 2}};
@@ -472,8 +472,8 @@ auto sumInit(int init, Args... args) {
 
 // 二元右折叠
 template<typename... Args>
-auto concat(std::string sep, Args... args) {
-    return (args + ... + sep);  // 有点复杂，但原理相同
+auto concat(Args... args) {
+    return ("" + ... + args);  // 二元左折叠: (("" + "a") + "b") + "c" = "abc"
 }
 ```
 
@@ -867,7 +867,6 @@ int main() {
     auto b3 = b1 | b2;
     auto b4 = b1 & b2;
     auto b5 = b1 ^ b2;
-    auto b6 = ~b1;
     
     std::cout << "std::byte operations work!" << std::endl;
     
@@ -890,6 +889,7 @@ std::byte b{42};  // OK
 // int x = b;           // 错误！不能隐式转换
 // std::cout << b;      // 错误！不能直接输出
 // b + 1;               // 错误！不支持算术运算
+// ~b;                  // 错误！不支持按位取反
 // b << 1;              // 错误！不支持移位运算
 
 // 正确的用法：

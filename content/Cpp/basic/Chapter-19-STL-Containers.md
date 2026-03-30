@@ -488,7 +488,7 @@ int main() {
 
 `std::forward_list`是**单向链表**，比双向链表更节省内存，因为每个节点只需要一个指针。
 
-> **通俗理解：** forward_list就像**单行道**。你只能往前走，不能掉头。省油（内存），但灵活性差一些。顺嘴一提，它**没有size()方法**，因为链表统计size需要O(n)时间，设计者选择不让你方便地获取它。
+> **通俗理解：** forward_list就像**单行道**。你只能往前走，不能掉头。省油（内存），但灵活性差一些。顺嘴一提，早期标准中它**没有size()方法**（因为统计size需要O(n)时间），但**C++20起提供了size()方法**，且为O(1)复杂度。
 
 ```cpp
 #include <iostream>
@@ -497,7 +497,7 @@ int main() {
 int main() {
     // std::forward_list：单向链表
     // 只支持前向迭代，比list更节省内存
-    // 不支持size()、push_back()、pop_back()！
+    // 不支持push_back()、pop_back()！（C++20起支持size()）
     
     std::forward_list<int> fl = {1, 2, 3, 4, 5};
     
@@ -621,8 +621,8 @@ int main() {
     
     // ========== std::get<N>：编译期索引访问 ==========
     // 模板参数N必须是编译时常量！
-    std::cout << "std::get<0>(arr) = " << std::get<0>(arr) << std::endl;  // 输出: 9（排序后）
-    std::cout << "std::get<4>(arr) = " << std::get<4>(arr) << std::endl;  // 输出: 1
+    std::cout << "std::get<0>(arr) = " << std::get<0>(arr) << std::endl;  // 输出: 1（升序后第0位）
+    std::cout << "std::get<4>(arr) = " << std::get<4>(arr) << std::endl;  // 输出: 9（升序后第4位）
     
     // ========== constexpr特性 ==========
     // array的大小可以在编译期使用
@@ -640,7 +640,7 @@ int main() {
      * | 内存位置    | 栈上          | 堆上           | 栈上（通常）   |
      * | 边界检查    | at()支持     | at()支持        | 无             |
      * | STL算法    | 支持          | 支持            | 不直接支持     |
-     * | 赋值        | 可以（替换元素）| 可以（替换全部）| 不可           |
+     * | 赋值        | 可以（替换元素）| 可以（替换全部）| 可以（替换全部） |
      * 
      * 选择建议：
      * - 大小固定且已知 → array
@@ -1368,7 +1368,7 @@ int main() {
     
     // 定义比较：priority大的优先
     auto cmp = [](const Task& a, const Task& b) {
-        return a.priority < b.priority;  // 返回true表示a的优先级低于b
+        return a.priority > b.priority;  // 返回true表示a的优先级高于b（用于最大堆）
     };
     
     std::priority_queue<Task, std::vector<Task>, decltype(cmp)> taskQueue(cmp);

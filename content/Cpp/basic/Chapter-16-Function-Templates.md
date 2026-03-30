@@ -332,7 +332,7 @@ int main() {
 
 ### 显式（全）特化：为特殊类型开"小灶"
 
-有时候，模板的通用实现对某些特定类型并不适用。比如通用的`add`函数用`+`运算符，但如果参数是两个字符串，你可能想用`strcat`来拼接而不是`+`运算符（虽然现代C++的`std::string`支持`+`）。这时候就需要**显式特化**（Explicit Specialization）。
+有时候，模板的通用实现对某些特定类型并不适用。比如通用的`add`函数用`+`运算符，但如果参数是两个 C 风格字符串（`const char*`），通用模板无法直接用`+`拼接，需要自定义拼接逻辑。这时候就需要**显式特化**（Explicit Specialization）。
 
 ```cpp
 #include <iostream>
@@ -546,10 +546,10 @@ int main() {
 
 ```mermaid
 graph TD
-    A[非类型模板参数应用] --> B[固定大小数组<br/>template&lt;size_t N&gt;]
-    A --> C[编译时常量<br/>template&lt;int N&gt;]
-    A --> D[类型标签<br/>template&lt;void* P&gt;]
-    A --> E[浮点常量<br/>template&lt;double PI&gt; C++23]
+    A[非类型模板参数应用] --> B[固定大小数组<br/>template\<size_t N\>]
+    A --> C[编译时常量<br/>template\<int N\>]
+    A --> D[类型标签<br/>template\<void* P\>]
+    A --> E[浮点常量<br/>template\<double PI\> C++23]
     
     B --> B1["std::array<int, 100>"]
     C --> C1["Array<1024>"]
@@ -787,8 +787,9 @@ constexpr bool isEmpty(Args...) {
 int main() {
     std::cout << "first element: " << first(1, 2, 3) << std::endl;  // 输出: 1
     std::cout << "args count: " << argsCount(1, 'a', 3.14, "hello") << std::endl;  // 输出: 4
-    std::cout << "is empty: " << isEmpty() << std::endl;  // 输出: 1（true）
-    std::cout << "is empty: " << isEmpty(1) << std::endl;  // 输出: 0（false）
+    std::cout << std::boolalpha;  // 启用布尔文字输出（显示true/false而非1/0）
+    std::cout << "is empty: " << isEmpty() << std::endl;  // 输出: true
+    std::cout << "is empty: " << isEmpty(1) << std::endl;  // 输出: false
     
     return 0;
 }
@@ -836,10 +837,12 @@ bool andAll(Args... args) {
     return (args && ...);  // 一元右折叠
 }
 
-// 二元左折叠：类似于 (0 + 1 + 2 + 3)
+// 二元右折叠：(args , ... , first)
+// 相当于 (((args[0], args[1]), args[2]), ..., first)
+// 逗号表达式依次求值，最终返回 first
 template<typename T, typename... Args>
-T firstOr(T first, Args...) {
-    return first;  // 本函数只用first，其他参数没用，纯粹演示
+T firstOr(T first, Args... args) {
+    return (args, ..., first);
 }
 
 // 使用逗号表达式 + 折叠表达式：强制求值所有参数
@@ -860,6 +863,7 @@ int main() {
     // 输出: andAll(true, true, false) = 0（false）
     
     std::cout << "firstOr(42, 100, 200) = " << firstOr(42, 100, 200) << std::endl;
+    // 折叠过程：(42, 100, 200) -> ((42, 100), 200) -> first = 42
     // 输出: firstOr(42, 100, 200) = 42
     
     // 逗号折叠：所有参数都会被求值

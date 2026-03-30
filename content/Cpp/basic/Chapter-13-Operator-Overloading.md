@@ -164,15 +164,15 @@ public:
 };
 
 // 非成员运算符实现交换律：v * 2 = 2 * v
-// 如果只定义成员形式的 v * 2，那 2 * v 就无法编译了！
+// 如果只定义成员形式的 v * 2（成员 operator*），那 2 * v 就无法编译了！
 Vec2 operator*(const Vec2& v, double scalar) {
     return Vec2(v.x_ * scalar, v.y_ * scalar);
 }
 
 // 复用上面的实现，保持DRY原则（Don't Repeat Yourself）
-// 注意：这里 v * scalar 调用的是成员函数 Vec2::operator*(double)，而非自身，避免无限递归
+// 注意：这里 v * scalar 调用的是非成员 operator*(const Vec2&, double)（由友元声明），而非自身，避免无限递归
 Vec2 operator*(double scalar, const Vec2& v) {
-    return v * scalar;  // 调用成员函数 Vec2::operator*(double)
+    return v * scalar;  // 调用非成员 operator*(const Vec2&, double)
 }
 
 int main() {
@@ -197,7 +197,7 @@ int main() {
 }
 ```
 
-> 小贴士：为什么`operator*`要用非成员函数？因为数学上乘法是**交换的**——`v * 2`应该等于`2 * v`。如果只定义成员函数`Vec2::operator*(double)`，那你只能写`v * 2`，写`2 * v`编译器就会报错："没有匹配的操作符"。
+> 小贴士：为什么`operator*`要用非成员函数？因为数学上乘法是**交换的**——`v * 2`应该等于`2 * v`。如果只有成员函数`Vec2::operator*(double)`（即只支持`v * 2`），那`2 * v`编译器就会报错："没有匹配的操作符"。必须同时提供非成员版本才能让两种写法都成立！
 
 ## 13.3 关系运算符重载
 
@@ -488,15 +488,14 @@ int main() {
 
 class Ptr {
 private:
-    int* data_;  // 代理一个动态分配的整数
+    Widget* data_;  // 代理一个Widget对象
 
 public:
-    Ptr(int* p) : data_(p) {}
+    Ptr(Widget* p) : data_(p) {}
 
     // operator-> 必须返回指针（或另一个重载了->的对象）
-    // 关键点：即使返回的是int*，调用方仍然可以继续用 ->
-    // 编译器会解引用并访问其成员
-    int* operator->() const {
+    // 关键点：返回Widget*后，编译器会继续解引用，所以可以访问Widget的成员
+    Widget* operator->() const {
         return data_;
     }
 
@@ -516,7 +515,7 @@ int main() {
     Widget w;
     Ptr p(&w);
 
-    // p-> 返回 int*，但 -> 会继续解引用，所以可以访问 Widget 的成员！
+    // p-> 返回 Widget*，但 -> 会继续解引用，所以可以访问 Widget 的成员！
     p->display();           // 输出: Widget::display() called!
     std::cout << "p->value = " << p->value << std::endl;  // 输出: p->value = 42
 
@@ -763,7 +762,9 @@ public:
         return static_cast<double>(numerator_) / denominator_;
     }
 
-    // 转换为int（隐式转换，但会截断小数部分）
+    // 转换为int（隐式转换，会截断小数部分）
+    // 注意：这里故意不用explicit，是为了演示隐式转换的陷阱
+    // 实际项目中，建议也加上explicit
     operator int() const {
         return numerator_ / denominator_;  // 整数除法，直接截断
     }

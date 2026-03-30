@@ -166,13 +166,13 @@ int main() {
     wchar_t chinese = L'中';  // L前缀表示宽字符
     // std::wcout << L"宽字符: " << chinese << std::endl;  // 输出: 宽字符: 中
     
-    // char16_t: UTF-16字符（C++11）
-    // 专门为Unicode设计的16位字符类型
+    // char16_t: UTF-16码元（C++11）
+    // 专门为Unicode设计的16位字符类型（注意：UTF-16使用代理对表示超出BMP的字符）
     char16_t utf16_char = u'\u4E2D';  // Unicode码点 U+4E2D = '中'
     // std::u16string s1 = u"中文";  // UTF-16字符串
     
-    // char32_t: UTF-32字符（C++11）
-    // 宇宙无敌全能字符类型，每个字符都是32位
+    // char32_t: UTF-32码点（C++11）
+    // 32位Unicode码点类型，可直接存储任何Unicode字符的码点值
     char32_t utf32_char = U'\U00004E2D';  // Unicode码点 U+4E2D
     // std::u32string s2 = U"中文";  // UTF-32字符串
     
@@ -427,8 +427,7 @@ int main() {
     }
     std::cout << std::endl;
     
-    // 字符串列表初始化
-    // 注意：字符串的列表初始化不太常见，这里仅作演示
+    // 字符串列表初始化（调用 initializer_list 构造函数）
     std::string greeting = {"Hello, C++"};
     std::cout << greeting << std::endl;  // 输出: Hello, C++
     
@@ -823,18 +822,21 @@ int main() {
     const int cx = 20;
     int& rx = x;  // rx是x的引用
     
-    // decltype：获取表达式的类型（重点：decltype保留引用和const！而不是"去掉"它们）
+    // decltype：获取表达式的类型（编译时推导，不会实际执行表达式）
     // decltype(x)  → int（x是int变量，decltype返回它的声明类型 int）
-    // decltype(cx) → const int（cx是const int，const被完整保留！）
-    // decltype(rx) → int&（rx是int&引用，引用也被完整保留！）
+    // decltype(cx) → const int（cx是const int，decltype按规则保留const！）
+    // decltype(rx) → int&（rx是int&引用，decltype按规则保留引用！）
+    // 注意：decltype的行为取决于表达式的值类别，不是简单"保留"或"去掉"
     decltype(x) y = 5;          // y是int
     decltype(cx) z = 15;        // z是const int（const被保留！）
     decltype(rx) ry = x;        // ry是int&（引用被保留！）
     
     // decltype的三条规则（记住就好）：
-    // 1. 如果expr是纯右值（prvalue） -> T
-    // 2. 如果expr是左值（lvalue） -> T&
-    // 3. 如果expr是将亡值（xvalue） -> T&&
+    // 1. 如果expr是纯右值（prvalue） → T
+    // 2. 如果expr是左值（lvalue） → T&（引用被保留！）
+    // 3. 如果expr是将亡值（xvalue） → T&&（右值引用也被保留！）
+    // 注意：decltype不加括号 decltype(x) 返回的是x的声明类型；
+    // 加括号 decltype((x)) 才考虑表达式的值类别！
     
     // 将亡值示例
     int&& rval = 10;  // 右值引用
@@ -854,10 +856,10 @@ int main() {
 ```
 
 > 🔮 **auto vs decltype**：
-> - `auto x = expr;` — 用expr初始化x，自动推断类型
-> - `decltype(expr) x;` — 不实际计算expr，只获取它的类型
+> - `auto x = expr;` — 用expr的**初始化值**推导类型（expr本身作为初始化表达式）
+> - `decltype(expr) x;` — 用expr的**类型**声明变量（expr不作为初始化值，只提供类型信息）
 >
-> 简单记忆：`auto`是"用值推类型"，`decltype`是"看表达式推类型"。
+> 简单记忆：`auto`从**初始化器**推断类型，`decltype`从**表达式本身**推断类型。
 
 > 💡 **decltype的典型用法**：
 > 1. 推导函数模板的返回类型

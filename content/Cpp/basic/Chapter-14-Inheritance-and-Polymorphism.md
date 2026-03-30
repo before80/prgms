@@ -279,24 +279,24 @@ public:
     }
 };
 
+// 组合版本：更推荐的方式！
+// Car有两个"身份"：它"是一个"可以行驶的东西（这里用继承），
+// 同时"有一个"发动机（用组合）
+class BetterCar {
+private:
+    Engine engine_;  // 组合：我有一台发动机
+public:
+    void drive() {
+        engine_.start();
+        std::cout << "BetterCar driving!" << std::endl;
+        engine_.stop();
+    }
+};
+
 int main() {
     Car myCar;
     myCar.drive();
     // myCar.start();  // 错误！Engine的接口被私有化了
-    
-    // 等等，私有继承太"绝"了！如果只是想让Car使用Engine的功能
-    // 更好的方式是直接组合：
-    
-    class BetterCar {
-    private:
-        Engine engine_;  // 组合：我有一台发动机
-    public:
-        void drive() {
-            engine_.start();
-            std::cout << "BetterCar driving!" << std::endl;
-            engine_.stop();
-        }
-    };
     
     BetterCar better;
     better.drive();
@@ -522,7 +522,7 @@ Drawing a circle
  * | vptr           | -----> +------------------------+
  * | (隐藏的指针)    |        | [0] Shape::draw        |
  * +----------------+        | [1] Shape::area        |
- * | 其他成员...     |        | [2] ...                |
+ * | Shape的数据成员 |        | [2] ...                |
  * +----------------+        +------------------------+
  * 
  * 当调用虚函数时：
@@ -747,9 +747,7 @@ class Base {
 public:
     Base() { std::cout << "Base constructor" << std::endl; }
     
-    // 普通析构函数（非虚）！
-    // 当delete Base*指针时，只调用~Base()
-    ~Base() {
+    virtual ~Base() {  // 虚析构函数！只有virtual，派生类才能override
         std::cout << "Base destructor" << std::endl;
     }
 };
@@ -1006,8 +1004,8 @@ public:
     void method1() const override { std::cout << "Derived::method1" << std::endl; }
     
     // 如果你写错了，比如：
-    // void method2(int x) override { }  // 编译错误！
-    // 编译器会立刻报错："父类没有这个函数！"
+    // void method2(int x) override { }  // 编译错误！参数不匹配
+    // 编译器会立刻报错："父类没有这个签名的函数！"
     
     void method2() override final { 
         std::cout << "Derived::method2" << std::endl; 
@@ -1096,12 +1094,15 @@ int main() {
     ref.identify();    // 调用Derived::identify()，多态正常工作！
     
     std::cout << "\n=== 函数参数的切片陷阱 ===" << std::endl;
-    // 这个函数有问题！
-    void process(Base b);  // 值传递会切片！
-    process(d);  // d被切片传入
+    // 注意！如果你这样写：
+    void processByValue(Base b);      // 值传递会切片！
+    // processByValue(d);  // 编译通过！但d被切片——派生类部分被丢弃！
+    // 这是个隐蔽的bug：代码能跑，但行为不符合预期
     
-    // 正确做法：
-    void processRef(const Base& b);  // 传引用，不会切片
+    // 正确做法：传引用或传指针
+    void processRef(const Base& b) {  // 传引用，不会切片
+        b.identify();
+    }
     processRef(d);
     
     return 0;
@@ -1162,13 +1163,11 @@ int main() {
     std::cout << "Derived(" << obj.x_ << ", " << obj.y_ << ")" << std::endl;
     // 输出: Derived(10, 20)
     
-    // C++23增强了继承构造函数的CTAD（类模板参数推导）
-    // 未来可能会支持更复杂的场景：
-    // template<typename T>
-    // class Wrapper : public T {
-    //     using T::T;  // 继承构造函数
-    // };
-    // Wrapper w(1, 2);  // C++23可能支持自动推导T
+    // 注意：继承构造函数不会继承父类的默认构造函数、拷贝构造函数、移动构造函数。
+    // 如果需要，要显式定义或using。
+    //
+    // 补充：C++17支持类模板参数推导（CTAD），但对于从基类继承来的构造函数的
+    // 模板参数推导，标准支持仍在不断完善中，实际使用时请以编译器文档为准。
     
     return 0;
 }

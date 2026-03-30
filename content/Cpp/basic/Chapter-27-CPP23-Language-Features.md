@@ -39,12 +39,13 @@ draft = false
 #include <iostream>
 
 // C++23: if consteval - 判断是否在常量求值上下文中
-// consteval函数强制要求在编译期求值
-consteval void assertCompileTime() {
+// constexpr函数允许在编译期或运行期求值（灵活版）
+// 注意：如果你真的想让函数只能在编译期调用，使用consteval替代constexpr
+constexpr void assertCompileTime() {
     // if consteval会在编译期判断当前是否处于常量求值上下文
     if consteval {
         // 如果在编译期求值，走到这里
-        // 注意：从非constexpr上下文调用consteval函数，这里不会执行
+        // 注意：从非constexpr上下文调用constexpr函数，这里不会执行
         std::cout << "Running at compile time" << std::endl;
     } else {
         // 如果在运行时求值，走到这里
@@ -53,7 +54,7 @@ consteval void assertCompileTime() {
 }
 
 int main() {
-    // 调用consteval函数，这里会在运行期求值
+    // 调用constexpr函数，这里会在运行期求值
     // 因为是从非constexpr上下文调用的，所以会输出 "Running at runtime"
     assertCompileTime();
     
@@ -644,11 +645,11 @@ int main() {
     // auto(x) - 直接初始化，decay
     int arr[3] = {1, 2, 3};
     const int (&arrRef)[3] = arr;
-    auto copied1 = auto(arrRef);  // int*
-    // 注意：数组会decay成指针！
+    auto copied1 = auto(arrRef);  // const int*（decay-copy保留const）
+    // 注意：数组会decay成指针，const属性也会保留！
     
     // auto{x} - 列表初始化
-    // auto copied2 = auto{arrRef};  // 错误！不能列表初始化数组
+    // auto copied2 = auto{arrRef};  // 编译错误！不能列表初始化数组
     
     // 但对于类类型...
     std::vector<int> vec{1, 2, 3};
@@ -877,9 +878,15 @@ int main() {
     // 调用新版本
     std::cout << "newLambda(5) = " << newLambda(5) << std::endl;  // 输出: 15
     
-    // 旧版本还能用，但会警告
-    #pragma warning(disable: 4996)  // 忽略deprecated警告用于演示
+    // 旧版本还能用，但会警告（MSVC特有语法，此处改为GCC/Clang兼容写法）
+    #if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated"
+    #endif
     std::cout << "oldLambda(5) = " << oldLambda(5) << std::endl;  // 输出: 10
+    #if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic pop
+    #endif
     
     return 0;
 }
@@ -1357,29 +1364,36 @@ int main() {
 
 C++23为字符串处理带来了几个小而美的改进：
 
-1. **`std::string::trim()` 系列** —— 修剪首尾空白
-2. **行拼接改进** —— 允许`\`在行尾后有空白
+1. **`std::string` 视图与操作** —— 提供更方便的字符串操作视图
+2. **行拼接说明明确化** —— C++23明确了续行符`\`的行为（实际上自C++11起`\`后即可接空白）
 
 ### trim() 系列函数
 
 ```cpp
 #include <iostream>
 #include <string>
+#include <string_view>
 
+// C++23: trim系列函数（非成员函数，使用string_view）
 int main() {
-    // C++23: 新的字符串字面量操作
+    // C++23: 新的字符串修剪操作（使用std::ranges::trim或手动实现）
     
     std::string s = "   Hello, C++23!   ";
     
-    // trim系列函数
-    std::string trimmed = s.trim();  // 去除首尾空白
-    std::string trimmedLeft = s.trim_left();   // 去除左侧空白
-    std::string trimmedRight = s.trim_right(); // 去除右侧空白
+    // C++23中trim是ranges算法，这里演示手动实现的效果
+    // 实际使用可以用 std::ranges::trim(s) 返回一个视图
+    auto trimmed = [](std::string_view sv) -> std::string {
+        size_t start = sv.find_first_not_of(" \t\n\r");
+        size_t end = sv.find_last_not_of(" \t\n\r");
+        if (start == std::string_view::npos) return "";
+        return std::string(sv.substr(start, end - start + 1));
+    };
+    
+    std::string_view sv = s;
+    std::string trimmedStr = trimmed(sv);
     
     std::cout << "Original: '" << s << "'" << std::endl;
-    std::cout << "Trimmed: '" << trimmed << "'" << std::endl;
-    std::cout << "Trimmed left: '" << trimmedLeft << "'" << std::endl;
-    std::cout << "Trimmed right: '" << trimmedRight << "'" << std::endl;
+    std::cout << "Trimmed: '" << trimmedStr << "'" << std::endl;
     
     return 0;
 }
@@ -1389,8 +1403,6 @@ int main() {
 ```
 Original: '   Hello, C++23!   '
 Trimmed: 'Hello, C++23!'
-Trimmed left: 'Hello, C++23!   '
-Trimmed right: '   Hello, C++23!'
 ```
 
 ### 行拼接改进
@@ -1399,17 +1411,13 @@ Trimmed right: '   Hello, C++23!'
 #include <iostream>
 
 int main() {
-    // C++23: \在行尾的续行
-    // 现在\后面可以有空白字符，更加灵活
-    
-    // 以前的续行必须\紧跟换行
-    // 现在可以有空白，更易读
+    // C++23改进了行拼接的说明，实际上自C++11起\后面就可以有空白
     auto message = "Hello, " \
                    "C++23!";
     
     std::cout << message << std::endl;  // 输出: Hello, C++23!
     
-    // 或者这样（带空格的续行）
+    // 使用续行符连接多行字符串
     auto poem = "床前明月光，\
                 疑是地上霜。\
                 举头望明月，\
@@ -1454,15 +1462,22 @@ int main() {
     };
     
     std::cout << "Before and after trim:" << std::endl;
+    // trim辅助函数（C++23风格的手动实现）
+    auto trim = [](std::string_view sv) -> std::string {
+        size_t start = sv.find_first_not_of(" \t\n\r");
+        size_t end = sv.find_last_not_of(" \t\n\r");
+        if (start == std::string_view::npos) return "";
+        return std::string(sv.substr(start, end - start + 1));
+    };
     for (const auto& name : inputs) {
         std::string original = name;
-        std::string trimmed = name.trim();
+        std::string trimmed = trim(name);
         std::cout << "'" << original << "' -> '" << trimmed << "'" << std::endl;
     }
     
     // 处理CSV数据
     std::string csvLine = "  123, 456, 789  ";
-    std::cout << "CSV trimmed: '" << csvLine.trim() << "'" << std::endl;
+    std::cout << "CSV trimmed: '" << trim(csvLine) << "'" << std::endl;
     
     return 0;
 }
@@ -2850,7 +2865,7 @@ int main() {
 #include <array>
 
 int main() {
-    // C++23 constexpr新增支持的特性
+    // C++23 constexpr新增支持的特性（new/delete在C++20已支持）
     
     // 1. try-catch（现在可以在constexpr中使用）
     constexpr int tryCatch = []{
@@ -2884,7 +2899,7 @@ int main() {
     return 0;
 }
 ```
-> ⚠️ **注意**：动态内存分配（`new`/`delete`/`std::make_unique`等）在C++23的constexpr中**仍然受限**，不能保证所有编译器都支持。上例中的`std::make_unique`在编译期求值时很可能会碰壁。
+> ⚠️ **注意**：动态内存分配（`new`/`delete`/`std::make_unique`等）在C++20的constexpr中**已被允许**，C++23进一步改善了相关支持。不过实际编译期支持程度仍取决于编译器实现。
 
 ### constexpr vs consteval
 

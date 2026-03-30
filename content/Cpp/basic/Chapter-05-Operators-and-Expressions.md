@@ -293,7 +293,7 @@ int main() {
     // 输出: a >> 1 = 6 (0b0110)
     
     // 常见用法：判断某位是否为1
-    unsigned int flags = 0b10110;  // 第0、2、3位为1
+    unsigned int flags = 0b10110;  // 第1、2、3位为1
     bool bit1_is_set = flags & (1 << 1);  // 检查第1位
     std::cout << "Bit 1 is " << (bit1_is_set ? "SET" : "NOT SET") << std::endl;
     // 输出: Bit 1 is SET
@@ -438,10 +438,9 @@ user_perms |= EXECUTE;  // 现在是 0b111
 #include <iostream>
 
 int main() {
-    int x = 10;
+    int x = 20;
     
     // 基本赋值
-    x = 20;
     std::cout << "x = " << x << std::endl;  // 输出: x = 20
     
     // 复合赋值：算术运算 + 赋值
