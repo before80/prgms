@@ -511,15 +511,17 @@ public class Chapter35RecordPatterns {
             System.out.println("  薪资: " + salary);
         }
 
-        // 场景3：在 for 循环中使用 Record Pattern
+        // 场景3：在 for 循环中使用 Record Pattern（需借助 instanceof）
         Person[] people = {
                 new Person("小明", 20),
                 new Person("小红", 22),
                 new Person("小张", 19)
         };
         System.out.println("\n遍历解构：");
-        for (Person(String n, int a) : people) {
-            System.out.println("  " + n + " -> " + a + "岁");
+        for (Person p : people) {
+            if (p instanceof Person(String n, int a)) {
+                System.out.println("  " + n + " -> " + a + "岁");
+            }
         }
     }
 }
@@ -700,7 +702,7 @@ import java.lang.foreign.ValueLayout;
 
 public class Chapter35MemoryManagement {
 
-    public static void main() {
+    public static void main(String[] args) {
         // Arena 有三种：
         // 1. Arena.openConfined() - 单一线程使用
         // 2. Arena.openShared() - 多线程共享
@@ -761,7 +763,7 @@ import java.util.stream.Gatherers;
 
 public class Chapter35StreamGatherers {
 
-    public static void main() {
+    public static void main(String[] args) {
         List<Integer> numbers = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
         // 1. windowFixed(n) - 固定大小窗口
@@ -870,7 +872,7 @@ public class Chapter35CustomGatherer {
         );
     }
 
-    public static void main() {
+    public static void main(String[] args) {
         List<Integer> data = List.of(1, 1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 5, 5, 5);
         System.out.println("去重相邻: " + data.stream()
                 .gather(distinctConsecutive())

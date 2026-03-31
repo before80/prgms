@@ -113,7 +113,7 @@ Servlet 的出现为后来 Java Web 框架的繁荣奠定了基础。Struts、Sp
 
 ---
 
-## 2.2 Java 5 / Java 1.5（代号 Mustang，2004）：语法革命
+## 2.2 Java 5 / Java 1.5（代号 Tiger，2004）：语法革命
 
 如果说 Java 1.0 到 1.4 是「蛮荒时代」，那么 Java 5 就是「文艺复兴」。这一版的更新力度之大，堪称 Java 历史上最重要的一次版本升级，没有之一。
 
@@ -2206,7 +2206,7 @@ public class ScopedValueDemo {
 
 ### 2.10.5 String Templates 预览版（Java 21）→ 正式版（Java 26）
 
-String Templates 是 Java 21 的预览特性，预计 Java 26 正式发布。它提供了一种更安全、更易读的方式来拼接字符串：
+String Templates 是 Java 21 的预览特性，于 Java 26 正式发布。它提供了一种更安全、更易读的方式来拼接字符串：
 
 ```java
 // 预览语法（Java 21~25）
@@ -2236,13 +2236,13 @@ String formatted = FMT."""
     """;
 ```
 
-### 2.10.6 Foreign Function & Memory API 预览版
+### 2.10.6 Foreign Function & Memory API 正式版
 
-Java 21 继续改进 Foreign Function & Memory API（Java 22 继续预览，Java 26 预计正式），让 Java 可以直接调用 native 代码和操作堆外内存：
+Java 21 引入了 Foreign Function & Memory API（Java 22 继续预览，Java 26 正式发布），让 Java 可以直接调用 native 代码和操作堆外内存：
 
 ```java
-// 预览 API（Java 21~25），Java 26 预计正式
-// 使用 MemorySegment 和 NativeMemorySession
+// FFM API（Java 26 正式版）
+// 使用 MemorySegment 和 Arena
 
 // 分配堆外内存
 try (Arena arena = Arena.global()) {
@@ -2342,13 +2342,15 @@ System.out.println({ int m = Math.max(a, b); m; });
 
 **Class-File API**：标准库直接操作 class 文件（字节码），无需依赖 ASM 库。
 
-### 2.11.2 Java 23（2024.9）：Scoped Values 最终版、String Templates 最终版
+### 2.11.2 Java 23（2024.9）：String Templates 继续预览
 
-**Scoped Values 最终版**：Java 23 将 Scoped Values 从预览变为正式版，可以稳定使用了。
+**String Templates 继续预览**：String Templates 在 Java 23 继续处于预览阶段（经过多次预览后，于 Java 26 正式发布）。
 
-**String Templates 最终版**：Java 23 将 String Templates 从预览变为最终版（实际 Java 26 才正式）。
+> **补充**：Scoped Values 在 Java 23 仍处于预览阶段，直至 Java 24 才正式发布为最终版。
 
-### 2.11.3 Java 24（2025.3）：Unnamed Variables & Patterns、Smart Enum Values
+### 2.11.3 Java 24（2025.3）：Scoped Values 最终版、Unnamed Variables & Patterns、Smart Enum Values
+
+**Scoped Values 最终版**：Java 24 将 Scoped Values 从预览变为正式版，提供了一种比 ThreadLocal 更安全、更易用的线程内数据共享机制，特别适合与虚拟线程配合使用。
 
 **Unnamed Variables & Patterns**：用 `_` 表示不使用的变量，让代码更清晰：
 
@@ -2391,32 +2393,15 @@ enum Color {
 }
 ```
 
-### 2.11.4 Java 25（2025.9）：Structured Concurrency 预览版
+### 2.11.4 Java 25（2025.9）：Implicitly Declared Classes 继续预览
 
-**Structured Concurrency**：Java 25 继续预览 Structured Concurrency（结构化并发），将多个线程中的任务视为单个工作单元：
+**Implicitly Declared Classes**：隐式声明类在 Java 25 继续预览（Java 26 正式发布）。
 
-```java
-// Structured Concurrency（预览）
-// 仍在完善中，Java 26 或后续版本可能正式发布
-
-try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
-    Future<String> user = scope.fork(() -> findUser());
-    Future<Order> order = scope.fork(() -> fetchOrder());
-
-    scope.join();          // 等待所有任务完成
-    scope.throwIfFailed(); // 失败则抛异常
-
-    System.out.println("用户: " + user.resultNow() + ", 订单: " + order.resultNow());
-} catch (Exception e) {
-    e.printStackTrace();
-}
-```
-
-结构化并发的核心理念：**代码看起来是顺序执行的，但实际上是并发执行的**。子任务的错误会自动传播，父任务取消时子任务也会被取消。
+> **补充**：Structured Concurrency 在 Java 24 已正式发布为最终版，并非 Java 25 的新特性。
 
 ### 2.11.5 Java 26（2026.3）：Foreign Function & Memory API 正式版、Exception Filtering 最终版
 
-**Foreign Function & Memory API 正式版**：Java 26 预计将 FFM API 从预览变为正式版，这是 Java 与 native 代码交互的重大升级：
+**Foreign Function & Memory API 正式版**：Java 26 将 FFM API 从预览变为正式版，这是 Java 与 native 代码交互的重大升级：
 
 ```java
 // FFM API 正式版
@@ -2425,7 +2410,7 @@ import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 
 public class FFMAPIDemo {
-    public static void main() {
+    public static void main(String[] args) {
         // 分配堆外内存
         try (Arena arena = Arena.global()) {
             MemorySegment segment = arena.allocate(256);
@@ -2465,9 +2450,9 @@ Java 26 的完整特性列表（根据截至 2026 年初的路线图）：
 | String Templates | 最终版 |
 | Foreign Function & Memory API | 最终版 |
 | Class-File API | 最终版 |
-| Stream Gatherers | 最终版 |
+| Stream Gatherers | 预览版 |
 | Exception Filtering | 最终版 |
-| Structured Concurrency | 预览/最终版 |
+| Structured Concurrency | 最终版 |
 | Unnamed Variables & Patterns | 最终版 |
 | JEP 447: Statements before super() | 预览 |
 

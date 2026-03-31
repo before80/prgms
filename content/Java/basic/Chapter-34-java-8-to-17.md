@@ -804,7 +804,7 @@ static double area(Shape s) {
 
 ### 34.3.5 文本块（Text Blocks）：多行字符串的救星
 
-**Text Blocks**（文本块）是 Java 15 引入的预览特性，Java 15 正式确立。它让你可以方便地写多行字符串，而不需要大量的转义和拼接。
+**Text Blocks**（文本块）是 Java 15 正式确立的特性（Java 13/14 预览）。它让你可以方便地写多行字符串，而不需要大量的转义和拼接。
 
 ```java
 // Java 14 之前：JSON 字符串的痛苦

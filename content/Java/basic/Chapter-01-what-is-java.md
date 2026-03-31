@@ -252,7 +252,7 @@ public class CrossPlatformDemo {
 在 macOS 上运行可能打印：
 
 ```
-操作系统：Mac OS X
+操作系统：macOS
 系统版本：14.0
 系统架构：aarch64
 但我的 Java 程序运行得稳稳的！
