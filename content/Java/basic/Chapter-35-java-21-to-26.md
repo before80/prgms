@@ -41,6 +41,7 @@ timeline
               字符串模板 预览3
               Stream Gatherers 预览3
               Foreign Function & Memory API 预览3
+              Structured Concurrency 预览3
               隐式声明类 第二预览
               改进的 stream gatherers
     2025-03 : Java 24 发布
@@ -48,6 +49,7 @@ timeline
               Foreign Function & Memory API 预览4
               Unnamed Patterns and Variables 预览1
               Stream Gatherers 预览4
+              Structured Concurrency 正式版
     2025-09 : Java 25 发布
               Unnamed Patterns and Variables 预览2
               Stream Gatherers 预览5
