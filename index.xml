@@ -1,4 +1,191 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>编程哪些事儿 on 编程那些事儿</title><link>https://before80.github.io/prgms/</link><description>Recent content in 编程哪些事儿 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><atom:link href="https://before80.github.io/prgms/index.xml" rel="self" type="application/rss+xml"/><item><title>第1章 Java 是什么——先搞清楚你将要学的是什么</title><link>https://before80.github.io/prgms/Java/basic/Chapter-01-what-is-java/</link><pubDate>Mon, 30 Mar 2026 14:33:56 +0800</pubDate><guid>https://before80.github.io/prgms/Java/basic/Chapter-01-what-is-java/</guid><description>&lt;h1 id="第一章-java-是什么先搞清楚你将要学的是什么"&gt;第一章 Java 是什么——先搞清楚你将要学的是什么&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>编程那些事儿</title><link>https://before80.github.io/prgms/</link><description>Recent content on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><atom:link href="https://before80.github.io/prgms/index.xml" rel="self" type="application/rss+xml"/><item><title>Plugin SDK Migration</title><link>https://before80.github.io/prgms/AI/openclaw/basic/tools/plugin/sdk-migration/</link><pubDate>Fri, 03 Apr 2026 15:33:23 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/tools/plugin/sdk-migration/</guid><description>&lt;h1 id="plugin-sdk-migration"&gt;Plugin SDK Migration&lt;/h1&gt;
+&lt;p&gt;OpenClaw has moved from a broad backwards-compatibility layer to a modern plugin architecture with focused, documented imports. If your plugin was built before the new architecture, this guide helps you migrate.&lt;/p&gt;
+&lt;h2 id="what-is-changing"&gt;What is changing&lt;/h2&gt;
+&lt;p&gt;The old plugin system provided two wide-open surfaces that let plugins import anything they needed from a single entry point:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;openclaw/plugin-sdk/compat&lt;/code&gt;&lt;/strong&gt; — a single import that re-exported dozens of helpers. It was introduced to keep older hook-based plugins working while the new plugin architecture was being built.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;openclaw/extension-api&lt;/code&gt;&lt;/strong&gt; — a bridge that gave plugins direct access to host-side helpers like the embedded agent runner.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Both surfaces are now &lt;strong&gt;deprecated&lt;/strong&gt;. They still work at runtime, but new plugins must not use them, and existing plugins should migrate before the next major release removes them.&lt;/p&gt;</description></item><item><title>Building Channel Plugins</title><link>https://before80.github.io/prgms/AI/openclaw/basic/tools/plugin/sdk-channel-plugins/</link><pubDate>Fri, 03 Apr 2026 15:32:20 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/tools/plugin/sdk-channel-plugins/</guid><description>&lt;p&gt;This guide walks through building a channel plugin that connects OpenClaw to a messaging platform. By the end you will have a working channel with DM security, pairing, reply threading, and outbound messaging.&lt;/p&gt;
+&lt;p&gt;If you have not built any OpenClaw plugin before, read &lt;a href="https://docs.openclaw.ai/plugins/building-plugins"&gt;Getting Started&lt;/a&gt; first for the basic package structure and manifest setup.&lt;/p&gt;
+&lt;h2 id="how-channel-plugins-work"&gt;How channel plugins work&lt;/h2&gt;
+&lt;p&gt;Channel plugins do not need their own send/edit/react tools. OpenClaw keeps one shared &lt;code&gt;message&lt;/code&gt; tool in core. Your plugin owns:&lt;/p&gt;</description></item><item><title>Building Plugins</title><link>https://before80.github.io/prgms/AI/openclaw/basic/tools/plugin/building-plugins/</link><pubDate>Fri, 03 Apr 2026 15:31:07 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/tools/plugin/building-plugins/</guid><description>&lt;p&gt;Plugins extend OpenClaw with new capabilities: channels, model providers, speech, image generation, web search, agent tools, or any combination.You do not need to add your plugin to the OpenClaw repository. Publish to &lt;a href="https://docs.openclaw.ai/tools/clawhub"&gt;ClawHub&lt;/a&gt; or npm and users install with &lt;code&gt;openclaw plugins install &amp;lt;package-name&amp;gt;&lt;/code&gt;. OpenClaw tries ClawHub first and falls back to npm automatically.&lt;/p&gt;
+&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Node &amp;gt;= 22 and a package manager (npm or pnpm)&lt;/li&gt;
+&lt;li&gt;Familiarity with TypeScript (ESM)&lt;/li&gt;
+&lt;li&gt;For in-repo plugins: repository cloned and &lt;code&gt;pnpm install&lt;/code&gt; done&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="what-kind-of-plugin"&gt;What kind of plugin?&lt;/h2&gt;
+&lt;h3 id="channel-plugin"&gt;Channel plugin&lt;/h3&gt;
+&lt;p&gt;Connect OpenClaw to a messaging platform (Discord, IRC, etc.)&lt;/p&gt;</description></item><item><title>Voice Call Plugin</title><link>https://before80.github.io/prgms/AI/openclaw/basic/tools/plugin/voice-call/</link><pubDate>Fri, 03 Apr 2026 15:29:41 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/tools/plugin/voice-call/</guid><description>&lt;h1 id="voice-call-plugin-语音通话插件"&gt;Voice Call Plugin 语音通话插件&lt;/h1&gt;
+&lt;p&gt;Voice calls for OpenClaw via a plugin. Supports outbound notifications and multi-turn conversations with inbound policies.&lt;/p&gt;
+&lt;p&gt;​	通过插件实现 OpenClaw 的语音通话。支持外呼通知以及遵循入站策略的多轮对话。&lt;/p&gt;
+&lt;p&gt;Current providers:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;twilio&lt;/code&gt; (Programmable Voice + Media Streams)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;telnyx&lt;/code&gt; (Call Control v2)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;plivo&lt;/code&gt; (Voice API + XML transfer + GetInput speech)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;mock&lt;/code&gt; (dev/no network)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Quick mental model:&lt;/p&gt;</description></item><item><title>bundles</title><link>https://before80.github.io/prgms/AI/openclaw/basic/tools/plugin/bundles/</link><pubDate>Fri, 03 Apr 2026 15:15:56 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/tools/plugin/bundles/</guid><description>&lt;h1 id="plugin-bundles"&gt;Plugin Bundles&lt;/h1&gt;
+&lt;p&gt;OpenClaw can install plugins from three external ecosystems: &lt;strong&gt;Codex&lt;/strong&gt;, &lt;strong&gt;Claude&lt;/strong&gt;, and &lt;strong&gt;Cursor&lt;/strong&gt;. These are called &lt;strong&gt;bundles&lt;/strong&gt; — content and metadata packs that OpenClaw maps into native features like skills, hooks, and MCP tools.&lt;/p&gt;
+&lt;p&gt;​	OpenClaw 可以从三个外部生态系统安装插件：&lt;strong&gt;Codex&lt;/strong&gt;、&lt;strong&gt;Claude&lt;/strong&gt; 和 &lt;strong&gt;Cursor&lt;/strong&gt;。这些被称为 &lt;strong&gt;插件包&lt;/strong&gt;——OpenClaw 会将其中的内容和元数据包映射为技能、钩子和 MCP 工具等原生功能。&lt;/p&gt;</description></item><item><title>Community Plugins</title><link>https://before80.github.io/prgms/AI/openclaw/basic/tools/plugin/community/</link><pubDate>Fri, 03 Apr 2026 12:57:43 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/tools/plugin/community/</guid><description>&lt;h1 id="community-plugins"&gt;Community Plugins&lt;/h1&gt;
+&lt;p&gt;Community plugins are third-party packages that extend OpenClaw with new channels, tools, providers, or other capabilities. They are built and maintained by the community, published on &lt;a href="https://docs.openclaw.ai/tools/clawhub"&gt;ClawHub&lt;/a&gt; or npm, and installable with a single command.&lt;/p&gt;
+&lt;p&gt;​	社区插件是为 OpenClaw 扩展新渠道、工具、提供程序或其他功能的第三方包。它们由社区开发和维护，发布在 &lt;a href="https://docs.openclaw.ai/tools/clawhub"&gt;ClawHub&lt;/a&gt; 或 npm 上，可通过一条命令完成安装。&lt;/p&gt;</description></item><item><title>Node.js</title><link>https://before80.github.io/prgms/AI/openclaw/basic/install/node/</link><pubDate>Fri, 03 Apr 2026 12:29:05 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/install/node/</guid><description>&lt;p&gt;OpenClaw requires &lt;strong&gt;Node 22.14 or newer&lt;/strong&gt;. &lt;strong&gt;Node 24 is the default and recommended runtime&lt;/strong&gt; for installs, CI, and release workflows. Node 22 remains supported via the active LTS line. The &lt;a href="https://docs.openclaw.ai/install#alternative-install-methods"&gt;installer script&lt;/a&gt; will detect and install Node automatically — this page is for when you want to set up Node yourself and make sure everything is wired up correctly (versions, PATH, global installs).&lt;/p&gt;
+&lt;p&gt;​	OpenClaw 需要 &lt;strong&gt;Node 22.14 或更高版本&lt;/strong&gt;。&lt;strong&gt;Node 24 是安装、持续集成（CI）和发布工作流的默认且推荐运行时&lt;/strong&gt;。Node 22 仍通过长期支持（LTS）主线获得支持。&lt;a href="https://docs.openclaw.ai/install#alternative-install-methods"&gt;安装脚本&lt;/a&gt;会自动检测并安装 Node —— 本页面适用于你想手动设置 Node 并确保所有配置（版本、环境变量 PATH、全局安装）均正确的情况。&lt;/p&gt;</description></item><item><title>Installer Internals</title><link>https://before80.github.io/prgms/AI/openclaw/basic/install/installer/</link><pubDate>Fri, 03 Apr 2026 11:29:30 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/install/installer/</guid><description>&lt;h1 id="installer-internals"&gt;Installer Internals&lt;/h1&gt;
+&lt;p&gt;OpenClaw ships three installer scripts, served from &lt;code&gt;openclaw.ai&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;​	OpenClaw 附带三个安装脚本，均从 &lt;code&gt;openclaw.ai&lt;/code&gt; 提供。&lt;/p&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th style="text-align: left"&gt;Script&lt;/th&gt;
+ &lt;th style="text-align: left"&gt;Platform&lt;/th&gt;
+ &lt;th style="text-align: left"&gt;What it does&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td style="text-align: left"&gt;&lt;a href="https://docs.openclaw.ai/install/installer#installsh"&gt;&lt;code&gt;install.sh&lt;/code&gt;&lt;/a&gt;&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;macOS / Linux / WSL&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;Installs Node if needed, installs OpenClaw via npm (default) or git, and can run onboarding. 如有需要则安装 Node，通过 npm（默认）或 git 安装 OpenClaw，并可运行onboarding流程。&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td style="text-align: left"&gt;&lt;a href="https://docs.openclaw.ai/install/installer#install-clish"&gt;&lt;code&gt;install-cli.sh&lt;/code&gt;&lt;/a&gt;&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;macOS / Linux / WSL&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;Installs Node + OpenClaw into a local prefix (&lt;code&gt;~/.openclaw&lt;/code&gt;). No root required. 将 Node 与 OpenClaw 安装到本地前缀（&lt;code&gt;~/.openclaw&lt;/code&gt;）。无需 root 权限。&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td style="text-align: left"&gt;&lt;a href="https://docs.openclaw.ai/install/installer#installps1"&gt;&lt;code&gt;install.ps1&lt;/code&gt;&lt;/a&gt;&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;Windows (PowerShell)&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;Installs Node if needed, installs OpenClaw via npm (default) or git, and can run onboarding. 如有需要则安装 Node，通过 npm（默认）或 git 安装 OpenClaw，并可运行onboarding流程。&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="quick-commands"&gt;Quick commands&lt;/h2&gt;
+
+
+
+
+
+
+
+
+&lt;ul class="nav nav-tabs" id="tabs-0" role="tablist"&gt;
+ &lt;li class="nav-item"&gt;
+ &lt;button class="nav-link active"
+ id="tabs-00-00-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-00" role="tab"
+ aria-controls="tabs-00-00" aria-selected="true"&gt;
+ install.sh
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-01-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-01" role="tab"
+ aria-controls="tabs-00-01" aria-selected="false"&gt;
+ install-cli.sh
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-02-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-02" role="tab"
+ aria-controls="tabs-00-02" aria-selected="false"&gt;
+ install.ps1
+ &lt;/button&gt;
+ &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class="tab-content" id="tabs-0-content"&gt;
+ &lt;div class="tab-body tab-pane fade show active"
+ id="tabs-00-00" role="tabpanel" aria-labelled-by="tabs-00-00-tab" tabindex="0"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;curl -fsSL --proto &lt;span style="color:#98c379"&gt;&amp;#39;=https&amp;#39;&lt;/span&gt; --tlsv1.2 https://openclaw.ai/install.sh &lt;span style="color:#abb2bf"&gt;|&lt;/span&gt; bash
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;curl -fsSL --proto &lt;span style="color:#98c379"&gt;&amp;#39;=https&amp;#39;&lt;/span&gt; --tlsv1.2 https://openclaw.ai/install.sh &lt;span style="color:#abb2bf"&gt;|&lt;/span&gt; bash -s -- --help
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+ &lt;div class="tab-body tab-pane fade"
+ id="tabs-00-01" role="tabpanel" aria-labelled-by="tabs-00-01-tab" tabindex="0"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;curl -fsSL --proto &lt;span style="color:#98c379"&gt;&amp;#39;=https&amp;#39;&lt;/span&gt; --tlsv1.2 https://openclaw.ai/install-cli.sh &lt;span style="color:#abb2bf"&gt;|&lt;/span&gt; bash
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;curl -fsSL --proto &lt;span style="color:#98c379"&gt;&amp;#39;=https&amp;#39;&lt;/span&gt; --tlsv1.2 https://openclaw.ai/install-cli.sh &lt;span style="color:#abb2bf"&gt;|&lt;/span&gt; bash -s -- --help
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+ &lt;div class="tab-body tab-pane fade"
+ id="tabs-00-02" role="tabpanel" aria-labelled-by="tabs-00-02-tab" tabindex="0"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;iwr -useb https://openclaw.ai/install.ps1 &lt;span style="color:#abb2bf"&gt;|&lt;/span&gt; iex
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;&amp;amp;&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;([&lt;/span&gt;scriptblock&lt;span style="color:#54b1c7"&gt;]&lt;/span&gt;::Create&lt;span style="color:#54b1c7"&gt;((&lt;/span&gt;iwr -useb https://openclaw.ai/install.ps1&lt;span style="color:#54b1c7"&gt;)))&lt;/span&gt; -Tag beta -NoOnboard -DryRun
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;If install succeeds but &lt;code&gt;openclaw&lt;/code&gt; is not found in a new terminal, see &lt;a href="https://docs.openclaw.ai/install/node#troubleshooting"&gt;Node.js troubleshooting&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Migrating</title><link>https://before80.github.io/prgms/AI/openclaw/basic/install/migrating/</link><pubDate>Fri, 03 Apr 2026 11:12:24 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/install/migrating/</guid><description>&lt;h1 id="migration-guide-迁移指南"&gt;Migration Guide 迁移指南&lt;/h1&gt;
+&lt;p&gt;This guide moves an OpenClaw gateway to a new machine without redoing onboarding.&lt;/p&gt;
+&lt;p&gt;​	本指南可将 OpenClaw gateway 迁移到新机器，且无需重新完成 onboarding配置。&lt;/p&gt;
+&lt;h2 id="what-gets-migrated-需要迁移的内容"&gt;What Gets Migrated 需要迁移的内容&lt;/h2&gt;
+&lt;p&gt;When you copy the &lt;strong&gt;state directory&lt;/strong&gt; (&lt;code&gt;~/.openclaw/&lt;/code&gt; by default) and your &lt;strong&gt;workspace&lt;/strong&gt;, you preserve:&lt;/p&gt;</description></item><item><title>Uninstall</title><link>https://before80.github.io/prgms/AI/openclaw/basic/install/uninstall/</link><pubDate>Fri, 03 Apr 2026 09:40:49 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/install/uninstall/</guid><description>&lt;h1 id="uninstall"&gt;Uninstall&lt;/h1&gt;
+&lt;p&gt;Two paths:&lt;/p&gt;
+&lt;p&gt;​	两种方法：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Easy path&lt;/strong&gt; if &lt;code&gt;openclaw&lt;/code&gt; is still installed.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;简易方法&lt;/strong&gt;（前提是 &lt;code&gt;openclaw&lt;/code&gt; 仍已安装）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Manual service removal&lt;/strong&gt; if the CLI is gone but the service is still running.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;手动移除服务&lt;/strong&gt;，适用于 CLI 已消失但服务仍在运行的情况。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="easy-path-cli-still-installed"&gt;Easy path (CLI still installed)&lt;/h2&gt;
+&lt;p&gt;Recommended: use the built-in uninstaller:&lt;/p&gt;</description></item><item><title>Updating</title><link>https://before80.github.io/prgms/AI/openclaw/basic/install/updating/</link><pubDate>Fri, 03 Apr 2026 09:36:17 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/install/updating/</guid><description>&lt;h1 id="updating"&gt;Updating&lt;/h1&gt;
+&lt;p&gt;Keep OpenClaw up to date.&lt;/p&gt;
+&lt;h2 id="recommended-openclaw-update"&gt;Recommended: &lt;code&gt;openclaw update&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;The fastest way to update. It detects your install type (npm or git), fetches the latest version, runs &lt;code&gt;openclaw doctor&lt;/code&gt;, and restarts the gateway.&lt;/p&gt;
+&lt;p&gt;​	最快的更新方式。它会检测你的安装类型（npm 或 git），获取最新版本，运行 &lt;code&gt;openclaw doctor&lt;/code&gt; 并重启网关。&lt;/p&gt;</description></item><item><title>快速开始</title><link>https://before80.github.io/prgms/AI/openclaw/basic/start/getting-started/</link><pubDate>Thu, 02 Apr 2026 17:08:40 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/start/getting-started/</guid><description>&lt;h1 id="getting-started"&gt;Getting Started&lt;/h1&gt;
+&lt;p&gt;Install OpenClaw, run onboarding, and chat with your AI assistant — all in about 5 minutes. By the end you will have a running Gateway, configured auth, and a working chat session.&lt;/p&gt;
+&lt;p&gt;​	安装 OpenClaw、完成新手引导并与你的 AI 助手聊天——整个过程大约只需 5 分钟。完成后，你将拥有一个运行中的Gateway、已配置的身份验证，以及一个可正常使用的聊天会话。&lt;/p&gt;</description></item><item><title>第1章 Java 是什么——先搞清楚你将要学的是什么</title><link>https://before80.github.io/prgms/Java/basic/Chapter-01-what-is-java/</link><pubDate>Mon, 30 Mar 2026 14:33:56 +0800</pubDate><guid>https://before80.github.io/prgms/Java/basic/Chapter-01-what-is-java/</guid><description>&lt;h1 id="第一章-java-是什么先搞清楚你将要学的是什么"&gt;第一章 Java 是什么——先搞清楚你将要学的是什么&lt;/h1&gt;
 &lt;blockquote&gt;
 &lt;p&gt;想象一下，你正准备学一门编程语言，结果发现它叫&amp;quot;爪哇&amp;quot;——一种咖啡的名字。你会不会以为这是咖啡公司出的编程语言？恭喜你，答对了！Java 还真就跟咖啡有着说不清道不明的关系。（当然，不是你想的那个&amp;quot;Java&amp;quot;，不是那个让你熬夜加班的续命神器。）本章我们来聊聊 Java 的前世今生，搞清楚你到底要学的是什么，以及为什么它能让你在职场中&amp;quot;续命&amp;quot;成功。&lt;/p&gt;</description></item><item><title>第1章：程序从 main 开始—— builtin 包</title><link>https://before80.github.io/prgms/go/std/Chapter-01-builtin/</link><pubDate>Mon, 30 Mar 2026 13:43:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/std/Chapter-01-builtin/</guid><description>&lt;h1 id="第1章程序从-main-开始-builtin-包"&gt;第1章：程序从 main 开始—— builtin 包&lt;/h1&gt;
 &lt;blockquote&gt;
@@ -75,7 +262,9 @@
 &lt;h2 id="21-什么是-linux内核与发行版的区别"&gt;2.1 什么是 Linux？内核与发行版的区别&lt;/h2&gt;
 &lt;p&gt;各位看官，经过上一章的历史熏陶，现在你应该对计算机的发展有了全面的认识。这回我们来聊聊 Linux 本身——到底什么是 Linux？它和 Windows、macOS 有什么区别？&lt;/p&gt;</description></item><item><title>第1章 词法元素</title><link>https://before80.github.io/prgms/go/basic/Chapter-01-Lexical-Elements/</link><pubDate>Fri, 20 Mar 2026 08:39:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/basic/Chapter-01-Lexical-Elements/</guid><description>&lt;h1 id="第1章-词法元素"&gt;第1章 词法元素&lt;/h1&gt;
 &lt;blockquote&gt;
-&lt;p&gt;你好啊！欢迎来到 Go 语言的第一章！这一章我们要聊的是 Go 代码的&amp;quot;基因&amp;quot;——词法元素。想象一下，如果把一门编程语言比作一个活生生的人，那词法元素就是这个人身上的细胞、器官和 DNA 序列。别担心，我会让这段旅程变得有趣而不是催眠。准备好了吗？Let&amp;rsquo;s Go！（看，我已经在用双关语了，这就是 Go 语言的魅力！）&lt;/p&gt;</description></item><item><title>第2章 Java 版本演变史：从 1996 年到 2026 年</title><link>https://before80.github.io/prgms/Java/basic/Chapter-02-java-evolution/</link><pubDate>Mon, 30 Mar 2026 14:33:56 +0800</pubDate><guid>https://before80.github.io/prgms/Java/basic/Chapter-02-java-evolution/</guid><description>&lt;h1 id="第二章-java-版本演变史从-1996-年到-2026-年"&gt;第二章 Java 版本演变史：从 1996 年到 2026 年&lt;/h1&gt;
+&lt;p&gt;你好啊！欢迎来到 Go 语言的第一章！这一章我们要聊的是 Go 代码的&amp;quot;基因&amp;quot;——词法元素。想象一下，如果把一门编程语言比作一个活生生的人，那词法元素就是这个人身上的细胞、器官和 DNA 序列。别担心，我会让这段旅程变得有趣而不是催眠。准备好了吗？Let&amp;rsquo;s Go！（看，我已经在用双关语了，这就是 Go 语言的魅力！）&lt;/p&gt;</description></item><item><title>快速开始概览</title><link>https://before80.github.io/prgms/AI/openclaw/basic/start/onboarding-overview/</link><pubDate>Thu, 02 Apr 2026 18:58:41 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/start/onboarding-overview/</guid><description>&lt;h1 id="onboarding-overview"&gt;Onboarding Overview&lt;/h1&gt;
+&lt;p&gt;OpenClaw has two onboarding paths. Both configure auth, the Gateway, and optional channels — they just differ in how you interact with the setup.&lt;/p&gt;
+&lt;p&gt;​	OpenClaw 有两种 onboarding 路径。两者都会配置身份验证、网关以及可选的通道——它们的区别仅在于与设置交互的方式。&lt;/p&gt;</description></item><item><title>第2章 Java 版本演变史：从 1996 年到 2026 年</title><link>https://before80.github.io/prgms/Java/basic/Chapter-02-java-evolution/</link><pubDate>Mon, 30 Mar 2026 14:33:56 +0800</pubDate><guid>https://before80.github.io/prgms/Java/basic/Chapter-02-java-evolution/</guid><description>&lt;h1 id="第二章-java-版本演变史从-1996-年到-2026-年"&gt;第二章 Java 版本演变史：从 1996 年到 2026 年&lt;/h1&gt;
 &lt;p&gt;「如果你在 1996 年告诉别人，2026 年这门语言还会是最流行的编程语言之一，他们可能会觉得你疯了。但 Java 就是这么倔强——别人写胶水代码，它写企业级系统；别人追新特性，它稳扎稳打地演进。Java 的历史，就像一部编程界的『活着的传奇』，每十年一次大变局，每次变局都让程序员又爱又恨。」&lt;/p&gt;</description></item><item><title>第2章：和世界说话——fmt 包</title><link>https://before80.github.io/prgms/go/std/Chapter-02-fmt/</link><pubDate>Mon, 30 Mar 2026 13:43:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/std/Chapter-02-fmt/</guid><description>&lt;h1 id="第2章和世界说话fmt-包"&gt;第2章：和世界说话——fmt 包&lt;/h1&gt;
 &lt;div class="td-alert td-alert--md alert alert-note" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;说明&lt;/div&gt;
  &lt;div class="td-alert-body"&gt;
@@ -141,7 +330,11 @@
 &lt;p&gt;学完环境配置，终于可以和 Vue 3 正式见面了！在开始写代码之前，我们先来认识一下 Vue 3 这个&amp;quot;新朋友&amp;quot;——它是谁？它从哪里来？它的独门绝技是什么？读完这一章，你会对 Vue 3 有一个整体的认知，不再是&amp;quot;只会跟着教程敲代码&amp;quot;的小白，而是真正理解 Vue 3 设计哲学的开发者。&lt;/p&gt;</description></item><item><title>第 2 章 开发环境</title><link>https://before80.github.io/prgms/Js/basic/Chapter-02-Development-Environment/</link><pubDate>Tue, 24 Mar 2026 22:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Js/basic/Chapter-02-Development-Environment/</guid><description>&lt;h1 id="第-2-章-开发环境"&gt;第 2 章 开发环境&lt;/h1&gt;
 &lt;p&gt;工欲善其事，必先利其器。在开始写 JavaScript 代码之前，咱们得先准备好趁手的家伙事儿。这一章，我们来搭建 JavaScript 的开发环境，让你从「新手村」正式出道。&lt;/p&gt;</description></item><item><title>第2章 特殊指令与构建约束</title><link>https://before80.github.io/prgms/go/basic/Chapter-02-Special-Directives-and-Build-Constraints/</link><pubDate>Fri, 20 Mar 2026 08:39:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/basic/Chapter-02-Special-Directives-and-Build-Constraints/</guid><description>&lt;h1 id="第2章-特殊指令与构建约束"&gt;第2章 特殊指令与构建约束&lt;/h1&gt;
 &lt;blockquote&gt;
-&lt;p&gt;欢迎来到第二章！这一章我们要聊的是 Go 语言的&amp;quot;隐身术&amp;quot;——特殊指令和构建约束。你知道吗？Go 的代码可以在不同平台上有不同的表现，就像变色龙一样，可以根据环境改变颜色。构建约束就是 Go 语言的&amp;quot;变色&amp;quot;机制，而特殊指令则是一些&amp;quot;魔法咒语&amp;quot;，可以改变编译器的行为。准备好了吗？让我们开始这段&amp;quot;魔法&amp;quot;之旅！&lt;/p&gt;</description></item><item><title>第3章 Java 版本选择指南——我该学哪个版本？</title><link>https://before80.github.io/prgms/Java/basic/Chapter-03-version-selection/</link><pubDate>Mon, 30 Mar 2026 14:33:56 +0800</pubDate><guid>https://before80.github.io/prgms/Java/basic/Chapter-03-version-selection/</guid><description>&lt;h1 id="第三章-java-版本选择指南我该学哪个版本"&gt;第三章 Java 版本选择指南——我该学哪个版本？&lt;/h1&gt;
+&lt;p&gt;欢迎来到第二章！这一章我们要聊的是 Go 语言的&amp;quot;隐身术&amp;quot;——特殊指令和构建约束。你知道吗？Go 的代码可以在不同平台上有不同的表现，就像变色龙一样，可以根据环境改变颜色。构建约束就是 Go 语言的&amp;quot;变色&amp;quot;机制，而特殊指令则是一些&amp;quot;魔法咒语&amp;quot;，可以改变编译器的行为。准备好了吗？让我们开始这段&amp;quot;魔法&amp;quot;之旅！&lt;/p&gt;</description></item><item><title>Onboarding (macOS App)</title><link>https://before80.github.io/prgms/AI/openclaw/basic/start/onboarding/</link><pubDate>Fri, 03 Apr 2026 08:36:08 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/start/onboarding/</guid><description>&lt;h1 id="onboarding-macos-app"&gt;Onboarding (macOS App)&lt;/h1&gt;
+&lt;p&gt;This doc describes the &lt;strong&gt;current&lt;/strong&gt; first‑run setup flow. The goal is a smooth “day 0” experience: pick where the Gateway runs, connect auth, run the wizard, and let the agent bootstrap itself. For a general overview of onboarding paths, see &lt;a href="https://docs.openclaw.ai/start/onboarding-overview"&gt;Onboarding Overview&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;​	本文档介绍了 &lt;strong&gt;当前&lt;/strong&gt; 的首次运行设置流程。其目标是实现流畅的“第0天”体验：选择 Gateway 运行位置、连接身份验证、运行向导并让代理自动完成引导。有关入职路径的总体概述，请参阅 &lt;a href="https://docs.openclaw.ai/start/onboarding-overview"&gt;Onboarding 概述&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>Onboarding (CLI)</title><link>https://before80.github.io/prgms/AI/openclaw/basic/start/wizard/</link><pubDate>Thu, 02 Apr 2026 19:48:32 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/start/wizard/</guid><description>&lt;h1 id="onboarding-cli"&gt;Onboarding (CLI)&lt;/h1&gt;
+&lt;p&gt;CLI onboarding is the &lt;strong&gt;recommended&lt;/strong&gt; way to set up OpenClaw on macOS, Linux, or Windows (via WSL2; strongly recommended). It configures a local Gateway or a remote Gateway connection, plus channels, skills, and workspace defaults in one guided flow.&lt;/p&gt;
+&lt;p&gt;​	CLI onboarding 接入是在 macOS、Linux 或 Windows（通过 WSL2；强烈推荐）上设置 OpenClaw 的&lt;strong&gt;推荐&lt;/strong&gt;方式。它可在一个引导流程中配置本地 Gateway 或远程 Gateway 连接，以及 channels、skills 和 workspace 默认设置。&lt;/p&gt;</description></item><item><title>第3章 Java 版本选择指南——我该学哪个版本？</title><link>https://before80.github.io/prgms/Java/basic/Chapter-03-version-selection/</link><pubDate>Mon, 30 Mar 2026 14:33:56 +0800</pubDate><guid>https://before80.github.io/prgms/Java/basic/Chapter-03-version-selection/</guid><description>&lt;h1 id="第三章-java-版本选择指南我该学哪个版本"&gt;第三章 Java 版本选择指南——我该学哪个版本？&lt;/h1&gt;
 &lt;blockquote&gt;
 &lt;p&gt;&amp;ldquo;世界上只有两种编程语言：一种是被人骂的，一种是没人用的。&amp;rdquo; —— Java 两个都占了，但骂的人更多，说明用的人更多。&lt;/p&gt;</description></item><item><title>第3章：程序出错怎么办——errors 包与 panic/recover</title><link>https://before80.github.io/prgms/go/std/Chapter-03-errors/</link><pubDate>Mon, 30 Mar 2026 13:43:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/std/Chapter-03-errors/</guid><description>&lt;h1 id="第3章程序出错怎么办errors-包与-panicrecover"&gt;第3章：程序出错怎么办——errors 包与 panic/recover&lt;/h1&gt;
 &lt;blockquote&gt;
@@ -187,7 +380,9 @@
 &lt;h2 id="31-虚拟机-vs-实体机-vs-云服务器各种安装方式的优缺点对比"&gt;3.1 虚拟机 vs 实体机 vs 云服务器：各种安装方式的优缺点对比&lt;/h2&gt;
 &lt;p&gt;俗话说的好，&amp;ldquo;工欲善其事，必先利其器&amp;rdquo;。在学习 Linux 这条不归路上，你第一步要做的决定，不是选哪个发行版，不是背哪个命令，而是——&lt;strong&gt;你要把 Linux 装在哪儿&lt;/strong&gt;？&lt;/p&gt;</description></item><item><title>第3章 类型系统</title><link>https://before80.github.io/prgms/go/basic/Chapter-03-Type-System/</link><pubDate>Fri, 20 Mar 2026 08:39:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/basic/Chapter-03-Type-System/</guid><description>&lt;h1 id="第3章-类型系统"&gt;第3章 类型系统&lt;/h1&gt;
 &lt;blockquote&gt;
-&lt;p&gt;欢迎来到第三章！这一章我们要聊的是 Go 语言的&amp;quot;基因改造&amp;quot;——类型系统。如果说 Go 语言是一个人，那类型系统就是这个人的&amp;quot;血统认证&amp;quot;。Go 是一种静态类型语言，这意味着每个变量都有一个类型，而且这个类型在编译时就确定了。但 Go 的类型系统又比 C++/Java 简洁得多，它没有类、没有继承、没有泛型（呃，Go 1.18 有了）——但这些都不影响它成为一个强大的类型系统。准备好了吗？让我们开始！&lt;/p&gt;</description></item><item><title>第4章 Java 开发环境完全搭建指南</title><link>https://before80.github.io/prgms/Java/basic/Chapter-04-environment-setup/</link><pubDate>Mon, 30 Mar 2026 14:33:56 +0800</pubDate><guid>https://before80.github.io/prgms/Java/basic/Chapter-04-environment-setup/</guid><description>&lt;h1 id="第四章-java-开发环境完全搭建指南"&gt;第四章 Java 开发环境完全搭建指南&lt;/h1&gt;
+&lt;p&gt;欢迎来到第三章！这一章我们要聊的是 Go 语言的&amp;quot;基因改造&amp;quot;——类型系统。如果说 Go 语言是一个人，那类型系统就是这个人的&amp;quot;血统认证&amp;quot;。Go 是一种静态类型语言，这意味着每个变量都有一个类型，而且这个类型在编译时就确定了。但 Go 的类型系统又比 C++/Java 简洁得多，它没有类、没有继承、没有泛型（呃，Go 1.18 有了）——但这些都不影响它成为一个强大的类型系统。准备好了吗？让我们开始！&lt;/p&gt;</description></item><item><title>个人助手设置</title><link>https://before80.github.io/prgms/AI/openclaw/basic/start/openclaw/</link><pubDate>Thu, 02 Apr 2026 20:09:59 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/start/openclaw/</guid><description>&lt;h1 id="personal-assistant-setup"&gt;Personal Assistant Setup&lt;/h1&gt;
+&lt;p&gt;OpenClaw is a self-hosted gateway that connects WhatsApp, Telegram, Discord, iMessage, and more to AI agents. This guide covers the “personal assistant” setup: a dedicated WhatsApp number that behaves like your always-on AI assistant.&lt;/p&gt;
+&lt;p&gt;​	OpenClaw 是一款自托管网关，可将 WhatsApp、Telegram、Discord、iMessage 等平台与智能体相连接。本指南将介绍“个人助手”的设置方法：一个专属的 WhatsApp 号码，可充当你全天候在线的人工智能助手。&lt;/p&gt;</description></item><item><title>第4章 Java 开发环境完全搭建指南</title><link>https://before80.github.io/prgms/Java/basic/Chapter-04-environment-setup/</link><pubDate>Mon, 30 Mar 2026 14:33:56 +0800</pubDate><guid>https://before80.github.io/prgms/Java/basic/Chapter-04-environment-setup/</guid><description>&lt;h1 id="第四章-java-开发环境完全搭建指南"&gt;第四章 Java 开发环境完全搭建指南&lt;/h1&gt;
 &lt;blockquote&gt;
 &lt;p&gt;工欲善其事，必先利其器。在写第一行 Java 代码之前，咱们得先把开发环境整利索了。这一章，手把手带你从零搭起 Java 开发环境，保证你出去能跑 Hello World，回家能调 Bug。&lt;/p&gt;</description></item><item><title>第4章：让程序响应命令行——flag 包与 os 基础</title><link>https://before80.github.io/prgms/go/std/Chapter-04-flag-os/</link><pubDate>Mon, 30 Mar 2026 13:43:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/std/Chapter-04-flag-os/</guid><description>&lt;h1 id="第4章让程序响应命令行flag-包与-os-基础"&gt;第4章：让程序响应命令行——flag 包与 os 基础&lt;/h1&gt;
 &lt;p&gt;
@@ -244,7 +439,11 @@
 &lt;h2 id="41-什么是桌面环境desktop-environment"&gt;4.1 什么是桌面环境（Desktop Environment）？&lt;/h2&gt;
 &lt;p&gt;装好了 Linux 系统，打开电脑，满心期待地等着看一个漂亮的图形界面——结果你看到的是什么？&lt;/p&gt;</description></item><item><title>第4章 常量</title><link>https://before80.github.io/prgms/go/basic/Chapter-04-Constants/</link><pubDate>Fri, 20 Mar 2026 08:39:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/basic/Chapter-04-Constants/</guid><description>&lt;h1 id="第4章-常量"&gt;第4章 常量&lt;/h1&gt;
 &lt;blockquote&gt;
-&lt;p&gt;欢迎来到第四章！这一章我们要聊的是 Go 语言的&amp;quot;不变&amp;quot;哲学——常量。常量就像是编程世界里的&amp;quot;刻在石头上&amp;quot;，一旦定义就不能改变。常量在 Go 中有很多独特的特性，比如可以在编译时计算确定的值，还有那个神秘的 &lt;code&gt;iota&lt;/code&gt; 枚举器。准备好了吗？让我们开始！&lt;/p&gt;</description></item><item><title>第5章 Java 程序的运行与调试</title><link>https://before80.github.io/prgms/Java/basic/Chapter-05-run-and-debug/</link><pubDate>Mon, 30 Mar 2026 14:33:56 +0800</pubDate><guid>https://before80.github.io/prgms/Java/basic/Chapter-05-run-and-debug/</guid><description>&lt;h1 id="第五章-java-程序的运行与调试"&gt;第五章 Java 程序的运行与调试&lt;/h1&gt;
+&lt;p&gt;欢迎来到第四章！这一章我们要聊的是 Go 语言的&amp;quot;不变&amp;quot;哲学——常量。常量就像是编程世界里的&amp;quot;刻在石头上&amp;quot;，一旦定义就不能改变。常量在 Go 中有很多独特的特性，比如可以在编译时计算确定的值，还有那个神秘的 &lt;code&gt;iota&lt;/code&gt; 枚举器。准备好了吗？让我们开始！&lt;/p&gt;</description></item><item><title>CLI Setup Reference</title><link>https://before80.github.io/prgms/AI/openclaw/basic/start/wizard-cli-reference/</link><pubDate>Thu, 02 Apr 2026 20:15:18 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/start/wizard-cli-reference/</guid><description>&lt;h1 id="cli-setup-reference"&gt;CLI Setup Reference&lt;/h1&gt;
+&lt;p&gt;This page is the full reference for &lt;code&gt;openclaw onboard&lt;/code&gt;. For the short guide, see &lt;a href="https://docs.openclaw.ai/start/wizard"&gt;Onboarding (CLI)&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;​	此页面是&lt;code&gt;openclaw onboard&lt;/code&gt;的完整参考资料。如需简短指南，请参阅&lt;a href="https://docs.openclaw.ai/start/wizard"&gt;Onboarding (CLI)&lt;/a&gt;。&lt;/p&gt;
+&lt;h2 id="what-the-wizard-does-向导的功能"&gt;What the wizard does 向导的功能&lt;/h2&gt;
+&lt;p&gt;Local mode (default) walks you through:&lt;/p&gt;</description></item><item><title>第5章 Java 程序的运行与调试</title><link>https://before80.github.io/prgms/Java/basic/Chapter-05-run-and-debug/</link><pubDate>Mon, 30 Mar 2026 14:33:56 +0800</pubDate><guid>https://before80.github.io/prgms/Java/basic/Chapter-05-run-and-debug/</guid><description>&lt;h1 id="第五章-java-程序的运行与调试"&gt;第五章 Java 程序的运行与调试&lt;/h1&gt;
 &lt;blockquote&gt;
 &lt;p&gt;把代码写出来只是第一步，让它跑起来、跑得对、跑得快，才是真正的本事。本章我们从 JVM 的运行原理讲起，再到 IDE 里如何和 bug 斗智斗勇，最后介绍几个命令行神器。准备好了吗？Let&amp;rsquo;s go！&lt;/p&gt;</description></item><item><title>第5章：放数据的容器——container/heap、container/list、container/ring</title><link>https://before80.github.io/prgms/go/std/Chapter-05-container/</link><pubDate>Mon, 30 Mar 2026 13:43:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/std/Chapter-05-container/</guid><description>&lt;h1 id="第5章放数据的容器containerheapcontainerlistcontainerring"&gt;第5章：放数据的容器——container/heap、container/list、container/ring&lt;/h1&gt;
 &lt;blockquote&gt;
@@ -302,7 +501,12 @@ Node.js 是一个让 JavaScript 可以在服务器端（也就是你的电脑，
 &lt;h2 id="51-什么是终端terminal为什么要用命令行"&gt;5.1 什么是终端（Terminal）？为什么要用命令行？&lt;/h2&gt;
 &lt;p&gt;想象一下：一个黑漆漆的窗口，里面闪烁着绿色的光标，就像黑客电影里那些天才们在键盘上疯狂敲击的神秘界面。没错，这就是终端——一个让你假装自己是超级黑客的神奇地方！&lt;/p&gt;</description></item><item><title>第5章 变量</title><link>https://before80.github.io/prgms/go/basic/Chapter-05-Variables/</link><pubDate>Fri, 20 Mar 2026 08:39:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/basic/Chapter-05-Variables/</guid><description>&lt;h1 id="第5章-变量"&gt;第5章 变量&lt;/h1&gt;
 &lt;blockquote&gt;
-&lt;p&gt;欢迎来到第五章！这一章我们要聊的是 Go 语言的&amp;quot;变量&amp;quot;。变量是什么？变量就是一个有名字的盒子，你可以在里面放东西（值），也可以把东西拿出来用。想象一下你家的冰箱——冰箱就是一个变量，你可以往里面放牛奶（赋值），也可以拿出来喝（读取）。不同的是，Go 的冰箱永远不会被塞满，因为变量可以存储任意大小的数据……好吧，这个比喻好像不太对。总之，让我们开始探索变量的奥秘吧！&lt;/p&gt;</description></item><item><title>第6章 第一个 Java 程序与代码结构</title><link>https://before80.github.io/prgms/Java/basic/Chapter-06-first-java-program/</link><pubDate>Mon, 30 Mar 2026 14:33:56 +0800</pubDate><guid>https://before80.github.io/prgms/Java/basic/Chapter-06-first-java-program/</guid><description>&lt;h1 id="第六章-第一个-java-程序与代码结构"&gt;第六章 第一个 Java 程序与代码结构&lt;/h1&gt;
+&lt;p&gt;欢迎来到第五章！这一章我们要聊的是 Go 语言的&amp;quot;变量&amp;quot;。变量是什么？变量就是一个有名字的盒子，你可以在里面放东西（值），也可以把东西拿出来用。想象一下你家的冰箱——冰箱就是一个变量，你可以往里面放牛奶（赋值），也可以拿出来喝（读取）。不同的是，Go 的冰箱永远不会被塞满，因为变量可以存储任意大小的数据……好吧，这个比喻好像不太对。总之，让我们开始探索变量的奥秘吧！&lt;/p&gt;</description></item><item><title>CLI Automation</title><link>https://before80.github.io/prgms/AI/openclaw/basic/start/wizard-cli-automation/</link><pubDate>Thu, 02 Apr 2026 20:15:41 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/start/wizard-cli-automation/</guid><description>&lt;h1 id="cli-automation"&gt;CLI Automation&lt;/h1&gt;
+&lt;p&gt;Use &lt;code&gt;--non-interactive&lt;/code&gt; to automate &lt;code&gt;openclaw onboard&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;​	使用&lt;code&gt;--non-interactive&lt;/code&gt;来自动化执行&lt;code&gt;openclaw onboard&lt;/code&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;code&gt;--json&lt;/code&gt; does not imply non-interactive mode. Use &lt;code&gt;--non-interactive&lt;/code&gt; (and &lt;code&gt;--workspace&lt;/code&gt;) for scripts.&lt;/p&gt;
+&lt;p&gt;​	&lt;code&gt;--json&lt;/code&gt; 并不意味着非交互模式。在脚本中请使用 &lt;code&gt;--non-interactive&lt;/code&gt;（以及 &lt;code&gt;--workspace&lt;/code&gt;）。&lt;/p&gt;</description></item><item><title>第6章 第一个 Java 程序与代码结构</title><link>https://before80.github.io/prgms/Java/basic/Chapter-06-first-java-program/</link><pubDate>Mon, 30 Mar 2026 14:33:56 +0800</pubDate><guid>https://before80.github.io/prgms/Java/basic/Chapter-06-first-java-program/</guid><description>&lt;h1 id="第六章-第一个-java-程序与代码结构"&gt;第六章 第一个 Java 程序与代码结构&lt;/h1&gt;
 &lt;blockquote&gt;
 &lt;p&gt;&amp;ldquo;Talk is cheap, show me the code.&amp;rdquo; — 这句话在 Java 世界里尤其正确。再多理论也比不上亲手跑通一个程序带来的成就感。准备好了吗？让我们从那句经典的 &lt;code&gt;Hello World&lt;/code&gt; 开始，正式踏入 Java 的大门。&lt;/p&gt;</description></item><item><title>第6章：泛型时代的基础工具——cmp、maps、slices、sort、strconv</title><link>https://before80.github.io/prgms/go/std/Chapter-06-alg-tool/</link><pubDate>Mon, 30 Mar 2026 13:43:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/std/Chapter-06-alg-tool/</guid><description>&lt;h1 id="第6章泛型时代的基础工具cmpmapsslicessortstrconv"&gt;第6章：泛型时代的基础工具——cmp、maps、slices、sort、strconv&lt;/h1&gt;
 &lt;p&gt;话说 Go 语言在 1.18 引入泛型之后，终于告别了&amp;quot;泛型缺失&amp;quot;的尴尬年代。到了 Go 1.21，标准库一口气推出了 &lt;code&gt;cmp&lt;/code&gt;、&lt;code&gt;maps&lt;/code&gt;、&lt;code&gt;slices&lt;/code&gt; 三个全新的泛型包，简直是给 Gopher 们送了一份大礼。在那之前，咱们写代码但凡要比较两个值、操作个 map、或者折腾一下切片，都得自己造轮子——重复的代码满天飞。现在好了，泛型一统江湖，这些工具函数终于可以优雅地复用啦！&lt;/p&gt;</description></item><item><title>第 6 章：控制流程——程序的'红绿灯'与'跑步机'</title><link>https://before80.github.io/prgms/C/basic/Chapter-06-Control-Flow/</link><pubDate>Sun, 29 Mar 2026 22:34:00 +0800</pubDate><guid>https://before80.github.io/prgms/C/basic/Chapter-06-Control-Flow/</guid><description>&lt;h1 id="第-6-章控制流程程序的红绿灯与跑步机"&gt;第 6 章：控制流程——程序的&amp;quot;红绿灯&amp;quot;与&amp;quot;跑步机&amp;quot;&lt;/h1&gt;

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Install on 编程那些事儿</title><link>https://before80.github.io/prgms/AI/openclaw/basic/install/</link><description>Recent content in Install on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 03 Apr 2026 19:12:25 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/AI/openclaw/basic/install/index.xml" rel="self" type="application/rss+xml"/><item><title>Node.js</title><link>https://before80.github.io/prgms/AI/openclaw/basic/install/node/</link><pubDate>Fri, 03 Apr 2026 12:29:05 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/install/node/</guid><description>&lt;p&gt;OpenClaw requires &lt;strong&gt;Node 22.14 or newer&lt;/strong&gt;. &lt;strong&gt;Node 24 is the default and recommended runtime&lt;/strong&gt; for installs, CI, and release workflows. Node 22 remains supported via the active LTS line. The &lt;a href="https://docs.openclaw.ai/install#alternative-install-methods"&gt;installer script&lt;/a&gt; will detect and install Node automatically — this page is for when you want to set up Node yourself and make sure everything is wired up correctly (versions, PATH, global installs).&lt;/p&gt;
+&lt;p&gt;​	OpenClaw 需要 &lt;strong&gt;Node 22.14 或更高版本&lt;/strong&gt;。&lt;strong&gt;Node 24 是安装、持续集成（CI）和发布工作流的默认且推荐运行时&lt;/strong&gt;。Node 22 仍通过长期支持（LTS）主线获得支持。&lt;a href="https://docs.openclaw.ai/install#alternative-install-methods"&gt;安装脚本&lt;/a&gt;会自动检测并安装 Node —— 本页面适用于你想手动设置 Node 并确保所有配置（版本、环境变量 PATH、全局安装）均正确的情况。&lt;/p&gt;</description></item><item><title>Installer Internals</title><link>https://before80.github.io/prgms/AI/openclaw/basic/install/installer/</link><pubDate>Fri, 03 Apr 2026 11:29:30 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/install/installer/</guid><description>&lt;h1 id="installer-internals"&gt;Installer Internals&lt;/h1&gt;
+&lt;p&gt;OpenClaw ships three installer scripts, served from &lt;code&gt;openclaw.ai&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;​	OpenClaw 附带三个安装脚本，均从 &lt;code&gt;openclaw.ai&lt;/code&gt; 提供。&lt;/p&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th style="text-align: left"&gt;Script&lt;/th&gt;
+ &lt;th style="text-align: left"&gt;Platform&lt;/th&gt;
+ &lt;th style="text-align: left"&gt;What it does&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td style="text-align: left"&gt;&lt;a href="https://docs.openclaw.ai/install/installer#installsh"&gt;&lt;code&gt;install.sh&lt;/code&gt;&lt;/a&gt;&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;macOS / Linux / WSL&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;Installs Node if needed, installs OpenClaw via npm (default) or git, and can run onboarding. 如有需要则安装 Node，通过 npm（默认）或 git 安装 OpenClaw，并可运行onboarding流程。&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td style="text-align: left"&gt;&lt;a href="https://docs.openclaw.ai/install/installer#install-clish"&gt;&lt;code&gt;install-cli.sh&lt;/code&gt;&lt;/a&gt;&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;macOS / Linux / WSL&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;Installs Node + OpenClaw into a local prefix (&lt;code&gt;~/.openclaw&lt;/code&gt;). No root required. 将 Node 与 OpenClaw 安装到本地前缀（&lt;code&gt;~/.openclaw&lt;/code&gt;）。无需 root 权限。&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td style="text-align: left"&gt;&lt;a href="https://docs.openclaw.ai/install/installer#installps1"&gt;&lt;code&gt;install.ps1&lt;/code&gt;&lt;/a&gt;&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;Windows (PowerShell)&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;Installs Node if needed, installs OpenClaw via npm (default) or git, and can run onboarding. 如有需要则安装 Node，通过 npm（默认）或 git 安装 OpenClaw，并可运行onboarding流程。&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="quick-commands"&gt;Quick commands&lt;/h2&gt;
+
+
+
+
+
+
+
+
+&lt;ul class="nav nav-tabs" id="tabs-0" role="tablist"&gt;
+ &lt;li class="nav-item"&gt;
+ &lt;button class="nav-link active"
+ id="tabs-00-00-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-00" role="tab"
+ aria-controls="tabs-00-00" aria-selected="true"&gt;
+ install.sh
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-01-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-01" role="tab"
+ aria-controls="tabs-00-01" aria-selected="false"&gt;
+ install-cli.sh
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-02-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-02" role="tab"
+ aria-controls="tabs-00-02" aria-selected="false"&gt;
+ install.ps1
+ &lt;/button&gt;
+ &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class="tab-content" id="tabs-0-content"&gt;
+ &lt;div class="tab-body tab-pane fade show active"
+ id="tabs-00-00" role="tabpanel" aria-labelled-by="tabs-00-00-tab" tabindex="0"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;curl -fsSL --proto &lt;span style="color:#98c379"&gt;&amp;#39;=https&amp;#39;&lt;/span&gt; --tlsv1.2 https://openclaw.ai/install.sh &lt;span style="color:#abb2bf"&gt;|&lt;/span&gt; bash
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;curl -fsSL --proto &lt;span style="color:#98c379"&gt;&amp;#39;=https&amp;#39;&lt;/span&gt; --tlsv1.2 https://openclaw.ai/install.sh &lt;span style="color:#abb2bf"&gt;|&lt;/span&gt; bash -s -- --help
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+ &lt;div class="tab-body tab-pane fade"
+ id="tabs-00-01" role="tabpanel" aria-labelled-by="tabs-00-01-tab" tabindex="0"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;curl -fsSL --proto &lt;span style="color:#98c379"&gt;&amp;#39;=https&amp;#39;&lt;/span&gt; --tlsv1.2 https://openclaw.ai/install-cli.sh &lt;span style="color:#abb2bf"&gt;|&lt;/span&gt; bash
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;curl -fsSL --proto &lt;span style="color:#98c379"&gt;&amp;#39;=https&amp;#39;&lt;/span&gt; --tlsv1.2 https://openclaw.ai/install-cli.sh &lt;span style="color:#abb2bf"&gt;|&lt;/span&gt; bash -s -- --help
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+ &lt;div class="tab-body tab-pane fade"
+ id="tabs-00-02" role="tabpanel" aria-labelled-by="tabs-00-02-tab" tabindex="0"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;iwr -useb https://openclaw.ai/install.ps1 &lt;span style="color:#abb2bf"&gt;|&lt;/span&gt; iex
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;&amp;amp;&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;([&lt;/span&gt;scriptblock&lt;span style="color:#54b1c7"&gt;]&lt;/span&gt;::Create&lt;span style="color:#54b1c7"&gt;((&lt;/span&gt;iwr -useb https://openclaw.ai/install.ps1&lt;span style="color:#54b1c7"&gt;)))&lt;/span&gt; -Tag beta -NoOnboard -DryRun
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;If install succeeds but &lt;code&gt;openclaw&lt;/code&gt; is not found in a new terminal, see &lt;a href="https://docs.openclaw.ai/install/node#troubleshooting"&gt;Node.js troubleshooting&lt;/a&gt;.&lt;/p&gt;</description></item><item><title>Migrating</title><link>https://before80.github.io/prgms/AI/openclaw/basic/install/migrating/</link><pubDate>Fri, 03 Apr 2026 11:12:24 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/install/migrating/</guid><description>&lt;h1 id="migration-guide-迁移指南"&gt;Migration Guide 迁移指南&lt;/h1&gt;
+&lt;p&gt;This guide moves an OpenClaw gateway to a new machine without redoing onboarding.&lt;/p&gt;
+&lt;p&gt;​	本指南可将 OpenClaw gateway 迁移到新机器，且无需重新完成 onboarding配置。&lt;/p&gt;
+&lt;h2 id="what-gets-migrated-需要迁移的内容"&gt;What Gets Migrated 需要迁移的内容&lt;/h2&gt;
+&lt;p&gt;When you copy the &lt;strong&gt;state directory&lt;/strong&gt; (&lt;code&gt;~/.openclaw/&lt;/code&gt; by default) and your &lt;strong&gt;workspace&lt;/strong&gt;, you preserve:&lt;/p&gt;</description></item><item><title>Uninstall</title><link>https://before80.github.io/prgms/AI/openclaw/basic/install/uninstall/</link><pubDate>Fri, 03 Apr 2026 09:40:49 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/install/uninstall/</guid><description>&lt;h1 id="uninstall"&gt;Uninstall&lt;/h1&gt;
+&lt;p&gt;Two paths:&lt;/p&gt;
+&lt;p&gt;​	两种方法：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Easy path&lt;/strong&gt; if &lt;code&gt;openclaw&lt;/code&gt; is still installed.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;简易方法&lt;/strong&gt;（前提是 &lt;code&gt;openclaw&lt;/code&gt; 仍已安装）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Manual service removal&lt;/strong&gt; if the CLI is gone but the service is still running.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;手动移除服务&lt;/strong&gt;，适用于 CLI 已消失但服务仍在运行的情况。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="easy-path-cli-still-installed"&gt;Easy path (CLI still installed)&lt;/h2&gt;
+&lt;p&gt;Recommended: use the built-in uninstaller:&lt;/p&gt;</description></item><item><title>Updating</title><link>https://before80.github.io/prgms/AI/openclaw/basic/install/updating/</link><pubDate>Fri, 03 Apr 2026 09:36:17 +0800</pubDate><guid>https://before80.github.io/prgms/AI/openclaw/basic/install/updating/</guid><description>&lt;h1 id="updating"&gt;Updating&lt;/h1&gt;
+&lt;p&gt;Keep OpenClaw up to date.&lt;/p&gt;
+&lt;h2 id="recommended-openclaw-update"&gt;Recommended: &lt;code&gt;openclaw update&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;The fastest way to update. It detects your install type (npm or git), fetches the latest version, runs &lt;code&gt;openclaw doctor&lt;/code&gt;, and restarts the gateway.&lt;/p&gt;
+&lt;p&gt;​	最快的更新方式。它会检测你的安装类型（npm 或 git），获取最新版本，运行 &lt;code&gt;openclaw doctor&lt;/code&gt; 并重启网关。&lt;/p&gt;</description></item></channel></rss>
