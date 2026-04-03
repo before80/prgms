@@ -1,0 +1,864 @@
+<!doctype html><html itemscope itemtype=http://schema.org/WebPage lang=zh-cn class=no-js data-theme-init><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=color-scheme content="light dark"><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#000000"><style>html{background:Canvas;color:CanvasText}@media(prefers-color-scheme:dark){html{background:#0b0d12;color:#e6e6e6}}html[data-theme-init] *{transition:none!important}</style><script>(function(){const t="td-color-theme",n=localStorage.getItem(t);let e=n||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");e==="auto"&&(e=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),document.documentElement.setAttribute("data-bs-theme",e)})()</script><meta name=robots content="index, follow"><link rel="shortcut icon" href=/prgms/favicons/favicon.ico><link rel=apple-touch-icon href=/prgms/favicons/apple-touch-icon-180x180.png sizes=180x180><link rel=icon type=image/png href=/prgms/favicons/favicon-16x16.png sizes=16x16><link rel=icon type=image/png href=/prgms/favicons/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=/prgms/favicons/android-36x36.png sizes=36x36><link rel=icon type=image/png href=/prgms/favicons/android-48x48.png sizes=48x48><link rel=icon type=image/png href=/prgms/favicons/android-72x72.png sizes=72x72><link rel=icon type=image/png href=/prgms/favicons/android-96x96.png sizes=96x96><link rel=icon type=image/png href=/prgms/favicons/android-144x144.png sizes=144x144><link rel=icon type=image/png href=/prgms/favicons/android-192x192.png sizes=192x192><title>第1章：没有 Git 的世界，是一场灾难片 | 编程那些事儿</title><meta name=description content="第1章：没有 Git 的世界，是一场灾难片 “在 Git 出现之前，程序员们都是在黑暗中摸索的勇士——只不过他们摸索的是无数个’最终版’文件夹。”"><meta property="og:url" content="https://before80.github.io/prgms/Git/Chapter-01-Without-Git-The-World-Is-A-Disaster/"><meta property="og:site_name" content="编程那些事儿"><meta property="og:title" content="第1章：没有 Git 的世界，是一场灾难片"><meta property="og:description" content="第1章：没有 Git 的世界，是一场灾难片 “在 Git 出现之前，程序员们都是在黑暗中摸索的勇士——只不过他们摸索的是无数个’最终版’文件夹。”"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="git"><meta property="article:published_time" content="2026-04-03T19:36:48+08:00"><meta property="article:modified_time" content="2026-04-03T19:52:32+08:00"><meta itemprop=name content="第1章：没有 Git 的世界，是一场灾难片"><meta itemprop=description content="第1章：没有 Git 的世界，是一场灾难片 “在 Git 出现之前，程序员们都是在黑暗中摸索的勇士——只不过他们摸索的是无数个’最终版’文件夹。”"><meta itemprop=datePublished content="2026-04-03T19:36:48+08:00"><meta itemprop=dateModified content="2026-04-03T19:52:32+08:00"><meta itemprop=wordCount content="16432"><meta name=twitter:card content="summary"><meta name=twitter:title content="第1章：没有 Git 的世界，是一场灾难片"><meta name=twitter:description content="第1章：没有 Git 的世界，是一场灾难片 “在 Git 出现之前，程序员们都是在黑暗中摸索的勇士——只不过他们摸索的是无数个’最终版’文件夹。”"><link rel=preload href=/prgms/scss/main.min.6493eeac8161e52866670fd3d82fea10f8b9f1ca39f8f69aaf1021c77867b96c.css as=style integrity="sha256-ZJPurIFh5ShmZw/T2C/qEPi58co5+PaarxAhx3hnuWw=" crossorigin=anonymous><link href=/prgms/scss/main.min.6493eeac8161e52866670fd3d82fea10f8b9f1ca39f8f69aaf1021c77867b96c.css rel=stylesheet integrity="sha256-ZJPurIFh5ShmZw/T2C/qEPi58co5+PaarxAhx3hnuWw=" crossorigin=anonymous><link href=/go_docs/css/extra.css rel=stylesheet><script src=https://code.jquery.com/jquery-3.7.1.min.js integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin=anonymous></script><link rel=stylesheet href=https://unpkg.com/@docsearch/css@3.8.2/dist/style.css integrity="sha512-l7pkV1dOURFyHCeH8I4fK9lCkQKuqhlsTCqRl3zktifDlB8oTUJ+mJPgYkK9kHpUut8j1iPquTv32t6hvTPv3g==" crossorigin=anonymous></head><body class=td-page><header><nav class="td-navbar js-navbar-scroll"><div class="td-navbar-container container-fluid flex-column flex-md-row"><a class=navbar-brand href=/prgms/><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class=navbar-brand__name>编程那些事儿</span></a><div class="td-navbar-nav-scroll td-navbar-nav-scroll--indicator" id=main_navbar><div class="scroll-indicator scroll-left"></div><ul class=navbar-nav><li class="nav-item mr-4 mb-2 mb-lg-0"><a class=nav-link href=javascript:; id=show-timer style=color:#fe4512f5!important></a></li><li class=nav-item><a class=nav-link href=/prgms/docs/><span>文档</span></a></li><li class=nav-item><a class=nav-link href=/prgms/AI/><span>AI</span></a></li><li class=nav-item><a class=nav-link href=/prgms/C/><span>C</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Cpp/><span>Cpp</span></a></li><li class=nav-item><a class="nav-link active" href=/prgms/Git/><span>Git</span></a></li><li class=nav-item><a class=nav-link href=/prgms/go/><span>Go</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Java/><span>Java</span></a></li><li class=nav-item><a class=nav-link href=/prgms/linux/><span>Linux</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Js/><span>JavaScript</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Ts/><span>TypeScript</span></a></li><li class=nav-item><a class=nav-link href=/prgms/CSS/><span>CSS</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Rust/><span>Rust</span></a></li><li class="nav-item td-navbar__light-dark-menu"><div class="td-light-dark-menu dropdown"><svg class="d-none"><symbol id="check2" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5.0 010 .708l-7 7a.5.5.0 01-.708.0l-3.5-3.5a.5.5.0 11.708-.708L6.5 10.293l6.646-6.647a.5.5.0 01.708.0z"/></symbol><symbol id="circle-half" viewBox="0 0 16 16"><path d="M8 15A7 7 0 108 1v14zm0 1A8 8 0 118 0a8 8 0 010 16z"/></symbol><symbol id="moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.768.768.0 01.08.858 7.208 7.208.0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527.0 1.04-.055 1.533-.16a.787.787.0 01.81.316.733.733.0 01-.031.893A8.349 8.349.0 018.344 16C3.734 16 0 12.286.0 7.71.0 4.266 2.114 1.312 5.124.06A.752.752.0 016 .278z"/><path d="M10.794 3.148a.217.217.0 01.412.0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217.0 010 .412l-1.162.387A1.734 1.734.0 0011.593 7.69l-.387 1.162a.217.217.0 01-.412.0l-.387-1.162A1.734 1.734.0 009.31 6.593l-1.162-.387a.217.217.0 010-.412l1.162-.387a1.734 1.734.0 001.097-1.097l.387-1.162zM13.863.099a.145.145.0 01.274.0l.258.774c.115.346.386.617.732.732l.774.258a.145.145.0 010 .274l-.774.258a1.156 1.156.0 00-.732.732l-.258.774a.145.145.0 01-.274.0l-.258-.774a1.156 1.156.0 00-.732-.732l-.774-.258a.145.145.0 010-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/></symbol><symbol id="sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 0zm0 13a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 13zm8-5a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2a.5.5.0 01.5.5zM3 8a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2A.5.5.0 013 8zm10.657-5.657a.5.5.0 010 .707l-1.414 1.415a.5.5.0 11-.707-.708l1.414-1.414a.5.5.0 01.707.0zm-9.193 9.193a.5.5.0 010 .707L3.05 13.657a.5.5.0 01-.707-.707l1.414-1.414a.5.5.0 01.707.0zm9.193 2.121a.5.5.0 01-.707.0l-1.414-1.414a.5.5.0 01.707-.707l1.414 1.414a.5.5.0 010 .707zM4.464 4.465a.5.5.0 01-.707.0L2.343 3.05a.5.5.0 11.707-.707l1.414 1.414a.5.5.0 010 .708z"/></symbol></svg>
+<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" id=bd-theme type=button aria-expanded=false data-bs-toggle=dropdown aria-label="Toggle theme (auto)">
+<svg class="bi my-1 theme-icon-active"><use href="#circle-half"/></svg></button><ul class=dropdown-menu aria-labelledby=bd-theme><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=light aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#sun-fill"/></svg>
+Light
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=dark aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"/></svg>
+Dark
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center active" data-bs-theme-value=auto aria-pressed=true>
+<svg class="bi me-2 opacity-50"><use href="#circle-half"/></svg>
+Auto
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul></div></li></ul><div class="scroll-indicator scroll-right"></div></div><div class="d-none d-lg-block td-navbar__search"><div class=td-search><div class=td-search--algolia id=docsearch-1></div></div></div></div></nav></header><div class="container-fluid td-outer"><div class=td-main data-bs-spy=scroll data-bs-target=.td-toc data-bs-root-margin="0px 0px -10%"><div class="row flex-xl-nowrap"><aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none"><div id=td-sidebar-menu class=td-sidebar__inner><form class="td-sidebar__search d-flex align-items-center"><div class=td-search><div class=td-search--algolia id=docsearch-0></div></div><button class="btn btn-link td-sidebar__toggle" type=button data-bs-toggle=collapse data-bs-target=#td-section-nav aria-controls=td-section-nav aria-expanded=false aria-label="Toggle section navigation"></button></form><nav class="td-sidebar-nav collapse foldable-nav" id=td-section-nav data-sidebar-root-id=/prgms/Git/><ul class="td-sidebar-nav__section pe-md-3 ul-0"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-prgmsgit-li><a href=/prgms/Git/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id=m-prgmsgit><span>Git</span></a><ul class=ul-1><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id=m-prgmsgitchapter-01-without-git-the-world-is-a-disaster-li><input type=checkbox id=m-prgmsgitchapter-01-without-git-the-world-is-a-disaster-check checked>
+<label for=m-prgmsgitchapter-01-without-git-the-world-is-a-disaster-check><a href=/prgms/Git/Chapter-01-Without-Git-The-World-Is-A-Disaster/ class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-01-without-git-the-world-is-a-disaster><span class=td-sidebar-nav-active-item>第1章：没有 Git 的世界，是一场灾难片</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-02-installing-git-the-first-hurdle-li><input type=checkbox id=m-prgmsgitchapter-02-installing-git-the-first-hurdle-check>
+<label for=m-prgmsgitchapter-02-installing-git-the-first-hurdle-check><a href=/prgms/Git/Chapter-02-Installing-Git-The-First-Hurdle/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-02-installing-git-the-first-hurdle><span>第2章：安装 Git —— 程序员的第一道门槛</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-03-git-basics-configuration-li><input type=checkbox id=m-prgmsgitchapter-03-git-basics-configuration-check>
+<label for=m-prgmsgitchapter-03-git-basics-configuration-check><a href=/prgms/Git/Chapter-03-git-basics-configuration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-03-git-basics-configuration><span>第3章：Git 基础配置 —— 不穿衣服就出门的后果</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-04-first-repository-li><input type=checkbox id=m-prgmsgitchapter-04-first-repository-check>
+<label for=m-prgmsgitchapter-04-first-repository-check><a href=/prgms/Git/Chapter-04-first-repository/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-04-first-repository><span>第4章：第一个仓库 —— 见证奇迹的时刻</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-05-daily-operations-li><input type=checkbox id=m-prgmsgitchapter-05-daily-operations-check>
+<label for=m-prgmsgitchapter-05-daily-operations-check><a href=/prgms/Git/Chapter-05-daily-operations/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-05-daily-operations><span>第5章：日常操作基本功 —— Git 世界的'基本功'</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-06-viewing-history-and-comparison-li><input type=checkbox id=m-prgmsgitchapter-06-viewing-history-and-comparison-check>
+<label for=m-prgmsgitchapter-06-viewing-history-and-comparison-check><a href=/prgms/Git/Chapter-06-Viewing-History-and-Comparison/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-06-viewing-history-and-comparison><span>第6章：查看历史与对比 —— Git 时光机与照妖镜</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-07-undoing-changes-li><input type=checkbox id=m-prgmsgitchapter-07-undoing-changes-check>
+<label for=m-prgmsgitchapter-07-undoing-changes-check><a href=/prgms/Git/Chapter-07-Undoing-Changes/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-07-undoing-changes><span>第7章：后悔药系列 —— Git 让你永不后悔</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-08-gitignore-li><input type=checkbox id=m-prgmsgitchapter-08-gitignore-check>
+<label for=m-prgmsgitchapter-08-gitignore-check><a href=/prgms/Git/Chapter-08-Gitignore/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-08-gitignore><span>第8章：.gitignore —— 眼不见心不烦</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-09-branching-basics-li><input type=checkbox id=m-prgmsgitchapter-09-branching-basics-check>
+<label for=m-prgmsgitchapter-09-branching-basics-check><a href=/prgms/Git/Chapter-09-Branching-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-09-branching-basics><span>第9章：分支基础 —— Git 的杀手锏</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-10-merging-branches-li><input type=checkbox id=m-prgmsgitchapter-10-merging-branches-check>
+<label for=m-prgmsgitchapter-10-merging-branches-check><a href=/prgms/Git/Chapter-10-Merging-Branches/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-10-merging-branches><span>第10章：分支合并 —— 殊途同归的艺术</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-11-remote-repository-basics-li><input type=checkbox id=m-prgmsgitchapter-11-remote-repository-basics-check>
+<label for=m-prgmsgitchapter-11-remote-repository-basics-check><a href=/prgms/Git/Chapter-11-Remote-Repository-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-11-remote-repository-basics><span>第11章：远程仓库入门 —— 代码的云端家园</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-12-github-collaboration-li><input type=checkbox id=m-prgmsgitchapter-12-github-collaboration-check>
+<label for=m-prgmsgitchapter-12-github-collaboration-check><a href=/prgms/Git/Chapter-12-GitHub-Collaboration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-12-github-collaboration><span>第12章：GitHub 协作 —— 开源世界的入场券</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-13-network-optimization-li><input type=checkbox id=m-prgmsgitchapter-13-network-optimization-check>
+<label for=m-prgmsgitchapter-13-network-optimization-check><a href=/prgms/Git/Chapter-13-Network-Optimization/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-13-network-optimization><span>第13章：网络优化 —— 中国用户的必修课 ⭐</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-14-branching-strategies-li><input type=checkbox id=m-prgmsgitchapter-14-branching-strategies-check>
+<label for=m-prgmsgitchapter-14-branching-strategies-check><a href=/prgms/Git/Chapter-14-Branching-Strategies/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-14-branching-strategies><span>第14章：分支策略 —— 从混乱到有序</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-15-advanced-conflict-resolution-li><input type=checkbox id=m-prgmsgitchapter-15-advanced-conflict-resolution-check>
+<label for=m-prgmsgitchapter-15-advanced-conflict-resolution-check><a href=/prgms/Git/Chapter-15-Advanced-Conflict-Resolution/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-15-advanced-conflict-resolution><span>第15章：冲突解决进阶 —— 化干戈为玉帛</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-16-advanced-push-pull-li><input type=checkbox id=m-prgmsgitchapter-16-advanced-push-pull-check>
+<label for=m-prgmsgitchapter-16-advanced-push-pull-check><a href=/prgms/Git/Chapter-16-Advanced-Push-Pull/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-16-advanced-push-pull><span>第16章：推送与拉取进阶 —— 与远程仓库的舞蹈</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-17-pull-request-advanced-li><input type=checkbox id=m-prgmsgitchapter-17-pull-request-advanced-check>
+<label for=m-prgmsgitchapter-17-pull-request-advanced-check><a href=/prgms/Git/Chapter-17-Pull-Request-Advanced/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-17-pull-request-advanced><span>第17章：Pull Request 进阶 —— 成为开源贡献者</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-18-advanced-skills-li><input type=checkbox id=m-prgmsgitchapter-18-advanced-skills-check>
+<label for=m-prgmsgitchapter-18-advanced-skills-check><a href=/prgms/Git/Chapter-18-Advanced-Skills/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-18-advanced-skills><span>第18章：进阶技能 —— 高手的工具箱</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-19-team-collaboration-li><input type=checkbox id=m-prgmsgitchapter-19-team-collaboration-check>
+<label for=m-prgmsgitchapter-19-team-collaboration-check><a href=/prgms/Git/Chapter-19-Team-Collaboration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-19-team-collaboration><span>第19章：团队协作最佳实践 —— 别做那个被嫌弃的人</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-20-git-hooks-li><input type=checkbox id=m-prgmsgitchapter-20-git-hooks-check>
+<label for=m-prgmsgitchapter-20-git-hooks-check><a href=/prgms/Git/Chapter-20-Git-Hooks/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-20-git-hooks><span>第20章：Git 钩子与自动化 —— 让 Git 替你干活</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-21-internal-principles-li><input type=checkbox id=m-prgmsgitchapter-21-internal-principles-check>
+<label for=m-prgmsgitchapter-21-internal-principles-check><a href=/prgms/Git/Chapter-21-Internal-Principles/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-21-internal-principles><span>第21章：Git 内部原理 —— 了解黑盒子里有什么</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-22-common-scenarios-li><input type=checkbox id=m-prgmsgitchapter-22-common-scenarios-check>
+<label for=m-prgmsgitchapter-22-common-scenarios-check><a href=/prgms/Git/Chapter-22-Common-Scenarios/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-22-common-scenarios><span>第22章：常见场景实战 —— 解决真实世界的问题</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-23-troubleshooting-li><input type=checkbox id=m-prgmsgitchapter-23-troubleshooting-check>
+<label for=m-prgmsgitchapter-23-troubleshooting-check><a href=/prgms/Git/Chapter-23-Troubleshooting/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-23-troubleshooting><span>第23章：Git 故障排查 —— 当事情搞砸时</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-24-tool-integration-li><input type=checkbox id=m-prgmsgitchapter-24-tool-integration-check>
+<label for=m-prgmsgitchapter-24-tool-integration-check><a href=/prgms/Git/Chapter-24-Tool-Integration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-24-tool-integration><span>第24章：Git 与其他工具集成 —— 打造高效工作流</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-25-best-practices-summary-li><input type=checkbox id=m-prgmsgitchapter-25-best-practices-summary-check>
+<label for=m-prgmsgitchapter-25-best-practices-summary-check><a href=/prgms/Git/Chapter-25-Best-Practices-Summary/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-25-best-practices-summary><span>第25章：Git 最佳实践总结 —— 成为 Git 大师</span></a></label></li></ul></li></ul></nav></div></aside><aside class=td-sidebar-toc><div class="td-page-meta ms-2 pb-1 pt-2 mb-0"><a href=https://before80.github.io/go_docs/comm/coffee class="td-page-meta--view td-page-meta__view" style=color:#2bf518!important target=_blank rel=noopener><i class="fa-solid fa-mug-hot fa-fw"></i> 请作者喝杯咖啡吧</a>
+<a href=https://github.com/before80/prgms/tree/main/content/Git/Chapter-01-Without-Git-The-World-Is-A-Disaster.md class="td-page-meta--view td-page-meta__view" target=_blank rel=noopener><i class="fa-solid fa-file-lines fa-fw"></i> 查看页面源码</a>
+<a href=https://github.com/before80/prgms/edit/main/content/Git/Chapter-01-Without-Git-The-World-Is-A-Disaster.md class="td-page-meta--edit td-page-meta__edit" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> 编辑此页</a>
+<a href="https://github.com/before80/prgms/new/main/content/Git?filename=change-me.md&amp;value=---%0Atitle%3A+%22Long+Page+Title%22%0AlinkTitle%3A+%22Short+Nav+Title%22%0Aweight%3A+100%0Adescription%3A+%3E-%0A+++++Page+description+for+heading+and+indexes.%0A---%0A%0A%23%23+Heading%0A%0AEdit+this+template+to+create+your+new+page.%0A%0A%2A+Give+it+a+good+name%2C+ending+in+%60.md%60+-+e.g.+%60getting-started.md%60%0A%2A+Edit+the+%22front+matter%22+section+at+the+top+of+the+page+%28weight+controls+how+its+ordered+amongst+other+pages+in+the+same+directory%3B+lowest+number+first%29.%0A%2A+Add+a+good+commit+message+at+the+bottom+of+the+page+%28%3C80+characters%3B+use+the+extended+description+field+for+more+detail%29.%0A%2A+Create+a+new+branch+so+you+can+preview+your+new+file+and+request+a+review+via+Pull+Request.%0A" class="td-page-meta--child td-page-meta__child" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> 添加子页面</a>
+<a href="https://github.com/before80/prgms/issues/new?title=%e7%ac%ac1%e7%ab%a0%ef%bc%9a%e6%b2%a1%e6%9c%89%20Git%20%e7%9a%84%e4%b8%96%e7%95%8c%ef%bc%8c%e6%98%af%e4%b8%80%e5%9c%ba%e7%81%be%e9%9a%be%e7%89%87" class="td-page-meta--issue td-page-meta__issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> 提交文档问题</a>
+<a href=https://github.com/before80/prgms/issues/new class="td-page-meta--project td-page-meta__project-issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> 提交项目问题</a></div><div class=td-toc data-proofer-ignore><div class=td-toc-title><span class=td-toc-title__text>本页目录</span>
+<a class=td-toc-title__link title=回到顶部 href=#></a></div><nav id=TableOfContents><ul><li><a href=#第1章没有-git-的世界是一场灾难片>第1章：没有 Git 的世界，是一场灾难片</a><ul><li><a href=#11-文件命名地狱论文_最终版_真的最终_打死不改版_被打脸了docx>1.1 文件命名地狱：论文_最终版_真的最终_打死不改版_被打脸了.docx</a><ul><li><a href=#什么是版本控制>什么是版本控制？</a></li><li><a href=#文件命名的三大噩梦>文件命名的三大噩梦</a></li><li><a href=#这不仅仅是论文的问题>这不仅仅是论文的问题</a></li><li><a href=#古老的解决方案rcs>古老的解决方案：RCS</a></li><li><a href=#小结>小结</a></li></ul></li><li><a href=#12-代码覆盖惨案同事把你的杰作一键清零>1.2 代码覆盖惨案：同事把你的杰作一键清零</a><ul><li><a href=#为什么会这样>为什么会这样？</a></li><li><a href=#真实案例nasa-的教训>真实案例：NASA 的教训</a></li><li><a href=#古老的解决方案加锁>古老的解决方案：加锁</a></li><li><a href=#更好的解决方案合并>更好的解决方案：合并</a></li><li><a href=#集中式-vs-分布式>集中式 vs 分布式</a></li><li><a href=#小结-1>小结</a></li></ul></li><li><a href=#13-改崩了回不去凌晨三点的绝望时刻>1.3 改崩了回不去：凌晨三点的绝望时刻</a><ul><li><a href=#没有版本控制的绝望>没有版本控制的绝望</a></li><li><a href=#版本控制的时间机器>版本控制的时间机器</a></li><li><a href=#实际案例拯救生产环境>实际案例：拯救生产环境</a></li><li><a href=#不只是回滚>不只是回滚</a></li><li><a href=#提交信息的重要性>提交信息的重要性</a></li><li><a href=#小结-2>小结</a></li></ul></li><li><a href=#14-电脑崩溃一切归零没有备份的人生>1.4 电脑崩溃，一切归零：没有备份的人生</a><ul><li><a href=#备份的困境>备份的困境</a></li><li><a href=#版本控制--自动备份>版本控制 = 自动备份</a></li><li><a href=#分布式备份的优势>分布式备份的优势</a></li><li><a href=#实际案例linus-的硬盘故事>实际案例：Linus 的硬盘故事</a></li><li><a href=#备份策略3-2-1-原则>备份策略：3-2-1 原则</a></li><li><a href=#不只是代码>不只是代码</a></li><li><a href=#小结-3>小结</a></li></ul></li><li><a href=#15-团队协作变猜谜谁动了我的代码>1.5 团队协作变猜谜：谁动了我的代码？</a><ul><li><a href=#没有版本控制的协作>没有版本控制的协作</a></li><li><a href=#版本控制的审计追踪>版本控制的"审计追踪&rdquo;</a></li><li><a href=#查看修改详情>查看修改详情</a></li><li><a href=#代码审查pull-request>代码审查：Pull Request</a></li><li><a href=#责任追踪git-blame>责任追踪：git blame</a></li><li><a href=#并行开发分支>并行开发：分支</a></li><li><a href=#小结-4>小结</a></li></ul></li><li><a href=#16-版本控制发展史从本地到集中式到分布式>1.6 版本控制发展史：从本地到集中式到分布式</a><ul><li><a href=#第一代本地版本控制1980年代>第一代：本地版本控制（1980年代）</a></li><li><a href=#第二代集中式版本控制1990年代>第二代：集中式版本控制（1990年代）</a></li><li><a href=#第三代分布式版本控制2000年代>第三代：分布式版本控制（2000年代）</a></li><li><a href=#时间线总结>时间线总结</a></li><li><a href=#为什么-git-赢了>为什么 Git 赢了？</a></li><li><a href=#小结-5>小结</a></li></ul></li><li><a href=#17-git-的诞生故事linus-的两周奇迹>1.7 Git 的诞生故事：Linus 的两周奇迹</a><ul><li><a href=#linux-内核的困境>Linux 内核的困境</a></li><li><a href=#bitkeeper-的短暂蜜月>BitKeeper 的短暂蜜月</a></li><li><a href=#导火索andrew-tridgell>导火索：Andrew Tridgell</a></li><li><a href=#linus-的决定>Linus 的决定</a></li><li><a href=#两周奇迹>两周奇迹</a></li><li><a href=#linus-的设计哲学>Linus 的设计哲学</a></li><li><a href=#git-的名字>Git 的名字</a></li><li><a href=#git-的快速发展>Git 的快速发展</a></li><li><a href=#一个有趣的对比>一个有趣的对比</a></li><li><a href=#为什么这个故事重要>为什么这个故事重要？</a></li><li><a href=#小结-6>小结</a></li></ul></li><li><a href=#18-git-来了噩梦结束分布式版本控制的魔法>1.8 Git 来了，噩梦结束：分布式版本控制的魔法</a><ul><li><a href=#噩梦一文件命名地狱>噩梦一：文件命名地狱</a></li><li><a href=#噩梦二代码覆盖惨案>噩梦二：代码覆盖惨案</a></li><li><a href=#噩梦三改崩了回不去>噩梦三：改崩了回不去</a></li><li><a href=#噩梦四电脑崩溃一切归零>噩梦四：电脑崩溃，一切归零</a></li><li><a href=#噩梦五团队协作变猜谜>噩梦五：团队协作变猜谜</a></li><li><a href=#git-的核心魔法快照-vs-差异>Git 的核心魔法：快照 vs 差异</a></li><li><a href=#git-的三大区域>Git 的三大区域</a></li><li><a href=#常用-git-命令速查>常用 Git 命令速查</a></li><li><a href=#git-的工作流示例>Git 的工作流示例</a></li><li><a href=#小结-7>小结</a></li></ul></li><li><a href=#19-本章小结为什么你迫切需要-git以及为什么你读到这里还没装-git>1.9 本章小结：为什么你迫切需要 Git（以及为什么你读到这里还没装 Git）</a><ul><li><a href=#本章回顾>本章回顾</a></li><li><a href=#为什么你迫切需要-git>为什么你迫切需要 Git</a></li><li><a href=#git-能做什么>Git 能做什么</a></li><li><a href=#git-不能做什么>Git 不能做什么</a></li><li><a href=#为什么你读到这里还没装-git>为什么你读到这里还没装 Git</a></li><li><a href=#下一步安装-git>下一步：安装 Git</a></li><li><a href=#快速检查>快速检查</a></li><li><a href=#安装-git>安装 Git</a></li><li><a href=#本章结束>本章结束</a></li></ul></li></ul></li></ul></nav></div></aside><main class="col-12 col-md-9 col-xl-8 ps-md-5" role=main><nav aria-label=breadcrumb class=td-breadcrumbs><ol class=breadcrumb><li class=breadcrumb-item><a href=/prgms/Git/>Git</a></li><li class="breadcrumb-item active" aria-current=page>第1章：没有 Git 的世界，是一场灾难片</li></ol></nav><div class=td-content><h1>第1章：没有 Git 的世界，是一场灾难片</h1><header class=article-meta><p class=reading-time><i class="fa-solid fa-clock" style=color:#e90 aria-hidden=true></i>&nbsp; <span style=font-size:3rem;color:#006400 id=advice-reading-time>33 </span>分钟阅读 &nbsp;</p></header><h1 id=第1章没有-git-的世界是一场灾难片>第1章：没有 Git 的世界，是一场灾难片</h1><blockquote><p><em>&ldquo;在 Git 出现之前，程序员们都是在黑暗中摸索的勇士——只不过他们摸索的是无数个&rsquo;最终版&rsquo;文件夹。&rdquo;</em></p></blockquote><hr><h2 id=11-文件命名地狱论文_最终版_真的最终_打死不改版_被打脸了docx>1.1 文件命名地狱：论文_最终版_真的最终_打死不改版_被打脸了.docx</h2><p>如果你曾经用 Word 写过论文，或者和团队一起编辑过文档，你一定见过这样的文件名：</p><pre tabindex=0><code>论文.docx
+论文_最终版.docx
+论文_最终版_真的最终.docx
+论文_最终版_真的最终_打死不改版.docx
+论文_最终版_真的最终_打死不改版_被打脸了.docx
+论文_最终版_真的最终_打死不改版_被打脸了_这次是真的.docx
+...
+</code></pre><p>这不仅仅是一个笑话，这是<strong>版本控制缺失</strong>的真实写照。</p><h3 id=什么是版本控制>什么是版本控制？</h3><p><strong>版本控制</strong>（Version Control）是一种记录文件变化历史的系统，让你可以：</p><ul><li>查看文件过去的任何状态</li><li>知道谁在什么时候改了什么</li><li>轻松回退到之前的版本</li><li>多人协作不打架</li></ul><p>没有版本控制，我们就只能靠<strong>文件命名艺术</strong>来区分版本。但问题是——</p><h3 id=文件命名的三大噩梦>文件命名的三大噩梦</h3><p><strong>噩梦一：记忆负担</strong></p><p>你能记住 <code>论文_3月15日_下午_老板看过_改了一半_还没保存_副本.docx</code> 和 <code>论文_3月15日_下午_老板看过_改了一半_还没保存_副本_副本.docx</code> 的区别吗？不能。一周后，你连哪个是"真的最终版"都分不清。</p><p><strong>噩梦二：沟通灾难</strong></p><p>&ldquo;你用哪个版本？&rdquo;
+&ldquo;我用的&rsquo;最终版&rsquo;。&rdquo;
+&ldquo;哪个&rsquo;最终版&rsquo;？&rdquo;
+&ldquo;就是&mldr;那个&rsquo;真的最终版&rsquo;。&rdquo;
+&ldquo;我有三个&rsquo;真的最终版&rsquo;！&rdquo;</p><p><strong>噩梦三：存储爆炸</strong></p><p>每个"最终版"都是一个完整的文件副本。一篇 10MB 的论文，改了 20 次，就占用了 200MB 空间。而实际上，<strong>真正改变的内容可能只有几百字节</strong>。</p><h3 id=这不仅仅是论文的问题>这不仅仅是论文的问题</h3><p>程序员的世界更惨：</p><pre tabindex=0><code>main.c
+main_backup.c
+main_backup_2024.c
+main_backup_2024_working.c
+main_backup_2024_working_DONT_DELETE.c
+main_backup_2024_working_DONT_DELETE_SERIOUSLY.c
+main_backup_2024_working_DONT_DELETE_SERIOUSLY_final.c
+...
+</code></pre><p>然后某天你删除了一个"旧文件"，结果发现那是生产环境正在用的版本。</p><h3 id=古老的解决方案rcs>古老的解决方案：RCS</h3><p>早在 1982 年，就有人受不了这种混乱了。Walter F. Tichy 开发了 <strong>RCS</strong>（Revision Control System，修订控制系统），它用了一种聪明的办法：</p><pre tabindex=0><code>原始文件: main.c
+RCS 存储: main.c,v  (包含所有历史版本)
+</code></pre><p>RCS 把文件的<strong>变化</strong>（diff）存储起来，而不是存完整的副本。这样 20 个版本可能只占 11MB 而不是 200MB。</p><p>但 RCS 有个致命缺陷：<strong>只能本地使用</strong>，而且<strong>一次只能一个人编辑</strong>。</p><p>想象一下：你和同事都在改代码，RCS 就像一个只能坐一个人的小马桶——谁先坐上去，谁就能用，其他人只能在外面干着急。</p><h3 id=小结>小结</h3><p>文件命名地狱的本质是：<strong>人类不擅长记忆，更不擅长预测未来</strong>。我们以为"最终版"就是终点，但现实总是无情地打脸。</p><p>你需要一个系统，它能：</p><ul><li>自动记录每次修改</li><li>让你随时回到过去</li><li>清楚地告诉你"这是什么版本"</li><li>不需要你起那些可笑的文件名</li></ul><p>这个系统，就是版本控制系统。而 Git，是目前世界上最流行的那个。</p><hr><h2 id=12-代码覆盖惨案同事把你的杰作一键清零>1.2 代码覆盖惨案：同事把你的杰作一键清零</h2><p>想象一下这个场景：</p><p>你花了整整一周，重构了公司的核心模块。代码优雅得像一首诗，注释详细得像一本小说，测试覆盖率 100%。你满意地保存文件，关上电脑，准备周末好好休息一下。</p><p>周一早上，你兴冲冲地打开项目，准备给同事展示你的杰作。</p><p>然后你看到了这个：</p><pre tabindex=0><code>文件已修改：2024-03-18 09:15
+修改人：隔壁老王
+</code></pre><p>你颤抖着打开文件，发现——</p><p><strong>你的代码没了。</strong></p><p>全部。没了。</p><p>取而代之的是老王"临时修复"的 200 行 <code>if-else</code> 嵌套，变量名是 <code>a</code>、<code>b</code>、<code>c</code>，注释写着"// 这里好像有问题"，以及一个硬编码的密码 <code>password123</code>。</p><h3 id=为什么会这样>为什么会这样？</h3><p>在没有版本控制的时代，团队协作是这样的：</p><pre tabindex=0><code>服务器上的共享文件夹
+├── project/
+│   ├── main.c          ← 大家直接编辑这个文件
+│   ├── utils.c         ← 谁最后保存谁赢
+│   └── config.h        ← 经常莫名其妙被覆盖
+</code></pre><p><strong>没有锁机制</strong>：任何人都可以随时编辑任何文件。</p><p><strong>没有合并机制</strong>：A 和 B 同时改了一个文件？后保存的人覆盖先保存的人。就是这么简单粗暴。</p><p><strong>没有历史记录</strong>：被覆盖了？恭喜，你的代码进入了数字天堂，永别了。</p><h3 id=真实案例nasa-的教训>真实案例：NASA 的教训</h3><p>1999 年，NASA 的火星气候轨道探测器（Mars Climate Orbiter）坠毁，损失 3.27 亿美元。</p><p>原因之一？两个团队使用不同的单位（英制 vs 公制），而<strong>没有有效的版本控制和代码审查机制</strong>来发现这个问题。</p><p>虽然这不是典型的"代码覆盖"问题，但它说明了同一个道理：<strong>当多人协作缺乏有效管理时，灾难就会发生</strong>。</p><h3 id=古老的解决方案加锁>古老的解决方案：加锁</h3><p>早期的版本控制系统（如 RCS、SCCS）引入了<strong>加锁机制</strong>：</p><pre tabindex=0><code>你想编辑 main.c？
+↓
+系统问：&#34;有人正在编辑吗？&#34;
+↓
+如果有人：&#34;抱歉，请等待&#34;
+↓
+如果没人：&#34;好的，锁给你，其他人只能看不能改&#34;
+</code></pre><p>这就像图书馆的"预约制"——书只有一本，谁预约到谁看。</p><p><strong>优点</strong>：不会有人覆盖你的代码。</p><p><strong>缺点</strong>：</p><ul><li>效率低下：你想改一行注释，可能要等同事"释放"文件</li><li>容易死锁：同事休假了，文件还锁着，怎么办？</li><li>不灵活：你想改文件 A 和 B，但 A 被锁了，B 被另一个人锁了，你们俩都在等对方</li></ul><h3 id=更好的解决方案合并>更好的解决方案：合并</h3><p>后来的系统（如 CVS、SVN）引入了<strong>合并</strong>（Merge）的概念：</p><pre tabindex=0><code>A 改了 main.c 的第 10-20 行
+B 改了 main.c 的第 50-60 行
+↓
+系统：&#34;你们改的地方不冲突，我帮你们合并&#34;
+↓
+main.c 同时包含 A 和 B 的修改
+</code></pre><p>但如果 A 和 B 改了同一行呢？</p><pre tabindex=0><code>A: 第 10 行改成 &#34;int x = 10;&#34;
+B: 第 10 行改成 &#34;int x = 20;&#34;
+↓
+系统：&#34;？？？你们打一架吧&#34;
+↓
+产生冲突（Conflict），需要人工解决
+</code></pre><p>这已经比"直接覆盖"好太多了，但 SVN 等<strong>集中式版本控制系统</strong>还有一个问题：<strong>你必须联网才能工作</strong>。</p><h3 id=集中式-vs-分布式>集中式 vs 分布式</h3><p><strong>集中式</strong>（如 SVN、CVS）：</p><ul><li>有一个中央服务器，所有代码和历史都在那里</li><li>你每次修改都要和服务器通信</li><li>服务器挂了？大家放假</li><li>没网了？你只能看，不能提交</li></ul><pre class=mermaid>graph TD
+    A[开发者A] --&gt;|提交/更新| S[中央服务器]
+    B[开发者B] --&gt;|提交/更新| S
+    C[开发者C] --&gt;|提交/更新| S</pre><p><strong>分布式</strong>（如 Git）：</p><ul><li>每个开发者电脑上都有完整的代码仓库（包括全部历史）</li><li>你可以离线提交、查看历史、创建分支</li><li>服务器只是用来同步的"中转站"</li></ul><pre class=mermaid>graph TD
+    A[开发者A&lt;br/&gt;完整仓库] &lt;--&gt;|推送/拉取| S[远程服务器&lt;br/&gt;完整仓库]
+    B[开发者B&lt;br/&gt;完整仓库] &lt;--&gt;|推送/拉取| S
+    C[开发者C&lt;br/&gt;完整仓库] &lt;--&gt;|推送/拉取| S
+    A -.-&gt;|直接交换| B</pre><h3 id=小结-1>小结</h3><p>代码覆盖惨案的核心问题是：<strong>多人协作时，如何安全地管理代码变更</strong>。</p><p>从"谁最后保存谁赢"到"加锁机制"，再到"合并机制"，人类花了二十多年才找到相对完善的解决方案。</p><p>但故事还没完——</p><p>即使有了版本控制，如果你<strong>改崩了代码，想回到昨天那个能运行的版本</strong>，又该怎么办？</p><hr><h2 id=13-改崩了回不去凌晨三点的绝望时刻>1.3 改崩了回不去：凌晨三点的绝望时刻</h2><p>这是每个程序员都经历过的噩梦：</p><p>凌晨 3:17，你盯着屏幕，眼睛布满血丝。代码昨天还能跑，现在你改了"一点点"，它就彻底罢工了。</p><p>错误信息像天书一样：</p><pre tabindex=0><code>Segmentation fault (core dumped)
+</code></pre><p>或者：</p><pre tabindex=0><code>undefined is not a function
+</code></pre><p>或者最经典的：</p><pre tabindex=0><code>It works on my machine.
+</code></pre><p><strong>问题是：你到底改了什么？</strong></p><h3 id=没有版本控制的绝望>没有版本控制的绝望</h3><p>你疯狂按 <code>Ctrl+Z</code>，但编辑器告诉你：&ldquo;已经到撤销历史的尽头了。&rdquo;</p><p>你开始翻垃圾桶，看有没有昨天代码的备份。</p><p>你打开邮件，看有没有发给过同事旧版本。</p><p>你甚至开始考虑：要不要给前女友发消息，问她电脑里还有没有你三个月前发给她的截图？</p><p><strong>这就是没有版本控制的世界。</strong></p><h3 id=版本控制的时间机器>版本控制的时间机器</h3><p>版本控制系统最核心的功能，就是<strong>时间机器</strong>。</p><p>它记录了你代码的每一个状态，你可以随时：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看昨天这个时候代码长什么样</span>
+</span></span><span style=display:flex><span>git log --oneline --since<span style=color:#54b1c7>=</span><span style=color:#63c381>&#34;yesterday&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 回到昨天那个能运行的版本</span>
+</span></span><span style=display:flex><span>git checkout HEAD~1
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看某行代码是谁写的、什么时候写的</span>
+</span></span><span style=display:flex><span>git blame main.c
+</span></span></code></pre></td></tr></table></div></div><p>想象一下，如果 Word 有这样的功能：</p><pre tabindex=0><code>&#34;论文_最终版_真的最终_打死不改版.docx&#34;
+
+你想查看 3 月 15 日下午 3 点的版本？
+点击这里 → 时光倒流 → 选择时间点 → 完成
+
+你想知道谁把&#34;人工智能&#34;改成了&#34;人工智障&#34;？
+点击这里 → 查看历史 → 显示：张三，3月16日 14:23
+</code></pre><p>这就是版本控制给程序员的超能力。</p><h3 id=实际案例拯救生产环境>实际案例：拯救生产环境</h3><p>假设你在维护一个电商网站，黑五促销期间，你推送了一个"小优化"。</p><p>然后网站挂了。订单无法提交。老板在群里疯狂 @你。</p><p><strong>没有 Git 的情况</strong>：</p><ul><li>你手忙脚乱地改代码，试图找出哪里出了问题</li><li>每改一次都要重新部署，祈祷这次能好</li><li>20 分钟后，网站终于恢复，但你已经一身冷汗</li></ul><p><strong>有 Git 的情况</strong>：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 立即回滚到上一个稳定版本</span>
+</span></span><span style=display:flex><span>git revert HEAD
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 或者切换到上一个提交</span>
+</span></span><span style=display:flex><span>git checkout HEAD~1
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 部署，网站恢复，用时 30 秒</span>
+</span></span></code></pre></td></tr></table></div></div><p>然后你可以泡杯咖啡，慢慢研究那个"小优化"到底哪里出了问题。</p><h3 id=不只是回滚>不只是回滚</h3><p>版本控制不只是"后悔药"，它还是"侦探工具"。</p><p><strong>场景：某个功能昨天还能用，今天不行了</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 找到从昨天到现在有哪些提交</span>
+</span></span><span style=display:flex><span>git log --since<span style=color:#54b1c7>=</span><span style=color:#63c381>&#34;yesterday&#34;</span> --oneline
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 逐个检查，找出罪魁祸首</span>
+</span></span><span style=display:flex><span>git bisect start
+</span></span><span style=display:flex><span>git bisect bad HEAD
+</span></span><span style=display:flex><span>git bisect good HEAD~10
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Git 会自动帮你二分查找，快速定位问题提交</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>场景：这段代码为什么这么写？</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看某行代码的历史</span>
+</span></span><span style=display:flex><span>git log -p -S <span style=color:#63c381>&#34;某个函数名&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 你会看到：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># - 谁写的</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># - 什么时候写的</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># - 当时为什么要这么写（提交信息里）</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>场景：我想看看这个文件一个月前的样子</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看特定时间点的文件</span>
+</span></span><span style=display:flex><span>git show HEAD@<span style=color:#54b1c7>{</span>1.month.ago<span style=color:#54b1c7>}</span>:main.c
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 不需要备份，不需要翻邮件，一行命令搞定</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=提交信息的重要性>提交信息的重要性</h3><p>版本控制再强大，如果你写的是这样的提交信息：</p><pre tabindex=0><code>commit 1a2b3c4d
+Author: 张三 &lt;zhangsan@example.com&gt;
+Date:   Mon Mar 15 23:45:00 2024
+
+    改了点东西
+
+commit 5e6f7g8h
+Author: 张三 &lt;zhangsan@example.com&gt;
+Date:   Mon Mar 15 22:30:00 2024
+
+    修复 bug
+
+commit 9i0j1k2l
+Author: 张三 &lt;zhangsan@example.com&gt;
+Date:   Mon Mar 15 21:15:00 2024
+
+    update
+</code></pre><p>那当你想"回到昨天那个能运行的版本"时，你根本不知道哪个提交是"能运行的"。</p><p>好的提交信息应该像这样：</p><pre tabindex=0><code>commit 1a2b3c4d
+Author: 张三 &lt;zhangsan@example.com&gt;
+Date:   Mon Mar 15 23:45:00 2024
+
+    修复购物车结算时的空指针异常
+    
+    当用户未登录时访问购物车，session 中的 userId 为 null，
+    导致结算接口抛出 NullPointerException。
+    
+    修复：在结算前检查用户登录状态，未登录则跳转到登录页。
+    
+    Fixes: #1234
+</code></pre><p>这样当你用 <code>git log</code> 查看时，一眼就能找到你要的版本。</p><h3 id=小结-2>小结</h3><p>&ldquo;改崩了回不去"的恐惧，驱使着程序员们：</p><ul><li>频繁地手动备份（<code>main_backup_1.c</code>、<code>main_backup_2.c</code>&mldr;）</li><li>写代码时战战兢兢，生怕改坏</li><li>加班到深夜，因为不敢在白天"冒险"修改核心代码</li></ul><p>版本控制解放了你。它让你可以：</p><ul><li><strong>大胆尝试</strong>：改坏了？回滚就是</li><li><strong>快速实验</strong>：开个分支，随便折腾，不行就删</li><li><strong>安心睡觉</strong>：即使凌晨 3 点改崩了，也能 30 秒恢复</li></ul><p>但等等——</p><p>如果你的<strong>电脑坏了</strong>呢？硬盘挂了？笔记本被偷了？</p><p>你的代码，还在吗？</p><hr><h2 id=14-电脑崩溃一切归零没有备份的人生>1.4 电脑崩溃，一切归零：没有备份的人生</h2><p>这是比"改崩了回不去"更恐怖的故事。</p><p>你花了三个月写的项目，存在笔记本里。你没备份，因为"笔记本很稳定&rdquo;、&ldquo;我运气不会那么差&rdquo;、&ldquo;明天再备份吧&rdquo;。</p><p>然后某天早上，你按下电源键——</p><p><strong>黑屏。</strong></p><p>硬盘发出"咔哒咔哒"的声音，像垂死之人的最后喘息。</p><p>你把它送到维修店，技术员摇摇头：&ldquo;磁头坏了，数据恢复要 8000 块，而且不一定能恢复。&rdquo;</p><p>三个月的工作。无数行代码。那些你熬过的夜、喝过的咖啡、掉过的头发——</p><p><strong>全部归零。</strong></p><h3 id=备份的困境>备份的困境</h3><p>&ldquo;要备份啊！&ldquo;所有人都这么说。</p><p>但备份是一件<strong>反人性</strong>的事情：</p><p><strong>麻烦</strong>：手动复制文件到 U 盘？每次改完代码都要记得做？谁记得住！</p><p><strong>容易忘</strong>：今天备份了，明天忘了，后天忘了，大后天硬盘挂了——你备份的是三天前的版本。</p><p><strong>容易乱</strong>：U 盘里有 <code>project_backup_1.zip</code>、<code>project_backup_2.zip</code>、<code>project_backup_final.zip</code>，但你不知道哪个是最新的。</p><p><strong>不安全</strong>：U 盘丢了？被洗衣机洗了？被狗啃了？（别笑，真有人经历过）</p><h3 id=版本控制--自动备份>版本控制 = 自动备份</h3><p>Git 解决了这个问题。</p><p>当你使用 Git 时，每次<strong>提交</strong>（Commit）都是一次备份：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 改完代码，保存到 Git</span>
+</span></span><span style=display:flex><span>git add .
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;添加了用户登录功能&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 你的修改已经被安全地记录在本地仓库中</span>
+</span></span></code></pre></td></tr></table></div></div><p>但这还不够安全——你的电脑还是可能挂。</p><p>所以 Git 有<strong>远程仓库</strong>：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 推送到远程服务器（如 GitHub、GitLab、公司服务器）</span>
+</span></span><span style=display:flex><span>git push origin main
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 现在你的代码同时存在于：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 你的本地电脑</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 远程服务器</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 即使你的电脑炸了，代码还在服务器上</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=分布式备份的优势>分布式备份的优势</h3><p>Git 的分布式特性意味着：</p><pre class=mermaid>graph TD
+    subgraph &#34;你的代码存在于&#34;
+        A[你的电脑&lt;br/&gt;本地仓库]
+        B[公司服务器&lt;br/&gt;origin]
+        C[同事小明的电脑&lt;br/&gt;他克隆了你的仓库]
+        D[GitHub&lt;br/&gt;公共/私有仓库]
+        E[你的家用 NAS&lt;br/&gt;另一个远程]
+    end</pre><p><strong>即使三个地方同时挂掉，只要还有一个地方有你的代码，你就不会归零。</strong></p><p>这就像是把鸡蛋放在多个篮子里——而且每个篮子都是自动同步的。</p><h3 id=实际案例linus-的硬盘故事>实际案例：Linus 的硬盘故事</h3><p>Linux 内核的创始人 Linus Torvalds 曾经分享过一个故事：</p><blockquote><p>&ldquo;有一次我的硬盘挂了。但我一点都不慌，因为我的代码在多台服务器上都有副本。我换了块新硬盘，从任意一台服务器克隆下来，30 分钟后继续工作，就像什么都没发生一样。&rdquo;</p></blockquote><p>这就是分布式版本控制的威力。<strong>你的代码是分布式的，因此是抗灾的。</strong></p><h3 id=备份策略3-2-1-原则>备份策略：3-2-1 原则</h3><p>虽然 Git 很强大，但对于重要项目，还是应该遵循<strong>3-2-1 备份原则</strong>：</p><ul><li><strong>3</strong> 份数据：原始数据 + 2 份备份</li><li><strong>2</strong> 种介质：比如硬盘 + 云存储</li><li><strong>1</strong> 份异地：至少有一份备份在另一个物理位置</li></ul><p>Git 帮你实现了大部分：</p><pre tabindex=0><code>本地仓库（你的电脑）
+    ↓
+远程仓库（公司服务器/GitHub） ← 异地备份
+    ↓
+同事的电脑（他们克隆的仓库） ← 另一份异地备份
+</code></pre><h3 id=不只是代码>不只是代码</h3><p>版本控制不仅保护你的代码，还保护你的<strong>工作历史</strong>。</p><p>想象一下，如果你只是用 U 盘备份：</p><pre tabindex=0><code>project_backup_2024_03_01.zip
+project_backup_2024_03_15.zip
+project_backup_2024_03_20.zip
+</code></pre><p>你想知道 3 月 10 日某个功能是怎么实现的？抱歉，没有那天的备份。</p><p>但用 Git：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看 3 月 10 日的代码</span>
+</span></span><span style=display:flex><span>git log --since<span style=color:#54b1c7>=</span><span style=color:#63c381>&#34;2024-03-10&#34;</span> --until<span style=color:#54b1c7>=</span><span style=color:#63c381>&#34;2024-03-11&#34;</span>
+</span></span><span style=display:flex><span>git show &lt;commit-id&gt;:path/to/file
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 你可以看到那一天的任何版本</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>Git 备份的是历史，而不仅仅是当前状态。</strong></p><h3 id=小结-3>小结</h3><p>&ldquo;电脑崩溃，一切归零"的恐惧，驱使人们：</p><ul><li>买昂贵的 RAID 阵列（但 RAID 不是备份！）</li><li>手动复制文件到各种 U 盘和移动硬盘</li><li>发邮件给自己附件（&ldquo;project_final_真的_final.zip&rdquo;）</li><li>把代码上传到网盘（但网盘不会记录你的修改历史）</li></ul><p>Git 让备份变得<strong>自动化、分布式、有历史记录</strong>。</p><p>但等等——</p><p>如果你和同事都在改代码，怎么知道<strong>谁改了什么</strong>？怎么知道<strong>为什么改</strong>？</p><p>这就引出了下一个问题：团队协作的混乱。</p><hr><h2 id=15-团队协作变猜谜谁动了我的代码>1.5 团队协作变猜谜：谁动了我的代码？</h2><p>想象这样一个周一早晨：</p><p>你打开项目，发现某个关键函数的行为变了。它昨天还能正常处理边界情况，今天却崩溃了。</p><p>你问同事小明：&ldquo;你改了这个函数吗？&rdquo;
+小明：&ldquo;没有啊，我一直在改前端。&rdquo;</p><p>你问同事小红：&ldquo;是你吗？&rdquo;
+小红：&ldquo;我上周改过一次，但已经测过了，没问题。&rdquo;</p><p>你问同事老王：&ldquo;老王，是不是你？&rdquo;
+老王：&ldquo;我&mldr;我不记得了。可能是上周五加班的时候改的？&rdquo;</p><p><strong>你陷入了侦探模式。</strong></p><p>你开始翻文件的时间戳、对比备份、甚至打开十六进制编辑器试图找出蛛丝马迹。</p><p>两小时后，你终于发现：是小明"顺便"修了一个"小 bug&rdquo;，但他忘了告诉你。</p><h3 id=没有版本控制的协作>没有版本控制的协作</h3><p>在没有版本控制的世界里，团队协作是这样的：</p><p><strong>场景一：共享文件夹</strong></p><pre tabindex=0><code>\\server\projects\our_project\
+    main.c ← 大家直接编辑这个
+    utils.c ← 谁最后保存谁赢
+</code></pre><ul><li>不知道谁改了什么</li><li>不知道什么时候改的</li><li>不知道为什么改</li><li>改坏了？大家一起猜</li></ul><p><strong>场景二：邮件传代码</strong></p><pre tabindex=0><code>From: 小明
+To: 项目组
+Subject: 最新代码
+
+附件：project_v3.zip
+
+我改了点东西，大家更新一下。
+</code></pre><ul><li>三天后，你邮箱里有 <code>project_v3.zip</code>、<code>project_v4.zip</code>、<code>project_v4_fixed.zip</code>、<code>project_v4_fixed_真的.zip</code></li><li>你不知道哪个是最新的</li><li>合并代码？手动复制粘贴，祈祷不要漏掉什么</li></ul><p><strong>场景三：即时通讯传文件</strong></p><pre tabindex=0><code>[工作群]
+小明：@所有人 我更新了代码，大家下载一下
+[文件：main.c]
+
+你：好的
+
+（五分钟后）
+小明：等等，有个 bug，重新传一下
+[文件：main.c]
+
+小红：我用的是哪个版本？
+小明：最新的那个
+小红：哪个是最新的？
+小明：就是...我发的那个
+小红：你发了三个！
+</code></pre><h3 id=版本控制的审计追踪>版本控制的"审计追踪&rdquo;</h3><p>Git 给每次修改都加上了"身份证&rdquo;：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>$ git log --oneline
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>a1b2c3d 修复了登录时的空指针异常 <span style=color:#54b1c7>(</span>小明, 2小时前<span style=color:#54b1c7>)</span>
+</span></span><span style=display:flex><span>e4f5g6h 优化了数据库查询性能 <span style=color:#54b1c7>(</span>小红, 昨天<span style=color:#54b1c7>)</span>
+</span></span><span style=display:flex><span>i7j8k9l 添加了用户注册功能 <span style=color:#54b1c7>(</span>老王, 3天前<span style=color:#54b1c7>)</span>
+</span></span><span style=display:flex><span>m0n1o2p 初始化项目 <span style=color:#54b1c7>(</span>你, 1周前<span style=color:#54b1c7>)</span>
+</span></span></code></pre></td></tr></table></div></div><p>每一条记录都包含：</p><ul><li><strong>谁</strong>改的（作者）</li><li><strong>什么时候</strong>改的（时间戳）</li><li><strong>改了什么</strong>（修改内容）</li><li><strong>为什么</strong>改（提交信息）</li></ul><h3 id=查看修改详情>查看修改详情</h3><p>想知道某个提交具体改了什么？</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看某次提交的详细修改</span>
+</span></span><span style=display:flex><span>git show a1b2c3d
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 输出：</span>
+</span></span><span style=display:flex><span>commit a1b2c3d
+</span></span><span style=display:flex><span>Author: 小明 &lt;xiaoming@example.com&gt;
+</span></span><span style=display:flex><span>Date:   Mon Mar <span style=color:#d19a66>15</span> 14:30:00 <span style=color:#d19a66>2024</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    修复了登录时的空指针异常
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    当用户未登录时访问购物车，session 中的 userId 为 null，
+</span></span><span style=display:flex><span>    导致结算接口抛出 NullPointerException。
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>diff --git a/src/login.c b/src/login.c
+</span></span><span style=display:flex><span>index 1234..5678 <span style=color:#d19a66>100644</span>
+</span></span><span style=display:flex><span>--- a/src/login.c
+</span></span><span style=display:flex><span>+++ b/src/login.c
+</span></span><span style=display:flex><span>@@ -10,7 +10,11 @@ void login<span style=color:#54b1c7>()</span> <span style=color:#54b1c7>{</span>
+</span></span><span style=display:flex><span>-    processUser<span style=color:#54b1c7>(</span>session.userId<span style=color:#54b1c7>)</span><span style=color:#abb2bf>;</span>
+</span></span><span style=display:flex><span>+    <span style=color:#76a9f9>if</span> <span style=color:#54b1c7>(</span>session.userId <span style=color:#54b1c7>==</span> NULL<span style=color:#54b1c7>)</span> <span style=color:#54b1c7>{</span>
+</span></span><span style=display:flex><span>+        redirectToLoginPage<span style=color:#54b1c7>()</span><span style=color:#abb2bf>;</span>
+</span></span><span style=display:flex><span>+        <span style=color:#76a9f9>return</span><span style=color:#abb2bf>;</span>
+</span></span><span style=display:flex><span>+    <span style=color:#54b1c7>}</span>
+</span></span><span style=display:flex><span>+    processUser<span style=color:#54b1c7>(</span>session.userId<span style=color:#54b1c7>)</span><span style=color:#abb2bf>;</span>
+</span></span><span style=display:flex><span> <span style=color:#54b1c7>}</span>
+</span></span></code></pre></td></tr></table></div></div><p>一目了然：</p><ul><li>谁改的：小明</li><li>什么时候：3月15日 14:30</li><li>改了什么：加了空值检查</li><li>为什么改：修复空指针异常</li></ul><h3 id=代码审查pull-request>代码审查：Pull Request</h3><p>现代团队协作的核心是<strong>代码审查</strong>（Code Review）。</p><p>在 GitHub/GitLab 等平台上，这通过 <strong>Pull Request</strong>（或 Merge Request）实现：</p><pre class=mermaid>graph LR
+    A[小明创建分支&lt;br/&gt;feature/login-fix] --&gt;|推送| B[远程仓库]
+    B --&gt;|发起 Pull Request| C[代码审查]
+    C --&gt;|小红审查&lt;br/&gt;提出意见| D[小明修改]
+    D --&gt;|审查通过| E[合并到主分支]</pre><p><strong>好处</strong>：</p><ul><li>任何修改都必须经过至少一个人审查</li><li>有问题可以在合并前发现</li><li>团队成员都了解代码的变化</li><li>知识在团队中传播</li></ul><h3 id=责任追踪git-blame>责任追踪：git blame</h3><p>如果代码出了问题，想知道是谁写的这行代码？</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>$ git blame src/login.c
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>^a1b2c3d <span style=color:#54b1c7>(</span>小明  2024-03-15 14:30:00  1<span style=color:#54b1c7>)</span> <span style=color:#8a93a5;font-style:italic>#include &lt;stdio.h&gt;</span>
+</span></span><span style=display:flex><span>^a1b2c3d <span style=color:#54b1c7>(</span>小明  2024-03-15 14:30:00  2<span style=color:#54b1c7>)</span> 
+</span></span><span style=display:flex><span>^a1b2c3d <span style=color:#54b1c7>(</span>小明  2024-03-15 14:30:00  3<span style=color:#54b1c7>)</span> void login<span style=color:#54b1c7>()</span> <span style=color:#54b1c7>{</span>
+</span></span><span style=display:flex><span>e4f5g6h7 <span style=color:#54b1c7>(</span>小红  2024-03-14 10:15:00  4<span style=color:#54b1c7>)</span>     <span style=color:#76a9f9>if</span> <span style=color:#54b1c7>(</span>session.userId <span style=color:#54b1c7>==</span> NULL<span style=color:#54b1c7>)</span> <span style=color:#54b1c7>{</span>
+</span></span><span style=display:flex><span>e4f5g6h7 <span style=color:#54b1c7>(</span>小红  2024-03-14 10:15:00  5<span style=color:#54b1c7>)</span>         redirectToLoginPage<span style=color:#54b1c7>()</span><span style=color:#abb2bf>;</span>
+</span></span><span style=display:flex><span>e4f5g6h7 <span style=color:#54b1c7>(</span>小红  2024-03-14 10:15:00  6<span style=color:#54b1c7>)</span>         <span style=color:#76a9f9>return</span><span style=color:#abb2bf>;</span>
+</span></span><span style=display:flex><span>e4f5g6h7 <span style=color:#54b1c7>(</span>小红  2024-03-14 10:15:00  7<span style=color:#54b1c7>)</span>     <span style=color:#54b1c7>}</span>
+</span></span><span style=display:flex><span>^a1b2c3d <span style=color:#54b1c7>(</span>小明  2024-03-15 14:30:00  8<span style=color:#54b1c7>)</span>     processUser<span style=color:#54b1c7>(</span>session.userId<span style=color:#54b1c7>)</span><span style=color:#abb2bf>;</span>
+</span></span><span style=display:flex><span>^a1b2c3d <span style=color:#54b1c7>(</span>小明  2024-03-15 14:30:00  9<span style=color:#54b1c7>)</span> <span style=color:#54b1c7>}</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>注意</strong>：<code>git blame</code> 不是真的" blame"（指责），它只是告诉你<strong>每一行代码的最后修改者</strong>。这是为了<strong>理解代码历史</strong>，而不是为了甩锅。</p><h3 id=并行开发分支>并行开发：分支</h3><p>没有版本控制时，多人同时开发不同功能怎么办？</p><pre tabindex=0><code>你想改登录功能
+小明想改支付功能
+小红想改界面
+
+方案一：排队，一个人改完另一个人改（效率极低）
+方案二：各自改，最后手动合并（极易出错）
+</code></pre><p>Git 的<strong>分支</strong>（Branch）解决了这个问题：</p><pre class=mermaid>graph LR
+    A[main&lt;br/&gt;主分支] --&gt; B[feature/login&lt;br/&gt;登录功能]
+    A --&gt; C[feature/payment&lt;br/&gt;支付功能]
+    A --&gt; D[feature/ui&lt;br/&gt;界面优化]
+    B --&gt;|完成| E[合并到 main]
+    C --&gt;|完成| E
+    D --&gt;|完成| E</pre><p>每个人都在自己的分支上工作，互不干扰。完成后合并到主分支。</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 创建并切换到新分支</span>
+</span></span><span style=display:flex><span>git checkout -b feature/login
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 在这个分支上开发登录功能</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># ... 写代码 ...</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 提交修改</span>
+</span></span><span style=display:flex><span>git add .
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;添加了登录功能&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 切换回主分支</span>
+</span></span><span style=display:flex><span>git checkout main
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 合并登录分支</span>
+</span></span><span style=display:flex><span>git merge feature/login
+</span></span></code></pre></td></tr></table></div></div><h3 id=小结-4>小结</h3><p>&ldquo;谁动了我的代码"这个问题，在没有版本控制时只能靠：</p><ul><li>问同事（他们经常不记得）</li><li>看文件时间戳（不准确）</li><li>猜（效率极低）</li></ul><p>Git 让一切变得透明：</p><ul><li>每次修改都有记录</li><li>每行代码都有"作者签名&rdquo;</li><li>代码审查确保质量</li><li>分支让并行开发成为可能</li></ul><p>但 Git 并不是凭空出现的。它是版本控制发展几十年的产物。</p><p>下一节，让我们穿越时空，看看版本控制是如何一步步进化到 Git 的。</p><hr><h2 id=16-版本控制发展史从本地到集中式到分布式>1.6 版本控制发展史：从本地到集中式到分布式</h2><p>Git 不是凭空出现的。它是站在巨人肩膀上的产物。</p><p>要理解 Git 为什么设计成现在这样，我们需要穿越时空，看看版本控制系统的进化史。</p><h3 id=第一代本地版本控制1980年代>第一代：本地版本控制（1980年代）</h3><p><strong>代表：SCCS（1972）、RCS（1982）</strong></p><p>最早的版本控制系统是<strong>本地</strong>的，只能在一台电脑上使用。</p><p><strong>RCS</strong>（Revision Control System）的工作方式：</p><pre tabindex=0><code>工作目录
+├── main.c          ← 你编辑的文件
+└── RCS/
+    └── main.c,v    ← RCS 存储的历史版本
+</code></pre><p><strong>工作原理</strong>：</p><ul><li>你编辑 <code>main.c</code></li><li>提交时，RCS 把修改记录到 <code>main.c,v</code></li><li><code>main.c,v</code> 里存储了文件的完整历史（通过差异压缩）</li></ul><p><strong>优点</strong>：</p><ul><li>比手动备份强多了</li><li>可以查看历史、回退版本</li></ul><p><strong>缺点</strong>：</p><ul><li>只能本地使用</li><li>不支持多人协作</li><li>没有网络功能</li></ul><p>这就像一个人用的日记本——你可以记录自己的历史，但没法和别人共享。</p><h3 id=第二代集中式版本控制1990年代>第二代：集中式版本控制（1990年代）</h3><p><strong>代表：CVS（1990）、SVN（2000）</strong></p><p>随着互联网的发展，人们开始需要<strong>多人协作</strong>。</p><p><strong>CVS</strong>（Concurrent Versions System）是第一个广泛使用的<strong>集中式</strong>版本控制系统：</p><pre class=mermaid>graph TD
+    A[开发者A&lt;br/&gt;工作副本] --&gt;|提交/更新| C[中央服务器&lt;br/&gt;完整仓库]
+    B[开发者B&lt;br/&gt;工作副本] --&gt;|提交/更新| C
+    D[开发者C&lt;br/&gt;工作副本] --&gt;|提交/更新| C</pre><p><strong>工作原理</strong>：</p><ul><li>有一个中央服务器，存储完整的代码仓库</li><li>每个开发者从服务器"检出"（Checkout）代码到本地</li><li>开发者修改代码后，&ldquo;提交&rdquo;（Commit）到服务器</li><li>其他开发者"更新"（Update）获取最新代码</li></ul><p><strong>相比 RCS 的进步</strong>：</p><ul><li>支持多人协作</li><li>可以查看谁改了什么</li><li>有基本的冲突解决机制</li></ul><p><strong>CVS 的问题</strong>：</p><ul><li>原子性提交：如果提交 10 个文件，第 5 个失败了，前 4 个已经提交了，后 5 个没提交——仓库处于不一致状态</li><li>分支和标签效率低</li><li>重命名文件会丢失历史</li></ul><p><strong>SVN</strong>（Subversion）修复了 CVS 的大部分问题：</p><ul><li>原子性提交：要么全部成功，要么全部失败</li><li>高效的分支和标签</li><li>支持文件重命名</li><li>更好的二进制文件支持</li></ul><p>SVN 在 2000 年代非常流行，很多企业至今还在用。</p><p><strong>集中式的根本问题</strong>：</p><pre tabindex=0><code>中央服务器 = 单点故障
+
+服务器挂了？所有人停工
+没网络？只能看代码，不能提交
+服务器硬盘坏了？可能丢失数据
+</code></pre><p>这就像所有人都依赖一个中央图书馆——图书馆关门了，你就借不到书。</p><h3 id=第三代分布式版本控制2000年代>第三代：分布式版本控制（2000年代）</h3><p><strong>代表：BitKeeper（2000）、Git（2005）、Mercurial（2005）</strong></p><p>分布式版本控制的核心思想：<strong>每个开发者都有完整的仓库</strong>。</p><pre class=mermaid>graph TD
+    subgraph &#34;每个开发者都有完整仓库&#34;
+        A[开发者A&lt;br/&gt;完整仓库&lt;br/&gt;&#43; 工作副本]
+        B[开发者B&lt;br/&gt;完整仓库&lt;br/&gt;&#43; 工作副本]
+        C[开发者C&lt;br/&gt;完整仓库&lt;br/&gt;&#43; 工作副本]
+    end
+    
+    S[远程服务器&lt;br/&gt;origin&lt;br/&gt;用于同步]
+    
+    A &lt;--&gt;|推送/拉取| S
+    B &lt;--&gt;|推送/拉取| S
+    C &lt;--&gt;|推送/拉取| S
+    A -.-&gt;|直接交换| B</pre><p><strong>关键区别</strong>：</p><table><thead><tr><th>特性</th><th>集中式（SVN）</th><th>分布式（Git）</th></tr></thead><tbody><tr><td>开发者本地</td><td>只有工作副本</td><td>完整仓库 + 历史</td></tr><tr><td>提交</td><td>必须联网</td><td>可以离线</td></tr><tr><td>查看历史</td><td>必须联网</td><td>本地即可</td></tr><tr><td>分支</td><td>服务器上创建</td><td>本地即可创建</td></tr><tr><td>服务器挂了</td><td>停工</td><td>继续工作，稍后同步</td></tr></tbody></table><p><strong>分布式的好处</strong>：</p><ol><li><p><strong>离线工作</strong>：在飞机上、山洞里、没有网络的地方，你仍然可以提交代码、查看历史、创建分支。</p></li><li><p><strong>速度快</strong>：所有操作都在本地，不需要网络延迟。</p></li><li><p><strong>容错性强</strong>：服务器挂了？没关系，任何一台开发者的电脑都可以恢复整个仓库。</p></li><li><p><strong>灵活的工作流</strong>：你可以先提交到本地，整理好了再推送到服务器；或者和同事直接交换代码，不经过中央服务器。</p></li></ol><h3 id=时间线总结>时间线总结</h3><pre class=mermaid>timeline
+    title 版本控制系统发展史
+    1972 : SCCS 发布
+         : 第一代：本地版本控制
+    1982 : RCS 发布
+         : 更先进的本地系统
+    1990 : CVS 发布
+         : 第二代：集中式版本控制
+    2000 : SVN 发布
+         : 更好的集中式系统
+    2000 : BitKeeper 发布
+         : 早期的分布式系统
+    2005 : Git 发布
+         : 第三代：分布式版本控制
+    2005 : Mercurial 发布
+         : Git 的竞争对手</pre><h3 id=为什么-git-赢了>为什么 Git 赢了？</h3><p>分布式版本控制系统不止 Git 一个，还有 Mercurial、Bazaar、Darcs 等。为什么 Git 成为了主流？</p><ol><li><p><strong>性能</strong>：Git 非常快，即使对于大型项目（如 Linux 内核）也能秒级操作。</p></li><li><p><strong>数据完整性</strong>：Git 使用 SHA-1 哈希（现在逐步迁移到 SHA-256）确保数据不被篡改。</p></li><li><p><strong>分支模型</strong>：Git 的分支非常轻量，创建和切换分支几乎是瞬间完成。</p></li><li><p><strong>社区和生态</strong>：GitHub 的崛起让 Git 成为了开源世界的标准。</p></li><li><p><strong>Linus 的光环</strong>：Linux 内核的创造者写的工具，自然受到开发者关注。</p></li></ol><h3 id=小结-5>小结</h3><p>版本控制的进化：</p><ul><li><strong>本地时代</strong>（RCS）：一个人用，解决个人版本管理</li><li><strong>集中式时代</strong>（CVS/SVN）：多人协作，但有单点故障</li><li><strong>分布式时代</strong>（Git）：每个人有完整仓库，离线也能工作，容错性强</li></ul><p>Git 是第三代版本控制的代表，也是目前最流行的选择。</p><p>但 Git 是怎么诞生的？为什么 Linus 要写 Git？下一节，让我们听听 Git 的诞生故事。</p><hr><h2 id=17-git-的诞生故事linus-的两周奇迹>1.7 Git 的诞生故事：Linus 的两周奇迹</h2><p>每个伟大的工具背后都有一个故事。Git 的故事，始于一场危机。</p><h3 id=linux-内核的困境>Linux 内核的困境</h3><p>2002 年，Linux 内核项目遇到了麻烦。</p><p>Linux 内核是世界上最大的开源项目之一，有数千名开发者贡献代码。在 2002 年之前，Linus Torvalds 一直用<strong>手工方式</strong>管理代码——通过补丁（patch）和邮件列表。</p><p>但随着项目越来越大，这种方式越来越吃力。</p><h3 id=bitkeeper-的短暂蜜月>BitKeeper 的短暂蜜月</h3><p>2002 年，BitMover 公司做出了一个慷慨的决定：<strong>免费让 Linux 内核项目使用他们的版本控制工具 BitKeeper</strong>。</p><p>BitKeeper 是一个<strong>分布式版本控制系统</strong>，在当时非常先进。Linus 很喜欢它，Linux 内核社区用了三年 BitKeeper。</p><p>但好景不长。</p><h3 id=导火索andrew-tridgell>导火索：Andrew Tridgell</h3><p>2005 年，Andrew Tridgell（Samba 项目的作者，也是 Linux 内核开发者）做了一件"坏事"：</p><p>他<strong>逆向工程了 BitKeeper 的协议</strong>，写了一个开源的 BitKeeper 客户端。</p><p>BitMover 公司很生气。他们认为这违反了 BitKeeper 的使用协议。经过谈判，BitMover 收回了 Linux 内核项目的免费使用权。</p><p><strong>Linux 内核项目失去了版本控制工具。</strong></p><h3 id=linus-的决定>Linus 的决定</h3><p>Linus 有两个选择：</p><ol><li>用现有的开源工具（如 CVS、SVN）</li><li>自己写一个</li></ol><p>Linus 看了现有的工具，都不满意：</p><ul><li>CVS/SVN 是集中式的，不符合 Linux 内核的分布式开发模式</li><li>其他分布式工具要么太慢，要么功能不够</li></ul><p>于是，Linus 决定：<strong>自己写一个</strong>。</p><h3 id=两周奇迹>两周奇迹</h3><p>2005 年 4 月 3 日，Linus 开始写 Git。</p><p>2005 年 4 月 6 日，Git 可以<strong>自托管</strong>了（用 Git 管理 Git 自己的代码）。</p><p>2005 年 4 月 7 日，Linus 用 Git 管理 Linux 内核的代码。</p><p>2005 年 4 月 18 日，<strong>第一个 Git 版本发布</strong>。</p><p><strong>从第一行代码到可用产品，只用了两周。</strong></p><p>当然，这两周的代码是"能用"，不是"完美"。Linus 后来花了几年时间完善 Git。但核心架构在两周内就确定了。</p><h3 id=linus-的设计哲学>Linus 的设计哲学</h3><p>Git 的设计深受 Linus 个人风格影响：</p><p><strong>1. 速度第一</strong></p><p>Linus 讨厌慢的工具。Git 从设计之初就追求极致性能。</p><pre tabindex=0><code>Git 的设计目标：
+- 每秒处理 10000 次提交（实际远超这个）
+- 分支操作瞬间完成
+- 克隆大型项目（如 Linux 内核）在几分钟内完成
+</code></pre><p><strong>2. 数据完整性</strong></p><p>Linus 不信任硬件。Git 使用 SHA-1 哈希（现在逐步迁移到 SHA-256）确保数据不被篡改。</p><pre tabindex=0><code>每个 Git 对象都有一个唯一的哈希值：
+- 文件内容 → SHA-1 → 40 位十六进制字符串
+- 如果内容改变 1 个字节，哈希完全改变
+- 你可以随时验证数据完整性
+</code></pre><p><strong>3. 分布式</strong></p><p>Linus 认为<strong>中央服务器是邪恶的</strong>。Git 从设计之初就是分布式的：</p><ul><li>每个开发者有完整仓库</li><li>可以离线工作</li><li>不依赖中央服务器</li></ul><p><strong>4. 简单即美</strong></p><p>Git 的核心概念非常简单：</p><ul><li>文件内容存储为<strong>对象</strong>（blob）</li><li>目录结构存储为<strong>树</strong>（tree）</li><li>提交存储为<strong>提交对象</strong>（commit），包含作者、时间、父提交等信息</li></ul><p>所有对象都用 SHA-1 哈希命名，存储在 <code>.git/objects</code> 目录中。</p><h3 id=git-的名字>Git 的名字</h3><p>为什么叫 Git？</p><p>Linus 开玩笑说：</p><blockquote><p>&ldquo;Git 可以是任何东西，取决于你的心情：</p><ul><li>Global Information Tracker（全球信息追踪器）——当你用它的时候</li><li>Goddamn Idiotic Truckload of sh*t（该死的愚蠢垃圾堆）——当它出问题的时候</li><li>或者 &lsquo;git&rsquo;，英式英语里的&rsquo;混蛋&rsquo;&rdquo;</li></ul></blockquote><p>实际上，Linus 只是想要一个<strong>简短的、容易输入的、不会在 Unix 命令里冲突</strong>的名字。</p><h3 id=git-的快速发展>Git 的快速发展</h3><p>Git 发布后，迅速获得了关注：</p><ul><li><strong>2005 年 6 月</strong>：Git 维护者从 Linus 手中交给 Junio Hamano，他至今仍是 Git 的主要维护者</li><li><strong>2008 年</strong>：GitHub 上线，基于 Git 的代码托管平台</li><li><strong>2010 年代</strong>：Git 成为事实标准，SVN 逐渐衰落</li><li><strong>今天</strong>：Git 是世界上最流行的版本控制系统</li></ul><h3 id=一个有趣的对比>一个有趣的对比</h3><pre tabindex=0><code>Linux 内核开发时间：
+- 1991 年第一版
+- 至今仍在开发
+- 30 多年
+
+Git 开发时间：
+- 2005 年第一版
+- 两周内可用
+- 几个月内成熟
+
+结论：写操作系统比写版本控制工具难多了（开玩笑）
+</code></pre><h3 id=为什么这个故事重要>为什么这个故事重要？</h3><p>Git 的诞生故事告诉我们：</p><ol><li><p><strong>necessity is the mother of invention</strong>（需求是发明之母）：没有 BitKeeper 的退出，可能就没有 Git</p></li><li><p><strong>Linus 是天才程序员</strong>：两周写出一个改变世界的工具</p></li><li><p><strong>开源的力量</strong>：Git 是开源的，所以它能被全世界使用和改进</p></li><li><p><strong>设计的重要性</strong>：Git 的核心设计非常优雅，所以它能经受住时间的考验</p></li></ol><h3 id=小结-6>小结</h3><ul><li>2005 年，Linux 内核失去了 BitKeeper</li><li>Linus Torvalds 决定自己写一个版本控制工具</li><li>两周后，Git 诞生</li><li>Git 的设计哲学：快速、分布式、数据完整性</li><li>Git 迅速成为世界上最流行的版本控制系统</li></ul><p>Git 的诞生是一个传奇。但更重要的是，Git 解决了我们前面讲的所有问题：</p><ul><li>文件命名地狱 → Git 的版本管理</li><li>代码覆盖惨案 → Git 的合并机制</li><li>改崩了回不去 → Git 的历史回退</li><li>电脑崩溃归零 → Git 的分布式备份</li><li>团队协作猜谜 → Git 的审计追踪</li></ul><p>下一节，让我们看看 Git 是如何用它的"魔法"结束这些噩梦的。</p><hr><h2 id=18-git-来了噩梦结束分布式版本控制的魔法>1.8 Git 来了，噩梦结束：分布式版本控制的魔法</h2><p>好了，铺垫了这么多，是时候看看 Git 如何解决那些噩梦了。</p><h3 id=噩梦一文件命名地狱>噩梦一：文件命名地狱</h3><p><strong>没有 Git</strong>：</p><pre tabindex=0><code>论文_最终版.docx
+论文_最终版_真的最终.docx
+论文_最终版_真的最终_打死不改版.docx
+...
+</code></pre><p><strong>有了 Git</strong>：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 初始化仓库</span>
+</span></span><span style=display:flex><span>git init
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 添加文件</span>
+</span></span><span style=display:flex><span>git add 论文.docx
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 提交，Git 自动记录版本</span>
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;第一版论文&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 修改后再提交</span>
+</span></span><span style=display:flex><span>git commit -am <span style=color:#63c381>&#34;根据导师意见修改&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看所有版本</span>
+</span></span><span style=display:flex><span>git log --oneline
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># a1b2c3d 根据导师意见修改</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># e4f5g6h 第一版论文</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>魔法</strong>：你只有一个文件 <code>论文.docx</code>，但 Git 在后台保存了所有历史版本。想回到任何版本？一行命令搞定。</p><h3 id=噩梦二代码覆盖惨案>噩梦二：代码覆盖惨案</h3><p><strong>没有 Git</strong>：</p><ul><li>你改了文件 A</li><li>同事也改了文件 A</li><li>他最后保存，你的修改没了</li></ul><p><strong>有了 Git</strong>：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 你修改并提交</span>
+</span></span><span style=display:flex><span>git add main.c
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;优化了算法&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 同事也修改并提交</span>
+</span></span><span style=display:flex><span>git add main.c
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;修复了 bug&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 当你们推送时，Git 会发现冲突：</span>
+</span></span><span style=display:flex><span>git push origin main
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 错误：远程有更新，请先拉取</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>git pull origin main
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Git 自动合并你们的修改</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 如果修改的是不同部分，自动合并成功</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 如果修改了同一行，Git 会标记冲突，让你手动解决</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>魔法</strong>：Git 不会丢失任何人的修改。它会尝试自动合并，如果不能自动合并，会明确告诉你哪里冲突，让你决定如何合并。</p><h3 id=噩梦三改崩了回不去>噩梦三：改崩了回不去</h3><p><strong>没有 Git</strong>：</p><ul><li>凌晨 3 点，代码崩了</li><li>疯狂按 Ctrl+Z，没用</li><li>绝望</li></ul><p><strong>有了 Git</strong>：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看提交历史</span>
+</span></span><span style=display:flex><span>git log --oneline
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># a1b2c3d 尝试新功能（当前，崩了）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># e4f5g6h 昨天能运行的版本</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 回到昨天的版本</span>
+</span></span><span style=display:flex><span>git checkout e4f5g6h
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 或者撤销最后一次提交</span>
+</span></span><span style=display:flex><span>git revert HEAD
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 代码恢复了，用时 30 秒</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>魔法</strong>：Git 是你的时间机器。你可以回到任何历史时刻，查看当时的代码，甚至可以基于旧版本开新分支继续开发。</p><h3 id=噩梦四电脑崩溃一切归零>噩梦四：电脑崩溃，一切归零</h3><p><strong>没有 Git</strong>：</p><ul><li>硬盘挂了</li><li>三个月工作没了</li><li>哭泣</li></ul><p><strong>有了 Git</strong>：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 平时定期推送代码到远程仓库</span>
+</span></span><span style=display:flex><span>git push origin main
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 硬盘挂了？换台新电脑：</span>
+</span></span><span style=display:flex><span>git clone https://github.com/yourname/project.git
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 代码回来了，包括完整的历史</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>魔法</strong>：Git 是分布式的。你的代码不仅在你电脑上，还在远程服务器上，在同事的电脑上。即使你的电脑炸了，代码也是安全的。</p><h3 id=噩梦五团队协作变猜谜>噩梦五：团队协作变猜谜</h3><p><strong>没有 Git</strong>：</p><ul><li>&ldquo;谁改了这个函数？&rdquo;</li><li>&ldquo;我不知道&rdquo;</li><li>&ldquo;猜猜猜&rdquo;</li></ul><p><strong>有了 Git</strong>：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看谁改了某行代码</span>
+</span></span><span style=display:flex><span>git blame main.c
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># ^a1b2c3d (小明 2024-03-15) void login() {</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># e4f5g6h7 (小红 2024-03-14)   if (user == NULL) {</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看某次提交的详细信息</span>
+</span></span><span style=display:flex><span>git show a1b2c3d
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 作者：小明</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 时间：2024-03-15 14:30</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 修改内容：...</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看某文件的所有修改历史</span>
+</span></span><span style=display:flex><span>git log -p main.c
+</span></span></code></pre></td></tr></table></div></div><p><strong>魔法</strong>：Git 记录了每一次修改的<strong>谁、什么时候、改了什么、为什么改</strong>。没有猜谜，只有事实。</p><h3 id=git-的核心魔法快照-vs-差异>Git 的核心魔法：快照 vs 差异</h3><p>Git 和其他版本控制系统有一个关键区别：</p><p><strong>传统系统（如 SVN）存储差异</strong>：</p><pre tabindex=0><code>版本 1：完整文件
+版本 2：版本 1 + 差异 1
+版本 3：版本 2 + 差异 2
+...
+</code></pre><p><strong>Git 存储快照</strong>：</p><pre tabindex=0><code>版本 1：文件 A 的快照 + 文件 B 的快照
+版本 2：文件 A 的快照（没变，只存指针）+ 文件 B 的新快照
+版本 3：文件 A 的新快照 + 文件 B 的快照（没变，只存指针）
+</code></pre><pre class=mermaid>graph LR
+    subgraph &#34;SVN 存储差异&#34;
+        A[版本 1&lt;br/&gt;完整文件] --&gt;|&#43;差异| B[版本 2]
+        B --&gt;|&#43;差异| C[版本 3]
+        C --&gt;|&#43;差异| D[版本 4]
+    end
+    
+    subgraph &#34;Git 存储快照&#34;
+        E[版本 1&lt;br/&gt;A&#43;B&#43;C] --&gt; F[版本 2&lt;br/&gt;A&#43;B&#39;&#43;C]
+        E --&gt; G[版本 3&lt;br/&gt;A&#39;&#43;B&#43;C]
+        F --&gt; H[版本 4&lt;br/&gt;A&#43;B&#39;&#43;C&#39;]
+    end</pre><p><strong>为什么快照更好？</strong></p><ul><li>切换版本更快（直接加载快照，不需要应用一系列差异）</li><li>分支更快（只是创建一个指向快照的指针）</li><li>数据完整性更好（每个快照有唯一哈希）</li></ul><h3 id=git-的三大区域>Git 的三大区域</h3><p>理解 Git，关键是理解它的<strong>三个工作区域</strong>：</p><pre class=mermaid>graph LR
+    A[工作区&lt;br/&gt;Working Directory] --&gt;|git add| B[暂存区&lt;br/&gt;Staging Area]
+    B --&gt;|git commit| C[仓库&lt;br/&gt;Repository]
+    C --&gt;|git push| D[远程仓库&lt;br/&gt;Remote]
+    D --&gt;|git pull| A</pre><p><strong>工作区（Working Directory）</strong>：</p><ul><li>你实际编辑文件的地方</li><li>就是你在文件管理器里看到的文件</li></ul><p><strong>暂存区（Staging Area）</strong>：</p><ul><li>也叫索引（Index）</li><li>你准备提交的修改放在这里</li><li>让你可以挑选哪些修改要提交</li></ul><p><strong>仓库（Repository）</strong>：</p><ul><li>存储所有历史版本的地方</li><li>就是 <code>.git</code> 目录</li></ul><p><strong>远程仓库（Remote）</strong>：</p><ul><li>在服务器上的仓库</li><li>用于团队协作</li></ul><h3 id=常用-git-命令速查>常用 Git 命令速查</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">45
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 初始化仓库</span>
+</span></span><span style=display:flex><span>git init
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 克隆远程仓库</span>
+</span></span><span style=display:flex><span>git clone &lt;url&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看状态</span>
+</span></span><span style=display:flex><span>git status
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 添加文件到暂存区</span>
+</span></span><span style=display:flex><span>git add &lt;file&gt;
+</span></span><span style=display:flex><span>git add .  <span style=color:#8a93a5;font-style:italic># 添加所有修改</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 提交修改</span>
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;提交信息&#34;</span>
+</span></span><span style=display:flex><span>git commit -am <span style=color:#63c381>&#34;提交信息&#34;</span>  <span style=color:#8a93a5;font-style:italic># 跳过 git add，直接提交已跟踪文件</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看历史</span>
+</span></span><span style=display:flex><span>git log
+</span></span><span style=display:flex><span>git log --oneline  <span style=color:#8a93a5;font-style:italic># 简洁模式</span>
+</span></span><span style=display:flex><span>git log --graph  <span style=color:#8a93a5;font-style:italic># 图形化显示分支</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 推送到远程</span>
+</span></span><span style=display:flex><span>git push origin &lt;branch&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 拉取远程更新</span>
+</span></span><span style=display:flex><span>git pull origin &lt;branch&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 创建分支</span>
+</span></span><span style=display:flex><span>git branch &lt;branch-name&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 切换分支</span>
+</span></span><span style=display:flex><span>git checkout &lt;branch-name&gt;
+</span></span><span style=display:flex><span>git switch &lt;branch-name&gt;  <span style=color:#8a93a5;font-style:italic># 新命令，更直观</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 创建并切换分支</span>
+</span></span><span style=display:flex><span>git checkout -b &lt;branch-name&gt;
+</span></span><span style=display:flex><span>git switch -c &lt;branch-name&gt;  <span style=color:#8a93a5;font-style:italic># 新命令</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 合并分支</span>
+</span></span><span style=display:flex><span>git merge &lt;branch-name&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看差异</span>
+</span></span><span style=display:flex><span>git diff  <span style=color:#8a93a5;font-style:italic># 工作区 vs 暂存区</span>
+</span></span><span style=display:flex><span>git diff --staged  <span style=color:#8a93a5;font-style:italic># 暂存区 vs 仓库</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=git-的工作流示例>Git 的工作流示例</h3><p>一个典型的 Git 工作流：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">30
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 克隆项目</span>
+</span></span><span style=display:flex><span>git clone https://github.com/company/project.git
+</span></span><span style=display:flex><span><span style=color:#e5c07b>cd</span> project
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 创建功能分支</span>
+</span></span><span style=display:flex><span>git checkout -b feature/login
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 开发功能</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># ... 写代码 ...</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 4. 提交修改</span>
+</span></span><span style=display:flex><span>git add .
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;添加了用户登录功能&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 5. 继续开发</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># ... 写代码 ...</span>
+</span></span><span style=display:flex><span>git commit -am <span style=color:#63c381>&#34;修复了登录时的 bug&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 6. 切换到主分支，拉取最新代码</span>
+</span></span><span style=display:flex><span>git checkout main
+</span></span><span style=display:flex><span>git pull origin main
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 7. 合并功能分支</span>
+</span></span><span style=display:flex><span>git merge feature/login
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 8. 推送到远程</span>
+</span></span><span style=display:flex><span>git push origin main
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 9. 删除功能分支</span>
+</span></span><span style=display:flex><span>git branch -d feature/login
+</span></span></code></pre></td></tr></table></div></div><h3 id=小结-7>小结</h3><p>Git 用它的"魔法"解决了我们前面讲的所有噩梦：</p><table><thead><tr><th>噩梦</th><th>Git 的解决方案</th></tr></thead><tbody><tr><td>文件命名地狱</td><td>一个文件 + 历史记录</td></tr><tr><td>代码覆盖惨案</td><td>自动合并 + 冲突标记</td></tr><tr><td>改崩了回不去</td><td>时间机器，随时回退</td></tr><tr><td>电脑崩溃归零</td><td>分布式备份，多份副本</td></tr><tr><td>团队协作猜谜</td><td>完整的审计追踪</td></tr></tbody></table><p>Git 的魔法基于几个核心设计：</p><ul><li><strong>分布式</strong>：每人有完整仓库</li><li><strong>快照存储</strong>：快速、可靠</li><li><strong>哈希校验</strong>：数据完整性</li><li><strong>分支轻量</strong>：鼓励频繁分支</li></ul><p>但 Git 也不是完美的。它有一些"怪脾气"，学习曲线也比较陡。</p><p>不过，既然你已经读到这里了，说明你真的需要 Git。</p><p>下一节，让我们总结这一章，然后——去安装 Git 吧！</p><hr><h2 id=19-本章小结为什么你迫切需要-git以及为什么你读到这里还没装-git>1.9 本章小结：为什么你迫切需要 Git（以及为什么你读到这里还没装 Git）</h2><p>恭喜！你已经读完了第一章。</p><p>如果你之前对 Git 一无所知，现在你应该明白了：<strong>Git 不是可选工具，是必需品</strong>。</p><h3 id=本章回顾>本章回顾</h3><p>让我们回顾一下本章讲过的内容：</p><p><strong>1.1 文件命名地狱</strong></p><ul><li>没有版本控制，只能靠文件名区分版本</li><li><code>最终版_真的最终_打死不改版.docx</code> 是真实存在的悲剧</li><li>版本控制自动记录历史，不需要可笑的文件名</li></ul><p><strong>1.2 代码覆盖惨案</strong></p><ul><li>多人协作时，没有版本控制就是"谁最后保存谁赢"</li><li>你的杰作可能被同事一键清零</li><li>Git 的合并机制保护每个人的劳动成果</li></ul><p><strong>1.3 改崩了回不去</strong></p><ul><li>凌晨 3 点改崩代码的恐惧</li><li>没有版本控制，只能靠 Ctrl+Z 和祈祷</li><li>Git 是你的时间机器，随时可以回到过去</li></ul><p><strong>1.4 电脑崩溃，一切归零</strong></p><ul><li>硬盘挂了，三个月工作没了</li><li>手动备份容易忘、容易乱、容易丢</li><li>Git 的分布式特性让代码有多份副本，永不丢失</li></ul><p><strong>1.5 团队协作变猜谜</strong></p><ul><li>&ldquo;谁改了我的代码？&ldquo;&ldquo;我不知道&rdquo;</li><li>没有版本控制，只能靠猜</li><li>Git 记录每次修改的作者、时间、内容、原因</li></ul><p><strong>1.6 版本控制发展史</strong></p><ul><li>本地时代（RCS）：一个人用</li><li>集中式时代（CVS/SVN）：多人用，但有单点故障</li><li>分布式时代（Git）：每人有完整仓库，离线也能工作</li></ul><p><strong>1.7 Git 的诞生故事</strong></p><ul><li>2005 年，Linux 内核失去 BitKeeper</li><li>Linus Torvalds 两周写出 Git</li><li>Git 的设计哲学：快速、分布式、数据完整性</li></ul><p><strong>1.8 Git 的魔法</strong></p><ul><li>快照存储 vs 差异存储</li><li>三个工作区域：工作区、暂存区、仓库</li><li>Git 解决了所有噩梦</li></ul><h3 id=为什么你迫切需要-git>为什么你迫切需要 Git</h3><p>如果你还在犹豫要不要学 Git，问自己几个问题：</p><ol><li><p><strong>你写过代码吗？</strong></p><ul><li>写过 → 你需要 Git</li></ul></li><li><p><strong>你写过文档吗？</strong></p><ul><li>写过 → 你需要 Git</li></ul></li><li><p><strong>你和别人协作过吗？</strong></p><ul><li>协作过 → 你需要 Git</li></ul></li><li><p><strong>你的电脑可能坏吗？</strong></p><ul><li>可能 → 你需要 Git</li></ul></li><li><p><strong>你犯过错吗？</strong></p><ul><li>犯过 → 你需要 Git</li></ul></li></ol><p><strong>结论：你需要 Git。</strong></p><h3 id=git-能做什么>Git 能做什么</h3><ul><li>✅ 记录文件的每次修改</li><li>✅ 随时回到任何历史版本</li><li>✅ 多人协作不打架</li><li>✅ 离线工作</li><li>✅ 分布式备份</li><li>✅ 代码审查</li><li>✅ 分支管理</li><li>✅ 追踪谁改了什么</li><li>✅ 自动化部署（配合 CI/CD）</li><li>✅ &mldr; 还有很多</li></ul><h3 id=git-不能做什么>Git 不能做什么</h3><ul><li>❌ 替你写代码（很遗憾）</li><li>❌ 保证你的代码没有 bug（那是测试的事）</li><li>❌ 让产品经理不再改需求（那是魔法）</li></ul><h3 id=为什么你读到这里还没装-git>为什么你读到这里还没装 Git</h3><p>可能的借口：</p><p><strong>借口一：&ldquo;Git 太难了&rdquo;</strong></p><p>Git 确实有一些复杂的概念。但基础用法很简单：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>git add .
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;修改了某某&#34;</span>
+</span></span><span style=display:flex><span>git push
+</span></span></code></pre></td></tr></table></div></div><p>三行命令，解决 80% 的问题。其他的可以慢慢学。</p><p><strong>借口二：&ldquo;我现在用不到&rdquo;</strong></p><p>等你用到的时候，可能已经晚了。就像保险，最好在需要之前就准备好。</p><p><strong>借口三：&ldquo;我用 SVN/其他工具&rdquo;</strong></p><p>如果你已经在用版本控制，那很好！但 Git 是现在的行业标准，值得学习。</p><p><strong>借口四：&ldquo;我懒得装&rdquo;</strong></p><p>这是最诚实的借口。但相信我，花 10 分钟安装 Git，会节省你未来几百小时的麻烦。</p><h3 id=下一步安装-git>下一步：安装 Git</h3><p>下一章，我们将：</p><ol><li>在 Windows/Mac/Linux 上安装 Git</li><li>配置 Git（用户名、邮箱等）</li><li>创建你的第一个仓库</li><li>做你的第一次提交</li></ol><p>但在那之前，先确保你已经安装了 Git。</p><h3 id=快速检查>快速检查</h3><p>打开终端（Windows 用 Git Bash 或 PowerShell，Mac/Linux 用 Terminal），输入：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>git --version
+</span></span></code></pre></td></tr></table></div></div><p>如果显示类似 <code>git version 2.40.0</code>，恭喜你，Git 已经安装好了！</p><p>如果显示 <code>command not found</code> 或 <code>'git' 不是内部或外部命令</code>，你需要先安装 Git。</p><h3 id=安装-git>安装 Git</h3><p><strong>Windows</strong>：</p><ol><li>访问 <a href=https://git-scm.com/download/win>https://git-scm.com/download/win</a></li><li>下载安装程序</li><li>一路 Next（默认配置即可）</li></ol><p><strong>Mac</strong>：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 用 Homebrew 安装</span>
+</span></span><span style=display:flex><span>brew install git
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 或者下载安装程序</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># https://git-scm.com/download/mac</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>Linux</strong>：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Ubuntu/Debian</span>
+</span></span><span style=display:flex><span>sudo apt-get install git
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Fedora</span>
+</span></span><span style=display:flex><span>sudo dnf install git
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Arch</span>
+</span></span><span style=display:flex><span>sudo pacman -S git
+</span></span></code></pre></td></tr></table></div></div><h3 id=本章结束>本章结束</h3><p>如果你之前觉得 Git 是"程序员的玩具&rdquo;，希望现在你能理解：<strong>Git 是每一个现代知识工作者的必备工具</strong>。</p><p>不管你是写代码、写文档、做设计、写论文，只要你的工作涉及"文件"和"修改&rdquo;，Git 都能帮到你。</p><p>所以，去安装 Git 吧。我们在下一章见。</p><hr><blockquote><p><strong>小测验</strong>：</p><ol><li>Git 是哪一年诞生的？</li><li>Git 的创始人是谁？</li><li>Git 是集中式还是分布式版本控制系统？</li><li>说出三个没有版本控制的噩梦场景</li></ol><p>（答案都在本章内容里，找一找吧！）</p></blockquote><hr><p><em>已完成"1.9 本章小结：为什么你迫切需要 Git（以及为什么你读到这里还没装 Git）&ldquo;这一小节的内容展开。</em></p><p><strong>第一章全部完成！</strong> 当前时间：2026年3月16日09:42:00。</p><div class=td-page-meta__lastmod>最后修改 April 3, 2026: <a data-proofer-ignore href=https://github.com/before80/prgms/commit/c56c0386e5a114d3730cdad6de5733167a7bc638>新增 git 教程 (c56c038)</a></div></div></main></div></div><footer class="td-footer row d-print-none"><div class=container-fluid><div class="row mx-md-2"><div class="td-footer__left col-6 col-sm-4 order-sm-1"><ul class=td-footer__links-list><li class=td-footer__links-item data-bs-toggle=tooltip title="User mailing list" aria-label="User mailing list"><a target=_blank rel=noopener href=https://example.org/mail aria-label="User mailing list"><i class="fa fa-envelope"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title=Twitter aria-label=Twitter><a target=_blank rel=noopener href=https://example.org/twitter aria-label=Twitter><i class="fab fa-twitter"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title="Stack Overflow" aria-label="Stack Overflow"><a target=_blank rel=noopener href=https://example.org/stack aria-label="Stack Overflow"><i class="fab fa-stack-overflow"></i></a></li></ul></div><div class="td-footer__right col-6 col-sm-4 order-sm-3"><ul class=td-footer__links-list><li class=td-footer__links-item data-bs-toggle=tooltip title=GitHub aria-label=GitHub><a target=_blank rel=noopener href=https://github.com/before80/prgms aria-label=GitHub><i class="fab fa-github"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title=Slack aria-label=Slack><a target=_blank rel=noopener href=https://example.org/slack aria-label=Slack><i class="fab fa-slack"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title="Developer mailing list" aria-label="Developer mailing list"><a target=_blank rel=noopener href=https://example.org/mail aria-label="Developer mailing list"><i class="fa fa-envelope"></i></a></li></ul></div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2"><span class=td-footer__copyright>&copy;
+2026
+<span class=td-footer__authors>作者zlongx</span></span><span class=td-footer__all_rights_reserved>保留所有权利</span><span class=ms-2><a href=https://policies.google.com/privacy target=_blank rel=noopener>隐私政策</a></span></div></div></div></footer></div><style>.markmap>svg{width:100%;height:300px}</style><script>window.markmap={autoLoader:{manual:!0,onReady(){const{autoLoader:e,builtInPlugins:t}=window.markmap;e.transformPlugins=t.filter(e=>e.name!=="prism")}}}</script><script src=https://unpkg.com/markmap-autoloader@latest></script><script type=module async>
+  import mermaid from "https:\/\/unpkg.com\/mermaid@latest\/dist\/mermaid.esm.min.mjs";
+
+  (function ($) {
+    if ($('.mermaid').length == 0) {
+      mermaid.initialize({ startOnLoad: false });
+      return;
+    }
+
+    var params = {};
+
+    
+    
+    var norm = function (defaultConfig, params) {
+      var result = {};
+      for (const key in defaultConfig) {
+        const keyLower = key.toLowerCase();
+        if (defaultConfig.hasOwnProperty(key) && params.hasOwnProperty(keyLower)) {
+          if (typeof defaultConfig[key] === "object") {
+            result[key] = norm(defaultConfig[key], params[keyLower]);
+          } else {
+            result[key] = params[keyLower];
+          }
+        }
+      }
+      return result;
+    };
+
+    var settings = norm(mermaid.mermaidAPI.defaultConfig, params);
+    settings.startOnLoad = true;
+    if ($('html[data-bs-theme="dark"]').length) {
+      settings.theme = 'dark';
+    }
+    mermaid.initialize(settings);
+
+    
+    const lightDarkModeThemeChangeHandler = function (mutationsList, observer) {
+      for (const mutation of mutationsList) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-bs-theme') {
+          
+          
+          
+          location.reload();
+        }
+      }
+    };
+
+    const observer = new MutationObserver(lightDarkModeThemeChangeHandler);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-bs-theme']
+    });
+    
+
+  })(jQuery);
+</script><script src=/prgms/js/main.min.2358e7822956705373a61d2fdc0068abdf87f2c76a23be412ddf2546cbe54a97.js integrity="sha256-I1jngilWcFNzph0v3ABoq9+H8sdqI75BLd8lRsvlSpc=" crossorigin=anonymous></script><script defer src=/prgms/js/click-to-copy.min.14c7dd84004258325d147b971421f1d4dfd3f28500954f32ef71d1cfd0938f51.js integrity="sha256-FMfdhABCWDJdFHuXFCHx1N/T8oUAlU8y73HRz9CTj1E=" crossorigin=anonymous></script><script src=https://unpkg.com/@docsearch/js@3.8.2/dist/umd/index.js integrity="sha512-lsD+XVzdBI6ZquXc8gqbw0/bgrfIsMJwY/8xvmvbN+U3gZSeG7BXQoCq4zv/yCmntR2GLHtgB+bD4ESPsKIbIA==" crossorigin=anonymous></script><script type=text/javascript>const containers=["#docsearch-0","#docsearch-1"];for(let e of containers)docsearch({container:e,appId:"DV76UK9EIH",apiKey:"227dec0ac6cbc8dfad748f27b2974507",indexName:"go-"})</script><script src=/prgms/js/tabpane-persist.js></script><script src=/go_docs/js/tocbot.min.js></script><script src=/go_docs/js/markmap-autoloader.js></script><script type=text/javascript>window.addEventListener("load",function(){tocbot.init({tocSelector:".td-toc",contentSelector:".td-content",headingSelector:"h2, h3, h4, h5, h6",ignoreHiddenElements:!0,collapseDepth:6});let t=0,e=0,n=document.getElementById("show-timer"),s=document.getElementById("advice-reading-time"),o=s.textContent.trim();function i(){e++,e>=60&&(e=0,t++);let i=e<10?"0"+e:e;s!==null?n.textContent=t+":"+i+" <- "+o:n.textContent=t+":"+i}setInterval(i,1e3)})</script><script src=/go_docs/js/jquery-3.6.3.min.js></script><script src=/go_docs/js/deal-zero-width-space.js></script><script src=/go_docs/js/tabpane-persist.js></script></body></html>

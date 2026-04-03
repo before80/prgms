@@ -1,0 +1,777 @@
+<!doctype html><html itemscope itemtype=http://schema.org/WebPage lang=zh-cn class=no-js data-theme-init><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=color-scheme content="light dark"><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#000000"><style>html{background:Canvas;color:CanvasText}@media(prefers-color-scheme:dark){html{background:#0b0d12;color:#e6e6e6}}html[data-theme-init] *{transition:none!important}</style><script>(function(){const t="td-color-theme",n=localStorage.getItem(t);let e=n||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");e==="auto"&&(e=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),document.documentElement.setAttribute("data-bs-theme",e)})()</script><meta name=robots content="index, follow"><link rel="shortcut icon" href=/prgms/favicons/favicon.ico><link rel=apple-touch-icon href=/prgms/favicons/apple-touch-icon-180x180.png sizes=180x180><link rel=icon type=image/png href=/prgms/favicons/favicon-16x16.png sizes=16x16><link rel=icon type=image/png href=/prgms/favicons/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=/prgms/favicons/android-36x36.png sizes=36x36><link rel=icon type=image/png href=/prgms/favicons/android-48x48.png sizes=48x48><link rel=icon type=image/png href=/prgms/favicons/android-72x72.png sizes=72x72><link rel=icon type=image/png href=/prgms/favicons/android-96x96.png sizes=96x96><link rel=icon type=image/png href=/prgms/favicons/android-144x144.png sizes=144x144><link rel=icon type=image/png href=/prgms/favicons/android-192x192.png sizes=192x192><title>第10章：分支合并 —— 殊途同归的艺术 | 编程那些事儿</title><meta name=description content="第10章：分支合并 —— 殊途同归的艺术 分支让代码分道扬镳，合并让它们重新交汇。合并是 Git 中最重要也最复杂的操作之一——做得好，代码完美融合；做不好，冲突让人头大。本章教你成为合并大师。"><meta property="og:url" content="https://before80.github.io/prgms/Git/Chapter-10-Merging-Branches/"><meta property="og:site_name" content="编程那些事儿"><meta property="og:title" content="第10章：分支合并 —— 殊途同归的艺术"><meta property="og:description" content="第10章：分支合并 —— 殊途同归的艺术 分支让代码分道扬镳，合并让它们重新交汇。合并是 Git 中最重要也最复杂的操作之一——做得好，代码完美融合；做不好，冲突让人头大。本章教你成为合并大师。"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="git"><meta property="article:published_time" content="2026-04-03T19:36:48+08:00"><meta property="article:modified_time" content="2026-04-03T19:52:32+08:00"><meta itemprop=name content="第10章：分支合并 —— 殊途同归的艺术"><meta itemprop=description content="第10章：分支合并 —— 殊途同归的艺术 分支让代码分道扬镳，合并让它们重新交汇。合并是 Git 中最重要也最复杂的操作之一——做得好，代码完美融合；做不好，冲突让人头大。本章教你成为合并大师。"><meta itemprop=datePublished content="2026-04-03T19:36:48+08:00"><meta itemprop=dateModified content="2026-04-03T19:52:32+08:00"><meta itemprop=wordCount content="6606"><meta name=twitter:card content="summary"><meta name=twitter:title content="第10章：分支合并 —— 殊途同归的艺术"><meta name=twitter:description content="第10章：分支合并 —— 殊途同归的艺术 分支让代码分道扬镳，合并让它们重新交汇。合并是 Git 中最重要也最复杂的操作之一——做得好，代码完美融合；做不好，冲突让人头大。本章教你成为合并大师。"><link rel=preload href=/prgms/scss/main.min.6493eeac8161e52866670fd3d82fea10f8b9f1ca39f8f69aaf1021c77867b96c.css as=style integrity="sha256-ZJPurIFh5ShmZw/T2C/qEPi58co5+PaarxAhx3hnuWw=" crossorigin=anonymous><link href=/prgms/scss/main.min.6493eeac8161e52866670fd3d82fea10f8b9f1ca39f8f69aaf1021c77867b96c.css rel=stylesheet integrity="sha256-ZJPurIFh5ShmZw/T2C/qEPi58co5+PaarxAhx3hnuWw=" crossorigin=anonymous><link href=/go_docs/css/extra.css rel=stylesheet><script src=https://code.jquery.com/jquery-3.7.1.min.js integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin=anonymous></script><link rel=stylesheet href=https://unpkg.com/@docsearch/css@3.8.2/dist/style.css integrity="sha512-l7pkV1dOURFyHCeH8I4fK9lCkQKuqhlsTCqRl3zktifDlB8oTUJ+mJPgYkK9kHpUut8j1iPquTv32t6hvTPv3g==" crossorigin=anonymous></head><body class=td-page><header><nav class="td-navbar js-navbar-scroll"><div class="td-navbar-container container-fluid flex-column flex-md-row"><a class=navbar-brand href=/prgms/><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class=navbar-brand__name>编程那些事儿</span></a><div class="td-navbar-nav-scroll td-navbar-nav-scroll--indicator" id=main_navbar><div class="scroll-indicator scroll-left"></div><ul class=navbar-nav><li class="nav-item mr-4 mb-2 mb-lg-0"><a class=nav-link href=javascript:; id=show-timer style=color:#fe4512f5!important></a></li><li class=nav-item><a class=nav-link href=/prgms/docs/><span>文档</span></a></li><li class=nav-item><a class=nav-link href=/prgms/AI/><span>AI</span></a></li><li class=nav-item><a class=nav-link href=/prgms/C/><span>C</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Cpp/><span>Cpp</span></a></li><li class=nav-item><a class="nav-link active" href=/prgms/Git/><span>Git</span></a></li><li class=nav-item><a class=nav-link href=/prgms/go/><span>Go</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Java/><span>Java</span></a></li><li class=nav-item><a class=nav-link href=/prgms/linux/><span>Linux</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Js/><span>JavaScript</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Ts/><span>TypeScript</span></a></li><li class=nav-item><a class=nav-link href=/prgms/CSS/><span>CSS</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Rust/><span>Rust</span></a></li><li class="nav-item td-navbar__light-dark-menu"><div class="td-light-dark-menu dropdown"><svg class="d-none"><symbol id="check2" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5.0 010 .708l-7 7a.5.5.0 01-.708.0l-3.5-3.5a.5.5.0 11.708-.708L6.5 10.293l6.646-6.647a.5.5.0 01.708.0z"/></symbol><symbol id="circle-half" viewBox="0 0 16 16"><path d="M8 15A7 7 0 108 1v14zm0 1A8 8 0 118 0a8 8 0 010 16z"/></symbol><symbol id="moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.768.768.0 01.08.858 7.208 7.208.0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527.0 1.04-.055 1.533-.16a.787.787.0 01.81.316.733.733.0 01-.031.893A8.349 8.349.0 018.344 16C3.734 16 0 12.286.0 7.71.0 4.266 2.114 1.312 5.124.06A.752.752.0 016 .278z"/><path d="M10.794 3.148a.217.217.0 01.412.0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217.0 010 .412l-1.162.387A1.734 1.734.0 0011.593 7.69l-.387 1.162a.217.217.0 01-.412.0l-.387-1.162A1.734 1.734.0 009.31 6.593l-1.162-.387a.217.217.0 010-.412l1.162-.387a1.734 1.734.0 001.097-1.097l.387-1.162zM13.863.099a.145.145.0 01.274.0l.258.774c.115.346.386.617.732.732l.774.258a.145.145.0 010 .274l-.774.258a1.156 1.156.0 00-.732.732l-.258.774a.145.145.0 01-.274.0l-.258-.774a1.156 1.156.0 00-.732-.732l-.774-.258a.145.145.0 010-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/></symbol><symbol id="sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 0zm0 13a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 13zm8-5a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2a.5.5.0 01.5.5zM3 8a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2A.5.5.0 013 8zm10.657-5.657a.5.5.0 010 .707l-1.414 1.415a.5.5.0 11-.707-.708l1.414-1.414a.5.5.0 01.707.0zm-9.193 9.193a.5.5.0 010 .707L3.05 13.657a.5.5.0 01-.707-.707l1.414-1.414a.5.5.0 01.707.0zm9.193 2.121a.5.5.0 01-.707.0l-1.414-1.414a.5.5.0 01.707-.707l1.414 1.414a.5.5.0 010 .707zM4.464 4.465a.5.5.0 01-.707.0L2.343 3.05a.5.5.0 11.707-.707l1.414 1.414a.5.5.0 010 .708z"/></symbol></svg>
+<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" id=bd-theme type=button aria-expanded=false data-bs-toggle=dropdown aria-label="Toggle theme (auto)">
+<svg class="bi my-1 theme-icon-active"><use href="#circle-half"/></svg></button><ul class=dropdown-menu aria-labelledby=bd-theme><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=light aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#sun-fill"/></svg>
+Light
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=dark aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"/></svg>
+Dark
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center active" data-bs-theme-value=auto aria-pressed=true>
+<svg class="bi me-2 opacity-50"><use href="#circle-half"/></svg>
+Auto
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul></div></li></ul><div class="scroll-indicator scroll-right"></div></div><div class="d-none d-lg-block td-navbar__search"><div class=td-search><div class=td-search--algolia id=docsearch-1></div></div></div></div></nav></header><div class="container-fluid td-outer"><div class=td-main data-bs-spy=scroll data-bs-target=.td-toc data-bs-root-margin="0px 0px -10%"><div class="row flex-xl-nowrap"><aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none"><div id=td-sidebar-menu class=td-sidebar__inner><form class="td-sidebar__search d-flex align-items-center"><div class=td-search><div class=td-search--algolia id=docsearch-0></div></div><button class="btn btn-link td-sidebar__toggle" type=button data-bs-toggle=collapse data-bs-target=#td-section-nav aria-controls=td-section-nav aria-expanded=false aria-label="Toggle section navigation"></button></form><nav class="td-sidebar-nav collapse foldable-nav" id=td-section-nav data-sidebar-root-id=/prgms/Git/><ul class="td-sidebar-nav__section pe-md-3 ul-0"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-prgmsgit-li><a href=/prgms/Git/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id=m-prgmsgit><span>Git</span></a><ul class=ul-1><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-01-without-git-the-world-is-a-disaster-li><input type=checkbox id=m-prgmsgitchapter-01-without-git-the-world-is-a-disaster-check>
+<label for=m-prgmsgitchapter-01-without-git-the-world-is-a-disaster-check><a href=/prgms/Git/Chapter-01-Without-Git-The-World-Is-A-Disaster/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-01-without-git-the-world-is-a-disaster><span>第1章：没有 Git 的世界，是一场灾难片</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-02-installing-git-the-first-hurdle-li><input type=checkbox id=m-prgmsgitchapter-02-installing-git-the-first-hurdle-check>
+<label for=m-prgmsgitchapter-02-installing-git-the-first-hurdle-check><a href=/prgms/Git/Chapter-02-Installing-Git-The-First-Hurdle/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-02-installing-git-the-first-hurdle><span>第2章：安装 Git —— 程序员的第一道门槛</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-03-git-basics-configuration-li><input type=checkbox id=m-prgmsgitchapter-03-git-basics-configuration-check>
+<label for=m-prgmsgitchapter-03-git-basics-configuration-check><a href=/prgms/Git/Chapter-03-git-basics-configuration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-03-git-basics-configuration><span>第3章：Git 基础配置 —— 不穿衣服就出门的后果</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-04-first-repository-li><input type=checkbox id=m-prgmsgitchapter-04-first-repository-check>
+<label for=m-prgmsgitchapter-04-first-repository-check><a href=/prgms/Git/Chapter-04-first-repository/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-04-first-repository><span>第4章：第一个仓库 —— 见证奇迹的时刻</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-05-daily-operations-li><input type=checkbox id=m-prgmsgitchapter-05-daily-operations-check>
+<label for=m-prgmsgitchapter-05-daily-operations-check><a href=/prgms/Git/Chapter-05-daily-operations/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-05-daily-operations><span>第5章：日常操作基本功 —— Git 世界的'基本功'</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-06-viewing-history-and-comparison-li><input type=checkbox id=m-prgmsgitchapter-06-viewing-history-and-comparison-check>
+<label for=m-prgmsgitchapter-06-viewing-history-and-comparison-check><a href=/prgms/Git/Chapter-06-Viewing-History-and-Comparison/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-06-viewing-history-and-comparison><span>第6章：查看历史与对比 —— Git 时光机与照妖镜</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-07-undoing-changes-li><input type=checkbox id=m-prgmsgitchapter-07-undoing-changes-check>
+<label for=m-prgmsgitchapter-07-undoing-changes-check><a href=/prgms/Git/Chapter-07-Undoing-Changes/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-07-undoing-changes><span>第7章：后悔药系列 —— Git 让你永不后悔</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-08-gitignore-li><input type=checkbox id=m-prgmsgitchapter-08-gitignore-check>
+<label for=m-prgmsgitchapter-08-gitignore-check><a href=/prgms/Git/Chapter-08-Gitignore/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-08-gitignore><span>第8章：.gitignore —— 眼不见心不烦</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-09-branching-basics-li><input type=checkbox id=m-prgmsgitchapter-09-branching-basics-check>
+<label for=m-prgmsgitchapter-09-branching-basics-check><a href=/prgms/Git/Chapter-09-Branching-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-09-branching-basics><span>第9章：分支基础 —— Git 的杀手锏</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id=m-prgmsgitchapter-10-merging-branches-li><input type=checkbox id=m-prgmsgitchapter-10-merging-branches-check checked>
+<label for=m-prgmsgitchapter-10-merging-branches-check><a href=/prgms/Git/Chapter-10-Merging-Branches/ class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-10-merging-branches><span class=td-sidebar-nav-active-item>第10章：分支合并 —— 殊途同归的艺术</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-11-remote-repository-basics-li><input type=checkbox id=m-prgmsgitchapter-11-remote-repository-basics-check>
+<label for=m-prgmsgitchapter-11-remote-repository-basics-check><a href=/prgms/Git/Chapter-11-Remote-Repository-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-11-remote-repository-basics><span>第11章：远程仓库入门 —— 代码的云端家园</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-12-github-collaboration-li><input type=checkbox id=m-prgmsgitchapter-12-github-collaboration-check>
+<label for=m-prgmsgitchapter-12-github-collaboration-check><a href=/prgms/Git/Chapter-12-GitHub-Collaboration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-12-github-collaboration><span>第12章：GitHub 协作 —— 开源世界的入场券</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-13-network-optimization-li><input type=checkbox id=m-prgmsgitchapter-13-network-optimization-check>
+<label for=m-prgmsgitchapter-13-network-optimization-check><a href=/prgms/Git/Chapter-13-Network-Optimization/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-13-network-optimization><span>第13章：网络优化 —— 中国用户的必修课 ⭐</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-14-branching-strategies-li><input type=checkbox id=m-prgmsgitchapter-14-branching-strategies-check>
+<label for=m-prgmsgitchapter-14-branching-strategies-check><a href=/prgms/Git/Chapter-14-Branching-Strategies/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-14-branching-strategies><span>第14章：分支策略 —— 从混乱到有序</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-15-advanced-conflict-resolution-li><input type=checkbox id=m-prgmsgitchapter-15-advanced-conflict-resolution-check>
+<label for=m-prgmsgitchapter-15-advanced-conflict-resolution-check><a href=/prgms/Git/Chapter-15-Advanced-Conflict-Resolution/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-15-advanced-conflict-resolution><span>第15章：冲突解决进阶 —— 化干戈为玉帛</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-16-advanced-push-pull-li><input type=checkbox id=m-prgmsgitchapter-16-advanced-push-pull-check>
+<label for=m-prgmsgitchapter-16-advanced-push-pull-check><a href=/prgms/Git/Chapter-16-Advanced-Push-Pull/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-16-advanced-push-pull><span>第16章：推送与拉取进阶 —— 与远程仓库的舞蹈</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-17-pull-request-advanced-li><input type=checkbox id=m-prgmsgitchapter-17-pull-request-advanced-check>
+<label for=m-prgmsgitchapter-17-pull-request-advanced-check><a href=/prgms/Git/Chapter-17-Pull-Request-Advanced/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-17-pull-request-advanced><span>第17章：Pull Request 进阶 —— 成为开源贡献者</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-18-advanced-skills-li><input type=checkbox id=m-prgmsgitchapter-18-advanced-skills-check>
+<label for=m-prgmsgitchapter-18-advanced-skills-check><a href=/prgms/Git/Chapter-18-Advanced-Skills/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-18-advanced-skills><span>第18章：进阶技能 —— 高手的工具箱</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-19-team-collaboration-li><input type=checkbox id=m-prgmsgitchapter-19-team-collaboration-check>
+<label for=m-prgmsgitchapter-19-team-collaboration-check><a href=/prgms/Git/Chapter-19-Team-Collaboration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-19-team-collaboration><span>第19章：团队协作最佳实践 —— 别做那个被嫌弃的人</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-20-git-hooks-li><input type=checkbox id=m-prgmsgitchapter-20-git-hooks-check>
+<label for=m-prgmsgitchapter-20-git-hooks-check><a href=/prgms/Git/Chapter-20-Git-Hooks/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-20-git-hooks><span>第20章：Git 钩子与自动化 —— 让 Git 替你干活</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-21-internal-principles-li><input type=checkbox id=m-prgmsgitchapter-21-internal-principles-check>
+<label for=m-prgmsgitchapter-21-internal-principles-check><a href=/prgms/Git/Chapter-21-Internal-Principles/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-21-internal-principles><span>第21章：Git 内部原理 —— 了解黑盒子里有什么</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-22-common-scenarios-li><input type=checkbox id=m-prgmsgitchapter-22-common-scenarios-check>
+<label for=m-prgmsgitchapter-22-common-scenarios-check><a href=/prgms/Git/Chapter-22-Common-Scenarios/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-22-common-scenarios><span>第22章：常见场景实战 —— 解决真实世界的问题</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-23-troubleshooting-li><input type=checkbox id=m-prgmsgitchapter-23-troubleshooting-check>
+<label for=m-prgmsgitchapter-23-troubleshooting-check><a href=/prgms/Git/Chapter-23-Troubleshooting/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-23-troubleshooting><span>第23章：Git 故障排查 —— 当事情搞砸时</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-24-tool-integration-li><input type=checkbox id=m-prgmsgitchapter-24-tool-integration-check>
+<label for=m-prgmsgitchapter-24-tool-integration-check><a href=/prgms/Git/Chapter-24-Tool-Integration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-24-tool-integration><span>第24章：Git 与其他工具集成 —— 打造高效工作流</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-25-best-practices-summary-li><input type=checkbox id=m-prgmsgitchapter-25-best-practices-summary-check>
+<label for=m-prgmsgitchapter-25-best-practices-summary-check><a href=/prgms/Git/Chapter-25-Best-Practices-Summary/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-25-best-practices-summary><span>第25章：Git 最佳实践总结 —— 成为 Git 大师</span></a></label></li></ul></li></ul></nav></div></aside><aside class=td-sidebar-toc><div class="td-page-meta ms-2 pb-1 pt-2 mb-0"><a href=https://before80.github.io/go_docs/comm/coffee class="td-page-meta--view td-page-meta__view" style=color:#2bf518!important target=_blank rel=noopener><i class="fa-solid fa-mug-hot fa-fw"></i> 请作者喝杯咖啡吧</a>
+<a href=https://github.com/before80/prgms/tree/main/content/Git/Chapter-10-Merging-Branches.md class="td-page-meta--view td-page-meta__view" target=_blank rel=noopener><i class="fa-solid fa-file-lines fa-fw"></i> 查看页面源码</a>
+<a href=https://github.com/before80/prgms/edit/main/content/Git/Chapter-10-Merging-Branches.md class="td-page-meta--edit td-page-meta__edit" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> 编辑此页</a>
+<a href="https://github.com/before80/prgms/new/main/content/Git?filename=change-me.md&amp;value=---%0Atitle%3A+%22Long+Page+Title%22%0AlinkTitle%3A+%22Short+Nav+Title%22%0Aweight%3A+100%0Adescription%3A+%3E-%0A+++++Page+description+for+heading+and+indexes.%0A---%0A%0A%23%23+Heading%0A%0AEdit+this+template+to+create+your+new+page.%0A%0A%2A+Give+it+a+good+name%2C+ending+in+%60.md%60+-+e.g.+%60getting-started.md%60%0A%2A+Edit+the+%22front+matter%22+section+at+the+top+of+the+page+%28weight+controls+how+its+ordered+amongst+other+pages+in+the+same+directory%3B+lowest+number+first%29.%0A%2A+Add+a+good+commit+message+at+the+bottom+of+the+page+%28%3C80+characters%3B+use+the+extended+description+field+for+more+detail%29.%0A%2A+Create+a+new+branch+so+you+can+preview+your+new+file+and+request+a+review+via+Pull+Request.%0A" class="td-page-meta--child td-page-meta__child" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> 添加子页面</a>
+<a href="https://github.com/before80/prgms/issues/new?title=%e7%ac%ac10%e7%ab%a0%ef%bc%9a%e5%88%86%e6%94%af%e5%90%88%e5%b9%b6%20%e2%80%94%e2%80%94%20%e6%ae%8a%e9%80%94%e5%90%8c%e5%bd%92%e7%9a%84%e8%89%ba%e6%9c%af" class="td-page-meta--issue td-page-meta__issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> 提交文档问题</a>
+<a href=https://github.com/before80/prgms/issues/new class="td-page-meta--project td-page-meta__project-issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> 提交项目问题</a></div><div class=td-toc data-proofer-ignore><div class=td-toc-title><span class=td-toc-title__text>本页目录</span>
+<a class=td-toc-title__link title=回到顶部 href=#></a></div><nav id=TableOfContents><ul><li><a href=#第10章分支合并--殊途同归的艺术>第10章：分支合并 —— 殊途同归的艺术</a><ul><li><a href=#101-git-merge合并的艺术>10.1 <code>git merge</code>：合并的艺术</a><ul><li><a href=#合并的基本概念>合并的基本概念</a></li><li><a href=#基本用法>基本用法</a></li><li><a href=#合并提交的特点>合并提交的特点</a></li><li><a href=#合并时的提交信息>合并时的提交信息</a></li></ul></li><li><a href=#102-快进合并-vs-三方合并git-的两种策略>10.2 快进合并 vs 三方合并：Git 的两种策略</a><ul><li><a href=#快进合并fast-forward>快进合并（Fast-forward）</a></li><li><a href=#三方合并three-way-merge>三方合并（Three-way merge）</a></li><li><a href=#选择合并策略>选择合并策略</a></li></ul></li><li><a href=#103-禁止快进合并--no-ff-保留分支历史>10.3 禁止快进合并：<code>--no-ff</code> 保留分支历史</a><ul><li><a href=#为什么禁止快进>为什么禁止快进？</a></li><li><a href=#使用---no-ff>使用 <code>--no-ff</code></a></li><li><a href=#配置默认禁止快进>配置默认禁止快进</a></li><li><a href=#何时使用---no-ff>何时使用 <code>--no-ff</code></a></li><li><a href=#实际案例>实际案例</a></li></ul></li><li><a href=#104-压缩合并--squash-把多个提交变成一个>10.4 压缩合并：<code>--squash</code> 把多个提交变成一个</a><ul><li><a href=#什么是-squash-合并>什么是 Squash 合并？</a></li><li><a href=#使用---squash>使用 <code>--squash</code></a></li><li><a href=#squash-合并的特点>Squash 合并的特点</a></li><li><a href=#squash-合并-vs-普通合并>Squash 合并 vs 普通合并</a></li><li><a href=#何时使用-squash>何时使用 Squash</a></li><li><a href=#实际案例-1>实际案例</a></li></ul></li><li><a href=#105-合并冲突当两个世界碰撞>10.5 合并冲突：当两个世界碰撞</a><ul><li><a href=#冲突是如何产生的>冲突是如何产生的？</a></li><li><a href=#冲突的标志>冲突的标志</a></li><li><a href=#冲突的状态>冲突的状态</a></li></ul></li><li><a href=#106-冲突标记解读-head-是什么鬼>10.6 冲突标记解读：<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 是什么鬼？</a><ul><li><a href=#冲突标记的结构>冲突标记的结构</a></li><li><a href=#实际例子>实际例子</a></li><li><a href=#解决冲突的步骤>解决冲突的步骤</a></li><li><a href=#解决后的文件>解决后的文件</a></li></ul></li><li><a href=#107-手动解决冲突三种方式任你选>10.7 手动解决冲突：三种方式任你选</a><ul><li><a href=#方式1保留当前分支的版本>方式1：保留当前分支的版本</a></li><li><a href=#方式2保留对方分支的版本>方式2：保留对方分支的版本</a></li><li><a href=#方式3合并两个版本>方式3：合并两个版本</a></li><li><a href=#批量解决冲突>批量解决冲突</a></li></ul></li><li><a href=#108-vs-code-冲突解决图形化真香>10.8 VS Code 冲突解决：图形化真香</a><ul><li><a href=#vs-code-的冲突界面>VS Code 的冲突界面</a></li><li><a href=#操作按钮>操作按钮</a></li><li><a href=#使用步骤>使用步骤</a></li><li><a href=#其他图形化工具>其他图形化工具</a></li></ul></li><li><a href=#109-合并最佳实践避免冲突的秘诀>10.9 合并最佳实践：避免冲突的秘诀</a><ul><li><a href=#1-频繁同步>1. 频繁同步</a></li><li><a href=#2-小步提交>2. 小步提交</a></li><li><a href=#3-分工明确>3. 分工明确</a></li><li><a href=#4-使用特性开关feature-flag>4. 使用特性开关（Feature Flag）</a></li><li><a href=#5-及时删除已合并分支>5. 及时删除已合并分支</a></li><li><a href=#6-代码审查>6. 代码审查</a></li></ul></li><li><a href=#1010-合并后后悔了怎么撤销>10.10 合并后后悔了？怎么撤销？</a><ul><li><a href=#场景1还没-push>场景1：还没 push</a></li><li><a href=#场景2已经-push>场景2：已经 push</a></li><li><a href=#场景3想重新合并>场景3：想重新合并</a></li><li><a href=#场景4合并过程中想放弃>场景4：合并过程中想放弃</a></li></ul></li><li><a href=#本章小结>本章小结</a></li></ul></li></ul></nav></div></aside><main class="col-12 col-md-9 col-xl-8 ps-md-5" role=main><nav aria-label=breadcrumb class=td-breadcrumbs><ol class=breadcrumb><li class=breadcrumb-item><a href=/prgms/Git/>Git</a></li><li class="breadcrumb-item active" aria-current=page>第10章：分支合并 —— 殊途同归的艺术</li></ol></nav><div class=td-content><h1>第10章：分支合并 —— 殊途同归的艺术</h1><header class=article-meta><p class=reading-time><i class="fa-solid fa-clock" style=color:#e90 aria-hidden=true></i>&nbsp; <span style=font-size:3rem;color:#006400 id=advice-reading-time>14 </span>分钟阅读 &nbsp;</p></header><h1 id=第10章分支合并--殊途同归的艺术>第10章：分支合并 —— 殊途同归的艺术</h1><blockquote><p>分支让代码分道扬镳，合并让它们重新交汇。合并是 Git 中最重要也最复杂的操作之一——做得好，代码完美融合；做不好，冲突让人头大。本章教你成为合并大师。</p></blockquote><hr><h2 id=101-git-merge合并的艺术>10.1 <code>git merge</code>：合并的艺术</h2><p><code>git merge</code> 是 Git 中用于合并分支的命令。它将两个或多个分支的历史整合在一起，创造出新的提交。简单来说，就是把不同分支上的工作成果汇集到一起。</p><h3 id=合并的基本概念>合并的基本概念</h3><p>当两个分支从共同的起点分道扬镳，各自发展后，你可能希望将它们重新合并。这就像两条河流在下游汇合一样。</p><p>想象一下这样的场景：</p><ul><li>你和同事都从 main 分支的提交 B 开始工作</li><li>你创建了 feature 分支，做了提交 C 和 D</li><li>同事直接在 main 分支上做了提交 E</li><li>现在你想把 feature 分支的工作合并回 main</li></ul><pre tabindex=0><code>合并前：
+
+main:    A --- B --- E
+              ↑
+            起点
+              \
+               C --- D (feature)
+
+合并后：
+
+main:    A --- B --- E --- F
+              \         /
+               C --- D (feature)
+
+F 是合并提交，它有两个父提交：E 和 D
+</code></pre><p><strong>什么是合并提交（Merge Commit）？</strong></p><p>合并提交是一种特殊的提交，它有两个（或多个）父提交。普通的提交只有一个父提交（除了初始提交没有父提交），而合并提交把两条历史线连接在一起。</p><h3 id=基本用法>基本用法</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 首先，切换到目标分支（通常是 main）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 这是你想要把代码合并进来的分支</span>
+</span></span><span style=display:flex><span>git switch main
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 然后执行合并命令</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 将 feature 分支的改动合并到当前分支（main）</span>
+</span></span><span style=display:flex><span>git merge feature
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 如果没有冲突，Git 会自动创建合并提交</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 如果有冲突，Git 会提示你解决冲突后再提交</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=合并提交的特点>合并提交的特点</h3><p>合并提交有两个重要的特性：</p><ol><li><strong>多父提交</strong>：普通提交只有一个父提交，合并提交有两个或多个</li><li><strong>不修改内容</strong>：合并提交本身通常不引入新代码，只是把已有的改动整合</li></ol><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看合并提交的详细信息</span>
+</span></span><span style=display:flex><span>git log --merges --oneline
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 这会显示所有的合并提交</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 输出示例：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># a1b2c3d Merge branch &#39;feature&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># e5f6g7h Merge pull request #42</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看某个合并提交的详细信息</span>
+</span></span><span style=display:flex><span>git show 合并提交哈希
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 你会看到类似这样的输出：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># commit a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Merge: e5f6g7h b2c3d4e</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Author: 张三 &lt;zhangsan@example.com&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Date:   Mon Mar 16 10:00:00 2026 +0800</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#     Merge branch &#39;feature&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 注意 Merge: 后面有两个哈希值，这就是两个父提交</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=合并时的提交信息>合并时的提交信息</h3><p>Git 会自动生成合并提交的提交信息，通常是 &ldquo;Merge branch &lsquo;feature-name&rsquo;"。你可以修改这个信息：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 使用 --edit 选项修改提交信息</span>
+</span></span><span style=display:flex><span>git merge --edit feature
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 或者直接使用 --message 指定</span>
+</span></span><span style=display:flex><span>git merge --message <span style=color:#63c381>&#34;合并用户登录功能&#34;</span> feature
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 如果不想编辑，使用 --no-edit</span>
+</span></span><span style=display:flex><span>git merge --no-edit feature
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=102-快进合并-vs-三方合并git-的两种策略>10.2 快进合并 vs 三方合并：Git 的两种策略</h2><p>Git 有两种合并策略：快进合并（Fast-forward）和三方合并（Three-way merge）。理解它们的区别，能帮助你更好地控制项目历史。</p><h3 id=快进合并fast-forward>快进合并（Fast-forward）</h3><p>当目标分支没有新的提交时，Git 可以直接"快进"指针，不需要创建新的合并提交。</p><p>想象一下：你创建 feature 分支后，main 分支没有任何改动。这时候 feature 分支就是 main 分支的"快进"版本。</p><pre tabindex=0><code>快进合并前：
+
+A --- B (main)
+      \
+       C --- D (feature)
+
+快进合并后：
+
+A --- B --- C --- D (main, feature)
+
+main 指针直接移动到 D，没有创建新的合并提交
+整个历史看起来就是一条直线
+</code></pre><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 执行快进合并</span>
+</span></span><span style=display:flex><span>git switch main
+</span></span><span style=display:flex><span>git merge feature
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 输出：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Updating a1b2c3d..e5f6g7h</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Fast-forward</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#  src/feature.js | 10 ++++++++++</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#  1 file changed, 10 insertions(+)</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>快进合并的特点：</strong></p><ul><li>不产生新的合并提交</li><li>历史记录保持线性，看起来就像直接在 main 上开发</li><li>操作简单，历史干净</li></ul><p><strong>快进合并的缺点：</strong></p><ul><li>看不出曾经用过 feature 分支</li><li>如果 feature 分支有很多小提交，main 历史会变得很乱</li></ul><h3 id=三方合并three-way-merge>三方合并（Three-way merge）</h3><p>当两个分支都有新的提交时，Git 需要创建一个新的合并提交来整合两条历史线。</p><pre tabindex=0><code>三方合并前：
+
+main:    A --- B --- C
+              ↑
+            共同祖先
+              \
+               D --- E (feature)
+
+三方合并后：
+
+main:    A --- B --- C --- F
+              \         /
+               D --- E (feature)
+
+F 是新的合并提交，有两个父提交：C 和 E
+</code></pre><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 执行三方合并</span>
+</span></span><span style=display:flex><span>git switch main
+</span></span><span style=display:flex><span>git merge feature
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 输出：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Merge made by the &#39;ort&#39; strategy.</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#  src/feature.js | 10 ++++++++++</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#  src/utils.js   |  5 +++++</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#  2 files changed, 15 insertions(+)</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>三方合并的特点：</strong></p><ul><li>创建新的合并提交</li><li>保留完整的分支历史</li><li>清楚地显示分支合并点</li></ul><p><strong>三方合并的缺点：</strong></p><ul><li>历史图变得复杂（有分叉和合并）</li><li>合并提交可能被认为"污染"历史</li></ul><h3 id=选择合并策略>选择合并策略</h3><table><thead><tr><th>策略</th><th>适用场景</th><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>Fast-forward</td><td>简单功能开发、个人项目</td><td>历史简洁、没有多余的合并提交</td><td>看不出曾用分支</td></tr><tr><td>Three-way</td><td>复杂功能开发、团队协作</td><td>保留完整历史、清晰显示合并点</td><td>历史图复杂</td></tr></tbody></table><p><strong>建议：</strong></p><ul><li>个人项目或简单改动：使用快进合并</li><li>团队协作或复杂功能：使用三方合并，保留历史</li></ul><hr><h2 id=103-禁止快进合并--no-ff-保留分支历史>10.3 禁止快进合并：<code>--no-ff</code> 保留分支历史</h2><p>有时候，即使可以快进合并，你也想保留分支信息。这时候 <code>--no-ff</code> 参数就派上用场了。</p><h3 id=为什么禁止快进>为什么禁止快进？</h3><p>快进合并虽然简洁，但会丢失分支信息：</p><pre tabindex=0><code>快进合并后：
+
+A --- B --- C --- D --- E --- F (main)
+
+看起来就像直接在 main 上开发的，
+根本不知道曾经有个 feature 分支，
+也看不出什么时候合并的
+
+禁止快进合并后：
+
+A --- B --------- F (main)
+      \         /
+       C --- D (feature)
+
+清楚地看到：
+1. feature 分支的存在
+2. 从 B 点开始开发
+3. 在 F 点合并回 main
+</code></pre><h3 id=使用---no-ff>使用 <code>--no-ff</code></h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 禁止快进合并，强制创建合并提交</span>
+</span></span><span style=display:flex><span>git switch main
+</span></span><span style=display:flex><span>git merge --no-ff feature
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 这会强制创建合并提交，即使可以快进</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 输出：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Merge made by the &#39;ort&#39; strategy.</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># (no-ff)</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=配置默认禁止快进>配置默认禁止快进</h3><p>如果你希望默认禁止快进合并，可以配置 Git：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 全局配置，所有仓库生效</span>
+</span></span><span style=display:flex><span>git config --global merge.ff <span style=color:#e5c07b>false</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 或者只针对特定分支</span>
+</span></span><span style=display:flex><span>git config branch.main.mergeoptions <span style=color:#63c381>&#34;--no-ff&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 之后执行 git merge 就会自动使用 --no-ff</span>
+</span></span><span style=display:flex><span>git merge feature
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 会自动创建合并提交</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=何时使用---no-ff>何时使用 <code>--no-ff</code></h3><p><strong>推荐使用 <code>--no-ff</code> 的场景：</strong></p><ul><li>功能分支合并到 main：保留功能开发的历史</li><li>发布分支合并：标记发布点</li><li>任何你想保留分支历史的场景</li></ul><p><strong>不推荐使用 <code>--no-ff</code> 的场景：</strong></p><ul><li>个人临时分支：没必要保留</li><li>简单的快速修复：保持历史简洁</li><li>历史已经够复杂了：不要再添加合并提交</li></ul><h3 id=实际案例>实际案例</h3><p>假设你开发了一个用户登录功能：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 创建功能分支</span>
+</span></span><span style=display:flex><span>git switch -c feature/user-login
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 开发过程中有多个提交</span>
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;feat: add login form&#34;</span>
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;feat: add login validation&#34;</span>
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;feat: add login API integration&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 完成后合并到 main</span>
+</span></span><span style=display:flex><span>git switch main
+</span></span><span style=display:flex><span>git merge --no-ff feature/user-login -m <span style=color:#63c381>&#34;merge: add user login feature&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 现在历史清楚地显示：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 有一个 feature/user-login 分支</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 包含 3 个提交</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 合并到了 main</span>
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=104-压缩合并--squash-把多个提交变成一个>10.4 压缩合并：<code>--squash</code> 把多个提交变成一个</h2><p>有时候，功能分支有很多"半成品"提交，合并到 main 时你想把它们压缩成一个干净的提交。这就是 <code>--squash</code> 的用武之地。</p><h3 id=什么是-squash-合并>什么是 Squash 合并？</h3><p>Squash 合并会把分支上的所有提交"压缩"成一个提交，然后合并到目标分支。</p><p>想象一下：你在 feature 分支上开发了 5 天，每天都有提交：</p><pre tabindex=0><code>feature 分支历史：
+
+A --- B --- C (main)
+      \
+       D --- E --- F --- G --- H (feature)
+       ↑     ↑     ↑     ↑     ↑
+     开始   WIP   修复  优化  完成
+
+这些提交信息可能是：
+- D: &#34;开始开发&#34;
+- E: &#34;WIP: 添加登录表单&#34;
+- F: &#34;修复表单验证&#34;
+- G: &#34;优化样式&#34;
+- H: &#34;完成登录功能&#34;
+
+Squash 合并后：
+
+main:    A --- B --- C --- I
+              \               /
+               D --- E --- F --- G --- H (feature，可删除)
+
+I 是一个提交，包含了 D、E、F、G、H 的所有改动
+提交信息可能是：&#34;feat: add user login functionality&#34;
+
+feature 分支的历史被&#34;压缩&#34;了，main 分支只有一个干净的提交
+</code></pre><h3 id=使用---squash>使用 <code>--squash</code></h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">27
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 切换到目标分支</span>
+</span></span><span style=display:flex><span>git switch main
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 执行 squash 合并</span>
+</span></span><span style=display:flex><span>git merge --squash feature
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 这会应用所有改动到工作区，但不会自动提交</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 你会看到类似这样的输出：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Squash commit -- not updating HEAD</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Automatic merge went well; stopped before committing as requested</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看状态</span>
+</span></span><span style=display:flex><span>git status
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Changes to be committed:</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#   modified:   src/login.js</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#   modified:   src/auth.js</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#   new file:   src/utils.js</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 所有改动都已暂存，等待提交</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 手动提交，写一个清晰的提交信息</span>
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;feat: add user login functionality
+</span></span></span><span style=display:flex><span><span style=color:#63c381>
+</span></span></span><span style=display:flex><span><span style=color:#63c381>- Add login form component
+</span></span></span><span style=display:flex><span><span style=color:#63c381>- Add form validation
+</span></span></span><span style=display:flex><span><span style=color:#63c381>- Integrate with authentication API
+</span></span></span><span style=display:flex><span><span style=color:#63c381>- Add unit tests&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=squash-合并的特点>Squash 合并的特点</h3><ol><li><strong>不产生合并提交</strong>：历史保持线性</li><li><strong>丢失分支历史</strong>：feature 分支的提交历史不会保留在 main</li><li><strong>改动合并</strong>：所有改动压缩成一个提交</li><li><strong>需要手动提交</strong>：Git 不会自动创建提交，让你有机会写好的提交信息</li></ol><h3 id=squash-合并-vs-普通合并>Squash 合并 vs 普通合并</h3><table><thead><tr><th>特性</th><th>普通合并</th><th>Squash 合并</th></tr></thead><tbody><tr><td>合并提交</td><td>有</td><td>无</td></tr><tr><td>分支历史</td><td>保留</td><td>丢失</td></tr><tr><td>提交数量</td><td>多个</td><td>一个</td></tr><tr><td>历史图</td><td>有分叉</td><td>线性</td></tr></tbody></table><h3 id=何时使用-squash>何时使用 Squash</h3><p><strong>推荐使用 Squash：</strong></p><ul><li>功能分支有很多"WIP&rdquo;（进行中）提交</li><li>想保持 main 分支历史简洁</li><li>功能开发过程中提交很乱（&ldquo;fix&rdquo;、&ldquo;update&rdquo;、&ldquo;WIP&rdquo;）</li><li>不想暴露开发过程中的试错历史</li></ul><p><strong>不推荐使用 Squash：</strong></p><ul><li>想保留详细的开发历史</li><li>需要回溯功能开发过程</li><li>团队协作需要完整历史（调试时需要）</li><li>法规要求保留完整开发记录</li></ul><h3 id=实际案例-1>实际案例</h3><p>假设你开发一个功能，过程中有很多小提交：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># feature 分支的提交历史</span>
+</span></span><span style=display:flex><span>git log --oneline
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># a1b2c3d WIP: add login</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># b2c3d4e fix: validation bug</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># c3d4e5f update: styles</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># d4e5f6g fix: another bug</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># e5f6g7h refactor: cleanup</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># f6g7h8i feat: complete login</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 这些提交信息很乱，不想污染 main 分支</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 使用 squash 合并</span>
+</span></span><span style=display:flex><span>git switch main
+</span></span><span style=display:flex><span>git merge --squash feature-login
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;feat: implement user login
+</span></span></span><span style=display:flex><span><span style=color:#63c381>
+</span></span></span><span style=display:flex><span><span style=color:#63c381>- Add login form with email/password fields
+</span></span></span><span style=display:flex><span><span style=color:#63c381>- Implement client-side validation
+</span></span></span><span style=display:flex><span><span style=color:#63c381>- Integrate with backend authentication API
+</span></span></span><span style=display:flex><span><span style=color:#63c381>- Add error handling and user feedback
+</span></span></span><span style=display:flex><span><span style=color:#63c381>- Include comprehensive unit tests&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># main 分支只有一个干净的提交</span>
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=105-合并冲突当两个世界碰撞>10.5 合并冲突：当两个世界碰撞</h2><p>合并冲突是 Git 中最让人头疼的问题。当两个分支修改了同一个文件的同一部分，Git 无法自动决定用哪个版本，就会产生冲突。</p><h3 id=冲突是如何产生的>冲突是如何产生的？</h3><p>想象这样一个场景：</p><pre tabindex=0><code>main 分支修改了 file.txt 的第 10 行：
+A --- B --- C (main)
+      修改第10行：console.log(&#34;Hello, World!&#34;);
+
+feature 分支也修改了 file.txt 的第 10 行：
+A --- B --- D (feature)
+      修改第10行：console.log(&#34;Hi, Universe!&#34;);
+
+合并时：
+Git：&#34;第10行到底用哪个版本？
+      main 分支说是 &#39;Hello, World!&#39;，
+      feature 分支说是 &#39;Hi, Universe!&#39;，
+      我不知道该听谁的！&#34;
+
+结果：冲突！
+</code></pre><h3 id=冲突的标志>冲突的标志</h3><p>当发生冲突时，Git 会明确告诉你：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>git merge feature
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Auto-merging file.txt</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># CONFLICT (content): Merge conflict in file.txt</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Automatic merge failed; fix conflicts and then commit the result.</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=冲突的状态>冲突的状态</h3><p>发生冲突后，Git 会进入"未合并"状态：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看冲突状态</span>
+</span></span><span style=display:flex><span>git status
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># You have unmerged paths.</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#   (fix conflicts and run &#34;git commit&#34;)</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#   (use &#34;git merge --abort&#34; to abort the merge)</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Unmerged paths:</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#   (use &#34;git add &lt;file&gt;...&#34; to mark resolution)</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#       both modified:   file.txt</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># no changes added to commit (use &#34;git add&#34; and/or &#34;git commit -a&#34;)</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>状态解读：</strong></p><ul><li>&ldquo;Unmerged paths&rdquo;：有未合并的文件</li><li>&ldquo;both modified: file.txt&rdquo;：file.txt 在两个分支都被修改了</li><li>需要解决冲突后执行 <code>git add</code> 标记为已解决</li></ul><hr><h2 id=106-冲突标记解读-head-是什么鬼>10.6 冲突标记解读：<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 是什么鬼？</h2><p>冲突标记看起来吓人，其实很好理解。一旦掌握规律，解决冲突就是小菜一碟。</p><h3 id=冲突标记的结构>冲突标记的结构</h3><p>当 Git 无法自动合并时，它会在文件中插入特殊的标记，把冲突内容展示给你：</p><pre tabindex=0><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+当前分支（你所在分支）的内容
+=======
+被合并分支的内容
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; branch-name
+</code></pre><p><strong>各部分含义：</strong></p><ul><li><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code>：当前分支内容的开始标记</li><li><code>=======</code>：分隔线，上面是当前分支，下面是对方分支</li><li><code>>>>>>>> branch-name</code>：对方分支内容的结束标记</li></ul><h3 id=实际例子>实际例子</h3><p>假设你在合并 feature 分支时发生冲突：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>// file.js 在 main 分支被改成：
+</span></span></span><span style=display:flex><span><span style=color:#76a9f9>function</span> <span style=color:#aa89ea>greet</span><span style=color:#abb2bf>()</span> <span style=color:#abb2bf>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#aa89ea>console</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>log</span><span style=color:#abb2bf>(</span><span style=color:#63c381>&#34;Hello, World!&#34;</span><span style=color:#abb2bf>);</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>// file.js 在 feature 分支被改成：
+</span></span></span><span style=display:flex><span><span style=color:#76a9f9>function</span> <span style=color:#aa89ea>greet</span><span style=color:#abb2bf>()</span> <span style=color:#abb2bf>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#aa89ea>console</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>log</span><span style=color:#abb2bf>(</span><span style=color:#63c381>&#34;Hi, Universe!&#34;</span><span style=color:#abb2bf>);</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>// 合并后的冲突文件：
+</span></span></span><span style=display:flex><span><span style=color:#76a9f9>function</span> <span style=color:#aa89ea>greet</span><span style=color:#abb2bf>()</span> <span style=color:#abb2bf>{</span>
+</span></span><span style=display:flex><span><span style=color:#54b1c7>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span> <span style=color:#aa89ea>HEAD</span>
+</span></span><span style=display:flex><span>    <span style=color:#aa89ea>console</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>log</span><span style=color:#abb2bf>(</span><span style=color:#63c381>&#34;Hello, World!&#34;</span><span style=color:#abb2bf>);</span>
+</span></span><span style=display:flex><span><span style=color:#54b1c7>=======</span>
+</span></span><span style=display:flex><span>    <span style=color:#aa89ea>console</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>log</span><span style=color:#abb2bf>(</span><span style=color:#63c381>&#34;Hi, Universe!&#34;</span><span style=color:#abb2bf>);</span>
+</span></span><span style=display:flex><span><span style=color:#54b1c7>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</span> <span style=color:#aa89ea>feature</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>}</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>解读：</strong></p><ul><li><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 到 <code>=======</code> 之间：是 main 分支的内容</li><li><code>=======</code> 到 <code>>>>>>>> feature</code> 之间：是 feature 分支的内容</li><li>你需要决定保留哪个，或者合并两个版本</li></ul><h3 id=解决冲突的步骤>解决冲突的步骤</h3><ol><li><strong>打开冲突文件</strong>，找到冲突标记</li><li><strong>决定保留哪个版本</strong>，或者合并两个版本</li><li><strong>删除冲突标记</strong>（<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>、<code>=======</code>、<code>>>>>>>></code>）</li><li><strong>保存文件</strong></li><li><strong>标记为已解决</strong>：<code>git add file.js</code></li><li><strong>完成合并</strong>：<code>git commit</code></li></ol><h3 id=解决后的文件>解决后的文件</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>// 选择保留 main 分支的版本：
+</span></span></span><span style=display:flex><span><span style=color:#76a9f9>function</span> <span style=color:#aa89ea>greet</span><span style=color:#abb2bf>()</span> <span style=color:#abb2bf>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#aa89ea>console</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>log</span><span style=color:#abb2bf>(</span><span style=color:#63c381>&#34;Hello, World!&#34;</span><span style=color:#abb2bf>);</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>// 或者选择保留 feature 分支的版本：
+</span></span></span><span style=display:flex><span><span style=color:#76a9f9>function</span> <span style=color:#aa89ea>greet</span><span style=color:#abb2bf>()</span> <span style=color:#abb2bf>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#aa89ea>console</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>log</span><span style=color:#abb2bf>(</span><span style=color:#63c381>&#34;Hi, Universe!&#34;</span><span style=color:#abb2bf>);</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>// 或者合并两个版本：
+</span></span></span><span style=display:flex><span><span style=color:#76a9f9>function</span> <span style=color:#aa89ea>greet</span><span style=color:#abb2bf>(</span><span style=color:#aa89ea>name</span><span style=color:#abb2bf>)</span> <span style=color:#abb2bf>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#76a9f9>if</span> <span style=color:#abb2bf>(</span><span style=color:#aa89ea>name</span><span style=color:#abb2bf>)</span> <span style=color:#abb2bf>{</span>
+</span></span><span style=display:flex><span>        <span style=color:#aa89ea>console</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>log</span><span style=color:#abb2bf>(</span><span style=color:#98c379>`Hello, </span><span style=color:#98c379>${</span><span style=color:#aa89ea>name</span><span style=color:#98c379>}</span><span style=color:#98c379>!`</span><span style=color:#abb2bf>);</span>
+</span></span><span style=display:flex><span>    <span style=color:#abb2bf>}</span> <span style=color:#76a9f9>else</span> <span style=color:#abb2bf>{</span>
+</span></span><span style=display:flex><span>        <span style=color:#aa89ea>console</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>log</span><span style=color:#abb2bf>(</span><span style=color:#63c381>&#34;Hello, World!&#34;</span><span style=color:#abb2bf>);</span>
+</span></span><span style=display:flex><span>    <span style=color:#abb2bf>}</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>}</span>
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=107-手动解决冲突三种方式任你选>10.7 手动解决冲突：三种方式任你选</h2><p>解决冲突有三种基本策略：保留当前、保留对方、合并双方。选择哪种取决于具体情况。</p><h3 id=方式1保留当前分支的版本>方式1：保留当前分支的版本</h3><p>如果你确定当前分支的版本是正确的：</p><pre tabindex=0><code>冲突前：
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+当前版本
+=======
+对方版本
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature
+
+解决后（保留当前）：
+当前版本
+</code></pre><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 使用 Git 的命令行工具保留当前版本</span>
+</span></span><span style=display:flex><span>git checkout --ours file.txt
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># --ours 表示保留当前分支（HEAD）的版本</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 标记为已解决</span>
+</span></span><span style=display:flex><span>git add file.txt
+</span></span></code></pre></td></tr></table></div></div><p><strong>适用场景：</strong></p><ul><li>你确定当前分支的版本是正确的</li><li>对方的改动是过时的</li><li>对方的改动与当前改动冲突，但当前改动更重要</li></ul><h3 id=方式2保留对方分支的版本>方式2：保留对方分支的版本</h3><p>如果你确定对方分支的版本更好：</p><pre tabindex=0><code>冲突前：
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+当前版本
+=======
+对方版本
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature
+
+解决后（保留对方）：
+对方版本
+</code></pre><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 使用 Git 的命令行工具保留对方版本</span>
+</span></span><span style=display:flex><span>git checkout --theirs file.txt
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># --theirs 表示保留被合并分支的版本</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 标记为已解决</span>
+</span></span><span style=display:flex><span>git add file.txt
+</span></span></code></pre></td></tr></table></div></div><p><strong>适用场景：</strong></p><ul><li>对方分支的版本是更新的</li><li>当前分支的版本是过时的</li><li>对方修复了某个问题，你没有</li></ul><h3 id=方式3合并两个版本>方式3：合并两个版本</h3><p>有时候，两个版本都有价值，需要合并：</p><pre tabindex=0><code>冲突前：
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+function calculate(a, b) {
+    return a + b;
+}
+=======
+function calculate(x, y) {
+    return x * y;
+}
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature
+
+解决后（合并两个功能）：
+function calculate(a, b, operation = &#39;add&#39;) {
+    if (operation === &#39;add&#39;) {
+        return a + b;
+    } else if (operation === &#39;multiply&#39;) {
+        return a * b;
+    }
+}
+</code></pre><p><strong>适用场景：</strong></p><ul><li>两个版本都实现了有用的功能</li><li>可以整合两个版本的优点</li><li>删除任何一个都会导致功能丢失</li></ul><h3 id=批量解决冲突>批量解决冲突</h3><p>如果有多个文件的冲突，你想统一处理：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 保留所有&#34;我们的&#34;版本</span>
+</span></span><span style=display:flex><span>git checkout --ours .
+</span></span><span style=display:flex><span>git add .
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 保留所有&#34;他们的&#34;版本</span>
+</span></span><span style=display:flex><span>git checkout --theirs .
+</span></span><span style=display:flex><span>git add .
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># ⚠️ 警告：批量操作要小心，确保你知道自己在做什么！</span>
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=108-vs-code-冲突解决图形化真香>10.8 VS Code 冲突解决：图形化真香</h2><p>手动编辑冲突文件容易出错，VS Code 提供了图形化的冲突解决工具，让解决冲突变得轻松愉快。</p><h3 id=vs-code-的冲突界面>VS Code 的冲突界面</h3><p>当打开冲突文件时，VS Code 会显示友好的界面：</p><pre tabindex=0><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD (Current Change)
+当前分支的内容
+=======
+Incoming Change
+对方分支的内容
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature
+
+[Accept Current Change] [Accept Incoming Change] [Accept Both Changes] [Compare Changes]
+</code></pre><h3 id=操作按钮>操作按钮</h3><ul><li><strong>Accept Current Change</strong>：保留当前分支的版本</li><li><strong>Accept Incoming Change</strong>：保留对方分支的版本</li><li><strong>Accept Both Changes</strong>：保留两个版本（当前在前，对方在后）</li><li><strong>Compare Changes</strong>：对比两个版本的差异</li></ul><h3 id=使用步骤>使用步骤</h3><ol><li>打开冲突文件</li><li>点击相应的按钮选择解决方案</li><li>保存文件</li><li>在终端执行 <code>git add .</code></li><li>执行 <code>git commit</code> 完成合并</li></ol><h3 id=其他图形化工具>其他图形化工具</h3><table><thead><tr><th>工具</th><th>平台</th><th>特点</th></tr></thead><tbody><tr><td>VS Code</td><td>跨平台</td><td>内置，免费，功能强大</td></tr><tr><td>SourceTree</td><td>Win/Mac</td><td>可视化分支图，操作简单</td></tr><tr><td>GitKraken</td><td>跨平台</td><td>漂亮的界面，功能丰富</td></tr><tr><td>IntelliJ IDEA</td><td>跨平台</td><td>强大的 IDE 集成</td></tr><tr><td>Beyond Compare</td><td>Win/Mac</td><td>专业的对比工具，功能强大</td></tr></tbody></table><hr><h2 id=109-合并最佳实践避免冲突的秘诀>10.9 合并最佳实践：避免冲突的秘诀</h2><p>冲突虽然可以解决，但最好避免。以下是一些最佳实践，帮助你减少冲突的发生。</p><h3 id=1-频繁同步>1. 频繁同步</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 每天开始工作前，先拉取最新代码</span>
+</span></span><span style=display:flex><span>git switch main
+</span></span><span style=display:flex><span>git pull origin main
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 开发过程中，每隔几小时同步一次</span>
+</span></span><span style=display:flex><span>git pull origin main
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 推送前，先拉取更新</span>
+</span></span><span style=display:flex><span>git pull origin main
+</span></span><span style=display:flex><span>git push origin feature
+</span></span></code></pre></td></tr></table></div></div><p><strong>为什么有效：</strong></p><ul><li>减少与主分支的差异</li><li>及早发现和解决冲突</li><li>避免最后合并时的"大爆炸"</li></ul><h3 id=2-小步提交>2. 小步提交</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 不好的做法：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 开发一周，修改了 50 个文件，一次性合并</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 结果：大量冲突，难以解决</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 好的做法：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 每天提交，小步前进</span>
+</span></span><span style=display:flex><span>git add .
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;feat: progress on feature X&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 改动小，冲突少，容易解决</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=3-分工明确>3. 分工明确</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 避免多人同时修改同一个文件</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 如果必须修改，提前沟通</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 好的分工：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 张三：负责用户模块</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 李四：负责订单模块</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 王五：负责支付模块</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=4-使用特性开关feature-flag>4. 使用特性开关（Feature Flag）</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>// 而不是用分支开发长周期功能
+</span></span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>// 使用特性开关控制功能是否可用
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#76a9f9>if</span> <span style=color:#abb2bf>(</span><span style=color:#aa89ea>featureFlags</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>newFeature</span><span style=color:#abb2bf>)</span> <span style=color:#abb2bf>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#8a93a5;font-style:italic>// 新功能代码
+</span></span></span><span style=display:flex><span>    <span style=color:#aa89ea>showNewFeature</span><span style=color:#abb2bf>();</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>}</span> <span style=color:#76a9f9>else</span> <span style=color:#abb2bf>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#8a93a5;font-style:italic>// 旧代码
+</span></span></span><span style=display:flex><span>    <span style=color:#aa89ea>showOldFeature</span><span style=color:#abb2bf>();</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>}</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>// 这样可以在 main 分支上开发，
+</span></span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>// 通过开关控制功能是否对用户可见
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=5-及时删除已合并分支>5. 及时删除已合并分支</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 减少分支数量，降低合并复杂度</span>
+</span></span><span style=display:flex><span>git branch -d feature-x
+</span></span><span style=display:flex><span>git push origin --delete feature-x
+</span></span></code></pre></td></tr></table></div></div><h3 id=6-代码审查>6. 代码审查</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 通过 Pull Request 合并</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 让其他人帮忙检查潜在的冲突</span>
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=1010-合并后后悔了怎么撤销>10.10 合并后后悔了？怎么撤销？</h2><p>合并后发现有问题？别担心，可以撤销。</p><h3 id=场景1还没-push>场景1：还没 push</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 如果合并提交还没 push，直接 reset</span>
+</span></span><span style=display:flex><span>git reset --hard HEAD~1
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 这会回到合并前的状态</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 就像合并从未发生过</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 或者保留改动，撤销合并提交</span>
+</span></span><span style=display:flex><span>git reset --soft HEAD~1
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 改动会保留在暂存区</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=场景2已经-push>场景2：已经 push</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 使用 revert 撤销合并</span>
+</span></span><span style=display:flex><span>git revert -m <span style=color:#d19a66>1</span> HEAD
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># -m 1 表示保留第一个父提交（main）的改动</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 撤销第二个父提交（feature）引入的改动</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 这会创建一个新的提交，抵消合并的影响</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=场景3想重新合并>场景3：想重新合并</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 撤销合并提交</span>
+</span></span><span style=display:flex><span>git revert -m <span style=color:#d19a66>1</span> HEAD
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 修复 feature 分支的问题</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># ...</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 重新合并</span>
+</span></span><span style=display:flex><span>git merge feature
+</span></span></code></pre></td></tr></table></div></div><h3 id=场景4合并过程中想放弃>场景4：合并过程中想放弃</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 合并过程中遇到太多冲突，想放弃</span>
+</span></span><span style=display:flex><span>git merge --abort
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 这会回到合并前的状态</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 所有改动保持原样</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 注意：只能在合并过程中使用</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 如果合并已经完成，不能用这个命令</span>
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=本章小结>本章小结</h2><p>本章我们学习了分支合并的各种知识：</p><table><thead><tr><th>主题</th><th>要点</th></tr></thead><tbody><tr><td><code>git merge</code></td><td>合并分支的基本命令</td></tr><tr><td>快进合并</td><td>不产生合并提交，历史线性</td></tr><tr><td>三方合并</td><td>创建合并提交，保留分支历史</td></tr><tr><td><code>--no-ff</code></td><td>强制创建合并提交</td></tr><tr><td><code>--squash</code></td><td>压缩多个提交为一个</td></tr><tr><td>冲突解决</td><td>手动编辑或使用图形化工具</td></tr><tr><td>最佳实践</td><td>频繁同步、小步提交、分工明确</td></tr></tbody></table><p><strong>关键要点：</strong></p><ol><li>快进合适合简单场景，三方合并保留完整历史</li><li><code>--no-ff</code> 可以强制保留分支信息</li><li><code>--squash</code> 可以保持主分支历史简洁</li><li>冲突不可怕，理解冲突标记的结构就能解决</li><li>预防胜于治疗：频繁同步、小步提交</li></ol><p><strong>记忆口诀：</strong></p><ul><li>简单合并 → 快进</li><li>保留历史 → <code>--no-ff</code></li><li>历史简洁 → <code>--squash</code></li><li>有冲突 → 找 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code></li></ul><p><strong>练习建议：</strong></p><ol><li>创建两个分支，故意制造冲突并解决</li><li>尝试快进合并、三方合并、Squash 合并</li><li>使用 VS Code 的冲突解决工具</li></ol><p>下一章，我们将进入远程仓库的世界！</p><div class=td-page-meta__lastmod>最后修改 April 3, 2026: <a data-proofer-ignore href=https://github.com/before80/prgms/commit/c56c0386e5a114d3730cdad6de5733167a7bc638>新增 git 教程 (c56c038)</a></div></div></main></div></div><footer class="td-footer row d-print-none"><div class=container-fluid><div class="row mx-md-2"><div class="td-footer__left col-6 col-sm-4 order-sm-1"><ul class=td-footer__links-list><li class=td-footer__links-item data-bs-toggle=tooltip title="User mailing list" aria-label="User mailing list"><a target=_blank rel=noopener href=https://example.org/mail aria-label="User mailing list"><i class="fa fa-envelope"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title=Twitter aria-label=Twitter><a target=_blank rel=noopener href=https://example.org/twitter aria-label=Twitter><i class="fab fa-twitter"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title="Stack Overflow" aria-label="Stack Overflow"><a target=_blank rel=noopener href=https://example.org/stack aria-label="Stack Overflow"><i class="fab fa-stack-overflow"></i></a></li></ul></div><div class="td-footer__right col-6 col-sm-4 order-sm-3"><ul class=td-footer__links-list><li class=td-footer__links-item data-bs-toggle=tooltip title=GitHub aria-label=GitHub><a target=_blank rel=noopener href=https://github.com/before80/prgms aria-label=GitHub><i class="fab fa-github"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title=Slack aria-label=Slack><a target=_blank rel=noopener href=https://example.org/slack aria-label=Slack><i class="fab fa-slack"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title="Developer mailing list" aria-label="Developer mailing list"><a target=_blank rel=noopener href=https://example.org/mail aria-label="Developer mailing list"><i class="fa fa-envelope"></i></a></li></ul></div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2"><span class=td-footer__copyright>&copy;
+2026
+<span class=td-footer__authors>作者zlongx</span></span><span class=td-footer__all_rights_reserved>保留所有权利</span><span class=ms-2><a href=https://policies.google.com/privacy target=_blank rel=noopener>隐私政策</a></span></div></div></div></footer></div><style>.markmap>svg{width:100%;height:300px}</style><script>window.markmap={autoLoader:{manual:!0,onReady(){const{autoLoader:e,builtInPlugins:t}=window.markmap;e.transformPlugins=t.filter(e=>e.name!=="prism")}}}</script><script src=https://unpkg.com/markmap-autoloader@latest></script><script src=/prgms/js/main.min.2358e7822956705373a61d2fdc0068abdf87f2c76a23be412ddf2546cbe54a97.js integrity="sha256-I1jngilWcFNzph0v3ABoq9+H8sdqI75BLd8lRsvlSpc=" crossorigin=anonymous></script><script defer src=/prgms/js/click-to-copy.min.14c7dd84004258325d147b971421f1d4dfd3f28500954f32ef71d1cfd0938f51.js integrity="sha256-FMfdhABCWDJdFHuXFCHx1N/T8oUAlU8y73HRz9CTj1E=" crossorigin=anonymous></script><script src=https://unpkg.com/@docsearch/js@3.8.2/dist/umd/index.js integrity="sha512-lsD+XVzdBI6ZquXc8gqbw0/bgrfIsMJwY/8xvmvbN+U3gZSeG7BXQoCq4zv/yCmntR2GLHtgB+bD4ESPsKIbIA==" crossorigin=anonymous></script><script type=text/javascript>const containers=["#docsearch-0","#docsearch-1"];for(let e of containers)docsearch({container:e,appId:"DV76UK9EIH",apiKey:"227dec0ac6cbc8dfad748f27b2974507",indexName:"go-"})</script><script src=/prgms/js/tabpane-persist.js></script><script src=/go_docs/js/tocbot.min.js></script><script src=/go_docs/js/markmap-autoloader.js></script><script type=text/javascript>window.addEventListener("load",function(){tocbot.init({tocSelector:".td-toc",contentSelector:".td-content",headingSelector:"h2, h3, h4, h5, h6",ignoreHiddenElements:!0,collapseDepth:6});let t=0,e=0,n=document.getElementById("show-timer"),s=document.getElementById("advice-reading-time"),o=s.textContent.trim();function i(){e++,e>=60&&(e=0,t++);let i=e<10?"0"+e:e;s!==null?n.textContent=t+":"+i+" <- "+o:n.textContent=t+":"+i}setInterval(i,1e3)})</script><script src=/go_docs/js/jquery-3.6.3.min.js></script><script src=/go_docs/js/deal-zero-width-space.js></script><script src=/go_docs/js/tabpane-persist.js></script></body></html>

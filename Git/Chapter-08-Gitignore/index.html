@@ -1,0 +1,814 @@
+<!doctype html><html itemscope itemtype=http://schema.org/WebPage lang=zh-cn class=no-js data-theme-init><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=color-scheme content="light dark"><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#000000"><style>html{background:Canvas;color:CanvasText}@media(prefers-color-scheme:dark){html{background:#0b0d12;color:#e6e6e6}}html[data-theme-init] *{transition:none!important}</style><script>(function(){const t="td-color-theme",n=localStorage.getItem(t);let e=n||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");e==="auto"&&(e=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),document.documentElement.setAttribute("data-bs-theme",e)})()</script><meta name=robots content="index, follow"><link rel="shortcut icon" href=/prgms/favicons/favicon.ico><link rel=apple-touch-icon href=/prgms/favicons/apple-touch-icon-180x180.png sizes=180x180><link rel=icon type=image/png href=/prgms/favicons/favicon-16x16.png sizes=16x16><link rel=icon type=image/png href=/prgms/favicons/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=/prgms/favicons/android-36x36.png sizes=36x36><link rel=icon type=image/png href=/prgms/favicons/android-48x48.png sizes=48x48><link rel=icon type=image/png href=/prgms/favicons/android-72x72.png sizes=72x72><link rel=icon type=image/png href=/prgms/favicons/android-96x96.png sizes=96x96><link rel=icon type=image/png href=/prgms/favicons/android-144x144.png sizes=144x144><link rel=icon type=image/png href=/prgms/favicons/android-192x192.png sizes=192x192><title>第8章：.gitignore —— 眼不见心不烦 | 编程那些事儿</title><meta name=description content='第8章：.gitignore —— 眼不见心不烦 有些东西，看见了就心烦。比如编译生成的文件、依赖目录、配置文件里的密码…Git 很聪明，但它不会读心术，不知道哪些文件不该提交。这时候，.gitignore 文件就是你的"黑名单"——告诉 Git：这些文件，请假装看不见。'><meta property="og:url" content="https://before80.github.io/prgms/Git/Chapter-08-Gitignore/"><meta property="og:site_name" content="编程那些事儿"><meta property="og:title" content="第8章：.gitignore —— 眼不见心不烦"><meta property="og:description" content='第8章：.gitignore —— 眼不见心不烦 有些东西，看见了就心烦。比如编译生成的文件、依赖目录、配置文件里的密码…Git 很聪明，但它不会读心术，不知道哪些文件不该提交。这时候，.gitignore 文件就是你的"黑名单"——告诉 Git：这些文件，请假装看不见。'><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="git"><meta property="article:published_time" content="2026-04-03T19:36:48+08:00"><meta property="article:modified_time" content="2026-04-03T19:52:32+08:00"><meta itemprop=name content="第8章：.gitignore —— 眼不见心不烦"><meta itemprop=description content='第8章：.gitignore —— 眼不见心不烦 有些东西，看见了就心烦。比如编译生成的文件、依赖目录、配置文件里的密码…Git 很聪明，但它不会读心术，不知道哪些文件不该提交。这时候，.gitignore 文件就是你的"黑名单"——告诉 Git：这些文件，请假装看不见。'><meta itemprop=datePublished content="2026-04-03T19:36:48+08:00"><meta itemprop=dateModified content="2026-04-03T19:52:32+08:00"><meta itemprop=wordCount content="4616"><meta name=twitter:card content="summary"><meta name=twitter:title content="第8章：.gitignore —— 眼不见心不烦"><meta name=twitter:description content='第8章：.gitignore —— 眼不见心不烦 有些东西，看见了就心烦。比如编译生成的文件、依赖目录、配置文件里的密码…Git 很聪明，但它不会读心术，不知道哪些文件不该提交。这时候，.gitignore 文件就是你的"黑名单"——告诉 Git：这些文件，请假装看不见。'><link rel=preload href=/prgms/scss/main.min.6493eeac8161e52866670fd3d82fea10f8b9f1ca39f8f69aaf1021c77867b96c.css as=style integrity="sha256-ZJPurIFh5ShmZw/T2C/qEPi58co5+PaarxAhx3hnuWw=" crossorigin=anonymous><link href=/prgms/scss/main.min.6493eeac8161e52866670fd3d82fea10f8b9f1ca39f8f69aaf1021c77867b96c.css rel=stylesheet integrity="sha256-ZJPurIFh5ShmZw/T2C/qEPi58co5+PaarxAhx3hnuWw=" crossorigin=anonymous><link href=/go_docs/css/extra.css rel=stylesheet><script src=https://code.jquery.com/jquery-3.7.1.min.js integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin=anonymous></script><link rel=stylesheet href=https://unpkg.com/@docsearch/css@3.8.2/dist/style.css integrity="sha512-l7pkV1dOURFyHCeH8I4fK9lCkQKuqhlsTCqRl3zktifDlB8oTUJ+mJPgYkK9kHpUut8j1iPquTv32t6hvTPv3g==" crossorigin=anonymous></head><body class=td-page><header><nav class="td-navbar js-navbar-scroll"><div class="td-navbar-container container-fluid flex-column flex-md-row"><a class=navbar-brand href=/prgms/><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class=navbar-brand__name>编程那些事儿</span></a><div class="td-navbar-nav-scroll td-navbar-nav-scroll--indicator" id=main_navbar><div class="scroll-indicator scroll-left"></div><ul class=navbar-nav><li class="nav-item mr-4 mb-2 mb-lg-0"><a class=nav-link href=javascript:; id=show-timer style=color:#fe4512f5!important></a></li><li class=nav-item><a class=nav-link href=/prgms/docs/><span>文档</span></a></li><li class=nav-item><a class=nav-link href=/prgms/AI/><span>AI</span></a></li><li class=nav-item><a class=nav-link href=/prgms/C/><span>C</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Cpp/><span>Cpp</span></a></li><li class=nav-item><a class="nav-link active" href=/prgms/Git/><span>Git</span></a></li><li class=nav-item><a class=nav-link href=/prgms/go/><span>Go</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Java/><span>Java</span></a></li><li class=nav-item><a class=nav-link href=/prgms/linux/><span>Linux</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Js/><span>JavaScript</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Ts/><span>TypeScript</span></a></li><li class=nav-item><a class=nav-link href=/prgms/CSS/><span>CSS</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Rust/><span>Rust</span></a></li><li class="nav-item td-navbar__light-dark-menu"><div class="td-light-dark-menu dropdown"><svg class="d-none"><symbol id="check2" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5.0 010 .708l-7 7a.5.5.0 01-.708.0l-3.5-3.5a.5.5.0 11.708-.708L6.5 10.293l6.646-6.647a.5.5.0 01.708.0z"/></symbol><symbol id="circle-half" viewBox="0 0 16 16"><path d="M8 15A7 7 0 108 1v14zm0 1A8 8 0 118 0a8 8 0 010 16z"/></symbol><symbol id="moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.768.768.0 01.08.858 7.208 7.208.0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527.0 1.04-.055 1.533-.16a.787.787.0 01.81.316.733.733.0 01-.031.893A8.349 8.349.0 018.344 16C3.734 16 0 12.286.0 7.71.0 4.266 2.114 1.312 5.124.06A.752.752.0 016 .278z"/><path d="M10.794 3.148a.217.217.0 01.412.0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217.0 010 .412l-1.162.387A1.734 1.734.0 0011.593 7.69l-.387 1.162a.217.217.0 01-.412.0l-.387-1.162A1.734 1.734.0 009.31 6.593l-1.162-.387a.217.217.0 010-.412l1.162-.387a1.734 1.734.0 001.097-1.097l.387-1.162zM13.863.099a.145.145.0 01.274.0l.258.774c.115.346.386.617.732.732l.774.258a.145.145.0 010 .274l-.774.258a1.156 1.156.0 00-.732.732l-.258.774a.145.145.0 01-.274.0l-.258-.774a1.156 1.156.0 00-.732-.732l-.774-.258a.145.145.0 010-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/></symbol><symbol id="sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 0zm0 13a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 13zm8-5a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2a.5.5.0 01.5.5zM3 8a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2A.5.5.0 013 8zm10.657-5.657a.5.5.0 010 .707l-1.414 1.415a.5.5.0 11-.707-.708l1.414-1.414a.5.5.0 01.707.0zm-9.193 9.193a.5.5.0 010 .707L3.05 13.657a.5.5.0 01-.707-.707l1.414-1.414a.5.5.0 01.707.0zm9.193 2.121a.5.5.0 01-.707.0l-1.414-1.414a.5.5.0 01.707-.707l1.414 1.414a.5.5.0 010 .707zM4.464 4.465a.5.5.0 01-.707.0L2.343 3.05a.5.5.0 11.707-.707l1.414 1.414a.5.5.0 010 .708z"/></symbol></svg>
+<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" id=bd-theme type=button aria-expanded=false data-bs-toggle=dropdown aria-label="Toggle theme (auto)">
+<svg class="bi my-1 theme-icon-active"><use href="#circle-half"/></svg></button><ul class=dropdown-menu aria-labelledby=bd-theme><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=light aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#sun-fill"/></svg>
+Light
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=dark aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"/></svg>
+Dark
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center active" data-bs-theme-value=auto aria-pressed=true>
+<svg class="bi me-2 opacity-50"><use href="#circle-half"/></svg>
+Auto
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul></div></li></ul><div class="scroll-indicator scroll-right"></div></div><div class="d-none d-lg-block td-navbar__search"><div class=td-search><div class=td-search--algolia id=docsearch-1></div></div></div></div></nav></header><div class="container-fluid td-outer"><div class=td-main data-bs-spy=scroll data-bs-target=.td-toc data-bs-root-margin="0px 0px -10%"><div class="row flex-xl-nowrap"><aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none"><div id=td-sidebar-menu class=td-sidebar__inner><form class="td-sidebar__search d-flex align-items-center"><div class=td-search><div class=td-search--algolia id=docsearch-0></div></div><button class="btn btn-link td-sidebar__toggle" type=button data-bs-toggle=collapse data-bs-target=#td-section-nav aria-controls=td-section-nav aria-expanded=false aria-label="Toggle section navigation"></button></form><nav class="td-sidebar-nav collapse foldable-nav" id=td-section-nav data-sidebar-root-id=/prgms/Git/><ul class="td-sidebar-nav__section pe-md-3 ul-0"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-prgmsgit-li><a href=/prgms/Git/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id=m-prgmsgit><span>Git</span></a><ul class=ul-1><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-01-without-git-the-world-is-a-disaster-li><input type=checkbox id=m-prgmsgitchapter-01-without-git-the-world-is-a-disaster-check>
+<label for=m-prgmsgitchapter-01-without-git-the-world-is-a-disaster-check><a href=/prgms/Git/Chapter-01-Without-Git-The-World-Is-A-Disaster/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-01-without-git-the-world-is-a-disaster><span>第1章：没有 Git 的世界，是一场灾难片</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-02-installing-git-the-first-hurdle-li><input type=checkbox id=m-prgmsgitchapter-02-installing-git-the-first-hurdle-check>
+<label for=m-prgmsgitchapter-02-installing-git-the-first-hurdle-check><a href=/prgms/Git/Chapter-02-Installing-Git-The-First-Hurdle/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-02-installing-git-the-first-hurdle><span>第2章：安装 Git —— 程序员的第一道门槛</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-03-git-basics-configuration-li><input type=checkbox id=m-prgmsgitchapter-03-git-basics-configuration-check>
+<label for=m-prgmsgitchapter-03-git-basics-configuration-check><a href=/prgms/Git/Chapter-03-git-basics-configuration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-03-git-basics-configuration><span>第3章：Git 基础配置 —— 不穿衣服就出门的后果</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-04-first-repository-li><input type=checkbox id=m-prgmsgitchapter-04-first-repository-check>
+<label for=m-prgmsgitchapter-04-first-repository-check><a href=/prgms/Git/Chapter-04-first-repository/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-04-first-repository><span>第4章：第一个仓库 —— 见证奇迹的时刻</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-05-daily-operations-li><input type=checkbox id=m-prgmsgitchapter-05-daily-operations-check>
+<label for=m-prgmsgitchapter-05-daily-operations-check><a href=/prgms/Git/Chapter-05-daily-operations/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-05-daily-operations><span>第5章：日常操作基本功 —— Git 世界的'基本功'</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-06-viewing-history-and-comparison-li><input type=checkbox id=m-prgmsgitchapter-06-viewing-history-and-comparison-check>
+<label for=m-prgmsgitchapter-06-viewing-history-and-comparison-check><a href=/prgms/Git/Chapter-06-Viewing-History-and-Comparison/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-06-viewing-history-and-comparison><span>第6章：查看历史与对比 —— Git 时光机与照妖镜</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-07-undoing-changes-li><input type=checkbox id=m-prgmsgitchapter-07-undoing-changes-check>
+<label for=m-prgmsgitchapter-07-undoing-changes-check><a href=/prgms/Git/Chapter-07-Undoing-Changes/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-07-undoing-changes><span>第7章：后悔药系列 —— Git 让你永不后悔</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id=m-prgmsgitchapter-08-gitignore-li><input type=checkbox id=m-prgmsgitchapter-08-gitignore-check checked>
+<label for=m-prgmsgitchapter-08-gitignore-check><a href=/prgms/Git/Chapter-08-Gitignore/ class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-08-gitignore><span class=td-sidebar-nav-active-item>第8章：.gitignore —— 眼不见心不烦</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-09-branching-basics-li><input type=checkbox id=m-prgmsgitchapter-09-branching-basics-check>
+<label for=m-prgmsgitchapter-09-branching-basics-check><a href=/prgms/Git/Chapter-09-Branching-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-09-branching-basics><span>第9章：分支基础 —— Git 的杀手锏</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-10-merging-branches-li><input type=checkbox id=m-prgmsgitchapter-10-merging-branches-check>
+<label for=m-prgmsgitchapter-10-merging-branches-check><a href=/prgms/Git/Chapter-10-Merging-Branches/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-10-merging-branches><span>第10章：分支合并 —— 殊途同归的艺术</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-11-remote-repository-basics-li><input type=checkbox id=m-prgmsgitchapter-11-remote-repository-basics-check>
+<label for=m-prgmsgitchapter-11-remote-repository-basics-check><a href=/prgms/Git/Chapter-11-Remote-Repository-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-11-remote-repository-basics><span>第11章：远程仓库入门 —— 代码的云端家园</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-12-github-collaboration-li><input type=checkbox id=m-prgmsgitchapter-12-github-collaboration-check>
+<label for=m-prgmsgitchapter-12-github-collaboration-check><a href=/prgms/Git/Chapter-12-GitHub-Collaboration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-12-github-collaboration><span>第12章：GitHub 协作 —— 开源世界的入场券</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-13-network-optimization-li><input type=checkbox id=m-prgmsgitchapter-13-network-optimization-check>
+<label for=m-prgmsgitchapter-13-network-optimization-check><a href=/prgms/Git/Chapter-13-Network-Optimization/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-13-network-optimization><span>第13章：网络优化 —— 中国用户的必修课 ⭐</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-14-branching-strategies-li><input type=checkbox id=m-prgmsgitchapter-14-branching-strategies-check>
+<label for=m-prgmsgitchapter-14-branching-strategies-check><a href=/prgms/Git/Chapter-14-Branching-Strategies/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-14-branching-strategies><span>第14章：分支策略 —— 从混乱到有序</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-15-advanced-conflict-resolution-li><input type=checkbox id=m-prgmsgitchapter-15-advanced-conflict-resolution-check>
+<label for=m-prgmsgitchapter-15-advanced-conflict-resolution-check><a href=/prgms/Git/Chapter-15-Advanced-Conflict-Resolution/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-15-advanced-conflict-resolution><span>第15章：冲突解决进阶 —— 化干戈为玉帛</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-16-advanced-push-pull-li><input type=checkbox id=m-prgmsgitchapter-16-advanced-push-pull-check>
+<label for=m-prgmsgitchapter-16-advanced-push-pull-check><a href=/prgms/Git/Chapter-16-Advanced-Push-Pull/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-16-advanced-push-pull><span>第16章：推送与拉取进阶 —— 与远程仓库的舞蹈</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-17-pull-request-advanced-li><input type=checkbox id=m-prgmsgitchapter-17-pull-request-advanced-check>
+<label for=m-prgmsgitchapter-17-pull-request-advanced-check><a href=/prgms/Git/Chapter-17-Pull-Request-Advanced/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-17-pull-request-advanced><span>第17章：Pull Request 进阶 —— 成为开源贡献者</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-18-advanced-skills-li><input type=checkbox id=m-prgmsgitchapter-18-advanced-skills-check>
+<label for=m-prgmsgitchapter-18-advanced-skills-check><a href=/prgms/Git/Chapter-18-Advanced-Skills/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-18-advanced-skills><span>第18章：进阶技能 —— 高手的工具箱</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-19-team-collaboration-li><input type=checkbox id=m-prgmsgitchapter-19-team-collaboration-check>
+<label for=m-prgmsgitchapter-19-team-collaboration-check><a href=/prgms/Git/Chapter-19-Team-Collaboration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-19-team-collaboration><span>第19章：团队协作最佳实践 —— 别做那个被嫌弃的人</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-20-git-hooks-li><input type=checkbox id=m-prgmsgitchapter-20-git-hooks-check>
+<label for=m-prgmsgitchapter-20-git-hooks-check><a href=/prgms/Git/Chapter-20-Git-Hooks/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-20-git-hooks><span>第20章：Git 钩子与自动化 —— 让 Git 替你干活</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-21-internal-principles-li><input type=checkbox id=m-prgmsgitchapter-21-internal-principles-check>
+<label for=m-prgmsgitchapter-21-internal-principles-check><a href=/prgms/Git/Chapter-21-Internal-Principles/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-21-internal-principles><span>第21章：Git 内部原理 —— 了解黑盒子里有什么</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-22-common-scenarios-li><input type=checkbox id=m-prgmsgitchapter-22-common-scenarios-check>
+<label for=m-prgmsgitchapter-22-common-scenarios-check><a href=/prgms/Git/Chapter-22-Common-Scenarios/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-22-common-scenarios><span>第22章：常见场景实战 —— 解决真实世界的问题</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-23-troubleshooting-li><input type=checkbox id=m-prgmsgitchapter-23-troubleshooting-check>
+<label for=m-prgmsgitchapter-23-troubleshooting-check><a href=/prgms/Git/Chapter-23-Troubleshooting/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-23-troubleshooting><span>第23章：Git 故障排查 —— 当事情搞砸时</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-24-tool-integration-li><input type=checkbox id=m-prgmsgitchapter-24-tool-integration-check>
+<label for=m-prgmsgitchapter-24-tool-integration-check><a href=/prgms/Git/Chapter-24-Tool-Integration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-24-tool-integration><span>第24章：Git 与其他工具集成 —— 打造高效工作流</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmsgitchapter-25-best-practices-summary-li><input type=checkbox id=m-prgmsgitchapter-25-best-practices-summary-check>
+<label for=m-prgmsgitchapter-25-best-practices-summary-check><a href=/prgms/Git/Chapter-25-Best-Practices-Summary/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmsgitchapter-25-best-practices-summary><span>第25章：Git 最佳实践总结 —— 成为 Git 大师</span></a></label></li></ul></li></ul></nav></div></aside><aside class=td-sidebar-toc><div class="td-page-meta ms-2 pb-1 pt-2 mb-0"><a href=https://before80.github.io/go_docs/comm/coffee class="td-page-meta--view td-page-meta__view" style=color:#2bf518!important target=_blank rel=noopener><i class="fa-solid fa-mug-hot fa-fw"></i> 请作者喝杯咖啡吧</a>
+<a href=https://github.com/before80/prgms/tree/main/content/Git/Chapter-08-Gitignore.md class="td-page-meta--view td-page-meta__view" target=_blank rel=noopener><i class="fa-solid fa-file-lines fa-fw"></i> 查看页面源码</a>
+<a href=https://github.com/before80/prgms/edit/main/content/Git/Chapter-08-Gitignore.md class="td-page-meta--edit td-page-meta__edit" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> 编辑此页</a>
+<a href="https://github.com/before80/prgms/new/main/content/Git?filename=change-me.md&amp;value=---%0Atitle%3A+%22Long+Page+Title%22%0AlinkTitle%3A+%22Short+Nav+Title%22%0Aweight%3A+100%0Adescription%3A+%3E-%0A+++++Page+description+for+heading+and+indexes.%0A---%0A%0A%23%23+Heading%0A%0AEdit+this+template+to+create+your+new+page.%0A%0A%2A+Give+it+a+good+name%2C+ending+in+%60.md%60+-+e.g.+%60getting-started.md%60%0A%2A+Edit+the+%22front+matter%22+section+at+the+top+of+the+page+%28weight+controls+how+its+ordered+amongst+other+pages+in+the+same+directory%3B+lowest+number+first%29.%0A%2A+Add+a+good+commit+message+at+the+bottom+of+the+page+%28%3C80+characters%3B+use+the+extended+description+field+for+more+detail%29.%0A%2A+Create+a+new+branch+so+you+can+preview+your+new+file+and+request+a+review+via+Pull+Request.%0A" class="td-page-meta--child td-page-meta__child" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> 添加子页面</a>
+<a href="https://github.com/before80/prgms/issues/new?title=%e7%ac%ac8%e7%ab%a0%ef%bc%9a.gitignore%20%e2%80%94%e2%80%94%20%e7%9c%bc%e4%b8%8d%e8%a7%81%e5%bf%83%e4%b8%8d%e7%83%a6" class="td-page-meta--issue td-page-meta__issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> 提交文档问题</a>
+<a href=https://github.com/before80/prgms/issues/new class="td-page-meta--project td-page-meta__project-issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> 提交项目问题</a></div><div class=td-toc data-proofer-ignore><div class=td-toc-title><span class=td-toc-title__text>本页目录</span>
+<a class=td-toc-title__link title=回到顶部 href=#></a></div><nav id=TableOfContents><ul><li><a href=#第8章gitignore--眼不见心不烦>第8章：.gitignore —— 眼不见心不烦</a><ul><li><a href=#81-哪些文件不该提交密码依赖编译产物>8.1 哪些文件不该提交：密码、依赖、编译产物</a><ul><li><a href=#不该提交的文件类型>不该提交的文件类型</a></li><li><a href=#提交前的检查清单>提交前的检查清单</a></li></ul></li><li><a href=#82-node_modules永远不要提交的庞然大物>8.2 <code>node_modules</code>：永远不要提交的庞然大物</a><ul><li><a href=#为什么不要提交-node_modules>为什么不要提交 node_modules？</a></li><li><a href=#正确做法>正确做法</a></li><li><a href=#特殊情况提交部分依赖>特殊情况：提交部分依赖</a></li></ul></li><li><a href=#83-env-文件你的秘密别让全世界知道>8.3 <code>.env</code> 文件：你的秘密，别让全世界知道</a><ul><li><a href=#为什么-env-如此危险>为什么 .env 如此危险？</a></li><li><a href=#正确的环境变量管理>正确的环境变量管理</a></li><li><a href=#如果已经提交了-env>如果已经提交了 .env</a></li></ul></li><li><a href=#84-大文件陷阱git-lfs-处理大文件>8.4 大文件陷阱：Git LFS 处理大文件</a><ul><li><a href=#什么是-git-lfs>什么是 Git LFS？</a></li><li><a href=#安装-git-lfs>安装 Git LFS</a></li><li><a href=#配置-git-lfs>配置 Git LFS</a></li><li><a href=#使用-git-lfs>使用 Git LFS</a></li><li><a href=#迁移现有大文件到-lfs>迁移现有大文件到 LFS</a></li><li><a href=#git-lfs-的替代方案>Git LFS 的替代方案</a></li></ul></li><li><a href=#85-gitignore-语法从入门到精通>8.5 .gitignore 语法：从入门到精通</a><ul><li><a href=#基础语法>基础语法</a></li><li><a href=#通配符规则>通配符规则</a></li><li><a href=#高级用法>高级用法</a></li><li><a href=#双星号--的用法>双星号 <code>**</code> 的用法</a></li><li><a href=#注释和空行>注释和空行</a></li></ul></li><li><a href=#86-常用模板nodejspythonjavagorust-一键复制>8.6 常用模板：Node.js、Python、Java、Go、Rust 一键复制</a><ul><li><a href=#nodejs-项目>Node.js 项目</a></li><li><a href=#python-项目>Python 项目</a></li><li><a href=#java-项目>Java 项目</a></li><li><a href=#go-项目>Go 项目</a></li><li><a href=#rust-项目>Rust 项目</a></li><li><a href=#通用模板>通用模板</a></li><li><a href=#获取官方模板>获取官方模板</a></li></ul></li><li><a href=#87-已提交的文件怎么忽略git-rm---cached>8.7 已提交的文件怎么忽略？<code>git rm --cached</code></a><ul><li><a href=#问题现象>问题现象</a></li><li><a href=#解决方案>解决方案</a></li><li><a href=#详细解释>详细解释</a></li><li><a href=#批量处理>批量处理</a></li><li><a href=#注意事项>注意事项</a></li></ul></li><li><a href=#88-全局-gitignore一次配置所有项目生效>8.8 全局 .gitignore：一次配置，所有项目生效</a><ul><li><a href=#配置全局-gitignore>配置全局 .gitignore</a></li><li><a href=#推荐的全局配置>推荐的全局配置</a></li><li><a href=#优先级规则>优先级规则</a></li><li><a href=#查看配置>查看配置</a></li></ul></li><li><a href=#89-gitignore-失效排查为什么还是提交了>8.9 .gitignore 失效排查：为什么还是提交了？</a><ul><li><a href=#常见原因1文件已被追踪>常见原因1：文件已被追踪</a></li><li><a href=#常见原因2规则写错了>常见原因2：规则写错了</a></li><li><a href=#常见原因3规则被后面的覆盖>常见原因3：规则被后面的覆盖</a></li><li><a href=#常见原因4缓存未刷新>常见原因4：缓存未刷新</a></li><li><a href=#调试-gitignore>调试 .gitignore</a></li><li><a href=#检查清单>检查清单</a></li></ul></li><li><a href=#810-本章小结提交前检查别做那个泄露密码的人>8.10 本章小结：提交前检查，别做那个泄露密码的人</a></li></ul></li></ul></nav></div></aside><main class="col-12 col-md-9 col-xl-8 ps-md-5" role=main><nav aria-label=breadcrumb class=td-breadcrumbs><ol class=breadcrumb><li class=breadcrumb-item><a href=/prgms/Git/>Git</a></li><li class="breadcrumb-item active" aria-current=page>第8章：.gitignore —— 眼不见心不烦</li></ol></nav><div class=td-content><h1>第8章：.gitignore —— 眼不见心不烦</h1><header class=article-meta><p class=reading-time><i class="fa-solid fa-clock" style=color:#e90 aria-hidden=true></i>&nbsp; <span style=font-size:3rem;color:#006400 id=advice-reading-time>10 </span>分钟阅读 &nbsp;</p></header><h1 id=第8章gitignore--眼不见心不烦>第8章：.gitignore —— 眼不见心不烦</h1><blockquote><p>有些东西，看见了就心烦。比如编译生成的文件、依赖目录、配置文件里的密码&mldr;Git 很聪明，但它不会读心术，不知道哪些文件不该提交。这时候，<code>.gitignore</code> 文件就是你的"黑名单"——告诉 Git：这些文件，请假装看不见。</p></blockquote><hr><h2 id=81-哪些文件不该提交密码依赖编译产物>8.1 哪些文件不该提交：密码、依赖、编译产物</h2><p>在把文件加入 Git 之前，先问问自己：这个文件真的需要版本控制吗？有些东西提交上去，轻则污染仓库，重则泄露机密。</p><h3 id=不该提交的文件类型>不该提交的文件类型</h3><p><strong>1. 依赖目录</strong></p><pre tabindex=0><code>node_modules/      # Node.js 依赖
+vendor/            # PHP Composer 依赖
+__pycache__/       # Python 缓存
+</code></pre><ul><li>为什么：依赖可以从 package.json 重新安装，没必要提交</li><li>后果：仓库体积爆炸，clone 慢到怀疑人生</li></ul><p><strong>2. 编译产物</strong></p><pre tabindex=0><code>dist/              # 构建输出
+build/             # 编译结果
+*.exe              # 可执行文件
+*.dll              # 动态链接库
+</code></pre><ul><li>为什么：源代码才是真理，编译产物随时可生成</li><li>后果：冲突频发，仓库臃肿</li></ul><p><strong>3. 配置文件（含敏感信息）</strong></p><pre tabindex=0><code>.env               # 环境变量
+config.local.js    # 本地配置
+secrets.json       # 密钥文件
+</code></pre><ul><li>为什么：包含密码、API 密钥等敏感信息</li><li>后果：密码泄露，被黑客问候</li></ul><p><strong>4. 日志文件</strong></p><pre tabindex=0><code>*.log              # 日志文件
+logs/              # 日志目录
+npm-debug.log*     # 调试日志
+</code></pre><ul><li>为什么：日志随时在变化，没必要版本控制</li><li>后果：无意义的提交记录</li></ul><p><strong>5. 操作系统生成的文件</strong></p><pre tabindex=0><code>.DS_Store          # macOS
+Thumbs.db          # Windows
+desktop.ini        # Windows
+</code></pre><ul><li>为什么：系统文件，与项目无关</li><li>后果：跨平台协作时互相干扰</li></ul><p><strong>6. IDE/编辑器配置</strong></p><pre tabindex=0><code>.idea/             # JetBrains
+.vscode/           # VS Code
+*.swp              # Vim 交换文件
+</code></pre><ul><li>为什么：个人偏好，不应强加给团队</li><li>后果：每个人的 IDE 配置不同，互相覆盖</li></ul><h3 id=提交前的检查清单>提交前的检查清单</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 提交前，先看看会提交什么</span>
+</span></span><span style=display:flex><span>git status
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 检查是否有不该提交的文件</span>
+</span></span><span style=display:flex><span>git diff --name-only --cached
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 如果发现了不该提交的文件...</span>
+</span></span><span style=display:flex><span>git rm --cached 不该提交的文件
+</span></span><span style=display:flex><span><span style=color:#e5c07b>echo</span> <span style=color:#63c381>&#34;不该提交的文件&#34;</span> &gt;&gt; .gitignore
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=82-node_modules永远不要提交的庞然大物>8.2 <code>node_modules</code>：永远不要提交的庞然大物</h2><p><code>node_modules</code> 是 Node.js 项目的依赖目录，它是 Git 仓库的头号公敌。</p><h3 id=为什么不要提交-node_modules>为什么不要提交 node_modules？</h3><p><strong>1. 体积巨大</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 一个普通的 React 项目</span>
+</span></span><span style=display:flex><span>ls -lh node_modules <span style=color:#abb2bf>|</span> wc -l
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 输出：3000+ 个文件</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>du -sh node_modules
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 输出：200M</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 而 package.json 只有 2KB</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>2. 文件数量爆炸</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 有些包会创建深层嵌套的目录</span>
+</span></span><span style=display:flex><span>node_modules/a/node_modules/b/node_modules/c/...
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Windows 下路径过长会导致问题</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>3. 平台差异</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 有些包包含平台特定的二进制文件</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># macOS 的不能在 Windows 上运行</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 提交上去也没用</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>4. 可以重建</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 只要有 package.json，随时可以重建</span>
+</span></span><span style=display:flex><span>npm install
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 或者</span>
+</span></span><span style=display:flex><span>yarn install
+</span></span></code></pre></td></tr></table></div></div><h3 id=正确做法>正确做法</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 创建 .gitignore</span>
+</span></span><span style=display:flex><span><span style=color:#e5c07b>echo</span> <span style=color:#63c381>&#34;node_modules/&#34;</span> &gt;&gt; .gitignore
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 从 Git 中移除（如果已经提交了）</span>
+</span></span><span style=display:flex><span>git rm -r --cached node_modules
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 提交 .gitignore</span>
+</span></span><span style=display:flex><span>git add .gitignore
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;chore: 忽略 node_modules&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 4. 提交 package.json（必须！）</span>
+</span></span><span style=display:flex><span>git add package.json package-lock.json
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;chore: 添加依赖配置&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=特殊情况提交部分依赖>特殊情况：提交部分依赖</h3><p>有时候确实需要提交某些依赖：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 方法1：使用 npm 的 bundledDependencies</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 在 package.json 中配置</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 方法2：提交特定目录，忽略其他</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># .gitignore 内容：</span>
+</span></span><span style=display:flex><span>node_modules/*
+</span></span><span style=display:flex><span>!node_modules/some-special-package/
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=83-env-文件你的秘密别让全世界知道>8.3 <code>.env</code> 文件：你的秘密，别让全世界知道</h2><p><code>.env</code> 文件用于存储环境变量，通常包含数据库密码、API 密钥等敏感信息。这是<strong>绝对不能提交</strong>的文件。</p><h3 id=为什么-env-如此危险>为什么 .env 如此危险？</h3><p><strong>真实案例：</strong></p><ul><li>2016年，某公司将 AWS 密钥提交到 GitHub，被黑客利用，损失数万美元</li><li>某开发者将数据库密码提交到公共仓库，数据库被勒索</li></ul><h3 id=正确的环境变量管理>正确的环境变量管理</h3><p><strong>1. 创建 .env.example（模板）</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># .env.example - 提交这个</span>
+</span></span><span style=display:flex><span><span style=color:#dcaeea>DATABASE_URL</span><span style=color:#54b1c7>=</span>postgresql://user:password@localhost:5432/mydb
+</span></span><span style=display:flex><span><span style=color:#dcaeea>API_KEY</span><span style=color:#54b1c7>=</span>your_api_key_here
+</span></span><span style=display:flex><span><span style=color:#dcaeea>SECRET_KEY</span><span style=color:#54b1c7>=</span>your_secret_key_here
+</span></span></code></pre></td></tr></table></div></div><p><strong>2. 创建 .env（真实配置，不提交）</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># .env - 不提交这个</span>
+</span></span><span style=display:flex><span><span style=color:#dcaeea>DATABASE_URL</span><span style=color:#54b1c7>=</span>postgresql://admin:real_password@prod-db:5432/mydb
+</span></span><span style=display:flex><span><span style=color:#dcaeea>API_KEY</span><span style=color:#54b1c7>=</span>sk_live_1234567890abcdef
+</span></span><span style=display:flex><span><span style=color:#dcaeea>SECRET_KEY</span><span style=color:#54b1c7>=</span>super_secret_key_12345
+</span></span></code></pre></td></tr></table></div></div><p><strong>3. 配置 .gitignore</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># .gitignore</span>
+</span></span><span style=display:flex><span>.env
+</span></span><span style=display:flex><span>.env.local
+</span></span><span style=display:flex><span>.env.*.local
+</span></span></code></pre></td></tr></table></div></div><p><strong>4. 团队 onboarding 流程</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 新成员加入时</span>
+</span></span><span style=display:flex><span>cp .env.example .env
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 然后手动填入真实值</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=如果已经提交了-env>如果已经提交了 .env</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 立即撤销提交（如果还没 push）</span>
+</span></span><span style=display:flex><span>git reset --soft HEAD~1
+</span></span><span style=display:flex><span>git rm --cached .env
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;fix: 移除敏感信息&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 如果已经 push，需要更复杂的操作</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 见 8.9 节：敏感信息泄露后的紧急处理</span>
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=84-大文件陷阱git-lfs-处理大文件>8.4 大文件陷阱：Git LFS 处理大文件</h2><p>Git 不适合管理大文件（>100MB），但有时候确实需要版本控制一些大文件（如图片、视频、二进制资源）。这时候 Git LFS（Large File Storage）登场了。</p><h3 id=什么是-git-lfs>什么是 Git LFS？</h3><p><strong>Git LFS</strong> 是 Git 的扩展，它将大文件存储在单独的服务器上，仓库中只保存指向这些文件的指针。</p><h3 id=安装-git-lfs>安装 Git LFS</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># macOS</span>
+</span></span><span style=display:flex><span>brew install git-lfs
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Ubuntu/Debian</span>
+</span></span><span style=display:flex><span>sudo apt-get install git-lfs
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Windows</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 下载安装包：https://git-lfs.github.com/</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 初始化</span>
+</span></span><span style=display:flex><span>git lfs install
+</span></span></code></pre></td></tr></table></div></div><h3 id=配置-git-lfs>配置 Git LFS</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 追踪所有 .psd 文件</span>
+</span></span><span style=display:flex><span>git lfs track <span style=color:#63c381>&#34;*.psd&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 追踪特定目录</span>
+</span></span><span style=display:flex><span>git lfs track <span style=color:#63c381>&#34;assets/images/*&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 追踪特定文件</span>
+</span></span><span style=display:flex><span>git lfs track <span style=color:#63c381>&#34;design/mockup.sketch&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看追踪规则</span>
+</span></span><span style=display:flex><span>git lfs track
+</span></span></code></pre></td></tr></table></div></div><p>这会创建 <code>.gitattributes</code> 文件：</p><pre tabindex=0><code>*.psd filter=lfs diff=lfs merge=lfs -text
+assets/images/* filter=lfs diff=lfs merge=lfs -text
+</code></pre><h3 id=使用-git-lfs>使用 Git LFS</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 正常使用 git add/commit/push</span>
+</span></span><span style=display:flex><span>git add design.psd
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;add: 添加设计稿&#34;</span>
+</span></span><span style=display:flex><span>git push origin main
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 大文件会被自动上传到 LFS 服务器</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=迁移现有大文件到-lfs>迁移现有大文件到 LFS</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 如果仓库已经有大文件，需要迁移</span>
+</span></span><span style=display:flex><span>git lfs migrate import --include<span style=color:#54b1c7>=</span><span style=color:#63c381>&#34;*.psd,*.zip&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 这会重写历史，需要 force push</span>
+</span></span><span style=display:flex><span>git push --force origin main
+</span></span></code></pre></td></tr></table></div></div><h3 id=git-lfs-的替代方案>Git LFS 的替代方案</h3><table><thead><tr><th>方案</th><th>适用场景</th><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>Git LFS</td><td>大文件版本控制</td><td>与 Git 集成好</td><td>需要额外服务器</td></tr><tr><td>云存储</td><td>静态资源</td><td>便宜、快速</td><td>不在版本控制中</td></tr><tr><td>CDN</td><td>分发资源</td><td>全球加速</td><td>只读</td></tr><tr><td>专用资产管理</td><td>游戏/设计资源</td><td>专业功能</td><td>额外工具</td></tr></tbody></table><hr><h2 id=85-gitignore-语法从入门到精通>8.5 .gitignore 语法：从入门到精通</h2><p><code>.gitignore</code> 文件使用特定的模式匹配语法，掌握这些语法，你可以精确控制哪些文件被忽略。</p><h3 id=基础语法>基础语法</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 注释以 # 开头</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 这是注释</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 忽略特定文件</span>
+</span></span><span style=display:flex><span>secret.txt
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 忽略特定目录</span>
+</span></span><span style=display:flex><span>node_modules/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 使用通配符</span>
+</span></span><span style=display:flex><span>*.log          <span style=color:#8a93a5;font-style:italic># 忽略所有 .log 文件</span>
+</span></span><span style=display:flex><span>*.tmp          <span style=color:#8a93a5;font-style:italic># 忽略所有 .tmp 文件</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 忽略特定类型的文件</span>
+</span></span><span style=display:flex><span>build/         <span style=color:#8a93a5;font-style:italic># 忽略 build 目录（包括子目录中的）</span>
+</span></span><span style=display:flex><span>/build         <span style=color:#8a93a5;font-style:italic># 只忽略根目录的 build 目录</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=通配符规则>通配符规则</h3><table><thead><tr><th>通配符</th><th>含义</th><th>示例</th></tr></thead><tbody><tr><td><code>*</code></td><td>匹配任意字符（除 /）</td><td><code>*.log</code> 匹配 a.log, b.log</td></tr><tr><td><code>?</code></td><td>匹配单个字符</td><td><code>?.txt</code> 匹配 a.txt, b.txt</td></tr><tr><td><code>**</code></td><td>匹配任意目录</td><td><code>**/temp</code> 匹配所有 temp 目录</td></tr><tr><td><code>[abc]</code></td><td>匹配括号内任一字符</td><td><code>[ab].txt</code> 匹配 a.txt, b.txt</td></tr><tr><td><code>[0-9]</code></td><td>匹配范围</td><td><code>file[0-9].txt</code> 匹配 file1.txt</td></tr><tr><td><code>!</code></td><td>取反（不忽略）</td><td><code>!important.log</code></td></tr></tbody></table><h3 id=高级用法>高级用法</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">28
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 忽略所有 .txt 文件，但不忽略 readme.txt</span>
+</span></span><span style=display:flex><span>*.txt
+</span></span><span style=display:flex><span>!readme.txt
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 忽略所有 .log 文件，但不忽略 keep/ 目录下的</span>
+</span></span><span style=display:flex><span>*.log
+</span></span><span style=display:flex><span>!keep/*.log
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 忽略所有 .log 文件，但不忽略 keep/ 及其子目录下的</span>
+</span></span><span style=display:flex><span>*.log
+</span></span><span style=display:flex><span>!keep/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 忽略 build 目录，但不忽略 build/important.js</span>
+</span></span><span style=display:flex><span>build/
+</span></span><span style=display:flex><span>!build/important.js
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 注意：这样写不生效，因为 build/ 已经忽略了整个目录</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 正确写法：</span>
+</span></span><span style=display:flex><span>build/*
+</span></span><span style=display:flex><span>!build/important.js
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 忽略 temp 目录及其所有内容</span>
+</span></span><span style=display:flex><span>temp/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 只忽略根目录的 temp 目录</span>
+</span></span><span style=display:flex><span>/temp/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 忽略所有名为 temp 的目录</span>
+</span></span><span style=display:flex><span>**/temp/
+</span></span></code></pre></td></tr></table></div></div><h3 id=双星号--的用法>双星号 <code>**</code> 的用法</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 匹配任意层级的目录</span>
+</span></span><span style=display:flex><span>**/node_modules/     <span style=color:#8a93a5;font-style:italic># 匹配任何位置的 node_modules</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 匹配特定模式</span>
+</span></span><span style=display:flex><span>**/*.min.js         <span style=color:#8a93a5;font-style:italic># 匹配任何位置的 .min.js 文件</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 匹配特定路径</span>
+</span></span><span style=display:flex><span>**/build/output/    <span style=color:#8a93a5;font-style:italic># 匹配任何 build/output 目录</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=注释和空行>注释和空行</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 这是注释</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 空行会被忽略</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 可以用反斜杠转义特殊字符</span>
+</span></span><span style=display:flex><span><span style=color:#d26464;font-weight:700>\#</span>not-a-comment.txt  <span style=color:#8a93a5;font-style:italic># 忽略名为 &#34;#not-a-comment.txt&#34; 的文件</span>
+</span></span><span style=display:flex><span><span style=color:#d26464;font-weight:700>\!</span>important.txt      <span style=color:#8a93a5;font-style:italic># 忽略名为 &#34;!important.txt&#34; 的文件</span>
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=86-常用模板nodejspythonjavagorust-一键复制>8.6 常用模板：Node.js、Python、Java、Go、Rust 一键复制</h2><p>不同技术栈有不同的忽略模式。以下是常用模板，直接复制粘贴即可。</p><h3 id=nodejs-项目>Node.js 项目</h3><pre tabindex=0><code class=language-gitignore data-lang=gitignore># Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production build
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+</code></pre><h3 id=python-项目>Python 项目</h3><pre tabindex=0><code class=language-gitignore data-lang=gitignore># Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Environment variables
+.env
+.env.local
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
+</code></pre><h3 id=java-项目>Java 项目</h3><pre tabindex=0><code class=language-gitignore data-lang=gitignore># Compiled class files
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+build/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+</code></pre><h3 id=go-项目>Go 项目</h3><pre tabindex=0><code class=language-gitignore data-lang=gitignore># Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+</code></pre><h3 id=rust-项目>Rust 项目</h3><pre tabindex=0><code class=language-gitignore data-lang=gitignore># Build output
+/target/
+
+# Cargo
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+</code></pre><h3 id=通用模板>通用模板</h3><pre tabindex=0><code class=language-gitignore data-lang=gitignore># IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+</code></pre><h3 id=获取官方模板>获取官方模板</h3><p>GitHub 维护了各种语言的官方 .gitignore 模板：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 方法1：直接下载</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 访问 https://github.com/github/gitignore</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 方法2：使用 gibo 工具</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装 gibo</span>
+</span></span><span style=display:flex><span>brew install gibo  <span style=color:#8a93a5;font-style:italic># macOS</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 使用</span>
+</span></span><span style=display:flex><span>gibo Node Python macOS &gt;&gt; .gitignore
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=87-已提交的文件怎么忽略git-rm---cached>8.7 已提交的文件怎么忽略？<code>git rm --cached</code></h2><p>文件已经提交了，现在想把它加入 .gitignore，该怎么做？直接加 .gitignore 是不够的，因为 Git 已经在追踪这个文件了。</p><h3 id=问题现象>问题现象</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 添加 .gitignore</span>
+</span></span><span style=display:flex><span><span style=color:#e5c07b>echo</span> <span style=color:#63c381>&#34;config.local.js&#34;</span> &gt;&gt; .gitignore
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 修改 config.local.js</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># ...</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 查看状态</span>
+</span></span><span style=display:flex><span>git status
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Changes not staged for commit:</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic>#   modified:   config.local.js</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 文件仍然在追踪！</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=解决方案>解决方案</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 停止追踪文件，但保留本地文件</span>
+</span></span><span style=display:flex><span>git rm --cached config.local.js
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 提交 .gitignore 和停止追踪的操作</span>
+</span></span><span style=display:flex><span>git add .gitignore
+</span></span><span style=display:flex><span>git add config.local.js  <span style=color:#8a93a5;font-style:italic># 这会记录 &#34;删除&#34; 操作</span>
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;chore: 停止追踪 config.local.js，添加到 .gitignore&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 之后 config.local.js 的改动会被忽略</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=详细解释>详细解释</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># git rm --cached 做了什么？</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 执行前：</span>
+</span></span><span style=display:flex><span>仓库：包含 config.local.js
+</span></span><span style=display:flex><span>暂存区：包含 config.local.js
+</span></span><span style=display:flex><span>工作区：包含 config.local.js
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 执行 git rm --cached 后：</span>
+</span></span><span style=display:flex><span>仓库：包含 config.local.js（历史记录还在）
+</span></span><span style=display:flex><span>暂存区：标记为删除（下次提交会删除）
+</span></span><span style=display:flex><span>工作区：config.local.js 还在（保留本地文件）
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 提交后：</span>
+</span></span><span style=display:flex><span>仓库：config.local.js 被删除（不再追踪）
+</span></span><span style=display:flex><span>暂存区：空
+</span></span><span style=display:flex><span>工作区：config.local.js 还在
+</span></span></code></pre></td></tr></table></div></div><h3 id=批量处理>批量处理</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 停止追踪所有 .log 文件</span>
+</span></span><span style=display:flex><span>git rm --cached *.log
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 停止追踪整个目录</span>
+</span></span><span style=display:flex><span>git rm -r --cached logs/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 提交更改</span>
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;chore: 停止追踪日志文件&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=注意事项>注意事项</h3><p><strong>1. 团队协作时通知大家</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 停止追踪配置文件后，其他开发者需要重新创建这个文件</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 最好提供模板：</span>
+</span></span><span style=display:flex><span>cp config.local.js.example config.local.js
+</span></span></code></pre></td></tr></table></div></div><p><strong>2. 历史记录还在</strong></p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># git rm --cached 只是停止追踪，历史记录中仍有该文件</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 如果文件包含敏感信息，需要更彻底的处理（见 8.9 节）</span>
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=88-全局-gitignore一次配置所有项目生效>8.8 全局 .gitignore：一次配置，所有项目生效</h2><p>每个项目都有 <code>.gitignore</code>，但有些忽略规则是通用的（如 IDE 配置、OS 文件）。你可以配置全局 <code>.gitignore</code>，让所有项目自动生效。</p><h3 id=配置全局-gitignore>配置全局 .gitignore</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 创建全局 .gitignore 文件</span>
+</span></span><span style=display:flex><span>touch ~/.gitignore_global
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 配置 Git 使用它</span>
+</span></span><span style=display:flex><span>git config --global core.excludesfile ~/.gitignore_global
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 编辑全局 .gitignore</span>
+</span></span><span style=display:flex><span>vim ~/.gitignore_global
+</span></span></code></pre></td></tr></table></div></div><h3 id=推荐的全局配置>推荐的全局配置</h3><pre tabindex=0><code class=language-gitignore data-lang=gitignore># IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor
+*.sublime-project
+*.sublime-workspace
+</code></pre><h3 id=优先级规则>优先级规则</h3><p>Git 按以下顺序应用忽略规则（后面的覆盖前面的）：</p><ol><li><strong>系统级</strong>（很少用）</li><li><strong>全局</strong>（<code>core.excludesfile</code>）</li><li><strong>项目级</strong>（<code>.gitignore</code>）</li><li><strong>子目录</strong>（子目录的 <code>.gitignore</code>）</li></ol><h3 id=查看配置>查看配置</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看全局 .gitignore 路径</span>
+</span></span><span style=display:flex><span>git config --global core.excludesfile
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看所有生效的忽略规则</span>
+</span></span><span style=display:flex><span>git check-ignore -v filename
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=89-gitignore-失效排查为什么还是提交了>8.9 .gitignore 失效排查：为什么还是提交了？</h2><p>有时候明明配置了 .gitignore，文件还是被提交了。这是怎么回事？</p><h3 id=常见原因1文件已被追踪>常见原因1：文件已被追踪</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 问题：文件已经在 Git 中，.gitignore 对追踪的文件无效</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 解决：停止追踪</span>
+</span></span><span style=display:flex><span>git rm --cached 文件
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;停止追踪文件&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=常见原因2规则写错了>常见原因2：规则写错了</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 错误：缺少斜杠</span>
+</span></span><span style=display:flex><span>node_modules    <span style=color:#8a93a5;font-style:italic># 只忽略文件名为 node_modules 的文件</span>
+</span></span><span style=display:flex><span>node_modules/   <span style=color:#8a93a5;font-style:italic># 正确：忽略 node_modules 目录</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 错误：多余的斜杠</span>
+</span></span><span style=display:flex><span>/build/         <span style=color:#8a93a5;font-style:italic># 只忽略根目录的 build</span>
+</span></span><span style=display:flex><span>build/          <span style=color:#8a93a5;font-style:italic># 忽略任何位置的 build 目录</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 错误：模式不匹配</span>
+</span></span><span style=display:flex><span>*.js.log        <span style=color:#8a93a5;font-style:italic># 匹配 a.js.log</span>
+</span></span><span style=display:flex><span>*.log           <span style=color:#8a93a5;font-style:italic># 不匹配 a.js.log</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=常见原因3规则被后面的覆盖>常见原因3：规则被后面的覆盖</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># .gitignore</span>
+</span></span><span style=display:flex><span>*.log           <span style=color:#8a93a5;font-style:italic># 忽略所有 .log 文件</span>
+</span></span><span style=display:flex><span>!important.log  <span style=color:#8a93a5;font-style:italic># 不忽略 important.log</span>
+</span></span><span style=display:flex><span>app.log         <span style=color:#8a93a5;font-style:italic># 这行无效！因为 important.log 已经匹配了 *.log</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 正确写法：</span>
+</span></span><span style=display:flex><span>*.log
+</span></span><span style=display:flex><span>!important.log
+</span></span><span style=display:flex><span>!app.log         <span style=color:#8a93a5;font-style:italic># 要放在后面</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=常见原因4缓存未刷新>常见原因4：缓存未刷新</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 有时候 Git 缓存了忽略规则</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 清除缓存，重新应用 .gitignore</span>
+</span></span><span style=display:flex><span>git rm -r --cached .
+</span></span><span style=display:flex><span>git add .
+</span></span><span style=display:flex><span>git commit -m <span style=color:#63c381>&#34;刷新 .gitignore&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=调试-gitignore>调试 .gitignore</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 检查某个文件为什么被忽略/没被忽略</span>
+</span></span><span style=display:flex><span>git check-ignore -v 文件路径
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 示例输出（被忽略）：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># .gitignore:3:*.log    app.log</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 表示：.gitignore 第 3 行的 *.log 规则忽略了 app.log</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 示例输出（没被忽略）：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># （无输出）</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=检查清单>检查清单</h3><ul><li><input disabled type=checkbox> 文件是否已被追踪？（<code>git ls-files | grep 文件名</code>）</li><li><input disabled type=checkbox> 规则语法是否正确？</li><li><input disabled type=checkbox> 是否有取反规则（<code>!</code>）覆盖了前面的规则？</li><li><input disabled type=checkbox> 路径是否正确（是否以 <code>/</code> 开头）？</li><li><input disabled type=checkbox> 是否需要清除缓存？</li></ul><hr><h2 id=810-本章小结提交前检查别做那个泄露密码的人>8.10 本章小结：提交前检查，别做那个泄露密码的人</h2><p>本章我们学习了 <code>.gitignore</code> 的各种知识：</p><table><thead><tr><th>主题</th><th>要点</th></tr></thead><tbody><tr><td>不该提交的文件</td><td>依赖、编译产物、配置文件、日志、OS/IDE 文件</td></tr><tr><td>node_modules</td><td>永远不要提交，用 package.json 重建</td></tr><tr><td>.env 文件</td><td>包含敏感信息，绝对不能提交</td></tr><tr><td>Git LFS</td><td>管理大文件的解决方案</td></tr><tr><td>语法</td><td><code>*</code> <code>?</code> <code>**</code> <code>!</code> 等通配符的用法</td></tr><tr><td>模板</td><td>各语言有官方模板，可以直接使用</td></tr><tr><td>停止追踪</td><td>用 <code>git rm --cached</code></td></tr><tr><td>全局配置</td><td><code>core.excludesfile</code> 配置全局 .gitignore</td></tr><tr><td>失效排查</td><td>用 <code>git check-ignore -v</code> 调试</td></tr></tbody></table><p><strong>安全原则：</strong></p><ol><li><strong>提交前检查</strong>：<code>git status</code> 看看会提交什么</li><li><strong>敏感信息绝不提交</strong>：密码、密钥、token</li><li><strong>提供模板</strong>：用 <code>.env.example</code> 代替 <code>.env</code></li><li><strong>定期审计</strong>：检查仓库是否包含敏感信息</li></ol><p><strong>记忆口诀：</strong></p><ul><li>依赖目录 → 忽略</li><li>编译产物 → 忽略</li><li>配置文件 → 忽略</li><li>日志文件 → 忽略</li><li>OS/IDE 文件 → 忽略</li></ul><p><strong>练习建议：</strong></p><ol><li>检查你的项目，看看 .gitignore 是否完整</li><li>使用 <code>git check-ignore -v</code> 调试几个文件</li><li>配置全局 .gitignore，管理 IDE 和 OS 文件</li></ol><p>下一章，我们将进入 Git 的核心特性——分支管理！</p><div class=td-page-meta__lastmod>最后修改 April 3, 2026: <a data-proofer-ignore href=https://github.com/before80/prgms/commit/c56c0386e5a114d3730cdad6de5733167a7bc638>新增 git 教程 (c56c038)</a></div></div></main></div></div><footer class="td-footer row d-print-none"><div class=container-fluid><div class="row mx-md-2"><div class="td-footer__left col-6 col-sm-4 order-sm-1"><ul class=td-footer__links-list><li class=td-footer__links-item data-bs-toggle=tooltip title="User mailing list" aria-label="User mailing list"><a target=_blank rel=noopener href=https://example.org/mail aria-label="User mailing list"><i class="fa fa-envelope"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title=Twitter aria-label=Twitter><a target=_blank rel=noopener href=https://example.org/twitter aria-label=Twitter><i class="fab fa-twitter"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title="Stack Overflow" aria-label="Stack Overflow"><a target=_blank rel=noopener href=https://example.org/stack aria-label="Stack Overflow"><i class="fab fa-stack-overflow"></i></a></li></ul></div><div class="td-footer__right col-6 col-sm-4 order-sm-3"><ul class=td-footer__links-list><li class=td-footer__links-item data-bs-toggle=tooltip title=GitHub aria-label=GitHub><a target=_blank rel=noopener href=https://github.com/before80/prgms aria-label=GitHub><i class="fab fa-github"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title=Slack aria-label=Slack><a target=_blank rel=noopener href=https://example.org/slack aria-label=Slack><i class="fab fa-slack"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title="Developer mailing list" aria-label="Developer mailing list"><a target=_blank rel=noopener href=https://example.org/mail aria-label="Developer mailing list"><i class="fa fa-envelope"></i></a></li></ul></div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2"><span class=td-footer__copyright>&copy;
+2026
+<span class=td-footer__authors>作者zlongx</span></span><span class=td-footer__all_rights_reserved>保留所有权利</span><span class=ms-2><a href=https://policies.google.com/privacy target=_blank rel=noopener>隐私政策</a></span></div></div></div></footer></div><style>.markmap>svg{width:100%;height:300px}</style><script>window.markmap={autoLoader:{manual:!0,onReady(){const{autoLoader:e,builtInPlugins:t}=window.markmap;e.transformPlugins=t.filter(e=>e.name!=="prism")}}}</script><script src=https://unpkg.com/markmap-autoloader@latest></script><script src=/prgms/js/main.min.2358e7822956705373a61d2fdc0068abdf87f2c76a23be412ddf2546cbe54a97.js integrity="sha256-I1jngilWcFNzph0v3ABoq9+H8sdqI75BLd8lRsvlSpc=" crossorigin=anonymous></script><script defer src=/prgms/js/click-to-copy.min.14c7dd84004258325d147b971421f1d4dfd3f28500954f32ef71d1cfd0938f51.js integrity="sha256-FMfdhABCWDJdFHuXFCHx1N/T8oUAlU8y73HRz9CTj1E=" crossorigin=anonymous></script><script src=https://unpkg.com/@docsearch/js@3.8.2/dist/umd/index.js integrity="sha512-lsD+XVzdBI6ZquXc8gqbw0/bgrfIsMJwY/8xvmvbN+U3gZSeG7BXQoCq4zv/yCmntR2GLHtgB+bD4ESPsKIbIA==" crossorigin=anonymous></script><script type=text/javascript>const containers=["#docsearch-0","#docsearch-1"];for(let e of containers)docsearch({container:e,appId:"DV76UK9EIH",apiKey:"227dec0ac6cbc8dfad748f27b2974507",indexName:"go-"})</script><script src=/prgms/js/tabpane-persist.js></script><script src=/go_docs/js/tocbot.min.js></script><script src=/go_docs/js/markmap-autoloader.js></script><script type=text/javascript>window.addEventListener("load",function(){tocbot.init({tocSelector:".td-toc",contentSelector:".td-content",headingSelector:"h2, h3, h4, h5, h6",ignoreHiddenElements:!0,collapseDepth:6});let t=0,e=0,n=document.getElementById("show-timer"),s=document.getElementById("advice-reading-time"),o=s.textContent.trim();function i(){e++,e>=60&&(e=0,t++);let i=e<10?"0"+e:e;s!==null?n.textContent=t+":"+i+" <- "+o:n.textContent=t+":"+i}setInterval(i,1e3)})</script><script src=/go_docs/js/jquery-3.6.3.min.js></script><script src=/go_docs/js/deal-zero-width-space.js></script><script src=/go_docs/js/tabpane-persist.js></script></body></html>
