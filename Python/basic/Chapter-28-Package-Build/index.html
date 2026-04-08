@@ -1,0 +1,947 @@
+<!doctype html><html itemscope itemtype=http://schema.org/WebPage lang=zh-cn class=no-js data-theme-init><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=color-scheme content="light dark"><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#000000"><style>html{background:Canvas;color:CanvasText}@media(prefers-color-scheme:dark){html{background:#0b0d12;color:#e6e6e6}}html[data-theme-init] *{transition:none!important}</style><script>(function(){const t="td-color-theme",n=localStorage.getItem(t);let e=n||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");e==="auto"&&(e=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),document.documentElement.setAttribute("data-bs-theme",e)})()</script><meta name=robots content="index, follow"><link rel="shortcut icon" href=/prgms/favicons/favicon.ico><link rel=apple-touch-icon href=/prgms/favicons/apple-touch-icon-180x180.png sizes=180x180><link rel=icon type=image/png href=/prgms/favicons/favicon-16x16.png sizes=16x16><link rel=icon type=image/png href=/prgms/favicons/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=/prgms/favicons/android-36x36.png sizes=36x36><link rel=icon type=image/png href=/prgms/favicons/android-48x48.png sizes=48x48><link rel=icon type=image/png href=/prgms/favicons/android-72x72.png sizes=72x72><link rel=icon type=image/png href=/prgms/favicons/android-96x96.png sizes=96x96><link rel=icon type=image/png href=/prgms/favicons/android-144x144.png sizes=144x144><link rel=icon type=image/png href=/prgms/favicons/android-192x192.png sizes=192x192><title>第28章 包构建 | 编程那些事儿</title><meta name=description content='第二十八章：Python 包管理兵器谱——从 pip 到 build，一条龙服务 💡 前置知识：本章聊的是 Python 包的安装、管理、打包、发布，涉及 pip、uv、Poetry、PDM、build、twine 等工具。建议先读完前面的"虚拟环境"章节，对 venv 有了基本概念再来。准备好了？那咱们开始！'><meta property="og:url" content="https://before80.github.io/prgms/Python/basic/Chapter-28-Package-Build/"><meta property="og:site_name" content="编程那些事儿"><meta property="og:title" content="第28章 包构建"><meta property="og:description" content='第二十八章：Python 包管理兵器谱——从 pip 到 build，一条龙服务 💡 前置知识：本章聊的是 Python 包的安装、管理、打包、发布，涉及 pip、uv、Poetry、PDM、build、twine 等工具。建议先读完前面的"虚拟环境"章节，对 venv 有了基本概念再来。准备好了？那咱们开始！'><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="python"><meta property="article:published_time" content="2026-04-08T13:22:00+08:00"><meta property="article:modified_time" content="2026-04-08T13:27:49+08:00"><meta itemprop=name content="第28章 包构建"><meta itemprop=description content='第二十八章：Python 包管理兵器谱——从 pip 到 build，一条龙服务 💡 前置知识：本章聊的是 Python 包的安装、管理、打包、发布，涉及 pip、uv、Poetry、PDM、build、twine 等工具。建议先读完前面的"虚拟环境"章节，对 venv 有了基本概念再来。准备好了？那咱们开始！'><meta itemprop=datePublished content="2026-04-08T13:22:00+08:00"><meta itemprop=dateModified content="2026-04-08T13:27:49+08:00"><meta itemprop=wordCount content="7858"><meta name=twitter:card content="summary"><meta name=twitter:title content="第28章 包构建"><meta name=twitter:description content='第二十八章：Python 包管理兵器谱——从 pip 到 build，一条龙服务 💡 前置知识：本章聊的是 Python 包的安装、管理、打包、发布，涉及 pip、uv、Poetry、PDM、build、twine 等工具。建议先读完前面的"虚拟环境"章节，对 venv 有了基本概念再来。准备好了？那咱们开始！'><link rel=preload href=/prgms/scss/main.min.6493eeac8161e52866670fd3d82fea10f8b9f1ca39f8f69aaf1021c77867b96c.css as=style integrity="sha256-ZJPurIFh5ShmZw/T2C/qEPi58co5+PaarxAhx3hnuWw=" crossorigin=anonymous><link href=/prgms/scss/main.min.6493eeac8161e52866670fd3d82fea10f8b9f1ca39f8f69aaf1021c77867b96c.css rel=stylesheet integrity="sha256-ZJPurIFh5ShmZw/T2C/qEPi58co5+PaarxAhx3hnuWw=" crossorigin=anonymous><link href=/go_docs/css/extra.css rel=stylesheet><script src=https://code.jquery.com/jquery-3.7.1.min.js integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin=anonymous></script><link rel=stylesheet href=https://unpkg.com/@docsearch/css@3.8.2/dist/style.css integrity="sha512-l7pkV1dOURFyHCeH8I4fK9lCkQKuqhlsTCqRl3zktifDlB8oTUJ+mJPgYkK9kHpUut8j1iPquTv32t6hvTPv3g==" crossorigin=anonymous></head><body class=td-page><header><nav class="td-navbar js-navbar-scroll"><div class="td-navbar-container container-fluid flex-column flex-md-row"><a class=navbar-brand href=/prgms/><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class=navbar-brand__name>编程那些事儿</span></a><div class="td-navbar-nav-scroll td-navbar-nav-scroll--indicator" id=main_navbar><div class="scroll-indicator scroll-left"></div><ul class=navbar-nav><li class="nav-item mr-4 mb-2 mb-lg-0"><a class=nav-link href=javascript:; id=show-timer style=color:#fe4512f5!important></a></li><li class=nav-item><a class=nav-link href=/prgms/docs/><span>文档</span></a></li><li class=nav-item><a class=nav-link href=/prgms/AI/><span>AI</span></a></li><li class=nav-item><a class=nav-link href=/prgms/C/><span>C</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Cpp/><span>Cpp</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Git/><span>Git</span></a></li><li class=nav-item><a class=nav-link href=/prgms/go/><span>Go</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Java/><span>Java</span></a></li><li class=nav-item><a class=nav-link href=/prgms/linux/><span>Linux</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Js/><span>JavaScript</span></a></li><li class=nav-item><a class="nav-link active" href=/prgms/Python/><span>Python</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Ts/><span>TypeScript</span></a></li><li class=nav-item><a class=nav-link href=/prgms/CSS/><span>CSS</span></a></li><li class=nav-item><a class=nav-link href=/prgms/Rust/><span>Rust</span></a></li><li class="nav-item td-navbar__light-dark-menu"><div class="td-light-dark-menu dropdown"><svg class="d-none"><symbol id="check2" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5.0 010 .708l-7 7a.5.5.0 01-.708.0l-3.5-3.5a.5.5.0 11.708-.708L6.5 10.293l6.646-6.647a.5.5.0 01.708.0z"/></symbol><symbol id="circle-half" viewBox="0 0 16 16"><path d="M8 15A7 7 0 108 1v14zm0 1A8 8 0 118 0a8 8 0 010 16z"/></symbol><symbol id="moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.768.768.0 01.08.858 7.208 7.208.0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527.0 1.04-.055 1.533-.16a.787.787.0 01.81.316.733.733.0 01-.031.893A8.349 8.349.0 018.344 16C3.734 16 0 12.286.0 7.71.0 4.266 2.114 1.312 5.124.06A.752.752.0 016 .278z"/><path d="M10.794 3.148a.217.217.0 01.412.0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217.0 010 .412l-1.162.387A1.734 1.734.0 0011.593 7.69l-.387 1.162a.217.217.0 01-.412.0l-.387-1.162A1.734 1.734.0 009.31 6.593l-1.162-.387a.217.217.0 010-.412l1.162-.387a1.734 1.734.0 001.097-1.097l.387-1.162zM13.863.099a.145.145.0 01.274.0l.258.774c.115.346.386.617.732.732l.774.258a.145.145.0 010 .274l-.774.258a1.156 1.156.0 00-.732.732l-.258.774a.145.145.0 01-.274.0l-.258-.774a1.156 1.156.0 00-.732-.732l-.774-.258a.145.145.0 010-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/></symbol><symbol id="sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 0zm0 13a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 13zm8-5a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2a.5.5.0 01.5.5zM3 8a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2A.5.5.0 013 8zm10.657-5.657a.5.5.0 010 .707l-1.414 1.415a.5.5.0 11-.707-.708l1.414-1.414a.5.5.0 01.707.0zm-9.193 9.193a.5.5.0 010 .707L3.05 13.657a.5.5.0 01-.707-.707l1.414-1.414a.5.5.0 01.707.0zm9.193 2.121a.5.5.0 01-.707.0l-1.414-1.414a.5.5.0 01.707-.707l1.414 1.414a.5.5.0 010 .707zM4.464 4.465a.5.5.0 01-.707.0L2.343 3.05a.5.5.0 11.707-.707l1.414 1.414a.5.5.0 010 .708z"/></symbol></svg>
+<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" id=bd-theme type=button aria-expanded=false data-bs-toggle=dropdown aria-label="Toggle theme (auto)">
+<svg class="bi my-1 theme-icon-active"><use href="#circle-half"/></svg></button><ul class=dropdown-menu aria-labelledby=bd-theme><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=light aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#sun-fill"/></svg>
+Light
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=dark aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"/></svg>
+Dark
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center active" data-bs-theme-value=auto aria-pressed=true>
+<svg class="bi me-2 opacity-50"><use href="#circle-half"/></svg>
+Auto
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul></div></li></ul><div class="scroll-indicator scroll-right"></div></div><div class="d-none d-lg-block td-navbar__search"><div class=td-search><div class=td-search--algolia id=docsearch-1></div></div></div></div></nav></header><div class="container-fluid td-outer"><div class=td-main data-bs-spy=scroll data-bs-target=.td-toc data-bs-root-margin="0px 0px -10%"><div class="row flex-xl-nowrap"><aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none"><div id=td-sidebar-menu class=td-sidebar__inner><form class="td-sidebar__search d-flex align-items-center"><div class=td-search><div class=td-search--algolia id=docsearch-0></div></div><button class="btn btn-link td-sidebar__toggle" type=button data-bs-toggle=collapse data-bs-target=#td-section-nav aria-controls=td-section-nav aria-expanded=false aria-label="Toggle section navigation"></button></form><nav class="td-sidebar-nav collapse foldable-nav" id=td-section-nav data-sidebar-root-id=/prgms/Python/><ul class="td-sidebar-nav__section pe-md-3 ul-0"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-prgmspython-li><a href=/prgms/Python/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id=m-prgmspython><span>Python</span></a><ul class=ul-1><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-prgmspythonbasic-li><input type=checkbox id=m-prgmspythonbasic-check checked>
+<label for=m-prgmspythonbasic-check><a href=/prgms/Python/basic/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-prgmspythonbasic><span>基础部分</span></a></label><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-01-hello-python-li><input type=checkbox id=m-prgmspythonbasicchapter-01-hello-python-check>
+<label for=m-prgmspythonbasicchapter-01-hello-python-check><a href=/prgms/Python/basic/Chapter-01-Hello-Python/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-01-hello-python><span>第1章 欢迎来到Python的世界</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-02-python-evolution-li><input type=checkbox id=m-prgmspythonbasicchapter-02-python-evolution-check>
+<label for=m-prgmspythonbasicchapter-02-python-evolution-check><a href=/prgms/Python/basic/Chapter-02-Python-Evolution/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-02-python-evolution><span>第2章 Python的进化史</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-03-installation-li><input type=checkbox id=m-prgmspythonbasicchapter-03-installation-check>
+<label for=m-prgmspythonbasicchapter-03-installation-check><a href=/prgms/Python/basic/Chapter-03-Installation/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-03-installation><span>第3章 安装Python</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-04-version-manager-li><input type=checkbox id=m-prgmspythonbasicchapter-04-version-manager-check>
+<label for=m-prgmspythonbasicchapter-04-version-manager-check><a href=/prgms/Python/basic/Chapter-04-Version-Manager/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-04-version-manager><span>第4章 版本管理工具</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-05-virtual-environment-li><input type=checkbox id=m-prgmspythonbasicchapter-05-virtual-environment-check>
+<label for=m-prgmspythonbasicchapter-05-virtual-environment-check><a href=/prgms/Python/basic/Chapter-05-Virtual-Environment/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-05-virtual-environment><span>第5章 虚拟环境</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-06-vscode-python-li><input type=checkbox id=m-prgmspythonbasicchapter-06-vscode-python-check>
+<label for=m-prgmspythonbasicchapter-06-vscode-python-check><a href=/prgms/Python/basic/Chapter-06-VSCode-Python/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-06-vscode-python><span>第6章 VSCode和Python</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-07-pycharm-python-li><input type=checkbox id=m-prgmspythonbasicchapter-07-pycharm-python-check>
+<label for=m-prgmspythonbasicchapter-07-pycharm-python-check><a href=/prgms/Python/basic/Chapter-07-PyCharm-Python/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-07-pycharm-python><span>第7章 PyCharm和Python</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-08-other-editors-li><input type=checkbox id=m-prgmspythonbasicchapter-08-other-editors-check>
+<label for=m-prgmspythonbasicchapter-08-other-editors-check><a href=/prgms/Python/basic/Chapter-08-Other-Editors/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-08-other-editors><span>第8章 其他编辑器</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-09-code-quality-li><input type=checkbox id=m-prgmspythonbasicchapter-09-code-quality-check>
+<label for=m-prgmspythonbasicchapter-09-code-quality-check><a href=/prgms/Python/basic/Chapter-09-Code-Quality/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-09-code-quality><span>第9章 代码质量</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-10-packaging-li><input type=checkbox id=m-prgmspythonbasicchapter-10-packaging-check>
+<label for=m-prgmspythonbasicchapter-10-packaging-check><a href=/prgms/Python/basic/Chapter-10-Packaging/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-10-packaging><span>第10章 打包发布</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-11-basic-syntax-li><input type=checkbox id=m-prgmspythonbasicchapter-11-basic-syntax-check>
+<label for=m-prgmspythonbasicchapter-11-basic-syntax-check><a href=/prgms/Python/basic/Chapter-11-Basic-Syntax/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-11-basic-syntax><span>第11章 基础语法</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-12-data-types-li><input type=checkbox id=m-prgmspythonbasicchapter-12-data-types-check>
+<label for=m-prgmspythonbasicchapter-12-data-types-check><a href=/prgms/Python/basic/Chapter-12-Data-Types/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-12-data-types><span>第12章 数据类型</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-13-functions-li><input type=checkbox id=m-prgmspythonbasicchapter-13-functions-check>
+<label for=m-prgmspythonbasicchapter-13-functions-check><a href=/prgms/Python/basic/Chapter-13-Functions/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-13-functions><span>第13章 函数</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-14-oop-li><input type=checkbox id=m-prgmspythonbasicchapter-14-oop-check>
+<label for=m-prgmspythonbasicchapter-14-oop-check><a href=/prgms/Python/basic/Chapter-14-OOP/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-14-oop><span>第14章 面向对象</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-15-advanced-syntax-li><input type=checkbox id=m-prgmspythonbasicchapter-15-advanced-syntax-check>
+<label for=m-prgmspythonbasicchapter-15-advanced-syntax-check><a href=/prgms/Python/basic/Chapter-15-Advanced-Syntax/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-15-advanced-syntax><span>第15章 进阶语法</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-16-modules-li><input type=checkbox id=m-prgmspythonbasicchapter-16-modules-check>
+<label for=m-prgmspythonbasicchapter-16-modules-check><a href=/prgms/Python/basic/Chapter-16-Modules/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-16-modules><span>第16章 模块</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-17-engineering-li><input type=checkbox id=m-prgmspythonbasicchapter-17-engineering-check>
+<label for=m-prgmspythonbasicchapter-17-engineering-check><a href=/prgms/Python/basic/Chapter-17-Engineering/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-17-engineering><span>第17章 工程化</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-18-concurrency-li><input type=checkbox id=m-prgmspythonbasicchapter-18-concurrency-check>
+<label for=m-prgmspythonbasicchapter-18-concurrency-check><a href=/prgms/Python/basic/Chapter-18-Concurrency/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-18-concurrency><span>第18章 并发编程</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-19-ai-basics-li><input type=checkbox id=m-prgmspythonbasicchapter-19-ai-basics-check>
+<label for=m-prgmspythonbasicchapter-19-ai-basics-check><a href=/prgms/Python/basic/Chapter-19-AI-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-19-ai-basics><span>第19章 AI基础</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-20-llm-li><input type=checkbox id=m-prgmspythonbasicchapter-20-llm-check>
+<label for=m-prgmspythonbasicchapter-20-llm-check><a href=/prgms/Python/basic/Chapter-20-LLM/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-20-llm><span>第20章 大语言模型</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-21-cross-language-li><input type=checkbox id=m-prgmspythonbasicchapter-21-cross-language-check>
+<label for=m-prgmspythonbasicchapter-21-cross-language-check><a href=/prgms/Python/basic/Chapter-21-Cross-Language/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-21-cross-language><span>第21章 跨语言</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-22-web-frameworks-li><input type=checkbox id=m-prgmspythonbasicchapter-22-web-frameworks-check>
+<label for=m-prgmspythonbasicchapter-22-web-frameworks-check><a href=/prgms/Python/basic/Chapter-22-Web-Frameworks/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-22-web-frameworks><span>第22章 Web框架</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-23-async-frameworks-li><input type=checkbox id=m-prgmspythonbasicchapter-23-async-frameworks-check>
+<label for=m-prgmspythonbasicchapter-23-async-frameworks-check><a href=/prgms/Python/basic/Chapter-23-Async-Frameworks/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-23-async-frameworks><span>第23章 异步框架</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-24-data-scraping-li><input type=checkbox id=m-prgmspythonbasicchapter-24-data-scraping-check>
+<label for=m-prgmspythonbasicchapter-24-data-scraping-check><a href=/prgms/Python/basic/Chapter-24-Data-Scraping/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-24-data-scraping><span>第24章 数据爬取</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-25-ai-frameworks-li><input type=checkbox id=m-prgmspythonbasicchapter-25-ai-frameworks-check>
+<label for=m-prgmspythonbasicchapter-25-ai-frameworks-check><a href=/prgms/Python/basic/Chapter-25-AI-Frameworks/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-25-ai-frameworks><span>第25章 AI框架</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-26-other-frameworks-li><input type=checkbox id=m-prgmspythonbasicchapter-26-other-frameworks-check>
+<label for=m-prgmspythonbasicchapter-26-other-frameworks-check><a href=/prgms/Python/basic/Chapter-26-Other-Frameworks/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-26-other-frameworks><span>第26章 其他框架</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-27-dev-tools-li><input type=checkbox id=m-prgmspythonbasicchapter-27-dev-tools-check>
+<label for=m-prgmspythonbasicchapter-27-dev-tools-check><a href=/prgms/Python/basic/Chapter-27-Dev-Tools/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-27-dev-tools><span>第27章 开发工具</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id=m-prgmspythonbasicchapter-28-package-build-li><input type=checkbox id=m-prgmspythonbasicchapter-28-package-build-check checked>
+<label for=m-prgmspythonbasicchapter-28-package-build-check><a href=/prgms/Python/basic/Chapter-28-Package-Build/ class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-28-package-build><span class=td-sidebar-nav-active-item>第28章 包构建</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-29-algorithm-li><input type=checkbox id=m-prgmspythonbasicchapter-29-algorithm-check>
+<label for=m-prgmspythonbasicchapter-29-algorithm-check><a href=/prgms/Python/basic/Chapter-29-Algorithm/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-29-algorithm><span>第29章 算法</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-30-sql-basics-li><input type=checkbox id=m-prgmspythonbasicchapter-30-sql-basics-check>
+<label for=m-prgmspythonbasicchapter-30-sql-basics-check><a href=/prgms/Python/basic/Chapter-30-SQL-Basics/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-30-sql-basics><span>第30章 SQL基础</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-31-nosql-li><input type=checkbox id=m-prgmspythonbasicchapter-31-nosql-check>
+<label for=m-prgmspythonbasicchapter-31-nosql-check><a href=/prgms/Python/basic/Chapter-31-NoSQL/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-31-nosql><span>第31章 NoSQL</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-32-network-li><input type=checkbox id=m-prgmspythonbasicchapter-32-network-check>
+<label for=m-prgmspythonbasicchapter-32-network-check><a href=/prgms/Python/basic/Chapter-32-Network/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-32-network><span>第32章 网络编程</span></a></label></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-prgmspythonbasicchapter-33-security-li><input type=checkbox id=m-prgmspythonbasicchapter-33-security-check>
+<label for=m-prgmspythonbasicchapter-33-security-check><a href=/prgms/Python/basic/Chapter-33-Security/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-prgmspythonbasicchapter-33-security><span>第33章 安全</span></a></label></li></ul></li></ul></li></ul></nav></div></aside><aside class=td-sidebar-toc><div class="td-page-meta ms-2 pb-1 pt-2 mb-0"><a href=https://before80.github.io/go_docs/comm/coffee class="td-page-meta--view td-page-meta__view" style=color:#2bf518!important target=_blank rel=noopener><i class="fa-solid fa-mug-hot fa-fw"></i> 请作者喝杯咖啡吧</a>
+<a href=https://github.com/before80/prgms/tree/main/content/Python/basic/Chapter-28-Package-Build.md class="td-page-meta--view td-page-meta__view" target=_blank rel=noopener><i class="fa-solid fa-file-lines fa-fw"></i> 查看页面源码</a>
+<a href=https://github.com/before80/prgms/edit/main/content/Python/basic/Chapter-28-Package-Build.md class="td-page-meta--edit td-page-meta__edit" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> 编辑此页</a>
+<a href="https://github.com/before80/prgms/new/main/content/Python/basic?filename=change-me.md&amp;value=---%0Atitle%3A+%22Long+Page+Title%22%0AlinkTitle%3A+%22Short+Nav+Title%22%0Aweight%3A+100%0Adescription%3A+%3E-%0A+++++Page+description+for+heading+and+indexes.%0A---%0A%0A%23%23+Heading%0A%0AEdit+this+template+to+create+your+new+page.%0A%0A%2A+Give+it+a+good+name%2C+ending+in+%60.md%60+-+e.g.+%60getting-started.md%60%0A%2A+Edit+the+%22front+matter%22+section+at+the+top+of+the+page+%28weight+controls+how+its+ordered+amongst+other+pages+in+the+same+directory%3B+lowest+number+first%29.%0A%2A+Add+a+good+commit+message+at+the+bottom+of+the+page+%28%3C80+characters%3B+use+the+extended+description+field+for+more+detail%29.%0A%2A+Create+a+new+branch+so+you+can+preview+your+new+file+and+request+a+review+via+Pull+Request.%0A" class="td-page-meta--child td-page-meta__child" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> 添加子页面</a>
+<a href="https://github.com/before80/prgms/issues/new?title=%e7%ac%ac28%e7%ab%a0%20%e5%8c%85%e6%9e%84%e5%bb%ba" class="td-page-meta--issue td-page-meta__issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> 提交文档问题</a>
+<a href=https://github.com/before80/prgms/issues/new class="td-page-meta--project td-page-meta__project-issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> 提交项目问题</a></div><div class=td-toc data-proofer-ignore><div class=td-toc-title><span class=td-toc-title__text>本页目录</span>
+<a class=td-toc-title__link title=回到顶部 href=#></a></div><nav id=TableOfContents><ul><li><a href=#第二十八章python-包管理兵器谱从-pip-到-build一条龙服务>第二十八章：Python 包管理兵器谱——从 pip 到 build，一条龙服务</a><ul><li><a href=#281-pip-进阶用法你以为你真的会-pip>28.1 pip 进阶用法——你以为你真的会 pip？</a><ul><li><a href=#2811-pip-install--uninstall--freeze--show四件套走天下>28.1.1 pip install / uninstall / freeze / show——四件套走天下</a></li><li><a href=#2812-pip-list--pip-check环境盘点与体检>28.1.2 pip list / pip check——环境盘点与体检</a></li><li><a href=#2813-pip-download--cache离线缓存两件套>28.1.3 pip download / cache——离线缓存两件套</a></li></ul></li><li><a href=#282-uv极速新一代包管理卷王来了>28.2 uv——极速新一代包管理（卷王来了！）</a><ul><li><a href=#2821-uv-python-installpython-版本管理大师>28.2.1 uv python install——Python 版本管理大师</a></li><li><a href=#2822-uv-venv--pip-install--sync--lock一条龙管理>28.2.2 uv venv / pip install / sync / lock——一条龙管理</a></li><li><a href=#2823-uv-run一行命令搞定一切>28.2.3 uv run——一行命令搞定一切</a></li></ul></li><li><a href=#283-poetry现代依赖管理的瑞士军刀>28.3 Poetry——现代依赖管理的瑞士军刀</a><ul><li><a href=#2831-poetry-init--add--install项目管理三板斧>28.3.1 poetry init / add / install——项目管理三板斧</a></li><li><a href=#2832-poetry-build--publish打包发布一条龙>28.3.2 poetry build / publish——打包发布一条龙</a></li></ul></li><li><a href=#284-pdmpep-582-包管理激进分子>28.4 PDM——PEP 582 包管理（激进分子！）</a></li><li><a href=#285-build-与-twine打包发布双雄>28.5 build 与 twine——打包发布双雄</a><ul><li><a href=#build构建你的包>build——构建你的包</a></li><li><a href=#twine上传到-pypi>twine——上传到 PyPI</a></li><li><a href=#构建后端的选择setuptools--flit-core--pdm-backend>构建后端的选择（setuptools / flit-core / PDM-backend）</a></li></ul></li><li><a href=#本章小结>本章小结</a><ul><li><a href=#包管理器对比一览>包管理器对比一览</a></li><li><a href=#关键概念回顾>关键概念回顾</a></li><li><a href=#实战建议>实战建议</a></li></ul></li></ul></li></ul></nav></div></aside><main class="col-12 col-md-9 col-xl-8 ps-md-5" role=main><nav aria-label=breadcrumb class=td-breadcrumbs><ol class=breadcrumb><li class=breadcrumb-item><a href=/prgms/Python/>Python</a></li><li class=breadcrumb-item><a href=/prgms/Python/basic/>基础部分</a></li><li class="breadcrumb-item active" aria-current=page>第28章 包构建</li></ol></nav><div class=td-content><h1>第28章 包构建</h1><header class=article-meta><p class=reading-time><i class="fa-solid fa-clock" style=color:#e90 aria-hidden=true></i>&nbsp; <span style=font-size:3rem;color:#006400 id=advice-reading-time>16 </span>分钟阅读 &nbsp;</p></header><h1 id=第二十八章python-包管理兵器谱从-pip-到-build一条龙服务>第二十八章：Python 包管理兵器谱——从 pip 到 build，一条龙服务</h1><blockquote><p>💡 <strong>前置知识</strong>：本章聊的是 Python 包的安装、管理、打包、发布，涉及 pip、uv、Poetry、PDM、build、twine 等工具。建议先读完前面的"虚拟环境"章节，对 <code>venv</code> 有了基本概念再来。准备好了？那咱们开始！</p></blockquote><p>想象一下：你写了一个超厉害的 Python 程序，能自动把猫猫图片变成梵高风格。你兴冲冲地发给朋友，结果朋友电脑上一跑——报错了。不是你的代码有问题，而是他的 Python 环境里缺了一堆依赖包。报错信息密密麻麻，看得人头皮发麻。</p><p>这就是 Python 包的<strong>依赖地狱</strong>。</p><p>好消息是，Python 生态里有大量工具来帮你驯服这只野兽。从老牌的 pip，到新晋网红 uv，再到专业化程度极高的 Poetry、PDM，再到打包发布专用的 build 和 twine——今天这一章，咱们就来一场<strong>包管理工具全景巡礼</strong>，保证你出门能跟人吹半天。</p><hr><h2 id=281-pip-进阶用法你以为你真的会-pip>28.1 pip 进阶用法——你以为你真的会 pip？</h2><p>pip 可能是你接触的第一个 Python 包管理工具，但你确定你真的了解它吗？很多人只会 <code>pip install</code>，遇到问题就两眼一抹黑。让我们一起来升级你的 pip 技能树。</p><h3 id=2811-pip-install--uninstall--freeze--show四件套走天下>28.1.1 pip install / uninstall / freeze / show——四件套走天下</h3><p>先从最基础的四个命令说起。别急着跳过，说不定有你不知道的骚操作！</p><p><strong>pip install</strong>——安装包</p><p>这是你最熟悉的老朋友。但你知道吗？<code>pip install</code> 有多种打开方式：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装指定版本的包（版本号用 == 分隔）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>install</span> <span style=color:#aa89ea>requests</span><span style=color:#54b1c7>==</span><span style=color:#d19a66>2.28.0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装大于等于某个版本的包（常用！保护伞符号 ^）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>install</span> <span style=color:#aa89ea>requests</span><span style=color:#54b1c7>&gt;=</span><span style=color:#d19a66>2.28.0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装兼容版本（适用于遵循语义化版本的库）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># requests ^2.28.0 表示 2.28.0 &lt;= 版本 &lt; 3.0.0</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>install</span> <span style=color:#aa89ea>requests</span><span style=color:#54b1c7>&gt;=</span><span style=color:#d19a66>2.28.0</span><span style=color:#abb2bf>,</span><span style=color:#54b1c7>&lt;</span><span style=color:#d19a66>3.0.0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 从 requirements.txt 批量安装（项目必备！）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>install</span> <span style=color:#54b1c7>-</span><span style=color:#aa89ea>r</span> <span style=color:#aa89ea>requirements</span><span style=color:#54b1c7>.</span><span style=color:#aa89ea>txt</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 从 GitHub 直接安装（开发版用到哭）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>install</span> <span style=color:#aa89ea>git</span><span style=color:#54b1c7>+</span><span style=color:#aa89ea>https</span><span style=color:#abb2bf>:</span><span style=color:#54b1c7>//</span><span style=color:#aa89ea>github</span><span style=color:#54b1c7>.</span><span style=color:#aa89ea>com</span><span style=color:#54b1c7>/</span><span style=color:#aa89ea>psf</span><span style=color:#54b1c7>/</span><span style=color:#aa89ea>requests</span><span style=color:#54b1c7>.</span><span style=color:#aa89ea>git</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装成&#34;可编辑&#34;模式（开发时改代码不用重装！）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 适用于你自己的项目，等于把这个包链接到你的环境里</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>install</span> <span style=color:#54b1c7>-</span><span style=color:#aa89ea>e</span> <span style=color:#54b1c7>.</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装时指定额外索引源（国内镜像加速）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>install</span> <span style=color:#aa89ea>numpy</span> <span style=color:#54b1c7>-</span><span style=color:#aa89ea>i</span> <span style=color:#aa89ea>https</span><span style=color:#abb2bf>:</span><span style=color:#54b1c7>//</span><span style=color:#aa89ea>pypi</span><span style=color:#54b1c7>.</span><span style=color:#aa89ea>tuna</span><span style=color:#54b1c7>.</span><span style=color:#aa89ea>tsinghua</span><span style=color:#54b1c7>.</span><span style=color:#aa89ea>edu</span><span style=color:#54b1c7>.</span><span style=color:#aa89ea>cn</span><span style=color:#54b1c7>/</span><span style=color:#aa89ea>simple</span>
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>💡 <strong>什么是 requirements.txt？</strong> 这是一个纯文本文件，每行写一个依赖包和版本号。类似于购物清单，让别人一键安装所有依赖。它的格式长这样：</p><pre tabindex=0><code>requests&gt;=2.28.0
+pandas&gt;=1.4.0
+matplotlib&gt;=3.5.0
+</code></pre></blockquote><p><strong>pip uninstall</strong>——卸载包（手起刀落）</p><p>当你发现某个包是个坑，或者不需要了，就要用到卸载：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 卸载一个包（会问你确认，-y 跳过确认）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>uninstall</span> <span style=color:#aa89ea>requests</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 批量卸载（适合清理环境）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>uninstall</span> <span style=color:#54b1c7>-</span><span style=color:#aa89ea>y</span> <span style=color:#aa89ea>requests</span> <span style=color:#aa89ea>pandas</span> <span style=color:#aa89ea>matplotlib</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 配合 freeze 使用可以批量删除（骚操作）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 先导出当前所有包：pip freeze &gt; requirements.txt</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 然后卸载所有：pip uninstall -r requirements.txt -y</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>pip freeze</strong>——导出当前环境的依赖清单</p><p>这个命令超级有用！想象你要把项目分享给同事，或者部署到服务器，<code>pip freeze</code> 能帮你把所有安装过的包及其精确版本号都列出来：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 导出到文件（标准操作！）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>freeze</span> <span style=color:#54b1c7>&gt;</span> <span style=color:#aa89ea>requirements</span><span style=color:#54b1c7>.</span><span style=color:#aa89ea>txt</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看输出（长这样）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># certifi==2023.7.22</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># charset-normalizer==3.2.0</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># idna==4.2.1</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># requests==2.31.0</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># urllib3==2.0.4</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 进阶：只导出非标准库的包（排除 pip 自己的依赖）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>freeze</span> <span style=color:#54b1c7>--</span><span style=color:#aa89ea>exclude</span><span style=color:#54b1c7>-</span><span style=color:#aa89ea>editable</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 进阶：按格式输出</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># --local 只显示本地项目的依赖</span>
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>💡 <strong>freeze 和 requirements.txt 的关系</strong>：freeze 生成的就是 requirements.txt 的内容。requirements.txt 是约定俗成的文件名，你也可以叫它 <code>prod-requirements.txt</code>、<code>dev-requirements.txt</code> 等。</p></blockquote><p><strong>pip show</strong>——查看包的"身份证"</p><p>想知道某个包有没有安装、装在哪、版本多少、依赖谁？<code>pip show</code> 就是包的档案馆：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看单个包的详细信息</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>show</span> <span style=color:#aa89ea>requests</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 输出大概是这个样子：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Name: requests</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Version: 2.31.0</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Summary: Python HTTP for Humans.</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Home-page: https://requests.readthedocs.io</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Author: Kenneth Reitz</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Author-email: me@kennethreitz.org</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># License: Apache 2.0</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Location: c:\users\longx\appdata\local\programs\python\python311\lib\site-packages</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Requires: certifi, charset-normalizer, idna, urllib3</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Required-by: pandas, matplotlib</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 只显示特定字段（脚本里常用）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>show</span> <span style=color:#aa89ea>requests</span> <span style=color:#54b1c7>|</span> <span style=color:#aa89ea>findstr</span> <span style=color:#aa89ea>Version</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 或者用 -f 显示所有字段</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>show</span> <span style=color:#54b1c7>-</span><span style=color:#aa89ea>f</span> <span style=color:#aa89ea>requests</span>
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>💡 <strong>Requires vs Required-by</strong>：Requires 是这个包依赖谁（上游），Required-by 是谁依赖这个包（下游）。搞清这个关系，debug 依赖冲突时你就心里有数了。</p></blockquote><h3 id=2812-pip-list--pip-check环境盘点与体检>28.1.2 pip list / pip check——环境盘点与体检</h3><p><strong>pip list</strong>——列出所有已安装的包</p><p>想看看当前环境里装了哪些包？<code>pip list</code> 就是你的包清单：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 列出所有包（按字母排序）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#e5c07b>list</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 格式简洁版</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#e5c07b>list</span> <span style=color:#54b1c7>--</span><span style=color:#e5c07b>format</span><span style=color:#54b1c7>=</span><span style=color:#aa89ea>columns</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 只列出可编辑模式安装的包（自己开发的）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#e5c07b>list</span> <span style=color:#54b1c7>--</span><span style=color:#aa89ea>editable</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查找以某字符串开头的包（快速定位）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#e5c07b>list</span> <span style=color:#54b1c7>|</span> <span style=color:#aa89ea>findstr</span> <span style=color:#aa89ea>pandas</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 按格式输出（可被 pip freeze 那种格式消费）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#e5c07b>list</span> <span style=color:#54b1c7>--</span><span style=color:#e5c07b>format</span><span style=color:#54b1c7>=</span><span style=color:#aa89ea>freeze</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>pip check</strong>——检查依赖完整性（健康体检）</p><p>这个命令很多人不知道，但它超级实用！它会检查你当前环境里所有包的依赖是否都满足，有冲突就报警：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 检查依赖完整性（不报任何消息就是没问题！）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>check</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 示例输出（有问题的情形）：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># django-cors-headers 3.13.0 has requirement django&gt;=3.2, but you have django 2.2.16</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># matplotlib 3.5.1 has requirement numpy&gt;=1.21.0, but you have numpy 1.19.5</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 配合 list 用的技巧：检查所有包是否有新版本</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#e5c07b>list</span> <span style=color:#54b1c7>--</span><span style=color:#aa89ea>outdated</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 输出大概是：</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># pip          23.1.2    23.2.1    升级提示</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># requests      2.28.0    2.31.0   ← 这个就有新版本</span>
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>💡 <strong>什么时候用 pip check？</strong> 当你接手一个老项目、或者 Python 升级后担心依赖不兼容时，先跑一下 <code>pip check</code>，它会告诉你哪些包需要更新或降级。</p></blockquote><h3 id=2813-pip-download--cache离线缓存两件套>28.1.3 pip download / cache——离线缓存两件套</h3><p><strong>pip download</strong>——下载但不安装（离线安装必备）</p><p>这个命令会把包的 wheel 或源码包下载到本地，方便在没有网络的环境里安装：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 下载某个包及其依赖到当前目录</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>download</span> <span style=color:#aa89ea>requests</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 下载到指定目录</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>download</span> <span style=color:#aa89ea>requests</span> <span style=color:#54b1c7>-</span><span style=color:#aa89ea>d</span> <span style=color:#54b1c7>./</span><span style=color:#aa89ea>wheels</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 同时下载所有依赖（！重要！）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>download</span> <span style=color:#aa89ea>requests</span> <span style=color:#54b1c7>--</span><span style=color:#aa89ea>no</span><span style=color:#54b1c7>-</span><span style=color:#aa89ea>deps</span>  <span style=color:#8a93a5;font-style:italic># 不下载依赖</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>download</span> <span style=color:#aa89ea>requests</span> <span style=color:#54b1c7>--</span><span style=color:#76a9f9>with</span><span style=color:#54b1c7>-</span><span style=color:#aa89ea>deps</span>  <span style=color:#8a93a5;font-style:italic># 把依赖也下下来</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 下载特定平台的包（交叉编译/打包用）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>download</span> <span style=color:#aa89ea>requests</span> <span style=color:#54b1c7>--</span><span style=color:#aa89ea>platform</span> <span style=color:#aa89ea>win_amd64</span> <span style=color:#54b1c7>--</span><span style=color:#aa89ea>python</span><span style=color:#54b1c7>-</span><span style=color:#aa89ea>version</span> <span style=color:#d19a66>3.11</span> <span style=color:#54b1c7>--</span><span style=color:#aa89ea>only</span><span style=color:#54b1c7>-</span><span style=color:#aa89ea>binary</span><span style=color:#54b1c7>=</span><span style=color:#abb2bf>:</span><span style=color:#e5c07b>all</span><span style=color:#abb2bf>:</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 导出 requirements 格式的下载清单</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>download</span> <span style=color:#54b1c7>-</span><span style=color:#aa89ea>r</span> <span style=color:#aa89ea>requirements</span><span style=color:#54b1c7>.</span><span style=color:#aa89ea>txt</span> <span style=color:#54b1c7>--</span><span style=color:#aa89ea>dest</span> <span style=color:#54b1c7>./</span><span style=color:#aa89ea>wheels</span>
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>💡 <strong>wheel 是什么？</strong> wheel 是 Python 包的二进制分发格式（<code>.whl</code> 文件），类似于 apt 的 <code>.deb</code> 或 yum 的 <code>.rpm</code>。相比源码包（<code>.tar.gz</code>），wheel 安装更快（不需要编译），而且预编译了平台相关的部分。</p></blockquote><p><strong>pip cache</strong>——包缓存管理（磁盘空间保卫战）</p><p>pip 默认会缓存下载过的包，避免重复下载。但时间久了，缓存可能占用大量磁盘空间：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看 pip 缓存目录在哪里</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>cache</span> <span style=color:#e5c07b>dir</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 输出：~\AppData\Local\pip\cache (Windows)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看缓存占了多少空间（人性化的概览）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>cache</span> <span style=color:#aa89ea>size</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 输出：Pip cache information: 1.2GB, 2345 packages</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 列出缓存里的包</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>cache</span> <span style=color:#e5c07b>list</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 列出特定包的缓存</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>cache</span> <span style=color:#e5c07b>list</span> <span style=color:#aa89ea>requests</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 删除所有缓存（清理磁盘！谨慎使用）</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>cache</span> <span style=color:#aa89ea>purge</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 删除特定包的缓存</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>pip</span> <span style=color:#aa89ea>cache</span> <span style=color:#aa89ea>remove</span> <span style=color:#aa89ea>requests</span>
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>💡 <strong>缓存的好处</strong>：同一个包同一个版本，第二次安装时直接用缓存，速度飞快。坏处嘛……磁盘空间会悄悄膨胀。如果你的 SSD 比较小，定期 <code>pip cache purge</code> 是个好习惯。</p></blockquote><hr><h2 id=282-uv极速新一代包管理卷王来了>28.2 uv——极速新一代包管理（卷王来了！）</h2><blockquote><p>💡 <strong>uv 是什么？</strong> uv 是由 Rust 编写的极速 Python 包管理器，由 Astral 公司（也是 Ruff 的开发公司）打造。它的安装速度比 pip 快 10-100 倍，支持 Python 版本管理、虚拟环境创建、依赖锁定等全部功能。堪称包管理界的"特斯拉"。</p></blockquote><p>如果你被 pip 的龟速折磨过，uv 就是你的救星。它的速度有多快？官方 benchmark 显示，uv 的依赖解析速度是 pip 的 26 倍，安装速度是 10 倍以上。更重要的是，它完全兼容 pip 的生态，你不用重新学 API。</p><h3 id=2821-uv-python-installpython-版本管理大师>28.2.1 uv python install——Python 版本管理大师</h3><p>以前你想在电脑上装多个 Python 版本，得用 pyenv（Linux/macOS）或 python官网下载。uv 让你一条命令搞定所有 Python 版本管理：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看当前已安装的 Python 版本</span>
+</span></span><span style=display:flex><span>uv python list
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装指定版本的 Python</span>
+</span></span><span style=display:flex><span>uv python install 3.11
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装最新稳定版</span>
+</span></span><span style=display:flex><span>uv python install 3.12
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装特定小版本（精准控版本）</span>
+</span></span><span style=display:flex><span>uv python install 3.11.7
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 卸载某个 Python 版本</span>
+</span></span><span style=display:flex><span>uv python uninstall 3.10.0
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看可用（但未安装）的 Python 版本</span>
+</span></span><span style=display:flex><span>uv python list --only-installed
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>💡 <strong>为什么需要管理多个 Python 版本？</strong> 不同项目可能需要不同版本。比如老项目用 3.8，新项目用 3.12。而且 Python 每年 10 月发布新版本，你需要及时尝鲜（或者被迫兼容老版本）。</p></blockquote><h3 id=2822-uv-venv--pip-install--sync--lock一条龙管理>28.2.2 uv venv / pip install / sync / lock——一条龙管理</h3><p><strong>创建虚拟环境</strong>——uv venv</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 在当前目录创建名为 .venv 的虚拟环境（默认用系统最新 Python）</span>
+</span></span><span style=display:flex><span>uv venv
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 指定 Python 版本</span>
+</span></span><span style=display:flex><span>uv venv --python-version 3.11
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 指定目录名</span>
+</span></span><span style=display:flex><span>uv venv my-env
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 指定虚拟环境位置</span>
+</span></span><span style=display:flex><span>uv venv /path/to/my-env
+</span></span></code></pre></td></tr></table></div></div><p><strong>安装包</strong>——uv pip install（飞一般的速度）</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装单个包</span>
+</span></span><span style=display:flex><span>uv pip install requests
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 批量安装（支持 requirements.txt）</span>
+</span></span><span style=display:flex><span>uv pip install -r requirements.txt
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装特定版本</span>
+</span></span><span style=display:flex><span>uv pip install <span style=color:#63c381>&#34;requests&gt;=2.28&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装可编辑模式（开发用）</span>
+</span></span><span style=display:flex><span>uv pip install -e .
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 同步模式：只安装 lock 文件里锁定的版本（团队协作必备！）</span>
+</span></span><span style=display:flex><span>uv pip install --locked
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 升级某个包</span>
+</span></span><span style=display:flex><span>uv pip install --upgrade requests
+</span></span></code></pre></td></tr></table></div></div><p><strong>sync</strong>——让环境与 lock 文件完全同步</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 根据 uv.lock 安装恰好需要的包（不多不少）</span>
+</span></span><span style=display:flex><span>uv pip sync
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 同步到指定 lock 文件</span>
+</span></span><span style=display:flex><span>uv pip sync uv.lock
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 删除 lock 文件里没有的包（清理环境）</span>
+</span></span><span style=display:flex><span>uv pip sync --clean
+</span></span></code></pre></td></tr></table></div></div><p><strong>lock</strong>——生成锁定文件（版本锁定神器）</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 生成/更新 uv.lock（锁定所有依赖的精确版本）</span>
+</span></span><span style=display:flex><span>uv lock
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 查看 lock 文件内容（里面是 toml 格式）</span>
+</span></span><span style=display:flex><span>cat uv.lock
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 升级所有包到最新兼容版本</span>
+</span></span><span style=display:flex><span>uv lock --upgrade
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 升级特定包</span>
+</span></span><span style=display:flex><span>uv pip install --upgrade-package requests
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>💡 <strong>lock 文件是什么？</strong> lock 文件（<code>uv.lock</code> 或 <code>Pipfile.lock</code>）记录了每个依赖包的<strong>精确版本号</strong>以及它们的<strong>依赖的依赖</strong>。有了 lock 文件，无论谁、在什么时候、用什么环境安装，最终得到的依赖树都是完全一致的。避免了"在我电脑能跑"的神奇问题。</p></blockquote><p>uv 的典型工作流是这样的：</p><pre class=mermaid>flowchart LR
+    A[编写 pyproject.toml] --&gt; B[uv lock]
+    B --&gt; C[生成 uv.lock]
+    C --&gt; D[uv pip sync]
+    D --&gt; E[干净的、可复现的环境]
+    B --&gt; F[uv pip install --locked]
+    F --&gt; E</pre><h3 id=2823-uv-run一行命令搞定一切>28.2.3 uv run——一行命令搞定一切</h3><p>这是 uv 最酷的功能！<code>uv run</code> 可以在<strong>不预先创建虚拟环境</strong>的情况下，直接运行 Python 脚本或命令。它会自动处理依赖：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 直接运行脚本（自动安装缺失的依赖！）</span>
+</span></span><span style=display:flex><span>uv run python app.py
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 直接运行 Python 命令</span>
+</span></span><span style=display:flex><span>uv run python -c <span style=color:#63c381>&#34;import requests; print(&#39;Hello uv!&#39;)&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 运行带依赖的脚本（自动创建临时的 .venv）</span>
+</span></span><span style=display:flex><span>uv run --with pandas python analysis.py
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 运行带有多个额外依赖的脚本</span>
+</span></span><span style=display:flex><span>uv run --with requests --with beautifulsoup4 python scraper.py
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 直接运行安装好的工具（如 pytest）</span>
+</span></span><span style=display:flex><span>uv run pytest tests/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 以特定 Python 版本运行</span>
+</span></span><span style=display:flex><span>uv run --python 3.11 python app.py
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>💡 <strong>uv run 的原理</strong>：当你 <code>uv run python app.py</code> 时，uv 会自动创建一个临时虚拟环境，根据脚本的 import 推断需要哪些包（或者用 <code>--with</code> 显式指定），安装它们，然后运行。运行结束后，临时环境可以保留（下次更快）也可以清理掉。堪称"随用随走"。</p></blockquote><p>uv 的另一个杀手锏：<strong>跨平台锁文件</strong>。如果你用 macOS 开发，同事用 Windows，<code>uv.lock</code> 可以在两个平台上生成相同的依赖树（只要包支持该平台）。</p><hr><h2 id=283-poetry现代依赖管理的瑞士军刀>28.3 Poetry——现代依赖管理的瑞士军刀</h2><blockquote><p>💡 <strong>Poetry 是什么？</strong> Poetry 是一个现代化的 Python 依赖管理和打包工具。它用 <code>pyproject.toml</code> 作为中心配置文件（不是传统的 <code>requirements.txt</code>！），支持依赖分组、版本锁定、虚拟环境管理、打包发布等全套功能。它的设计哲学是"一个工具做所有事"。</p></blockquote><p>Poetry 的出现解决了一个核心问题：requirements.txt 太简陋了——它只能列出顶层依赖，无法表达开发依赖和生产依赖的区别，无法锁定传递依赖的精确版本（直到 pip-tools 出现）。</p><h3 id=2831-poetry-init--add--install项目管理三板斧>28.3.1 poetry init / add / install——项目管理三板斧</h3><p><strong>poetry init</strong>——初始化项目</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 在当前目录初始化一个新的 Poetry 项目</span>
+</span></span><span style=display:flex><span>poetry init
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 交互式创建（会让你填项目名、版本、描述、作者等）</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Package name []: my-awesome-project</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Version []: 0.1.0</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Description []: 这个项目能改变世界</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Author []: Your Name &lt;you@example.com&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># License []: MIT</span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># Python []: ^3.11</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 非交互式创建（CI/CD 脚本里用）</span>
+</span></span><span style=display:flex><span>poetry init --no-interaction <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>  --name my-awesome-project <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>  --python <span style=color:#63c381>&#34;^3.11&#34;</span> <span style=color:#d26464;font-weight:700>\
+</span></span></span><span style=display:flex><span>  --description <span style=color:#63c381>&#34;改变世界就靠它了&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><p>这会在目录里生成一个 <code>pyproject.toml</code> 文件，内容大致是这样：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-toml data-lang=toml><span style=display:flex><span><span style=color:#abb2bf>[</span><span style=color:#aa89ea>tool</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>poetry</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>name</span> <span style=color:#abb2bf>=</span> <span style=color:#63c381>&#34;my-awesome-project&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>version</span> <span style=color:#abb2bf>=</span> <span style=color:#63c381>&#34;0.1.0&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>description</span> <span style=color:#abb2bf>=</span> <span style=color:#63c381>&#34;这个项目能改变世界&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>authors</span> <span style=color:#abb2bf>=</span> <span style=color:#abb2bf>[</span><span style=color:#63c381>&#34;Your Name &lt;you@example.com&gt;&#34;</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>[</span><span style=color:#aa89ea>tool</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>poetry</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>dependencies</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>python</span> <span style=color:#abb2bf>=</span> <span style=color:#63c381>&#34;^3.11&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>[</span><span style=color:#aa89ea>tool</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>poetry</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>dev-dependencies</span><span style=color:#abb2bf>]</span>
+</span></span></code></pre></td></tr></table></div></div><p><strong>poetry add</strong>——添加依赖（一键搞定）</p><p>这是 Poetry 最常用的命令，比 pip install 强大多了：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 添加生产依赖（默认）</span>
+</span></span><span style=display:flex><span>poetry add requests
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 添加特定版本</span>
+</span></span><span style=display:flex><span>poetry add <span style=color:#63c381>&#34;requests&gt;=2.28&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 添加开发依赖（测试、文档等只有开发人员需要）</span>
+</span></span><span style=display:flex><span>poetry add --dev pytest black
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 添加依赖组（Poetry 1.2+ 语法）</span>
+</span></span><span style=display:flex><span>poetry add requests --group http  <span style=color:#8a93a5;font-style:italic># 创建名为 http 的依赖组</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 添加有特定 Python 版本要求的依赖</span>
+</span></span><span style=display:flex><span>poetry add <span style=color:#63c381>&#34;typing-extensions&#34;</span> --python <span style=color:#63c381>&#34;^3.8&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 添加 GitHub 上的包</span>
+</span></span><span style=display:flex><span>poetry add git+https://github.com/sdispater/pendulum.git
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 添加本地路径的包</span>
+</span></span><span style=display:flex><span>poetry add --path ../my-local-package
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 升级某个包到最新版（先修改版本号，再运行 poetry lock）</span>
+</span></span><span style=display:flex><span>poetry add requests
+</span></span></code></pre></td></tr></table></div></div><p><strong>poetry install</strong>——安装依赖</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 根据 pyproject.toml 安装所有依赖</span>
+</span></span><span style=display:flex><span>poetry install
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 只安装生产依赖（不加 --no-dev 的话默认都装）</span>
+</span></span><span style=display:flex><span>poetry install --no-dev
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 同步模式（让虚拟环境与 lock 文件一致）</span>
+</span></span><span style=display:flex><span>poetry install --sync
+</span></span></code></pre></td></tr></table></div></div><p>安装时会自动创建或更新 <code>poetry.lock</code> 文件。</p><h3 id=2832-poetry-build--publish打包发布一条龙>28.3.2 poetry build / publish——打包发布一条龙</h3><p><strong>poetry build</strong>——构建分发包</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 构建 wheel 和 source tarball（标准操作！）</span>
+</span></span><span style=display:flex><span>poetry build
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 只构建 wheel（二进制分发）</span>
+</span></span><span style=display:flex><span>poetry build --format wheel
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 只构建源码包（tar.gz）</span>
+</span></span><span style=display:flex><span>poetry build --format sdist
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 构建产物默认在 dist/ 目录下</span>
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>💡 <strong>wheel vs sdist</strong>：wheel（<code>.whl</code>）是编译好的二进制包，安装快，但不能看到源码（除非是纯 Python 的）。sdist（<code>.tar.gz</code>）是源码包，安装时需要编译，但能看到所有源代码。发布到 PyPI 时两种都建议生成。</p></blockquote><p><strong>poetry publish</strong>——发布到 PyPI</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 发布到 PyPI（正式仓库）</span>
+</span></span><span style=display:flex><span>poetry publish
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 发布到 TestPyPI（测试用，不会污染正式索引）</span>
+</span></span><span style=display:flex><span>poetry publish --repository testpypi
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 发布时跳过输入密码（需要先配置 token）</span>
+</span></span><span style=display:flex><span>poetry publish --token my-token
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 构建后不发布（只生成文件）</span>
+</span></span><span style=display:flex><span>poetry build <span style=color:#54b1c7>&amp;&amp;</span> poetry publish --dry-run
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>⚠️ <strong>发布前必读</strong>：第一次发布前，你需要在 <a href=https://pypi.org>https://pypi.org</a> 注册账号，并在本地配置 API token（不能用用户名密码了）。配置方式：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">2
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 添加 token（推荐）</span>
+</span></span><span style=display:flex><span>poetry config pypi-token.pypi my-token-xxxx
+</span></span></code></pre></td></tr></table></div></div><p>或者创建 <code>~/.pypirc</code> 文件。</p></blockquote><p>Poetry 的完整工作流：</p><pre class=mermaid>flowchart LR
+    A[poetry init] --&gt; B[创建 pyproject.toml]
+    B --&gt; C[poetry add requests]
+    C --&gt; D[生成 poetry.lock]
+    D --&gt; E[poetry install]
+    E --&gt; F[开发调试]
+    F --&gt; G[poetry build]
+    G --&gt; H[生成 dist/*.whl 和 dist/*.tar.gz]
+    H --&gt; I[poetry publish]
+    I --&gt; J[发布到 PyPI!]</pre><hr><h2 id=284-pdmpep-582-包管理激进分子>28.4 PDM——PEP 582 包管理（激进分子！）</h2><blockquote><p>💡 <strong>PDM 是什么？</strong> PDM 是 &ldquo;Python Development Master&rdquo; 的缩写，是一个支持 PEP 582 规范的包管理器。PEP 582 是 Python 官方提出的一种"本地 site-packages"机制——项目依赖不装在全局 Python 环境里，而是装在项目根目录的 <code>__pypackages__/</code> 文件夹下。这样就<strong>不需要手动创建虚拟环境</strong>了，天然隔离！</p><p>激进一点说：PDM 认为 <code>venv</code> 是一种历史遗留的妥协方案，PEP 582 才是未来。</p></blockquote><p>PDM 的核心创新是 <code>__pypackages__</code> 目录。它的工作方式是这样的：</p><pre tabindex=0><code>my-project/
+├── __pypackages__/      # ← 所有依赖都在这里（自动生成）
+│   └── 3.11/
+│       ├── lib/
+│       └── include/
+├── pyproject.toml        # ← 依赖定义在这里
+├── pdm.lock              # ← 锁定文件
+├── main.py
+└── .gitignore            # ← 别忘了忽略 __pypackages__/
+</code></pre><p><strong>PDM 的核心命令</strong>：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">30
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 初始化项目（类似 poetry init）</span>
+</span></span><span style=display:flex><span>pdm init
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 交互式初始化</span>
+</span></span><span style=display:flex><span>pdm init --name my-project --python 3.11
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 添加依赖</span>
+</span></span><span style=display:flex><span>pdm add requests
+</span></span><span style=display:flex><span>pdm add <span style=color:#63c381>&#34;requests&gt;=2.28&#34;</span> --dev  <span style=color:#8a93a5;font-style:italic># 开发依赖</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装所有依赖（根据 pyproject.toml）</span>
+</span></span><span style=display:flex><span>pdm install
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装脚本运行时自动安装依赖（类 uv run）</span>
+</span></span><span style=display:flex><span>pdm run python app.py
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 更新 lock 文件</span>
+</span></span><span style=display:flex><span>pdm lock
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 更新所有包</span>
+</span></span><span style=display:flex><span>pdm update
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 更新单个包</span>
+</span></span><span style=display:flex><span>pdm update requests
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 清理 PDM 缓存目录（已下载的 wheel 文件等）</span>
+</span></span><span style=display:flex><span>pdm cache clear
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 构建包</span>
+</span></span><span style=display:flex><span>pdm build
+</span></span></code></pre></td></tr></table></div></div><p>PDM 和 Poetry 的最大区别在于<strong>依赖隔离的方式</strong>：</p><pre class=mermaid>flowchart TD
+    subgraph &#34;Poetry 模式（venv）&#34;
+        A1[全局 Python] --&gt; A2[.venv/lib/site-packages]
+        A2 --&gt; A3[项目依赖们]
+    end
+    subgraph &#34;PDM 模式（PEP 582）&#34;
+        B1[项目根目录] --&gt; B2[__pypackages__/3.11/lib]
+        B2 --&gt; B3[项目依赖们]
+    end</pre><p>PDM 还支持<strong>PEP 621 标准</strong>（一种在 <code>pyproject.toml</code> 中声明项目元数据的规范），这意味着 PDM 生成的文件可以被其他工具（pip、build、twine）直接使用。</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-toml data-lang=toml><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># pyproject.toml (PEP 621 格式，PDM 和其他工具都能用)</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>[</span><span style=color:#aa89ea>project</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>name</span> <span style=color:#abb2bf>=</span> <span style=color:#63c381>&#34;my-awesome-project&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>version</span> <span style=color:#abb2bf>=</span> <span style=color:#63c381>&#34;0.1.0&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>description</span> <span style=color:#abb2bf>=</span> <span style=color:#63c381>&#34;改变世界的项目&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>requires-python</span> <span style=color:#abb2bf>=</span> <span style=color:#63c381>&#34;&gt;=3.11&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>dependencies</span> <span style=color:#abb2bf>=</span> <span style=color:#abb2bf>[</span>
+</span></span><span style=display:flex><span>    <span style=color:#63c381>&#34;requests&gt;=2.28&#34;</span><span style=color:#abb2bf>,</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>[</span><span style=color:#aa89ea>project</span><span style=color:#abb2bf>.</span><span style=color:#aa89ea>optional-dependencies</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>dev</span> <span style=color:#abb2bf>=</span> <span style=color:#abb2bf>[</span><span style=color:#63c381>&#34;pytest&#34;</span><span style=color:#abb2bf>,</span> <span style=color:#63c381>&#34;black&#34;</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>[</span><span style=color:#aa89ea>build-system</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>requires</span> <span style=color:#abb2bf>=</span> <span style=color:#abb2bf>[</span><span style=color:#63c381>&#34;setuptools&gt;=61.0&#34;</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>build-backend</span> <span style=color:#abb2bf>=</span> <span style=color:#63c381>&#34;setuptools.build_meta&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><hr><h2 id=285-build-与-twine打包发布双雄>28.5 build 与 twine——打包发布双雄</h2><blockquote><p>💡 <strong>build 是什么？</strong> build 是 Python 官方推荐的（PEP 517/518/621 的一部分）构建系统前端。它是一个<strong>与世无争的构建器</strong>——你告诉它"给我打包"，它就忠实地调用 setuptools、flit-core、PDM-backend 或者你指定的后端来干活。它不关心依赖管理，只负责"把东西变成 wheel 和 sdist"。</p><p><strong>twine 是什么？</strong> twine 是一个专门用于<strong>将构建产物上传到 PyPI</strong> 的工具。它只做一件事：安全地把 dist/ 目录下的文件上传到仓库。</p></blockquote><p>这两个工具是"打包-发布"流水线的上下游，通常配合使用。</p><h3 id=build构建你的包>build——构建你的包</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装 build</span>
+</span></span><span style=display:flex><span>pip install build
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 在项目根目录运行（会自动找 pyproject.toml 或 setup.py）</span>
+</span></span><span style=display:flex><span>python -m build
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 只构建 wheel</span>
+</span></span><span style=display:flex><span>python -m build --wheel
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 只构建源码包</span>
+</span></span><span style=display:flex><span>python -m build --sdist
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 指定输出目录</span>
+</span></span><span style=display:flex><span>python -m build --outdir ./dist
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 构建时跳过依赖检查（加速，但可能出问题）</span>
+</span></span><span style=display:flex><span>python -m build --no-isolation
+</span></span></code></pre></td></tr></table></div></div><p>build 的工作流程：</p><pre class=mermaid>flowchart LR
+    A[pyproject.toml / setup.py] --&gt; B[build]
+    B --&gt; C{build-backend}
+    C --&gt; D[setuptools]
+    C --&gt; E[flit-core]
+    C --&gt; F[PDM-backend]
+    C --&gt; G[maturin]
+    D --&gt; H[dist/]
+    E --&gt; H
+    F --&gt; H
+    G --&gt; H
+    H --&gt; I[.whl &#43; .tar.gz]</pre><h3 id=twine上传到-pypi>twine——上传到 PyPI</h3><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">20
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 安装 twine</span>
+</span></span><span style=display:flex><span>pip install twine
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 上传到正式 PyPI</span>
+</span></span><span style=display:flex><span>twine upload dist/*
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 上传到 TestPyPI（测试环境）</span>
+</span></span><span style=display:flex><span>twine upload --repository testpypi dist/*
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 指定 API token（更安全）</span>
+</span></span><span style=display:flex><span>twine upload --username __token__ --password pypi-xxxx dist/*
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 上传时显示详细信息</span>
+</span></span><span style=display:flex><span>twine upload --verbose dist/*
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 检查 dist/ 目录里的包是否合法（上传前必做！）</span>
+</span></span><span style=display:flex><span>twine check dist/*
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 指定其他仓库</span>
+</span></span><span style=display:flex><span>twine upload --repository-url https://my-private-pypi.com/dist/ dist/*
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>⚠️ <strong>twine check 是上传前的安全阀</strong>：在把包上传到 PyPI 之前，先跑一下 <code>twine check dist/*</code>，它会检查包的元数据是否合法、是否遵循 PyPI 的规范。如果有问题会在上传前就报错，而不是等到 PyPI 返回尴尬的错误信息。</p></blockquote><p><strong>build + twine 完整流水线</strong>：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 1. 清理旧的 dist 目录</span>
+</span></span><span style=display:flex><span>rm -rf dist/
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 2. 构建（生成 wheel 和 sdist）</span>
+</span></span><span style=display:flex><span>python -m build
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 3. 检查构建产物（上传前的体检）</span>
+</span></span><span style=display:flex><span>twine check dist/*
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># 4. 上传到 PyPI（发布！）</span>
+</span></span><span style=display:flex><span>twine upload dist/*
+</span></span></code></pre></td></tr></table></div></div><h3 id=构建后端的选择setuptools--flit-core--pdm-backend>构建后端的选择（setuptools / flit-core / PDM-backend）</h3><p><code>pyproject.toml</code> 里的 <code>[build-system]</code> 指定用哪个后端构建：</p><div class=highlight><div style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#58626f">14
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-toml data-lang=toml><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># setuptools（最老牌，功能最全，但配置较繁琐）</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>[</span><span style=color:#aa89ea>build-system</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>requires</span> <span style=color:#abb2bf>=</span> <span style=color:#abb2bf>[</span><span style=color:#63c381>&#34;setuptools&gt;=61.0&#34;</span><span style=color:#abb2bf>,</span> <span style=color:#63c381>&#34;wheel&#34;</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>build-backend</span> <span style=color:#abb2bf>=</span> <span style=color:#63c381>&#34;setuptools.build_meta&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># flit-core（极简主义，作者是 urllib3 的维护者）</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>[</span><span style=color:#aa89ea>build-system</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>requires</span> <span style=color:#abb2bf>=</span> <span style=color:#abb2bf>[</span><span style=color:#63c381>&#34;flit_core&gt;=3.2&#34;</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>build-backend</span> <span style=color:#abb2bf>=</span> <span style=color:#63c381>&#34;flit_core.buildapi&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8a93a5;font-style:italic># PDM backend（PDM 用户专用）</span>
+</span></span><span style=display:flex><span><span style=color:#abb2bf>[</span><span style=color:#aa89ea>build-system</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>requires</span> <span style=color:#abb2bf>=</span> <span style=color:#abb2bf>[</span><span style=color:#63c381>&#34;pdm-backend&#34;</span><span style=color:#abb2bf>]</span>
+</span></span><span style=display:flex><span><span style=color:#aa89ea>build-backend</span> <span style=color:#abb2bf>=</span> <span style=color:#63c381>&#34;pdm.backend&#34;</span>
+</span></span></code></pre></td></tr></table></div></div><blockquote><p>💡 <strong>选哪个？</strong></p><ul><li>setuptools：兼容性最好，老项目、复杂项目用。</li><li>flit-core：简单项目、无需扩展的纯 Python 库用。配置最少。</li><li>pdm-backend：已经是 PDM 用户的话，顺手用。</li><li>maturin：支持 Rust 原生扩展，成熟稳定。</li></ul></blockquote><hr><h2 id=本章小结>本章小结</h2><p>恭喜你！一口气读完了 Python 包管理的"兵器谱"。我们来总结一下这一章的核心要点：</p><h3 id=包管理器对比一览>包管理器对比一览</h3><table><thead><tr><th>工具</th><th>定位</th><th>核心能力</th><th>速度</th><th>适用场景</th></tr></thead><tbody><tr><td><strong>pip</strong></td><td>标准库外置包管理</td><td>安装/卸载/查看/冻结</td><td>慢</td><td>所有场景的起点</td></tr><tr><td><strong>uv</strong></td><td>超极速新一代包管理</td><td>Python 版本管理 + 包管理 + lock</td><td>极快</td><td>追求效率、现代化团队</td></tr><tr><td><strong>Poetry</strong></td><td>现代化依赖+打包管理</td><td>依赖锁定 + 虚拟环境 + 打包发布</td><td>中等</td><td>完整项目生命周期管理</td></tr><tr><td><strong>PDM</strong></td><td>PEP 582 实现者</td><td>本地 site-packages + 依赖管理</td><td>快</td><td>讨厌 venv 繁琐的人</td></tr><tr><td><strong>build</strong></td><td>构建前端</td><td>调用各后端生成 wheel/sdist</td><td>—</td><td>打包时一次性使用</td></tr><tr><td><strong>twine</strong></td><td>PyPI 上传工具</td><td>安全上传到 PyPI</td><td>—</td><td>发布时一次性使用</td></tr></tbody></table><h3 id=关键概念回顾>关键概念回顾</h3><ol><li><strong>依赖锁定（lock）</strong>：lock 文件记录了<strong>精确到补丁级别</strong>的依赖版本，解决"在我电脑能跑"的世纪难题。uv 用 <code>uv.lock</code>，Poetry 用 <code>poetry.lock</code>，PDM 用 <code>pdm.lock</code>。</li><li><strong>虚拟环境（venv）</strong>：Python 的依赖隔离机制。每个项目有自己独立的包空间，互不干扰。</li><li><strong>wheel（<code>.whl</code>）</strong>：Python 的二进制分发格式，安装飞快。</li><li><strong>sdist（<code>.tar.gz</code>）</strong>：Python 的源码分发格式，跨平台通用但需要编译。</li><li><strong>PyPI</strong>：Python Package Index，Python 包的官方仓库，全世界最大的 Python 包集散地。</li><li><strong>build-system</strong>：定义了"如何构建你的包"，常用的有 setuptools、flit_core、pdm_backend。</li><li><strong>PEP 582</strong>：一种实验性的本地包管理规范，PDM 是其主要实现者。</li></ol><h3 id=实战建议>实战建议</h3><ul><li><strong>个人小项目 / 脚本</strong>：<code>uv run</code> 一把梭，随用随走。</li><li><strong>团队协作项目</strong>：<code>uv</code> + lock 文件，或 <code>Poetry</code> + poetry.lock，确保大家环境一致。</li><li><strong>要发布到 PyPI 的库</strong>：用 <code>build</code> + <code>twine</code>，或者 <code>Poetry</code> / <code>PDM</code> 自带的打包发布功能。</li><li><strong>老项目维护</strong>：pip + requirements.txt 够用，但如果项目复杂，迁移到 Poetry 或 uv 是值得的。</li></ul><blockquote><p>🎉 <strong>彩蛋</strong>：你发现了吗？这一章我们提到了很多"XX 的 lock 文件"。它们的作用都一样——<strong>锁死依赖版本，让环境可复现</strong>。记住这个核心目的，你就理解了整个包管理生态 80% 的设计哲学！</p></blockquote><p>下一章我们将聊聊 Python 的测试——毕竟代码写完了，得知道它到底能不能工作！🐍</p><div class=td-page-meta__lastmod>最后修改 April 8, 2026: <a data-proofer-ignore href=https://github.com/before80/prgms/commit/34c42651288bd025469f1b5baad96512ef9f1830>新增 Python 教程 (34c4265)</a></div></div></main></div></div><footer class="td-footer row d-print-none"><div class=container-fluid><div class="row mx-md-2"><div class="td-footer__left col-6 col-sm-4 order-sm-1"><ul class=td-footer__links-list><li class=td-footer__links-item data-bs-toggle=tooltip title="User mailing list" aria-label="User mailing list"><a target=_blank rel=noopener href=https://example.org/mail aria-label="User mailing list"><i class="fa fa-envelope"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title=Twitter aria-label=Twitter><a target=_blank rel=noopener href=https://example.org/twitter aria-label=Twitter><i class="fab fa-twitter"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title="Stack Overflow" aria-label="Stack Overflow"><a target=_blank rel=noopener href=https://example.org/stack aria-label="Stack Overflow"><i class="fab fa-stack-overflow"></i></a></li></ul></div><div class="td-footer__right col-6 col-sm-4 order-sm-3"><ul class=td-footer__links-list><li class=td-footer__links-item data-bs-toggle=tooltip title=GitHub aria-label=GitHub><a target=_blank rel=noopener href=https://github.com/before80/prgms aria-label=GitHub><i class="fab fa-github"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title=Slack aria-label=Slack><a target=_blank rel=noopener href=https://example.org/slack aria-label=Slack><i class="fab fa-slack"></i></a></li><li class=td-footer__links-item data-bs-toggle=tooltip title="Developer mailing list" aria-label="Developer mailing list"><a target=_blank rel=noopener href=https://example.org/mail aria-label="Developer mailing list"><i class="fa fa-envelope"></i></a></li></ul></div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2"><span class=td-footer__copyright>&copy;
+2026
+<span class=td-footer__authors>作者zlongx</span></span><span class=td-footer__all_rights_reserved>保留所有权利</span><span class=ms-2><a href=https://policies.google.com/privacy target=_blank rel=noopener>隐私政策</a></span></div></div></div></footer></div><style>.markmap>svg{width:100%;height:300px}</style><script>window.markmap={autoLoader:{manual:!0,onReady(){const{autoLoader:e,builtInPlugins:t}=window.markmap;e.transformPlugins=t.filter(e=>e.name!=="prism")}}}</script><script src=https://unpkg.com/markmap-autoloader@latest></script><script type=module async>
+  import mermaid from "https:\/\/unpkg.com\/mermaid@latest\/dist\/mermaid.esm.min.mjs";
+
+  (function ($) {
+    if ($('.mermaid').length == 0) {
+      mermaid.initialize({ startOnLoad: false });
+      return;
+    }
+
+    var params = {};
+
+    
+    
+    var norm = function (defaultConfig, params) {
+      var result = {};
+      for (const key in defaultConfig) {
+        const keyLower = key.toLowerCase();
+        if (defaultConfig.hasOwnProperty(key) && params.hasOwnProperty(keyLower)) {
+          if (typeof defaultConfig[key] === "object") {
+            result[key] = norm(defaultConfig[key], params[keyLower]);
+          } else {
+            result[key] = params[keyLower];
+          }
+        }
+      }
+      return result;
+    };
+
+    var settings = norm(mermaid.mermaidAPI.defaultConfig, params);
+    settings.startOnLoad = true;
+    if ($('html[data-bs-theme="dark"]').length) {
+      settings.theme = 'dark';
+    }
+    mermaid.initialize(settings);
+
+    
+    const lightDarkModeThemeChangeHandler = function (mutationsList, observer) {
+      for (const mutation of mutationsList) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-bs-theme') {
+          
+          
+          
+          location.reload();
+        }
+      }
+    };
+
+    const observer = new MutationObserver(lightDarkModeThemeChangeHandler);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-bs-theme']
+    });
+    
+
+  })(jQuery);
+</script><script src=/prgms/js/main.min.2358e7822956705373a61d2fdc0068abdf87f2c76a23be412ddf2546cbe54a97.js integrity="sha256-I1jngilWcFNzph0v3ABoq9+H8sdqI75BLd8lRsvlSpc=" crossorigin=anonymous></script><script defer src=/prgms/js/click-to-copy.min.14c7dd84004258325d147b971421f1d4dfd3f28500954f32ef71d1cfd0938f51.js integrity="sha256-FMfdhABCWDJdFHuXFCHx1N/T8oUAlU8y73HRz9CTj1E=" crossorigin=anonymous></script><script src=https://unpkg.com/@docsearch/js@3.8.2/dist/umd/index.js integrity="sha512-lsD+XVzdBI6ZquXc8gqbw0/bgrfIsMJwY/8xvmvbN+U3gZSeG7BXQoCq4zv/yCmntR2GLHtgB+bD4ESPsKIbIA==" crossorigin=anonymous></script><script type=text/javascript>const containers=["#docsearch-0","#docsearch-1"];for(let e of containers)docsearch({container:e,appId:"DV76UK9EIH",apiKey:"227dec0ac6cbc8dfad748f27b2974507",indexName:"go-"})</script><script src=/prgms/js/tabpane-persist.js></script><script src=/go_docs/js/tocbot.min.js></script><script src=/go_docs/js/markmap-autoloader.js></script><script type=text/javascript>window.addEventListener("load",function(){tocbot.init({tocSelector:".td-toc",contentSelector:".td-content",headingSelector:"h2, h3, h4, h5, h6",ignoreHiddenElements:!0,collapseDepth:6});let t=0,e=0,n=document.getElementById("show-timer"),s=document.getElementById("advice-reading-time"),o=s.textContent.trim();function i(){e++,e>=60&&(e=0,t++);let i=e<10?"0"+e:e;s!==null?n.textContent=t+":"+i+" <- "+o:n.textContent=t+":"+i}setInterval(i,1e3)})</script><script src=/go_docs/js/jquery-3.6.3.min.js></script><script src=/go_docs/js/deal-zero-width-space.js></script><script src=/go_docs/js/tabpane-persist.js></script></body></html>
