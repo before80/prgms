@@ -22,7 +22,7 @@ draft = false
 
 ## 1.1.1 创始人 Guido van Rossum 简介
 
-![Guido van Rossum](https://upload.wikimedia.org/wikipedia/commons/6/66/Guido_van_Rossum_OSCON_2006.jpg)
+![Guido van Rossum](./Chapter-01-Hello-Python_img/Guido_van_Rossum_OSCON_2006.jpg)
 
 **Guido van Rossum**（中文昵称"龟叔"），1956 年出生于荷兰小镇代尔夫特（Delft）。要说这哥们儿的人生有多离谱——他本来是个十足的数学爱好者，结果一头扎进了计算机的世界，最后还顺手创造了一门被全球数千万程序员使用的语言。
 
