@@ -507,7 +507,7 @@ func main() {
     slice := make([]int, 0)
     slice = append(slice, 1, 2, 3)
     fmt.Println("切片长度:", len(slice)) // 切片长度: 3
-    fmt.Println("切片容量:", cap(slice)) // 切片容量: 3
+    fmt.Println("切片容量:", cap(slice)) // 切片容量: 4
 }
 
 ```
