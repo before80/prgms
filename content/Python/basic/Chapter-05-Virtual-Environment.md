@@ -201,7 +201,7 @@ python -m venv .venv
 
 > 💡 **最佳实践**：很多现代工具（如 VS Code、PyCharm、uv）都默认 `.venv` 作为标准命名。如果你用的是 Python 生态的主流工具链，用 `.venv` 可以少踩很多坑。
 
-#### 5.2.1.3 python -m venv myenv --system-site-packages（继承全局包，不推荐）
+#### 5.2.1.3 `python -m venv myenv --system-site-packages`（继承全局包，不推荐）
 
 ```bash
 # 继承全局 site-packages 的虚拟环境
@@ -586,7 +586,7 @@ virtualenv -p /usr/bin/python3.11 myenv
 
 > 💡 **使用场景**：假设你的系统有 Python 3.8、3.10、3.11 三个版本，你想在每个版本上测试代码。用 virtualenv 就可以轻松创建多个不同 Python 版本的环境。
 
-#### 5.3.2.3 virtualenv --system-site-packages myenv（访问全局包）
+#### 5.3.2.3 `virtualenv --system-site-packages myenv`（访问全局包）
 
 ```bash
 # 继承全局 site-packages
@@ -709,7 +709,7 @@ rmvirtualenv myenv
 
 ### 5.4.1 conda create 创建环境
 
-#### 5.4.1.1 conda create -n myenv python=3.14
+#### 5.4.1.1 `conda create -n myenv python=3.14`
 
 ```bash
 # 创建一个名为 myenv 的新环境，Python 版本为 3.14
@@ -719,7 +719,7 @@ conda create -n myenv python=3.14
 conda activate myenv
 ```
 
-#### 5.4.1.2 conda create -n myenv python=3.14 numpy pandas
+#### 5.4.1.2 `conda create -n myenv python=3.14 numpy pandas`
 
 ```bash
 # 创建环境时直接安装一些常用包
@@ -758,7 +758,7 @@ conda activate another_env
 
 这是 conda 最强大的功能之一——**环境可复现性**。
 
-#### 5.4.3.1 conda env export > environment.yml
+#### 5.4.3.1 `conda env export > environment.yml`
 
 ```bash
 # 激活要导出的环境

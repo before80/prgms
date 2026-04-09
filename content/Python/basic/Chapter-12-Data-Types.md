@@ -1461,16 +1461,7 @@ print(b - a)   # {5, 6}
 print(a ^ b)   # {1, 2, 5, 6}
 ```
 
-> 🎨 **文氏图理解**：
-> ```mermaid
-> flowchart LR
->     A((A))
->     B((B))
->     A & B --> 交集
->     A - B --> A的差集
->     A | B --> 并集
->     A & B --> 对称差集
-> ```
+
 
 #### 12.5.1.4 集合关系判断（issubset、issuperset、isdisjoint）
 

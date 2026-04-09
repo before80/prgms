@@ -160,7 +160,7 @@ print(is_prime(17))  # True
 **3. 可扩展（Extensible）**
 Python 底层是用 C 写的，所以你可以用 C 或 C++ 编写扩展模块，Python 代码可以直接调用。想象一下，你用 Python 写业务逻辑，用 C 写性能关键代码，两全其美。
 
-> 彩蛋：Python 还有一个著名的**"电池包含"**（Batteries Included）哲学——Python 解释器自带的标准库非常丰富，号称"安装即用"。这和某些语言" Hello World 都要先装三个包"形成了鲜明对比。
+> 彩蛋：Python 还有一个著名的 **"电池包含"** （Batteries Included）哲学——Python 解释器自带的标准库非常丰富，号称"安装即用"。这和某些语言" Hello World 都要先装三个包"形成了鲜明对比。
 
 ---
 
@@ -612,7 +612,7 @@ print("我叫{}，今年{}岁".format(name, age))  # 我叫小明，今年8岁
 
 Python 3 的设计目标非常明确：**修复 Python 2 的设计缺陷，让语言更优雅、更一致**。代价是——所有 Python 2 代码都要"翻译"才能在 Python 3 上运行。
 
-这波操作，用现在的话说就是：** breaking change（破坏性变更）**。
+这波操作，用现在的话说就是：**breaking change（破坏性变更）** 。
 
 ### 1.2.6.1 print 成为函数（print()）
 
@@ -835,13 +835,72 @@ pip install django
 deactivate
 ```
 
+> ```sh
+> python -m venv myenv
+> ```
+>
+> - `python -m venv`：调用 Python 自带的 `venv` 模块来创建虚拟环境。
+> - `myenv`：虚拟环境的目录名称（可以任意取名，通常叫 `venv`、`.venv` 或 `env`）。
+> - 执行后会在当前目录下生成一个 `myenv` 文件夹，里面包含独立的 Python 解释器、标准库以及一个 `pip` 工具。
+>
+> ```sh
+> myenv\Scripts\activate.bat
+> ```
+>
+> - 使用 `cmd`（命令提示符）时运行此命令。
+>
+> - 它会修改当前命令行的环境变量，把虚拟环境的 Python 和 `pip` 放在最前面，此后执行 `python` 或 `pip` 都会使用虚拟环境中的版本。
+>
+> - 如果使用 PowerShell，通常需要运行 `myenv\Scripts\Activate.ps1`（可能需要先设置执行策略）
+>
+>   > ```sh
+>   > # 若要获取影响当前会话的所有执行策略，并按优先级顺序显示它们
+>   > Get-ExecutionPolicy -List
+>   > 
+>   > # 获取 CurrentUser 范围的执行策略
+>   > Get-ExecutionPolicy -Scope CurrentUser
+>   > 
+>   > # 更改执行策略 Set-ExecutionPolicy -ExecutionPolicy <PolicyName>
+>   > # 例如:
+>   > Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+>   > # 若要在特定范围内设置执行策略
+>   > # Set-ExecutionPolicy -ExecutionPolicy <PolicyName> -Scope <scope>
+>   > # 例如
+>   > Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+>   > ```
+>   >
+>   > Powershell的完整执行策略请参见: [https://learn.microsoft.com/zh-cn/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.6](https://learn.microsoft.com/zh-cn/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.6)
+>
+> ```sh
+> source myenv/bin/activate
+> ```
+>
+> - `source` 命令会在当前 shell 会话中执行激活脚本，修改环境变量。
+> - 激活后，命令行提示符前面会出现 `(myenv)`，表示现在处于虚拟环境中。
+>
+> ```sh
+> pip install django
+> ```
+>
+> - 在虚拟环境**激活后**运行 `pip install`，安装的包会被放在虚拟环境的 `site-packages` 目录中，不会影响系统全局的 Python 或其他虚拟环境。
+> - 这里以安装 `django` 为例，也可以安装任何其他第三方库。
+>
+> ```sh
+> deactivate
+> ```
+>
+> - 无论哪个操作系统，激活后都可以直接输入 `deactivate` 命令退出虚拟环境。
+> - 退出后，`python` 和 `pip` 会恢复到系统全局版本，命令行提示符前的 `(myenv)` 也会消失。
+
 在 `venv` 出现之前，Python 社区用的是 `virtualenv` 这个第三方工具。`venv` 是 Python 3.3 内置的，等于把"最佳实践"写进了标准库。
 
 > 面试题预警：如果面试官问你"Python 虚拟环境是用来干什么的"，标准答案是："隔离项目依赖，避免版本冲突。"——这句话一定要背下来。
 
 ### 1.2.7.2 命名空间包（namespace package）
 
-**命名空间包**（namespace package）是一种"多个目录可以贡献同一个包"的结构。听起来很抽象，举个例子：
+**命名空间包**（namespace package）允许**同一个顶级包**的**不同子包**分散在多个目录中，这些目录可以来自不同的项目、不同的团队，甚至不同的文件系统位置。在 Python 3.3+ 中，**PEP 420** 引入了隐式命名空间包：只要一个目录没有 `__init__.py` 文件，且其父目录在 `sys.path` 中，该目录就会自动被视为命名空间包的一部分。。听起来很抽象，举个例子：
+
+> `sys.path` 是 Python 的一个内置列表，**存储了模块和包的搜索路径**。当你在代码中执行 `import xxx` 时，Python 会按照 `sys.path` 中给出的目录顺序，依次查找对应的模块或包。
 
 传统的包结构：
 
@@ -855,25 +914,43 @@ mypackage/
 命名空间包结构：
 
 ```
-namespacepkg/
-    package1/
-        __init__.py
-    package2/
-        __init__.py
+# 目录结构示例（假设当前工作目录为项目根目录）
+# namespacepkg/
+#   package1/
+#     __init__.py
+#     module_a.py
+#   package2/
+#     __init__.py
+#     module_b.py
+# 
+# 注意：Python 3.3+ 中，不需要 __init__.py 也能自动识别命名空间包，
+# 但为了兼容性或显式声明，可以保留空的 __init__.py 文件。
+
+# ---- package1/module_a.py ----
+def hello():
+    return "Hello from package1.module_a"
+
+# ---- package2/module_b.py ----
+def world():
+    return "World from package2.module_b"
+
+# ---- 使用命名空间包 ----
+# 假设项目根目录在 sys.path 中（例如当前目录）
+from namespacepkg.package1 import module_a
+from namespacepkg.package2.module_b import world
+
+print(module_a.hello())   # 输出: Hello from package1.module_a
+print(world())            # 输出: World from package2.module_b
+
+# 也可以直接导入包
+import namespacepkg.package1
+import namespacepkg.package2
+
+print(namespacepkg.package1.module_a.hello())
+print(namespacepkg.package2.module_b.world())
 ```
 
 使用命名空间包，你可以让 `package1` 和 `package2` 分属不同的团队开发、不同的地方存放，但最后合并成同一个命名空间。
-
-```python
-# package1/__init__.py
-# 可以是空的，甚至不需要文件
-
-# package2/__init__.py
-# 也可以是空的
-
-# 最后可以这样用：
-from namespacepkg import package1, package2
-```
 
 ---
 
