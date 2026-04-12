@@ -1,6 +1,15 @@
 
 
++++
+title = "《鬼谷子》全文——注释版"
+weight = 230
+date = "2026-04-11T21:52:00+08:00"
+type = "docs"
+description = ""
+isCJKLanguage = true
+draft = false
 
++++
 
 ## 上卷·权谋十二篇
 
