@@ -99,8 +99,6 @@ Dec 24, 2025
 【译文】  
 （如果你更倾向于观看视频，我也将这封信制作成了视频）
 
-{{< youtube "K8K09g9XR4s">}}
-
 ---
 
 ### I – You aren't where you want to be because you aren't the person who would be there
@@ -385,10 +383,7 @@ Dec 24, 2025
 
 ---
 
-> ![img](./_index_img/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbefe4764-cb9d-4415-a39e-4ddfe4164106_1000x672.jpeg)
-
-【译文】  
-![心智发展阶段图](./_index_img/...)
+![img](./_index_img/1.jpeg)
 
 ---
 
@@ -520,7 +515,7 @@ Dec 24, 2025
 
 ---
 
-> ![img](./_index_img/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6d235caf-992b-46be-b190-2507005ad52d_1150x364.jpeg)
+> ![img](./_index_img/2.jpeg)
 >
 > *You can judge intelligence based on the system's ability to iterate and persist with trial and error.*
 
