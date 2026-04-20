@@ -96,6 +96,8 @@ Git 的官方网站 `git-scm.com` 服务器在国外（美国）。
 ```bash
 # 测试到 GitHub 的延迟（Windows）
 ping github.com
+# 或
+ping -n 10 github.com
 
 # 测试到 GitHub 的延迟（Mac/Linux）
 ping -c 10 github.com
@@ -104,12 +106,23 @@ ping -c 10 github.com
 如果延迟超过 200ms，说明网络不太理想。
 
 ```
-正在 Ping github.com [140.82.121.4] 具有 32 字节的数据:
-来自 140.82.121.4 的回复: 字节=32 时间=287ms TTL=44
-来自 140.82.121.4 的回复: 字节=32 时间=312ms TTL=44
-...
+ C:\Users\hellome> ping -n 10 github.com
+Pinging github.com [20.205.243.166] with 32 bytes of data:
+Reply from 20.205.243.166: bytes=32 time=107ms TTL=114
+Reply from 20.205.243.166: bytes=32 time=108ms TTL=114
+Reply from 20.205.243.166: bytes=32 time=108ms TTL=114
+Reply from 20.205.243.166: bytes=32 time=108ms TTL=114
+Reply from 20.205.243.166: bytes=32 time=108ms TTL=114
+Reply from 20.205.243.166: bytes=32 time=107ms TTL=114
+Reply from 20.205.243.166: bytes=32 time=108ms TTL=114
+Reply from 20.205.243.166: bytes=32 time=107ms TTL=114
+Reply from 20.205.243.166: bytes=32 time=107ms TTL=114
+Reply from 20.205.243.166: bytes=32 time=106ms TTL=114
 
-平均 = 298ms
+Ping statistics for 20.205.243.166:
+    Packets: Sent = 10, Received = 10, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 106ms, Maximum = 108ms, Average = 107ms
 ```
 
 300ms 的延迟，意味着每次请求都要等 0.3 秒。下载一个文件需要成千上万次请求，累积起来就是漫长的等待。
@@ -186,6 +199,7 @@ https://mirrors.huaweicloud.com/git-for-windows/
 - 界面简洁
 
 **使用方法**：
+
 1. 打开上面的链接
 2. 选择最新版本（通常是最上面的文件夹）
 3. 下载 `Git-x.x.x.x-64-bit.exe`（Windows）或 `Git-x.x.x.x-mac.dmg`（Mac）
@@ -206,17 +220,6 @@ https://mirrors.tuna.tsinghua.edu.cn/github-release/git-for-windows/git/
 2. 选择最新版本
 3. 下载对应平台的安装包
 
-#### 3. 阿里云镜像
-
-```txt
-https://mirrors.aliyun.com/github-release/git-for-windows/git/
-```
-
-**特点**：
-- 阿里云基础设施，速度快
-- 界面友好
-- 支持多种下载方式
-
 ### 速度对比
 
 让我们对比一下不同来源的下载速度（假设你的宽带是 100M）：
@@ -226,7 +229,6 @@ https://mirrors.aliyun.com/github-release/git-for-windows/git/
 | Git 官网 | 200-400ms | 50-500 KB/s | 2-15 分钟 |
 | 华为云镜像 | 20-50ms | 5-10 MB/s | 5-10 秒 |
 | 清华镜像 | 20-50ms | 5-10 MB/s | 5-10 秒 |
-| 阿里云镜像 | 20-50ms | 5-10 MB/s | 5-10 秒 |
 
 **结论**：国内镜像比官网快 **10-100 倍**！
 
@@ -235,7 +237,7 @@ https://mirrors.aliyun.com/github-release/git-for-windows/git/
 如果某个镜像下载慢，可以尝试另一个。通常：
 
 - **北方用户**（北京、天津、河北等）：清华镜像可能更快
-- **南方用户**（上海、广东、浙江等）：阿里云或华为云可能更快
+- **南方用户**（上海、广东、浙江等）：华为云可能更快
 - **西南用户**（四川、重庆等）：华为云可能更快
 
 但实际上，这几个镜像的速度差别不大，都能跑满你的宽带。随便选一个就行。
@@ -277,7 +279,6 @@ https://mirrors.aliyun.com/github-release/git-for-windows/git/
 推荐镜像：
 - 华为云：`https://mirrors.huaweicloud.com/git-for-windows/`
 - 清华镜像：`https://mirrors.tuna.tsinghua.edu.cn/github-release/git-for-windows/git/`
-- 阿里云：`https://mirrors.aliyun.com/github-release/git-for-windows/git/`
 
 下载完安装包后，下一步就是安装。Windows 用户，准备好迎接"Vim 地狱"了吗？
 

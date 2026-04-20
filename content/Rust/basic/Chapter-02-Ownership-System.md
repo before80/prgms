@@ -96,7 +96,7 @@ graph TB
     end
     
     subgraph 堆内存
-        B1[字符串数据<br/>"hello"]
+        B1["字符串数据<br/> hello"]
     end
     
     subgraph 栈内存
@@ -777,7 +777,7 @@ flowchart LR
     D -->|否| F[移动<br/>原变量无效]
     
     C --> G[按位复制]
-    E --> H[深复制<br/>显式调用 .clone()]
+    E --> H["深复制<br/>显式调用 .clone()"]
     F --> I[所有权转移<br/>原变量被消耗]
     
     style C fill:#90EE90
@@ -2460,10 +2460,10 @@ flowchart TD
     
     B --> B1[&T -> &U<br/>如果 T: Deref<Target = U>]
     
-    C --> C1[obj.method()<br/>自动尝试 &obj, &mut obj, *obj]
+    C --> C1["obj.method()<br/>自动尝试 &obj, &mut obj, *obj"]
     
     D --> D1[&Box<String> -> &str]
-    D --> D2[&Vec<T> -> &[T]]
+    D --> D2["&Vec<T> -> &[T]"]
     D --> D3[自定义类型互转]
     
     style A fill:#ff6b6b

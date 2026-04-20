@@ -958,21 +958,24 @@ fn main() {
 `static` 变量和 `const` 很像，但有一个关键区别：**它们有固定的内存地址**！
 
 ```rust
-// 静态变量
-static mut COUNTER: i32 = 0; // 注意：访问静态变量需要 unsafe！
+static mut COUNTER: i32 = 0;
 
 fn increment() {
     unsafe {
-        COUNTER += 1;
+        // 裸指针赋值，不创建引用，符合新版规则
+        *&raw mut COUNTER += 1;
     }
 }
 
 fn main() {
     increment();
     increment();
-    
-    unsafe {
-        println!("计数器值: {}", COUNTER); // 计数器值: 2
+
+    unsafe {       
+        // println!("计数器值: {}", COUNTER);  // 会隐式创建 &i32 共享引用；
+        // Rust 2024 认为：可变静态变量 + 共享引用 = 未定义行为（多线程下会数据竞争）。
+        // 裸指针读取
+        println!("计数器值: {}", *&raw const COUNTER);
     }
 }
 ```

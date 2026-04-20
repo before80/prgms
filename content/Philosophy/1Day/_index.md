@@ -383,7 +383,7 @@ Dec 24, 2025
 
 ---
 
-![img](./_index_img/1.jpeg)
+![img](./_index_img/1.jpg)
 
 ---
 

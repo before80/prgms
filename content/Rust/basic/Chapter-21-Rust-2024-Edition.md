@@ -932,18 +932,18 @@ fn main() {
 Rust 的未来是光明的！让我们展望一下那些即将到来的"正在路上"的特性：
 
 ```mermaid
-roadmap
+timeline
     title Rust 未来特性路线图
     2024 Q4 : Gen 块进展
-    : async trait 完善 (✅ 已稳定于 1.75)
+           : async trait 完善 (✅ 已稳定于 1.75)
     2025 Q1 : RPITIT 扩展
-    : const impl Trait 完善
-    2025 Q2 : 类型别名泛型<br/>(Type Alias Generic)
-    : 泛型常量表达式
+           : const impl Trait 完善
+    2025 Q2 : "类型别名泛型<br/>(Type Alias Generic)"
+           : 泛型常量表达式
     2025 Q3 : 异步闭包 (✅ 已稳定于 1.75)
-    : 更强大的宏
+           : 更强大的宏
     2025 Q4 : Rust 2028 Edition 预览
-    : 更多平台支持
+           : 更多平台支持
 ```
 
 **正在酝酿的明星特性：**

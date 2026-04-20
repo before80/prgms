@@ -1273,7 +1273,7 @@ graph TD
     B --> C[DOM 树]
     C --> D[CSS 解析器]
     D --> E[CSSOM 树]
-    C + E --> F[Render Tree<br/>渲染树]
+    C & E --> F["Render Tree<br/>渲染树"]
     F --> G[Layout 计算]
     G --> H[Paint 绘制]
     H --> I[合成器]

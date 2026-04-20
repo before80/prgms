@@ -1148,7 +1148,7 @@ fn main() {
 
 ```mermaid
 graph TB
-    subgraph 数组 arr
+    subgraph "数组 arr"
         A1[1]
         A2[2]
         A3[3]
@@ -1156,9 +1156,9 @@ graph TB
         A5[5]
     end
     
-    subgraph 切片 slice = &arr[1..4]
-        S1[ptr → arr[1]]
-        S2[len: 3]
+    subgraph "切片 slice = &arr[1..4]"
+        S1["ptr → arr[1]"]
+        S2["len: 3"]
     end
     
     S1 -.-> A2

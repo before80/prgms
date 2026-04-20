@@ -66,10 +66,11 @@ fn main() {
 gantt
     title 编译 vs 运行
     dateFormat X
+    axisFormat  
     section 编译期
-    宏展开 : done, 0, 5
+    宏展开 : 0, 5
     section 运行期
-    函数执行 : done, 5, 10
+    函数执行 : done, 10
 ```
 
 #### 12.1.1.2 宏可以生成语法（代码生成），函数不行
