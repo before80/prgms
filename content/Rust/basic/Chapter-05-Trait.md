@@ -8,6 +8,7 @@ isCJKLanguage = true
 draft = false
 +++
 
+
 # Chapter 05 Trait（特征）
 
 > 想象一下，你是一家公司的 HR 经理。每天你要面对各种职位描述（Job Description）：会计要会做账、程序员要会写代码、设计师要会画图。但问题是，你不能因为会计会做账就让他去 debug 代码——虽然听起来像是老板会干的事。
