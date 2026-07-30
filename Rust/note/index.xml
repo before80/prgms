@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>笔记 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/note/</link><description>Recent content in 笔记 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Thu, 30 Jul 2026 11:24:21 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/note/index.xml" rel="self" type="application/rss+xml"/><item><title>programDesign</title><link>https://before80.github.io/prgms/Rust/note/programDesign/</link><pubDate>Tue, 21 Jul 2026 11:27:22 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/note/programDesign/</guid><description>&lt;h2 id="rustup命令"&gt;rustup命令&lt;/h2&gt;
+&lt;h3 id="rustup-update"&gt;rustup update&lt;/h3&gt;
+&lt;h2 id="cargo-命令"&gt;cargo 命令&lt;/h2&gt;
+&lt;h2 id="编译后不输出warning信息"&gt;编译后不输出&lt;code&gt;warning&lt;/code&gt;信息&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;方案 1&lt;/strong&gt;：临时全局屏蔽所有警告（一次性运行，最常用）&lt;/p&gt;
+&lt;p&gt;​	通过环境变量 &lt;code&gt;RUSTFLAGS&lt;/code&gt; 给 &lt;code&gt;rustc&lt;/code&gt; 统一传参，&lt;strong&gt;所有代码（自身 + 依赖）都生效&lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# Linux / macOS&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#dcaeea"&gt;RUSTFLAGS&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;=&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;-A warnings&amp;#34;&lt;/span&gt; cargo run
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# Windows powerShell&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#dcaeea"&gt;$env&lt;/span&gt;:RUSTFLAGS&lt;span style="color:#54b1c7"&gt;=&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;-A warnings&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; cargo run
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# Windows CMD&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e5c07b"&gt;set&lt;/span&gt; &lt;span style="color:#dcaeea"&gt;RUSTFLAGS&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;=&lt;/span&gt;-A warnings &lt;span style="color:#54b1c7"&gt;&amp;amp;&amp;amp;&lt;/span&gt; cargo run
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;strong&gt;方案 2&lt;/strong&gt;：只屏蔽当前项目代码警告（不影响依赖）&lt;/p&gt;</description></item></channel></rss>
