@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第6章 枚举与模式匹配 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/trpl/enums/</link><description>Recent content in 第6章 枚举与模式匹配 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/trpl/enums/index.xml" rel="self" type="application/rss+xml"/><item><title>6.1 定义枚举</title><link>https://before80.github.io/prgms/Rust/trpl/enums/01-defining-an-enum/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/enums/01-defining-an-enum/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="定义枚举"&gt;定义枚举&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch06-01-defining-an-enum.html"&gt;https://doc.rust-lang.org/stable/book/ch06-01-defining-an-enum.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="定义枚举-1"&gt;定义枚举&lt;/h2&gt;
+&lt;p&gt;　　结构体提供了一种把相关字段和数据组合在一起的方式，例如带有 &lt;code&gt;width&lt;/code&gt; 和 &lt;code&gt;height&lt;/code&gt; 的 &lt;code&gt;Rectangle&lt;/code&gt;；而枚举则让你表达：某个值是一组可能取值中的某一个。例如，我们可能想说 &lt;code&gt;Rectangle&lt;/code&gt; 是一组可能形状中的一种，这组形状还包括 &lt;code&gt;Circle&lt;/code&gt; 和 &lt;code&gt;Triangle&lt;/code&gt;。为此，Rust 允许我们把这些可能性编码为枚举。&lt;/p&gt;</description></item><item><title>6.2 match 控制流结构</title><link>https://before80.github.io/prgms/Rust/trpl/enums/02-match/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/enums/02-match/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="match"&gt;match 控制流结构&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch06-02-match.html"&gt;https://doc.rust-lang.org/stable/book/ch06-02-match.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="the-match-control-flow-construct"&gt;&lt;code&gt;match&lt;/code&gt; 控制流结构&lt;/h2&gt;
+&lt;p&gt;　　Rust 有一个非常强大的控制流结构，叫做 &lt;code&gt;match&lt;/code&gt;：它让你把一个值与一系列模式相比较，并按匹配到的模式执行相应代码。模式可以是字面量、变量名、通配符，以及许多其他形式；&lt;a href="../../patterns/"&gt;第 19 章&lt;/a&gt;会介绍各类模式及其用法。&lt;code&gt;match&lt;/code&gt; 之所以强大，既因为模式表达力强，也因为编译器会检查是否已覆盖所有可能情况。&lt;/p&gt;</description></item><item><title>6.3 用 if let 与 let...else 简化控制流</title><link>https://before80.github.io/prgms/Rust/trpl/enums/03-if-let/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/enums/03-if-let/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="if-let-let-else"&gt;用 if let 与 let&amp;hellip;else 简化控制流&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch06-03-if-let.html"&gt;https://doc.rust-lang.org/stable/book/ch06-03-if-let.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="用-if-let-与-letelse-简化控制流"&gt;用 &lt;code&gt;if let&lt;/code&gt; 与 &lt;code&gt;let...else&lt;/code&gt; 简化控制流&lt;/h2&gt;
+&lt;p&gt;　　&lt;code&gt;if let&lt;/code&gt; 语法让你把 &lt;code&gt;if&lt;/code&gt; 和 &lt;code&gt;let&lt;/code&gt; 结合起来，以更简洁的方式处理匹配某一模式的值，同时忽略其余情况。考虑示例 6-6 中的程序：它对 &lt;code&gt;config_max&lt;/code&gt; 变量中的 &lt;code&gt;Option&amp;lt;u8&amp;gt;&lt;/code&gt; 值做 match，但只想在值为 &lt;code&gt;Some&lt;/code&gt; 变体时执行代码。&lt;/p&gt;</description></item></channel></rss>

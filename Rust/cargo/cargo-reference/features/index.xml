@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>04-特性（Features） on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-reference/features/</link><description>Recent content in 04-特性（Features） on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/cargo/cargo-reference/features/index.xml" rel="self" type="application/rss+xml"/><item><title>01-Features 示例</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-reference/features/01-features-examples/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-reference/features/01-features-examples/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="features-examples"&gt;Features 示例&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/reference/features-examples.html"&gt;https://doc.rust-lang.org/cargo/reference/features-examples.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;以下展示一些实际使用中的特性示例。&lt;/p&gt;
+&lt;h2 id="minimizing-build-times-and-file-sizes"&gt;最小化构建时间与文件大小&lt;/h2&gt;
+&lt;p&gt;一些包使用特性，以便在特性未启用时减小 crate 大小并缩短编译时间。一些示例是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://crates.io/crates/syn"&gt;&lt;code&gt;syn&lt;/code&gt;&lt;/a&gt; 是用于解析 Rust 代码的流行 crate。由于它如此流行，缩短编译时间很有帮助，因为它影响许多项目。它有一份&lt;a href="https://docs.rs/syn/1.0.54/syn/#optional-features"&gt;文档清晰的特性列表&lt;/a&gt;，可用于最小化其包含的代码量。&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://crates.io/crates/regex"&gt;&lt;code&gt;regex&lt;/code&gt;&lt;/a&gt; 有&lt;a href="https://github.com/rust-lang/regex/blob/1.4.2/Cargo.toml#L33-L101"&gt;若干特性&lt;/a&gt;，且&lt;a href="https://docs.rs/regex/1.4.2/regex/#crate-features"&gt;文档完善&lt;/a&gt;。去掉 Unicode 支持可以减小最终文件大小，因为它可以移除一些大型表。&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://crates.io/crates/winapi"&gt;&lt;code&gt;winapi&lt;/code&gt;&lt;/a&gt; 有&lt;a href="https://github.com/retep998/winapi-rs/blob/0.3.9/Cargo.toml#L25-L431"&gt;大量&lt;/a&gt;特性，用于限制它所支持的 Windows API 绑定。&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://crates.io/crates/web-sys"&gt;&lt;code&gt;web-sys&lt;/code&gt;&lt;/a&gt; 是另一个与 &lt;code&gt;winapi&lt;/code&gt; 类似的示例，它提供由特性限制的&lt;a href="https://github.com/rustwasm/wasm-bindgen/blob/0.2.69/crates/web-sys/Cargo.toml#L32-L1395"&gt;巨大 API 绑定表面积&lt;/a&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="extending-behavior"&gt;扩展行为&lt;/h2&gt;
+&lt;p&gt;&lt;a href="https://crates.io/crates/serde_json"&gt;&lt;code&gt;serde_json&lt;/code&gt;&lt;/a&gt; 包有一个 &lt;a href="https://github.com/serde-rs/json/blob/v1.0.60/Cargo.toml#L53-L56"&gt;&lt;code&gt;preserve_order&lt;/code&gt; 特性&lt;/a&gt;，它&lt;a href="https://github.com/serde-rs/json/blob/v1.0.60/src/map.rs#L23-L26"&gt;改变&lt;/a&gt; JSON map 的行为以保留键的插入顺序。注意它启用可选依赖 &lt;a href="https://crates.io/crates/indexmap"&gt;&lt;code&gt;indexmap&lt;/code&gt;&lt;/a&gt; 以实现新行为。&lt;/p&gt;</description></item></channel></rss>

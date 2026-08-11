@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第8章 常见集合 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/trpl/common-collections/</link><description>Recent content in 第8章 常见集合 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/trpl/common-collections/index.xml" rel="self" type="application/rss+xml"/><item><title>8.1 用向量存储值的列表</title><link>https://before80.github.io/prgms/Rust/trpl/common-collections/01-vectors/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/common-collections/01-vectors/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="用向量存储值的列表"&gt;用向量存储值的列表&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch08-01-vectors.html"&gt;https://doc.rust-lang.org/stable/book/ch08-01-vectors.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="用向量存储值的列表-1"&gt;用向量存储值的列表&lt;/h2&gt;
+&lt;p&gt;　　我们要看的第一种集合类型是 &lt;code&gt;Vec&amp;lt;T&amp;gt;&lt;/code&gt;，也称为向量（vector）。向量让你能把多个值存放在同一个数据结构中，并在内存里彼此相邻。向量只能存放相同类型的值。当你有一份列表时——例如文件中的文本行，或购物车里商品的价格——向量就很有用。&lt;/p&gt;</description></item><item><title>8.2 用字符串存储 UTF-8 编码的文本</title><link>https://before80.github.io/prgms/Rust/trpl/common-collections/02-strings/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/common-collections/02-strings/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="utf-8"&gt;用字符串存储 UTF-8 编码的文本&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch08-02-strings.html"&gt;https://doc.rust-lang.org/stable/book/ch08-02-strings.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="storing-utf-8-encoded-text-with-strings"&gt;用字符串存储 UTF-8 编码的文本&lt;/h2&gt;
+&lt;p&gt;　　我们在第 4 章谈过字符串，现在会看得更深入。Rust 新手常常在字符串上卡住，原因通常有三个叠加在一起：Rust 倾向于把可能的错误暴露出来；字符串比许多程序员以为的更复杂；还有 UTF-8。这些因素合在一起，对于从其他编程语言转来的人来说，有时会显得很难。&lt;/p&gt;</description></item><item><title>8.3 用哈希映射存储键值对</title><link>https://before80.github.io/prgms/Rust/trpl/common-collections/03-hash-maps/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/common-collections/03-hash-maps/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="用哈希映射存储键值对"&gt;用哈希映射存储键值对&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch08-03-hash-maps.html"&gt;https://doc.rust-lang.org/stable/book/ch08-03-hash-maps.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="在哈希映射中存储带关联值的键"&gt;在哈希映射中存储带关联值的键&lt;/h2&gt;
+&lt;p&gt;　　我们要讲的最后一种常见集合是哈希映射。类型 &lt;code&gt;HashMap&amp;lt;K, V&amp;gt;&lt;/code&gt; 借助&lt;em&gt;哈希函数&lt;/em&gt;（hashing function）存储类型为 &lt;code&gt;K&lt;/code&gt; 的键到类型为 &lt;code&gt;V&lt;/code&gt; 的值的映射；哈希函数决定如何把这些键和值放入内存。许多编程语言都支持这类数据结构，但往往使用不同的名字，例如 &lt;em&gt;hash&lt;/em&gt;、&lt;em&gt;map&lt;/em&gt;、&lt;em&gt;object&lt;/em&gt;、&lt;em&gt;hash table&lt;/em&gt;、&lt;em&gt;dictionary&lt;/em&gt; 或 &lt;em&gt;associative array&lt;/em&gt; 等等。&lt;/p&gt;</description></item></channel></rss>

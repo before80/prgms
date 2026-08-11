@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>7 与 C++ 互操作 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/interoperability-with-cpp/</link><description>Recent content in 7 与 C++ 互操作 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/interoperability-with-cpp/index.xml" rel="self" type="application/rss+xml"/><item><title>7.1 绑定示例</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/interoperability-with-cpp/01-example-bindings/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/interoperability-with-cpp/01-example-bindings/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/interoperability-with-cpp/example-bindings.html"&gt;https://google.github.io/comprehensive-rust/chromium/interoperability-with-cpp/example-bindings.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="71-绑定示例"&gt;7.1 绑定示例&lt;/h1&gt;
+&lt;p&gt;CXX 要求整个 C++/Rust 边界在 &lt;code&gt;.rs&lt;/code&gt; 源码内的 &lt;code&gt;cxx::bridge&lt;/code&gt; 模块中声明。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,ignore" data-lang="rust,ignore"&gt;// Copyright 2023 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+#[cxx::bridge]
+mod ffi {
+ extern &amp;#34;Rust&amp;#34; {
+ type MultiBuf;
+
+ fn next_chunk(buf: &amp;amp;mut MultiBuf) -&amp;gt; &amp;amp;[u8];
+ }
+
+ unsafe extern &amp;#34;C++&amp;#34; {
+ include!(&amp;#34;example/include/blobstore.h&amp;#34;);
+
+ type BlobstoreClient;
+
+ fn new_blobstore_client() -&amp;gt; UniquePtr&amp;lt;BlobstoreClient&amp;gt;;
+ fn put(self: &amp;amp;BlobstoreClient, buf: &amp;amp;mut MultiBuf) -&amp;gt; Result&amp;lt;u64&amp;gt;;
+ }
+}
+
+// Definitions of Rust types and functions go here
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;p&gt;指出：&lt;/p&gt;</description></item><item><title>7.2 CXX 的限制</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/interoperability-with-cpp/02-limitations-of-cxx/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/interoperability-with-cpp/02-limitations-of-cxx/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/interoperability-with-cpp/limitations-of-cxx.html"&gt;https://google.github.io/comprehensive-rust/chromium/interoperability-with-cpp/limitations-of-cxx.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="72-cxx-的限制"&gt;7.2 CXX 的限制&lt;/h1&gt;
+&lt;h2 id="cxx-的限制"&gt;CXX 的限制&lt;/h2&gt;
+&lt;p&gt;使用 CXX 时，最有用的页面莫过于&lt;a href="https://cxx.rs/bindings.html"&gt;类型参考&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;CXX 从根本上适合这些情形：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;你的 Rust-C++ 接口足够简单，你可以声明其全部内容。&lt;/li&gt;
+&lt;li&gt;你只使用 CXX 已原生支持的类型，例如 &lt;code&gt;std::unique_ptr&lt;/code&gt;、&lt;code&gt;std::string&lt;/code&gt;、&lt;code&gt;&amp;amp;[u8]&lt;/code&gt; 等。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;它有许多限制——例如缺少对 Rust &lt;code&gt;Option&lt;/code&gt; 类型的支持。&lt;/p&gt;</description></item><item><title>7.4 在 Chromium 中使用 CXX</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/interoperability-with-cpp/03-using-cxx-in-chromium/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/interoperability-with-cpp/03-using-cxx-in-chromium/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/interoperability-with-cpp/using-cxx-in-chromium.html"&gt;https://google.github.io/comprehensive-rust/chromium/interoperability-with-cpp/using-cxx-in-chromium.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="74-在-chromium-中使用-cxx"&gt;7.4 在 Chromium 中使用 CXX&lt;/h1&gt;
+&lt;h2 id="在-chromium-中使用-cxx"&gt;在 Chromium 中使用 cxx&lt;/h2&gt;
+&lt;p&gt;在 Chromium 中，我们为每个想使用 Rust 的叶节点定义一个独立的 &lt;code&gt;#[cxx::bridge] mod&lt;/code&gt;。通常每个 &lt;code&gt;rust_static_library&lt;/code&gt; 会有一个。只需在现有的 &lt;code&gt;rust_static_library&lt;/code&gt; 目标中，与 &lt;code&gt;crate_root&lt;/code&gt; 和 &lt;code&gt;sources&lt;/code&gt; 一起加入：&lt;/p&gt;</description></item><item><title>7.5 练习</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/interoperability-with-cpp/04-interoperability-with-cpp/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/interoperability-with-cpp/04-interoperability-with-cpp/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/exercises/chromium/interoperability-with-cpp.html"&gt;https://google.github.io/comprehensive-rust/exercises/chromium/interoperability-with-cpp.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="75-练习"&gt;7.5 练习&lt;/h1&gt;
+&lt;h2 id="第一部分"&gt;第一部分&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;在你之前创建的 Rust 文件中，添加一个 &lt;code&gt;#[cxx::bridge]&lt;/code&gt;，指定单个要从 C++ 调用的函数，名为 &lt;code&gt;hello_from_rust&lt;/code&gt;，不接受参数也不返回值。&lt;/li&gt;
+&lt;li&gt;修改你之前的 &lt;code&gt;hello_from_rust&lt;/code&gt; 函数，去掉 &lt;code&gt;extern &amp;quot;C&amp;quot;&lt;/code&gt; 与 &lt;code&gt;#[unsafe(no_mangle)]&lt;/code&gt;。现在它只是一个标准 Rust 函数。&lt;/li&gt;
+&lt;li&gt;修改你的 &lt;code&gt;gn&lt;/code&gt; 目标以构建这些绑定。&lt;/li&gt;
+&lt;li&gt;在你的 C++ 代码中，删除对 &lt;code&gt;hello_from_rust&lt;/code&gt; 的前向声明。改为包含生成的头文件。&lt;/li&gt;
+&lt;li&gt;构建并运行！&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="第二部分"&gt;第二部分&lt;/h2&gt;
+&lt;p&gt;花点时间玩一下 CXX 是个好主意。它帮你思考 Chromium 中的 Rust 实际有多灵活。&lt;/p&gt;</description></item></channel></rss>

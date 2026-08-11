@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第7章 展开（Unwinding） on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustonomicon/unwinding/</link><description>Recent content in 第7章 展开（Unwinding） on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustonomicon/unwinding/index.xml" rel="self" type="application/rss+xml"/><item><title>7.1 异常安全</title><link>https://before80.github.io/prgms/Rust/rustonomicon/unwinding/01-exception-safety/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/unwinding/01-exception-safety/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="异常安全"&gt;异常安全&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/exception-safety.html"&gt;https://doc.rust-lang.org/nomicon/exception-safety.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　尽管程序应谨慎使用展开，仍有大量代码&lt;em&gt;可能&lt;/em&gt; panic。若你对 &lt;code&gt;None&lt;/code&gt; 调用 &lt;code&gt;unwrap&lt;/code&gt;、越界索引或除以 0，程序就会 panic。在 debug 构建中，每个算术运算在溢出时都可能 panic。除非你非常小心并严格控制运行的代码，否则几乎任何东西都可能展开，你需要做好准备。&lt;/p&gt;</description></item><item><title>7.2 中毒（Poisoning）</title><link>https://before80.github.io/prgms/Rust/rustonomicon/unwinding/02-poisoning/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/unwinding/02-poisoning/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="中毒poisoning"&gt;中毒（Poisoning）&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/poisoning.html"&gt;https://doc.rust-lang.org/nomicon/poisoning.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　尽管所有 unsafe 代码&lt;em&gt;必须&lt;/em&gt;保证最低限度的异常安全，但并非所有类型都保证&lt;em&gt;最大&lt;/em&gt;异常安全。即使类型本身保证了，你的代码也可能赋予它额外语义。例如，整数当然具备异常安全，但本身没有语义；panic 的代码可能未能正确更新该整数，导致程序状态不一致。&lt;/p&gt;</description></item></channel></rss>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>2.5 练习：嵌套数组 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/day1-afternoon/tuples-and-arrays/exercise/</link><description>Recent content in 2.5 练习：嵌套数组 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/comprehensiveRust/day1-afternoon/tuples-and-arrays/exercise/index.xml" rel="self" type="application/rss+xml"/><item><title>2.5.1 解答</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/day1-afternoon/tuples-and-arrays/exercise/01-solution/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/day1-afternoon/tuples-and-arrays/exercise/01-solution/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/tuples-and-arrays/solution.html"&gt;https://google.github.io/comprehensive-rust/tuples-and-arrays/solution.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="251-解答"&gt;2.5.1 解答&lt;/h1&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;18
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;19
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;20
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;21
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;22
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;23
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;24
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;25
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;26
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;27
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;28
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;29
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;30
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;31
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// Copyright 2023 Google LLC
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// SPDX-License-Identifier: Apache-2.0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;transpose&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;matrix&lt;/span&gt;: &lt;span style="color:#abb2bf"&gt;[[&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; &lt;span style="color:#d19a66"&gt;3&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;];&lt;/span&gt; &lt;span style="color:#d19a66"&gt;3&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;])&lt;/span&gt; -&amp;gt; &lt;span style="color:#abb2bf"&gt;[[&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; &lt;span style="color:#d19a66"&gt;3&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;];&lt;/span&gt; &lt;span style="color:#d19a66"&gt;3&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;mut&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;result&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[[&lt;/span&gt;&lt;span style="color:#d19a66"&gt;0&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; &lt;span style="color:#d19a66"&gt;3&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;];&lt;/span&gt; &lt;span style="color:#d19a66"&gt;3&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;];&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;for&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;i&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;in&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;..&lt;/span&gt;&lt;span style="color:#d19a66"&gt;3&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;for&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;j&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;in&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;..&lt;/span&gt;&lt;span style="color:#d19a66"&gt;3&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;result&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;j&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;][&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;matrix&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;][&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;j&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;];&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;result&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;main&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;matrix&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#d19a66"&gt;101&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;102&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;103&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// &amp;lt;-- 这行注释会让 rustfmt 换行
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#d19a66"&gt;201&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;202&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;203&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#d19a66"&gt;301&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;302&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;303&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;];&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;Original:&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;for&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;row&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;in&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;matrix&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#98c379"&gt;{row:?}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;transposed&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;transpose&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;matrix&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#d26464;font-weight:bold"&gt;\n&lt;/span&gt;&lt;span style="color:#98c379"&gt;Transposed:&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;for&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;row&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;in&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;transposed&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#98c379"&gt;{row:?}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;数组类型：&lt;/strong&gt; 类型 &lt;code&gt;[[i32; 3]; 3]&lt;/code&gt; 表示大小为 3 的数组，其中每个元素本身又是含 3 个 &lt;code&gt;i32&lt;/code&gt; 的数组。这是 Rust 中表示多维数组的典型方式。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;初始化：&lt;/strong&gt; 填充之前，我们用零初始化 &lt;code&gt;result&lt;/code&gt;（&lt;code&gt;[[0; 3]; 3]&lt;/code&gt;）。Rust 要求所有变量在使用前必须初始化；安全 Rust 中没有“未初始化内存”的概念。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Copy 语义：&lt;/strong&gt; 由 &lt;code&gt;Copy&lt;/code&gt; 类型（如 &lt;code&gt;i32&lt;/code&gt;）组成的数组本身也是 &lt;code&gt;Copy&lt;/code&gt;。把 &lt;code&gt;matrix&lt;/code&gt; 传给函数时按值复制。&lt;code&gt;result&lt;/code&gt; 是一个新的、独立的数组。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;迭代：&lt;/strong&gt; 我们用带范围（&lt;code&gt;0..3&lt;/code&gt;）的标准 &lt;code&gt;for&lt;/code&gt; 循环遍历下标。Rust 还有强大的迭代器（稍后会讲），但对矩阵转置来说，下标访问很直接。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;提醒一下：&lt;code&gt;[i32; 3]&lt;/code&gt; 与 &lt;code&gt;[i32; 4]&lt;/code&gt; 是不同的类型。数组大小是类型签名的一部分。&lt;/li&gt;
+&lt;li&gt;问学员：若把签名改成 &lt;code&gt;mut matrix&lt;/code&gt;，修改后再直接返回 &lt;code&gt;matrix&lt;/code&gt; 会怎样？（答：能工作，但返回的是修改后的&lt;strong&gt;副本&lt;/strong&gt;，&lt;code&gt;main&lt;/code&gt; 中的原数组不会变。）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;</description></item></channel></rss>

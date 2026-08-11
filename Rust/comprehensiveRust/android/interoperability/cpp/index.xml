@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>7.2 与 C++ 互操作 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/</link><description>Recent content in 7.2 与 C++ 互操作 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/index.xml" rel="self" type="application/rss+xml"/><item><title>7.2.1 桥接模块</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/01-bridge/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/01-bridge/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/android/interoperability/cpp/bridge.html"&gt;https://google.github.io/comprehensive-rust/android/interoperability/cpp/bridge.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="721-桥接模块"&gt;7.2.1 桥接模块&lt;/h1&gt;
+&lt;p&gt;CXX 依赖对将从每种语言向另一种语言暴露的函数签名的描述。你在一个用 &lt;code&gt;#[cxx::bridge]&lt;/code&gt; 属性宏标注的 Rust 模块中，通过 extern 块提供该描述。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,ignore" data-lang="rust,ignore"&gt;// Copyright 2023 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+#[allow(unsafe_op_in_unsafe_fn)]
+#[cxx::bridge(namespace = &amp;#34;org::blobstore&amp;#34;)]
+mod ffi {
+ // Shared structs with fields visible to both languages.
+ struct BlobMetadata {
+ size: usize,
+ tags: Vec&amp;lt;String&amp;gt;,
+ }
+
+ // Rust types and signatures exposed to C++.
+ extern &amp;#34;Rust&amp;#34; {
+ type MultiBuf;
+
+ fn next_chunk(buf: &amp;amp;mut MultiBuf) -&amp;gt; &amp;amp;[u8];
+ }
+
+ // C++ types and signatures exposed to Rust.
+ unsafe extern &amp;#34;C++&amp;#34; {
+ include!(&amp;#34;include/blobstore.h&amp;#34;);
+
+ type BlobstoreClient;
+
+ fn new_blobstore_client() -&amp;gt; UniquePtr&amp;lt;BlobstoreClient&amp;gt;;
+ fn put(self: Pin&amp;lt;&amp;amp;mut BlobstoreClient&amp;gt;, parts: &amp;amp;mut MultiBuf) -&amp;gt; u64;
+ fn tag(self: Pin&amp;lt;&amp;amp;mut BlobstoreClient&amp;gt;, blobid: u64, tag: &amp;amp;str);
+ fn metadata(&amp;amp;self, blobid: u64) -&amp;gt; BlobMetadata;
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;桥接一般声明在 crate 内的 &lt;code&gt;ffi&lt;/code&gt; 模块中。&lt;/li&gt;
+&lt;li&gt;根据桥接模块中的声明，CXX 会生成匹配的 Rust 与 C++ 类型/函数定义，以便将这些项暴露给两种语言。&lt;/li&gt;
+&lt;li&gt;要查看生成的 Rust 代码，使用 &lt;a href="https://github.com/dtolnay/cargo-expand"&gt;cargo-expand&lt;/a&gt; 查看展开后的 proc macro。对大多数示例你会用 &lt;code&gt;cargo expand ::ffi&lt;/code&gt; 只展开 &lt;code&gt;ffi&lt;/code&gt; 模块（不过这不适用于 Android 项目）。&lt;/li&gt;
+&lt;li&gt;要查看生成的 C++ 代码，请查看 &lt;code&gt;target/cxxbridge&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;</description></item><item><title>7.2.2 Rust 桥接</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/02-rust-bridge/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/02-rust-bridge/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/android/interoperability/cpp/rust-bridge.html"&gt;https://google.github.io/comprehensive-rust/android/interoperability/cpp/rust-bridge.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="722-rust-桥接"&gt;7.2.2 Rust 桥接&lt;/h1&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,ignore" data-lang="rust,ignore"&gt;// Copyright 2023 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+#[cxx::bridge]
+mod ffi {
+ extern &amp;#34;Rust&amp;#34; {
+ type MyType; // Opaque type
+ fn foo(&amp;amp;self); // Method on `MyType`
+ fn bar() -&amp;gt; Box&amp;lt;MyType&amp;gt;; // Free function
+ }
+}
+
+struct MyType(i32);
+
+impl MyType {
+ fn foo(&amp;amp;self) {
+ println!(&amp;#34;{}&amp;#34;, self.0);
+ }
+}
+
+fn bar() -&amp;gt; Box&amp;lt;MyType&amp;gt; {
+ Box::new(MyType(123))
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;extern &amp;quot;Rust&amp;quot;&lt;/code&gt; 中声明的项引用父模块作用域中的项。&lt;/li&gt;
+&lt;li&gt;CXX 代码生成器使用你的 &lt;code&gt;extern &amp;quot;Rust&amp;quot;&lt;/code&gt; 区段生成包含对应 C++ 声明的 C++ 头文件。生成的头文件路径与包含桥接的 Rust 源文件相同，只是扩展名为 .rs.h。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;</description></item><item><title>7.2.3 生成的 C++</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/03-generated-cpp/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/03-generated-cpp/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/android/interoperability/cpp/generated-cpp.html"&gt;https://google.github.io/comprehensive-rust/android/interoperability/cpp/generated-cpp.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="723-生成的-c"&gt;7.2.3 生成的 C++&lt;/h1&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,ignore" data-lang="rust,ignore"&gt;// Copyright 2023 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+#[cxx::bridge]
+mod ffi {
+ // Rust types and signatures exposed to C++.
+ extern &amp;#34;Rust&amp;#34; {
+ type MultiBuf;
+
+ fn next_chunk(buf: &amp;amp;mut MultiBuf) -&amp;gt; &amp;amp;[u8];
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;大致会得到如下 C++：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-cpp" data-lang="cpp"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;MultiBuf&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;final&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;public&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;rust&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;Opaque&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#54b1c7"&gt;~&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;MultiBuf&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;delete&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;private&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;friend&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;rust&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;layout&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;layout&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;static&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;std&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;size_t&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;size&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;noexcept&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;static&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;std&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;size_t&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;align&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;noexcept&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;rust&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;Slice&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;std&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;uint8_t&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;const&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;next_chunk&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;org&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;blobstore&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;::&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;MultiBuf&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;buf&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;noexcept&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>7.2.4 C++ 桥接</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/04-cpp-bridge/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/04-cpp-bridge/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/android/interoperability/cpp/cpp-bridge.html"&gt;https://google.github.io/comprehensive-rust/android/interoperability/cpp/cpp-bridge.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="724-c-桥接"&gt;7.2.4 C++ 桥接&lt;/h1&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,ignore" data-lang="rust,ignore"&gt;// Copyright 2023 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+#[cxx::bridge]
+mod ffi {
+ // C++ types and signatures exposed to Rust.
+ unsafe extern &amp;#34;C++&amp;#34; {
+ include!(&amp;#34;include/blobstore.h&amp;#34;);
+
+ type BlobstoreClient;
+
+ fn new_blobstore_client() -&amp;gt; UniquePtr&amp;lt;BlobstoreClient&amp;gt;;
+ fn put(self: Pin&amp;lt;&amp;amp;mut BlobstoreClient&amp;gt;, parts: &amp;amp;mut MultiBuf) -&amp;gt; u64;
+ fn tag(self: Pin&amp;lt;&amp;amp;mut BlobstoreClient&amp;gt;, blobid: u64, tag: &amp;amp;str);
+ fn metadata(&amp;amp;self, blobid: u64) -&amp;gt; BlobMetadata;
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;大致会得到如下 Rust：&lt;/p&gt;</description></item><item><title>7.2.5 共享类型</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/05-shared-types/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/05-shared-types/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/android/interoperability/cpp/shared-types.html"&gt;https://google.github.io/comprehensive-rust/android/interoperability/cpp/shared-types.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="725-共享类型"&gt;7.2.5 共享类型&lt;/h1&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,ignore" data-lang="rust,ignore"&gt;// Copyright 2023 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+#[cxx::bridge]
+mod ffi {
+ #[derive(Clone, Debug, Hash)]
+ struct PlayingCard {
+ suit: Suit,
+ value: u8, // A=1, J=11, Q=12, K=13
+ }
+
+ enum Suit {
+ Clubs,
+ Diamonds,
+ Hearts,
+ Spades,
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;只支持类 C（unit）枚举。&lt;/li&gt;
+&lt;li&gt;共享类型上的 &lt;code&gt;#[derive()]&lt;/code&gt; 只支持有限数量的 trait。对应功能也会为 C++ 代码生成，例如若你 derive &lt;code&gt;Hash&lt;/code&gt;，也会为对应的 C++ 类型生成 &lt;code&gt;std::hash&lt;/code&gt; 实现。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;</description></item><item><title>7.2.6 共享枚举</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/06-shared-enums/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/06-shared-enums/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/android/interoperability/cpp/shared-enums.html"&gt;https://google.github.io/comprehensive-rust/android/interoperability/cpp/shared-enums.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="726-共享枚举"&gt;7.2.6 共享枚举&lt;/h1&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,ignore" data-lang="rust,ignore"&gt;// Copyright 2023 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+#[cxx::bridge]
+mod ffi {
+ enum Suit {
+ Clubs,
+ Diamonds,
+ Hearts,
+ Spades,
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;生成的 Rust：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// Copyright 2023 Google LLC
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// SPDX-License-Identifier: Apache-2.0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[derive(Copy, Clone, PartialEq, Eq)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[repr(transparent)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Suit&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;repr&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[allow(non_upper_case_globals)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;impl&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Suit&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;const&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Clubs&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;Self&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Suit&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;repr&lt;/span&gt;: &lt;span style="color:#d19a66"&gt;0&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;const&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Diamonds&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;Self&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Suit&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;repr&lt;/span&gt;: &lt;span style="color:#d19a66"&gt;1&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;const&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Hearts&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;Self&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Suit&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;repr&lt;/span&gt;: &lt;span style="color:#d19a66"&gt;2&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;const&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Spades&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;Self&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Suit&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;repr&lt;/span&gt;: &lt;span style="color:#d19a66"&gt;3&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;生成的 C++：&lt;/p&gt;</description></item><item><title>7.2.7 Rust 错误处理</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/07-rust-result/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/07-rust-result/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/android/interoperability/cpp/rust-result.html"&gt;https://google.github.io/comprehensive-rust/android/interoperability/cpp/rust-result.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="727-rust-错误处理"&gt;7.2.7 Rust 错误处理&lt;/h1&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,ignore" data-lang="rust,ignore"&gt;// Copyright 2023 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+#[cxx::bridge]
+mod ffi {
+ extern &amp;#34;Rust&amp;#34; {
+ fn fallible(depth: usize) -&amp;gt; Result&amp;lt;String&amp;gt;;
+ }
+}
+
+fn fallible(depth: usize) -&amp;gt; anyhow::Result&amp;lt;String&amp;gt; {
+ if depth == 0 {
+ return Err(anyhow::Error::msg(&amp;#34;fallible1 requires depth &amp;gt; 0&amp;#34;));
+ }
+
+ Ok(&amp;#34;Success!&amp;#34;.into())
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;返回 &lt;code&gt;Result&lt;/code&gt; 的 Rust 函数在 C++ 一侧会翻译成异常。&lt;/li&gt;
+&lt;li&gt;抛出的异常类型始终是 &lt;code&gt;rust::Error&lt;/code&gt;，它主要提供获取错误消息字符串的方式。错误消息来自错误类型的 &lt;code&gt;Display&lt;/code&gt; 实现。&lt;/li&gt;
+&lt;li&gt;从 Rust 展开到 C++ 的 panic 总会导致进程立即终止。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;</description></item><item><title>7.2.8 C++ 错误处理</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/08-cpp-exception/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/08-cpp-exception/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/android/interoperability/cpp/cpp-exception.html"&gt;https://google.github.io/comprehensive-rust/android/interoperability/cpp/cpp-exception.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="728-c-错误处理"&gt;7.2.8 C++ 错误处理&lt;/h1&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,ignore" data-lang="rust,ignore"&gt;// Copyright 2023 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+#[cxx::bridge]
+mod ffi {
+ unsafe extern &amp;#34;C++&amp;#34; {
+ include!(&amp;#34;example/include/example.h&amp;#34;);
+ fn fallible(depth: usize) -&amp;gt; Result&amp;lt;String&amp;gt;;
+ }
+}
+
+fn main() {
+ if let Err(err) = ffi::fallible(99) {
+ eprintln!(&amp;#34;Error: {}&amp;#34;, err);
+ process::exit(1);
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;声明为返回 &lt;code&gt;Result&lt;/code&gt; 的 C++ 函数会在 C++ 一侧捕获任何抛出的异常，并将其作为 &lt;code&gt;Err&lt;/code&gt; 值返回给调用的 Rust 函数。&lt;/li&gt;
+&lt;li&gt;若异常从 CXX 桥接未声明返回 &lt;code&gt;Result&lt;/code&gt; 的 extern &amp;ldquo;C++&amp;rdquo; 函数抛出，程序会调用 C++ 的 &lt;code&gt;std::terminate&lt;/code&gt;。行为等价于同一异常穿过一个 &lt;code&gt;noexcept&lt;/code&gt; C++ 函数。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;</description></item><item><title>7.2.9 其他类型</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/09-type-mapping/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/09-type-mapping/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/android/interoperability/cpp/type-mapping.html"&gt;https://google.github.io/comprehensive-rust/android/interoperability/cpp/type-mapping.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="729-其他类型"&gt;7.2.9 其他类型&lt;/h1&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;Rust 类型&lt;/th&gt;
+ &lt;th&gt;C++ 类型&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;String&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;rust::String&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;&amp;amp;str&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;rust::Str&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;CxxString&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;std::string&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;&amp;amp;[T]&lt;/code&gt;/&lt;code&gt;&amp;amp;mut [T]&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;rust::Slice&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;Box&amp;lt;T&amp;gt;&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;rust::Box&amp;lt;T&amp;gt;&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;UniquePtr&amp;lt;T&amp;gt;&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;std::unique_ptr&amp;lt;T&amp;gt;&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;Vec&amp;lt;T&amp;gt;&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;rust::Vec&amp;lt;T&amp;gt;&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;CxxVector&amp;lt;T&amp;gt;&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;std::vector&amp;lt;T&amp;gt;&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;这些类型可用于共享结构体的字段，以及 extern 函数的参数与返回值。&lt;/li&gt;
+&lt;li&gt;注意 Rust 的 &lt;code&gt;String&lt;/code&gt; 并不直接映射到 &lt;code&gt;std::string&lt;/code&gt;。原因有几点：
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;std::string&lt;/code&gt; 并不维护 &lt;code&gt;String&lt;/code&gt; 所要求的 UTF-8 不变量。&lt;/li&gt;
+&lt;li&gt;两种类型在内存中的布局不同，因此不能在语言之间直接传递。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;std::string&lt;/code&gt; 需要与 Rust 移动语义不匹配的移动构造函数，因此 &lt;code&gt;std::string&lt;/code&gt; 不能按值传给 Rust。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;</description></item><item><title>7.2.10 为 Android 构建：Genrules</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/10-android-cpp-genrules/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/10-android-cpp-genrules/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/android/interoperability/cpp/android-cpp-genrules.html"&gt;https://google.github.io/comprehensive-rust/android/interoperability/cpp/android-cpp-genrules.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7210-为-android-构建genrules"&gt;7.2.10 为 Android 构建：Genrules&lt;/h1&gt;
+&lt;p&gt;创建两个 genrule：一个生成 CXX 头文件，一个生成 CXX 源文件。它们随后用作 &lt;code&gt;cc_library_static&lt;/code&gt; 的输入。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-javascript" data-lang="javascript"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 生成包含 C++ 绑定的 C++ 头文件，
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 对应 lib.rs 中导出的 Rust 函数。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;genrule&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;name&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;libcxx_test_bridge_header&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;tools&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;cxxbridge&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;cmd&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;$(location cxxbridge) $(in) --header &amp;gt; $(out)&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;srcs&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;lib.rs&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;out&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;lib.rs.h&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 生成 Rust 将调用的 C++ 代码。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;genrule&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;name&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;libcxx_test_bridge_code&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;tools&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;cxxbridge&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;cmd&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;$(location cxxbridge) $(in) &amp;gt; $(out)&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;srcs&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;lib.rs&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;out&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;lib.rs.cc&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;cxxbridge&lt;/code&gt; 工具是生成桥接模块 C++ 一侧的独立工具。它已包含在 Android 中，并可作为 Soong 工具使用。&lt;/li&gt;
+&lt;li&gt;按约定，若你的 Rust 源文件是 &lt;code&gt;lib.rs&lt;/code&gt;，头文件将命名为 &lt;code&gt;lib.rs.h&lt;/code&gt;，源文件将命名为 &lt;code&gt;lib.rs.cc&lt;/code&gt;。不过这一命名约定并未强制执行。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;</description></item><item><title>7.2.11 为 Android 构建：C++</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/11-android-build-cpp/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/11-android-build-cpp/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/android/interoperability/cpp/android-build-cpp.html"&gt;https://google.github.io/comprehensive-rust/android/interoperability/cpp/android-build-cpp.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7211-为-android-构建c"&gt;7.2.11 为 Android 构建：C++&lt;/h1&gt;
+&lt;p&gt;创建一个 &lt;code&gt;cc_library_static&lt;/code&gt; 来构建 C++ 库，包括 CXX 生成的头文件与源文件。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-javascript" data-lang="javascript"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;cc_library_static&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;name&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;libcxx_test_cpp&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;srcs&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;cxx_test.cpp&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;generated_headers&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;cxx-bridge-header&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;libcxx_test_bridge_header&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;generated_sources&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;libcxx_test_bridge_code&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;指出 &lt;code&gt;libcxx_test_bridge_header&lt;/code&gt; 与 &lt;code&gt;libcxx_test_bridge_code&lt;/code&gt; 是 CXX 生成的 C++ 绑定的依赖。下一页会展示如何设置它们。&lt;/li&gt;
+&lt;li&gt;注意你还需要依赖 &lt;code&gt;cxx-bridge-header&lt;/code&gt; 库，以便引入通用的 CXX 定义。&lt;/li&gt;
+&lt;li&gt;在 Android 中使用 CXX 的完整文档见 &lt;a href="https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns#rust-cpp-interop-using-cxx"&gt;Android 文档&lt;/a&gt;。你可能想把该链接分享给学员，以便他们知道以后在哪里可以再次找到这些说明。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;</description></item><item><title>7.2.12 为 Android 构建：Rust</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/12-android-build-rust/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/android/interoperability/cpp/12-android-build-rust/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/android/interoperability/cpp/android-build-rust.html"&gt;https://google.github.io/comprehensive-rust/android/interoperability/cpp/android-build-rust.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7212-为-android-构建rust"&gt;7.2.12 为 Android 构建：Rust&lt;/h1&gt;
+&lt;p&gt;创建一个依赖 &lt;code&gt;libcxx&lt;/code&gt; 与你的 &lt;code&gt;cc_library_static&lt;/code&gt; 的 &lt;code&gt;rust_binary&lt;/code&gt;。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-javascript" data-lang="javascript"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;rust_binary&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;name&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;cxx_test&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;srcs&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;lib.rs&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;rustlibs&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;libcxx&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;static_libs&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;libcxx_test_cpp&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item></channel></rss>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第4章 类型转换 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustonomicon/conversions/</link><description>Recent content in 第4章 类型转换 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustonomicon/conversions/index.xml" rel="self" type="application/rss+xml"/><item><title>4.1 强制转换（Coercion）</title><link>https://before80.github.io/prgms/Rust/rustonomicon/conversions/01-coercions/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/conversions/01-coercions/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="强制转换coercion"&gt;强制转换（Coercion）&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/coercions.html"&gt;https://doc.rust-lang.org/nomicon/coercions.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　类型可在特定上下文中隐式被强制转换而改变。
+　　这些变化通常只是类型的&lt;em&gt;弱化&lt;/em&gt;，主要围绕指针和生命周期。
+　　它们主要存在是为了让 Rust 在更多情况下「开箱即用」，且大体无害。&lt;/p&gt;</description></item><item><title>4.2 点运算符</title><link>https://before80.github.io/prgms/Rust/rustonomicon/conversions/02-the-dot-operator/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/conversions/02-the-dot-operator/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="点运算符"&gt;点运算符&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/dot-operator.html"&gt;https://doc.rust-lang.org/nomicon/dot-operator.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　点运算符会做大量魔法来转换类型。
+　　它会自动引用、自动解引用并强制转换，直到类型匹配。
+　　方法查找的详细机制见&lt;a href="https://rustc-dev-guide.rust-lang.org/hir-typeck/method-lookup.html"&gt;此处&lt;/a&gt;，
+　　下面是概述主要步骤的简要说明。&lt;/p&gt;</description></item><item><title>4.3 强制转型（Cast）</title><link>https://before80.github.io/prgms/Rust/rustonomicon/conversions/03-casts/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/conversions/03-casts/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="强制转型cast"&gt;强制转型（Cast）&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/casts.html"&gt;https://doc.rust-lang.org/nomicon/casts.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　强制转型（cast）是强制转换的超集：每次强制转换都可通过 cast 显式触发。
+　　但有些转换必须用 cast。
+　　强制转换无处不在且大体无害，而这些「真正的 cast」罕见且可能危险。
+　　因此 cast 必须用 &lt;code&gt;as&lt;/code&gt; 关键字显式触发：&lt;code&gt;expr as Type&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>4.4 Transmute</title><link>https://before80.github.io/prgms/Rust/rustonomicon/conversions/04-transmutes/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/conversions/04-transmutes/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="transmute"&gt;Transmute&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/transmutes.html"&gt;https://doc.rust-lang.org/nomicon/transmutes.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　让开，类型系统！我们要重新解释这些比特，不成功便成仁！尽管本书全是 unsafe 操作，我仍要再三强调：应深入思考本节操作之外的其他途径。这确实是 Rust 中最危险 unsafe 的操作之一。此处的护栏不过是牙线。&lt;/p&gt;</description></item></channel></rss>

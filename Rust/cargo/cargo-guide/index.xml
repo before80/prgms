@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>02-Cargo 指南 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-guide/</link><description>Recent content in 02-Cargo 指南 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/cargo/cargo-guide/index.xml" rel="self" type="application/rss+xml"/><item><title>01-为什么需要 Cargo</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-guide/01-why-cargo-exists/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-guide/01-why-cargo-exists/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="why-cargo-exists"&gt;为什么需要 Cargo&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/guide/why-cargo-exists.html"&gt;https://doc.rust-lang.org/cargo/guide/why-cargo-exists.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="preliminaries"&gt;预备知识&lt;/h2&gt;
+&lt;p&gt;在 Rust 中，你可能已经知道，库或可执行程序称为 &lt;a href="../../appendix/01-glossary/#crate" title="&amp;quot;crate&amp;quot; (glossary entry)"&gt;&lt;em&gt;crate&lt;/em&gt;&lt;/a&gt;。Crate 由 Rust 编译器 &lt;code&gt;rustc&lt;/code&gt; 编译。刚开始学 Rust 时，大多数人最先接触到的源码是经典的 “hello world” 程序，并直接调用 &lt;code&gt;rustc&lt;/code&gt; 来编译：&lt;/p&gt;</description></item><item><title>02-创建新包</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-guide/02-creating-a-new-package/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-guide/02-creating-a-new-package/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="creating-a-new-package"&gt;创建新包&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/guide/creating-a-new-project.html"&gt;https://doc.rust-lang.org/cargo/guide/creating-a-new-project.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;要用 Cargo 开始一个新&lt;a href="../../appendix/01-glossary/#package" title="&amp;quot;package&amp;quot; (glossary entry)"&gt;包&lt;/a&gt;，使用 &lt;code&gt;cargo new&lt;/code&gt;：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;$&lt;/span&gt; cargo new hello_world --bin
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;我们传入 &lt;code&gt;--bin&lt;/code&gt; 是因为在创建二进制程序：若创建库，则应传入 &lt;code&gt;--lib&lt;/code&gt;。默认情况下这也会初始化一个新的 &lt;code&gt;git&lt;/code&gt; 仓库。若不希望如此，请传入 &lt;code&gt;--vcs none&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>03-在已有包上工作</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-guide/03-working-on-an-existing-package/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-guide/03-working-on-an-existing-package/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="working-on-an-existing-cargo-package"&gt;在已有 Cargo 包上工作&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/guide/working-on-an-existing-project.html"&gt;https://doc.rust-lang.org/cargo/guide/working-on-an-existing-project.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;如果你下载了一个使用 Cargo 的已有&lt;a href="../../appendix/01-glossary/#package" title="&amp;quot;package&amp;quot; (glossary entry)"&gt;包&lt;/a&gt;，上手非常容易。&lt;/p&gt;
+&lt;p&gt;首先，从某处获取该包。本例中我们使用从 GitHub 仓库克隆的 &lt;code&gt;regex&lt;/code&gt;：&lt;/p&gt;</description></item><item><title>04-依赖</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-guide/04-dependencies/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-guide/04-dependencies/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="dependencies"&gt;依赖&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/guide/dependencies.html"&gt;https://doc.rust-lang.org/cargo/guide/dependencies.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a href="https://crates.io/"&gt;crates.io&lt;/a&gt; 是 Rust 社区的中央&lt;a href="../../appendix/01-glossary/#package-registry" title="&amp;quot;package-registry&amp;quot; (glossary entry)"&gt;&lt;em&gt;包注册表（package registry）&lt;/em&gt;&lt;/a&gt;，用作发现与下载&lt;a href="../../appendix/01-glossary/#package" title="&amp;quot;package&amp;quot; (glossary entry)"&gt;包&lt;/a&gt;的位置。&lt;code&gt;cargo&lt;/code&gt; 默认配置为使用它来查找所请求的包。&lt;/p&gt;</description></item><item><title>05-包布局</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-guide/05-package-layout/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-guide/05-package-layout/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="package-layout"&gt;包布局&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/guide/project-layout.html"&gt;https://doc.rust-lang.org/cargo/guide/project-layout.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Cargo 对文件放置有约定，便于你快速上手一个新的 Cargo &lt;a href="../../appendix/01-glossary/#package" title="&amp;quot;package&amp;quot; (glossary entry)"&gt;包&lt;/a&gt;：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;18
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;19
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;20
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;21
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;22
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;23
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;24
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;25
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;26
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;27
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;.
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── Cargo.lock
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── Cargo.toml
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── src/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│   ├── lib.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│   ├── main.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│   └── bin/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ ├── named-executable.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│      ├── another-executable.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│      └── multi-file-executable/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│      ├── main.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│      └── some_module.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── benches/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│   ├── large-input.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│   └── multi-file-bench/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│   ├── main.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│   └── bench_module.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── examples/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│   ├── simple.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│   └── multi-file-example/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│   ├── main.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│   └── ex_module.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;└── tests/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; ├── some-integration-tests.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; └── multi-file-test/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; ├── main.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; └── test_module.rs
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Cargo.toml&lt;/code&gt; 与 &lt;code&gt;Cargo.lock&lt;/code&gt; 存放在包的根目录（&lt;em&gt;包根&lt;/em&gt;）。&lt;/li&gt;
+&lt;li&gt;源代码放在 &lt;code&gt;src&lt;/code&gt; 目录中。&lt;/li&gt;
+&lt;li&gt;默认库文件是 &lt;code&gt;src/lib.rs&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;默认可执行文件是 &lt;code&gt;src/main.rs&lt;/code&gt;。
+&lt;ul&gt;
+&lt;li&gt;其他可执行文件可放在 &lt;code&gt;src/bin/&lt;/code&gt; 中。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;基准测试放在 &lt;code&gt;benches&lt;/code&gt; 目录中。&lt;/li&gt;
+&lt;li&gt;示例放在 &lt;code&gt;examples&lt;/code&gt; 目录中。&lt;/li&gt;
+&lt;li&gt;集成测试放在 &lt;code&gt;tests&lt;/code&gt; 目录中。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;若二进制、示例、基准测试或集成测试由多个源文件组成，请在 &lt;code&gt;src/bin&lt;/code&gt;、&lt;code&gt;examples&lt;/code&gt;、&lt;code&gt;benches&lt;/code&gt; 或 &lt;code&gt;tests&lt;/code&gt; 目录的子目录中放置一个 &lt;code&gt;main.rs&lt;/code&gt;，连同额外的&lt;a href="../../appendix/01-glossary/#module" title="&amp;quot;module&amp;quot; (glossary entry)"&gt;&lt;em&gt;模块（module）&lt;/em&gt;&lt;/a&gt;。可执行文件的名称即为该子目录名。&lt;/p&gt;</description></item><item><title>06-Cargo.toml 与 Cargo.lock</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-guide/06-cargo-toml-vs-cargo-lock/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-guide/06-cargo-toml-vs-cargo-lock/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="cargotoml-vs-cargolock"&gt;Cargo.toml 与 Cargo.lock&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/guide/cargo-toml-vs-cargo-lock.html"&gt;https://doc.rust-lang.org/cargo/guide/cargo-toml-vs-cargo-lock.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;Cargo.toml&lt;/code&gt; 与 &lt;code&gt;Cargo.lock&lt;/code&gt; 服务于两个不同的目的。在详细讨论之前，先做一个摘要：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Cargo.toml&lt;/code&gt; 用于从较宽泛的意义上描述你的依赖，由你来编写。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Cargo.lock&lt;/code&gt; 包含关于依赖的确切信息。它由 Cargo 维护，不应手工编辑。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;拿不准时，请把 &lt;code&gt;Cargo.lock&lt;/code&gt; 提交到版本控制系统（例如 Git）。要更好地理解原因以及可能的替代方案，参见&lt;a href="../../05-faq/#why-have-cargolock-in-version-control"&gt;常见问题中的「为什么要把 Cargo.lock 纳入版本控制？」&lt;/a&gt;。我们建议将其与&lt;a href="../08-continuous-integration/#verifying-latest-dependencies"&gt;验证最新依赖&lt;/a&gt;配合使用。&lt;/p&gt;</description></item><item><title>07-测试</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-guide/07-tests/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-guide/07-tests/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="tests"&gt;测试&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/guide/tests.html"&gt;https://doc.rust-lang.org/cargo/guide/tests.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Cargo 可以用 &lt;code&gt;cargo test&lt;/code&gt; 命令运行你的测试。Cargo 会在两个地方查找要运行的测试：每个 &lt;code&gt;src&lt;/code&gt; 文件中，以及 &lt;code&gt;tests/&lt;/code&gt; 中的任何测试。&lt;code&gt;src&lt;/code&gt; 文件中的测试应为单元测试与&lt;a href="https://doc.rust-lang.org/rustdoc/write-documentation/documentation-tests.html"&gt;文档测试&lt;/a&gt;。&lt;code&gt;tests/&lt;/code&gt; 中的测试应为集成风格的测试。因此，你需要在 &lt;code&gt;tests&lt;/code&gt; 中的文件里导入你的 crate。&lt;/p&gt;</description></item><item><title>08-持续集成</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-guide/08-continuous-integration/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-guide/08-continuous-integration/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="continuous-integration"&gt;持续集成&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/guide/continuous-integration.html"&gt;https://doc.rust-lang.org/cargo/guide/continuous-integration.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="getting-started"&gt;入门&lt;/h2&gt;
+&lt;p&gt;基本的 CI 会构建并测试你的项目：&lt;/p&gt;
+&lt;h3 id="github-actions"&gt;GitHub Actions&lt;/h3&gt;
+&lt;p&gt;要在 GitHub Actions 上测试你的包，下面是一个示例 &lt;code&gt;.github/workflows/ci.yml&lt;/code&gt; 文件：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;18
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;19
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;20
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;21
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;22
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;23
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;24
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;25
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;name&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;Cargo Build &amp;amp; Test&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;on&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;push&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pull_request&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;env&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;CARGO_TERM_COLOR&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;always&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;jobs&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;build_and_test&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;name&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;Rust project - latest&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;runs-on&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;ubuntu-latest&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;strategy&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;matrix&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;toolchain&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#98c379"&gt;stable&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#98c379"&gt;beta&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#98c379"&gt;nightly&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;steps&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;uses&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;actions/checkout@v6&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;run&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;rustup update ${{ matrix.toolchain }} &amp;amp;&amp;amp; rustup default ${{ matrix.toolchain }}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;run&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;cargo build --verbose&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;run&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;cargo test --verbose&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;这会在全部三个发行通道上测试（注意任一工具链版本失败都会导致整个作业失败）。你也可以在 GitHub UI 中点击 &lt;code&gt;&amp;quot;Actions&amp;quot; &amp;gt; &amp;quot;new workflow&amp;quot;&lt;/code&gt; 并选择 Rust，将&lt;a href="https://github.com/actions/starter-workflows/blob/main/ci/rust.yml"&gt;默认配置&lt;/a&gt;添加到仓库。更多信息参见 &lt;a href="https://docs.github.com/en/actions"&gt;GitHub Actions 文档&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>09-发布到 crates.io</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-guide/09-publishing-on-crates-io/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-guide/09-publishing-on-crates-io/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="发布到-cratesio"&gt;发布到 crates.io&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/reference/publishing.html"&gt;https://doc.rust-lang.org/cargo/reference/publishing.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;一旦你有了想与世界分享的库，就可以把它发布到 &lt;a href="https://crates.io/"&gt;crates.io&lt;/a&gt;！发布 crate 是指将特定版本上传并托管在 &lt;a href="https://crates.io/"&gt;crates.io&lt;/a&gt; 上。&lt;/p&gt;
+&lt;p&gt;发布 crate 时请谨慎，因为发布&lt;a href="https://crates.io/policies#package-ownership"&gt;通常是永久性的&lt;/a&gt;。版本永远无法被覆盖，代码也无法删除。不过，可以发布的版本数量没有限制。&lt;/p&gt;
+&lt;h2 id="before-your-first-publish"&gt;首次发布之前&lt;/h2&gt;
+&lt;p&gt;首先，你需要一个 &lt;a href="https://crates.io/"&gt;crates.io&lt;/a&gt; 账户来获取 API token。为此，&lt;a href="https://crates.io/"&gt;访问首页&lt;/a&gt;并通过 GitHub 账户登录（目前必须）。你还需要在&lt;a href="https://crates.io/settings/profile"&gt;账户设置&lt;/a&gt;页面提供并验证邮箱地址。完成后&lt;a href="https://crates.io/settings/tokens"&gt;创建 API token&lt;/a&gt;，务必复制它。一旦离开该页面，你将无法再次看到它。&lt;/p&gt;</description></item><item><title>10-Cargo 主目录</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-guide/10-cargo-home/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-guide/10-cargo-home/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="cargo-home"&gt;Cargo 主目录&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/guide/cargo-home.html"&gt;https://doc.rust-lang.org/cargo/guide/cargo-home.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;「Cargo 主目录」用作下载与源码缓存。构建 &lt;a href="../../appendix/01-glossary/#crate" title="&amp;quot;crate&amp;quot; (glossary entry)"&gt;crate&lt;/a&gt; 时，Cargo 会把下载的构建依赖存储在 Cargo 主目录中。你可以通过设置 &lt;code&gt;CARGO_HOME&lt;/code&gt; &lt;a href="../../cargo-reference/07-environment-variables/"&gt;环境变量&lt;/a&gt;来改变 Cargo 主目录的位置。若需要在 Rust crate 内获取该位置，&lt;a href="https://crates.io/crates/home"&gt;home&lt;/a&gt; crate 提供了相应 API。默认情况下，Cargo 主目录位于 &lt;code&gt;$HOME/.cargo/&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>11-优化构建性能</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-guide/11-optimizing-build-performance/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-guide/11-optimizing-build-performance/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="optimizing-build-performance"&gt;优化构建性能&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/guide/build-performance.html"&gt;https://doc.rust-lang.org/cargo/guide/build-performance.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Cargo 配置选项与源码组织模式可以帮助提升构建性能，做法是优先考虑构建性能，而非在你的情境下可能不那么重要的其他方面。&lt;/p&gt;
+&lt;p&gt;与优化运行时性能一样，请务必针对你实际关心的工作流来衡量这些改动。我们提供的是一般性指南，而你的情况可能不同；其中一些方法实际上可能使你的用例的构建性能变差。&lt;/p&gt;</description></item></channel></rss>

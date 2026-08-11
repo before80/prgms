@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>01-15 分钟写出一个命令行应用 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/cli/tutorial/</link><description>Recent content in 01-15 分钟写出一个命令行应用 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/cli/tutorial/index.xml" rel="self" type="application/rss+xml"/><item><title>01-项目准备</title><link>https://before80.github.io/prgms/Rust/cli/tutorial/01-project-setup/</link><pubDate>Sat, 01 Aug 2026 10:33:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cli/tutorial/01-project-setup/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-cli.github.io/book/"&gt;Command Line Applications in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="project-setup"&gt;项目准备&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-cli.github.io/book/tutorial/setup.html"&gt;https://rust-cli.github.io/book/tutorial/setup.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;如果还没有，
+先在电脑上&lt;a href="https://www.rust-lang.org/tools/install"&gt;安装 Rust&lt;/a&gt;
+（通常只要几分钟）。
+然后打开终端，进入你打算存放
+应用代码的目录。&lt;/p&gt;
+&lt;p&gt;在存放编程项目的目录里运行
+&lt;code&gt;cargo new grrs&lt;/code&gt;。
+查看新创建的 &lt;code&gt;grrs&lt;/code&gt; 目录，
+你会看到典型的 Rust 项目布局：&lt;/p&gt;</description></item><item><title>02-解析命令行参数</title><link>https://before80.github.io/prgms/Rust/cli/tutorial/02-parsing-command-line-arguments/</link><pubDate>Sat, 01 Aug 2026 10:33:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cli/tutorial/02-parsing-command-line-arguments/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-cli.github.io/book/"&gt;Command Line Applications in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="parsing-command-line-arguments"&gt;解析命令行参数&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-cli.github.io/book/tutorial/cli-args.html"&gt;https://rust-cli.github.io/book/tutorial/cli-args.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;我们的 CLI 工具一次典型调用会像这样：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;$&lt;/span&gt; grrs foobar test.txt
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;我们期望程序查看 &lt;code&gt;test.txt&lt;/code&gt;，
+并打印出包含 &lt;code&gt;foobar&lt;/code&gt; 的行。
+但这两个值该怎么拿到？&lt;/p&gt;</description></item><item><title>03-第一次实现</title><link>https://before80.github.io/prgms/Rust/cli/tutorial/03-first-implementation/</link><pubDate>Sat, 01 Aug 2026 10:33:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cli/tutorial/03-first-implementation/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-cli.github.io/book/"&gt;Command Line Applications in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="first-implementation"&gt;第一次实现 &lt;em&gt;grrs&lt;/em&gt;&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-cli.github.io/book/tutorial/impl-draft.html"&gt;https://rust-cli.github.io/book/tutorial/impl-draft.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在上一章讲完命令行参数之后，
+我们已经有了输入数据，
+可以开始编写真正的工具了。
+目前 &lt;code&gt;main&lt;/code&gt; 函数里只有这一行：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;args&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Cli&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;parse&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;();&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;可以把临时放在那里、用来演示程序能正常工作的 &lt;code&gt;println&lt;/code&gt; 删掉了。&lt;/p&gt;</description></item><item><title>04-更友好的错误报告</title><link>https://before80.github.io/prgms/Rust/cli/tutorial/04-nicer-error-reporting/</link><pubDate>Sat, 01 Aug 2026 10:33:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cli/tutorial/04-nicer-error-reporting/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-cli.github.io/book/"&gt;Command Line Applications in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="nicer-error-reporting"&gt;更友好的错误报告&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-cli.github.io/book/tutorial/errors.html"&gt;https://rust-cli.github.io/book/tutorial/errors.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;我们只能接受一个事实：错误总会发生。
+与许多其它语言不同，
+在使用 Rust 时很难忽视并回避这一点，
+因为它没有异常。
+所有可能的错误状态，常常编码在函数的返回类型里。&lt;/p&gt;</description></item><item><title>05-面向人与机器的输出</title><link>https://before80.github.io/prgms/Rust/cli/tutorial/05-output-for-humans-and-machines/</link><pubDate>Sat, 01 Aug 2026 10:33:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cli/tutorial/05-output-for-humans-and-machines/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-cli.github.io/book/"&gt;Command Line Applications in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="output-for-humans-and-machines"&gt;面向人与机器的输出&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-cli.github.io/book/tutorial/output.html"&gt;https://rust-cli.github.io/book/tutorial/output.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="printing-hello-world"&gt;打印 “Hello World”&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;Hello World&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;嗯，挺简单。
+很好！下一话题。&lt;/p&gt;
+&lt;h2 id="using-println"&gt;使用 &lt;code&gt;println!&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;用 &lt;code&gt;println!&lt;/code&gt; 宏几乎可以打印你喜欢的所有东西。
+这个宏能力相当惊人，
+但也有一套特殊语法。
+它期望第一个参数是包含占位符的字符串字面量。
+后面参数的值会填进
+这个字符串。&lt;/p&gt;</description></item><item><title>06-测试</title><link>https://before80.github.io/prgms/Rust/cli/tutorial/06-testing/</link><pubDate>Sat, 01 Aug 2026 10:33:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cli/tutorial/06-testing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-cli.github.io/book/"&gt;Command Line Applications in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="testing"&gt;测试&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-cli.github.io/book/tutorial/testing.html"&gt;https://rust-cli.github.io/book/tutorial/testing.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;经过几十年的软件开发，
+人们发现了一条真理：
+未测试的软件很少能正常工作。
+许多人甚至会说，
+大多数测过的软件也照样不行。
+但我们都是乐观主义者，对吧？
+为确保程序按你期望的去做，
+明智的做法是测试它。&lt;/p&gt;</description></item><item><title>07-打包与分发 Rust 工具</title><link>https://before80.github.io/prgms/Rust/cli/tutorial/07-packaging-and-distributing-a-rust-tool/</link><pubDate>Sat, 01 Aug 2026 10:33:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cli/tutorial/07-packaging-and-distributing-a-rust-tool/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-cli.github.io/book/"&gt;Command Line Applications in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="packaging-and-distributing-a-rust-tool"&gt;打包与分发 Rust 工具&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-cli.github.io/book/tutorial/packaging.html"&gt;https://rust-cli.github.io/book/tutorial/packaging.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;如果你确信程序已经准备好给别人用，
+就是打包和发布的时候了！&lt;/p&gt;
+&lt;p&gt;有几种做法，
+我们会看其中三种，
+从搭建最快到对用户最方便。&lt;/p&gt;</description></item></channel></rss>

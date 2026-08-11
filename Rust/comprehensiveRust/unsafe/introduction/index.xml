@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>3 简介 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/</link><description>Recent content in 3 简介 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/index.xml" rel="self" type="application/rss+xml"/><item><title>3.1 Unsafe Rust 的定义</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/01-definition/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/01-definition/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/unsafe-deep-dive/introduction/definition.html"&gt;https://google.github.io/comprehensive-rust/unsafe-deep-dive/introduction/definition.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="31-unsafe-rust-的定义"&gt;3.1 Unsafe Rust 的定义&lt;/h1&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-bob" data-lang="bob"&gt;╭───────────────────────────────────────────────────────────╮
+│╭─────────────────────────────────────────────────────────╮│
+││ ││
+││ Safe ││
+││ Rust ││
+││ ││
+││ ││
+│╰─────────╮ ││
+│ │ ││
+│ Unsafe │ ││
+│ Rust │ ││
+│ ╰───────────────────────────────────────────────╯│
+╰───────────────────────────────────────────────────────────╯
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;p&gt;「Unsafe Rust 是 Safe Rust 的超集。」&lt;/p&gt;</description></item><item><title>3.2 unsafe 关键字的用途</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/02-purpose/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/02-purpose/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/unsafe-deep-dive/introduction/purpose.html"&gt;https://google.github.io/comprehensive-rust/unsafe-deep-dive/introduction/purpose.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="32-unsafe-关键字的用途"&gt;3.2 unsafe 关键字的用途&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Rust 保证安全性&lt;/li&gt;
+&lt;li&gt;但编译器能做的事有限&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;unsafe&lt;/code&gt; 关键字让程序员承担维护 Rust 规则的责任&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;「Rust 的一个基本目标是保证内存安全。」&lt;/p&gt;</description></item><item><title>3.3 unsafe 关键字的两种角色</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/03-two-roles/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/03-two-roles/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/unsafe-deep-dive/introduction/two-roles.html"&gt;https://google.github.io/comprehensive-rust/unsafe-deep-dive/introduction/two-roles.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="33-unsafe-关键字的两种角色"&gt;3.3 unsafe 关键字的两种角色&lt;/h1&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;创建&lt;/em&gt; 带有安全考量的 API&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;unsafe 函数：&lt;code&gt;unsafe fn get_unchecked(&amp;amp;self) { ... }&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;unsafe trait：&lt;code&gt;unsafe trait Send {}&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;使用&lt;/em&gt; 带有安全考量的 API&lt;/p&gt;</description></item><item><title>3.6 责任转移</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/04-responsibility-shift/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/04-responsibility-shift/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/unsafe-deep-dive/introduction/responsibility-shift.html"&gt;https://google.github.io/comprehensive-rust/unsafe-deep-dive/introduction/responsibility-shift.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="36-责任转移"&gt;3.6 责任转移&lt;/h1&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th style="text-align: left"&gt;&lt;/th&gt;
+ &lt;th style="text-align: center"&gt;内存是否安全？&lt;/th&gt;
+ &lt;th style="text-align: left"&gt;内存安全的责任方&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td style="text-align: left"&gt;Safe Rust&lt;/td&gt;
+ &lt;td style="text-align: center"&gt;是&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;编译器&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td style="text-align: left"&gt;Unsafe Rust&lt;/td&gt;
+ &lt;td style="text-align: center"&gt;是&lt;/td&gt;
+ &lt;td style="text-align: left"&gt;程序员&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;blockquote&gt;
+&lt;p&gt;谁对内存安全负责？&lt;/p&gt;</description></item><item><title>3.7 需要更严格的开发流程</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/05-impact-on-workflow/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/05-impact-on-workflow/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/unsafe-deep-dive/introduction/impact-on-workflow.html"&gt;https://google.github.io/comprehensive-rust/unsafe-deep-dive/introduction/impact-on-workflow.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="37-需要更严格的开发流程"&gt;3.7 需要更严格的开发流程&lt;/h1&gt;
+&lt;p&gt;编写代码时&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;确认你理解任何 &lt;code&gt;unsafe&lt;/code&gt; 函数/trait 的前置条件&lt;/li&gt;
+&lt;li&gt;检查前置条件是否已满足&lt;/li&gt;
+&lt;li&gt;在 safety comment（安全注释）中记录你的推理&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;加强代码审查&lt;/p&gt;</description></item><item><title>3.8 示例：may_overflow</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/06-may-overflow/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/introduction/06-may-overflow/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/unsafe-deep-dive/introduction/may_overflow.html"&gt;https://google.github.io/comprehensive-rust/unsafe-deep-dive/introduction/may_overflow.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="38-示例may_overflow"&gt;3.8 示例：may_overflow&lt;/h1&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// Copyright 2026 Google LLC
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// SPDX-License-Identifier: Apache-2.0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#7e97c3"&gt;/// 对负数加上 2^31 - 1。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;unsafe&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;may_overflow&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;a&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;a&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;+&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;::&lt;span style="color:#aa89ea;font-weight:bold"&gt;MAX&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;main&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;x&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;unsafe&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;may_overflow&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#d19a66"&gt;123&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#98c379"&gt;{x}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;「&lt;code&gt;unsafe&lt;/code&gt; 关键字的含义可能比某些人假设的更为微妙。」&lt;/p&gt;</description></item></channel></rss>

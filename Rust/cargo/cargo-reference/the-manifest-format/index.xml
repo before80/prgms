@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>01-Manifest 格式 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-reference/the-manifest-format/</link><description>Recent content in 01-Manifest 格式 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/cargo/cargo-reference/the-manifest-format/index.xml" rel="self" type="application/rss+xml"/><item><title>01-Cargo 目标</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-reference/the-manifest-format/01-cargo-targets/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-reference/the-manifest-format/01-cargo-targets/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="cargo-目标"&gt;Cargo 目标&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/reference/cargo-targets.html"&gt;https://doc.rust-lang.org/cargo/reference/cargo-targets.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Cargo 包由 &lt;em&gt;目标（targets）&lt;/em&gt; 组成，它们对应可被编译为 crate 的源文件。包可以有&lt;a href="#library"&gt;库&lt;/a&gt;、&lt;a href="#binaries"&gt;二进制&lt;/a&gt;、&lt;a href="#examples"&gt;示例&lt;/a&gt;、&lt;a href="#tests"&gt;测试&lt;/a&gt;与&lt;a href="#benchmarks"&gt;基准测试&lt;/a&gt;目标。目标列表可在 &lt;code&gt;Cargo.toml&lt;/code&gt; 清单中配置，通常会根据源文件的&lt;a href="../../../cargo-guide/05-package-layout/"&gt;目录布局&lt;/a&gt;&lt;a href="#target-auto-discovery"&gt;自动推断&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>02-Rust 版本</title><link>https://before80.github.io/prgms/Rust/cargo/cargo-reference/the-manifest-format/02-rust-version/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/cargo-reference/the-manifest-format/02-rust-version/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="rust-版本"&gt;Rust 版本&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/reference/rust-version.html"&gt;https://doc.rust-lang.org/cargo/reference/rust-version.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;rust-version&lt;/code&gt; 字段是一个可选键，用于告诉 Cargo 你的包所支持的 Rust 工具链版本。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-toml" data-lang="toml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;package&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;rust-version&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;1.56&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;Rust 版本必须是至少包含一个组成部分的裸版本号；不能包含 semver 运算符或预发布标识符。检查 Rust 版本时，编译器预发布标识符（如 &lt;code&gt;-nightly&lt;/code&gt;）会被忽略。&lt;/p&gt;</description></item></channel></rss>

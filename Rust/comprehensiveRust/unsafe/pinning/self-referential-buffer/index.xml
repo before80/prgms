@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>8.7 自引用缓冲区示例 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/pinning/self-referential-buffer/</link><description>Recent content in 8.7 自引用缓冲区示例 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/pinning/self-referential-buffer/index.xml" rel="self" type="application/rss+xml"/><item><title>8.7.1 C++ 实现</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/pinning/self-referential-buffer/01-cpp/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/unsafe/pinning/self-referential-buffer/01-cpp/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/unsafe-deep-dive/pinning/self-referential-buffer/cpp.html"&gt;https://google.github.io/comprehensive-rust/unsafe-deep-dive/pinning/self-referential-buffer/cpp.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="871-c-实现"&gt;8.7.1 C++ 实现&lt;/h1&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-cpp,editable,ignore" data-lang="cpp,editable,ignore"&gt;#include &amp;lt;cstddef&amp;gt;
+#include &amp;lt;cstring&amp;gt;
+
+class SelfReferentialBuffer {
+ std::byte data[1024];
+ std::byte* cursor = data;
+ 
+public:
+ SelfReferentialBuffer(SelfReferentialBuffer&amp;amp;&amp;amp; other) 
+ : cursor{data + (other.cursor - other.data)}
+ {
+ std::memcpy(data, other.data, 1024);
+ }
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;可在 &lt;a href="https://godbolt.org/z/ascME6aje"&gt;Compiler Explorer&lt;/a&gt; 上查看&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;code&gt;SelfReferentialBuffer&lt;/code&gt; 包含两个成员：&lt;code&gt;data&lt;/code&gt; 是一 KB 内存，&lt;code&gt;cursor&lt;/code&gt; 是指向 &lt;code&gt;data&lt;/code&gt; 的指针。&lt;/p&gt;</description></item></channel></rss>

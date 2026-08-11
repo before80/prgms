@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>6 测试 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/testing/</link><description>Recent content in 6 测试 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/testing/index.xml" rel="self" type="application/rss+xml"/><item><title>6.1 `rust_gtest_interop` 库</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/testing/01-rust-gtest-interop/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/testing/01-rust-gtest-interop/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/testing/rust-gtest-interop.html"&gt;https://google.github.io/comprehensive-rust/chromium/testing/rust-gtest-interop.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="61-rust_gtest_interop-库"&gt;6.1 &lt;code&gt;rust_gtest_interop&lt;/code&gt; 库&lt;/h1&gt;
+&lt;p&gt;&lt;a href="https://chromium.googlesource.com/chromium/src/+/main/testing/rust_gtest_interop/README.md"&gt;&lt;code&gt;rust_gtest_interop&lt;/code&gt;&lt;/a&gt; 库提供了一种方式来：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;把 Rust 函数用作 &lt;code&gt;gtest&lt;/code&gt; 测试用例（使用 &lt;code&gt;#[gtest(...)]&lt;/code&gt; 属性）&lt;/li&gt;
+&lt;li&gt;使用 &lt;code&gt;expect_eq!&lt;/code&gt; 及类似宏（类似 &lt;code&gt;assert_eq!&lt;/code&gt;，但不 panic，且断言失败时不终止测试）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;示例：&lt;/p&gt;</description></item><item><title>6.2 Rust 测试的 GN 规则</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/testing/02-build-gn/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/testing/02-build-gn/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/testing/build-gn.html"&gt;https://google.github.io/comprehensive-rust/chromium/testing/build-gn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="62-rust-测试的-gn-规则"&gt;6.2 Rust 测试的 GN 规则&lt;/h1&gt;
+&lt;p&gt;构建 Rust &lt;code&gt;gtest&lt;/code&gt; 测试最简单的方式，是把它们加到已包含用 C++ 编写的测试的现有测试二进制中。例如：&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-gn" data-lang="gn"&gt;test(&amp;#34;ui_base_unittests&amp;#34;) {
+ ...
+ sources += [ &amp;#34;my_rust_lib_unittest.rs&amp;#34; ]
+ deps += [ &amp;#34;:my_rust_lib&amp;#34; ]
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;把 Rust 测试写在单独的 &lt;code&gt;static_library&lt;/code&gt; 中也可以，但需要手动声明对支持库的依赖：&lt;/p&gt;</description></item><item><title>6.3 `chromium::import!` 宏</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/testing/03-chromium-import-macro/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/testing/03-chromium-import-macro/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/testing/chromium-import-macro.html"&gt;https://google.github.io/comprehensive-rust/chromium/testing/chromium-import-macro.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="63-chromiumimport-宏"&gt;6.3 &lt;code&gt;chromium::import!&lt;/code&gt; 宏&lt;/h1&gt;
+&lt;p&gt;在把 &lt;code&gt;:my_rust_lib&lt;/code&gt; 加入 GN &lt;code&gt;deps&lt;/code&gt; 之后，我们仍需了解如何从 &lt;code&gt;my_rust_lib_unittest.rs&lt;/code&gt; 导入并使用 &lt;code&gt;my_rust_lib&lt;/code&gt;。我们没有为 &lt;code&gt;my_rust_lib&lt;/code&gt; 提供显式 &lt;code&gt;crate_name&lt;/code&gt;，因此其 crate 名基于完整目标路径与名称计算。幸好我们可以使用自动导入的 &lt;code&gt;chromium&lt;/code&gt; crate 中的 &lt;code&gt;chromium::import!&lt;/code&gt; 宏，避免处理如此别扭的名字：&lt;/p&gt;</description></item><item><title>6.4 练习</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/testing/04-testing/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/testing/04-testing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/exercises/chromium/testing.html"&gt;https://google.github.io/comprehensive-rust/exercises/chromium/testing.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="64-练习"&gt;6.4 练习&lt;/h1&gt;
+&lt;p&gt;又到练习时间了！&lt;/p&gt;
+&lt;p&gt;在你的 Chromium 构建中：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在 &lt;code&gt;hello_from_rust&lt;/code&gt; 旁添加一个可测试的函数。一些建议：把作为参数收到的两个整数相加、计算第 n 个斐波那契数、对切片中的整数求和等。&lt;/li&gt;
+&lt;li&gt;添加一个单独的 &lt;code&gt;..._unittest.rs&lt;/code&gt; 文件，为新函数编写测试。&lt;/li&gt;
+&lt;li&gt;把新测试加到 &lt;code&gt;BUILD.gn&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;构建测试、运行它们，并验证新测试可用。&lt;/li&gt;
+&lt;/ul&gt;</description></item></channel></rss>

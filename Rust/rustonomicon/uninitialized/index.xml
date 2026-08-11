@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第5章 未初始化内存 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustonomicon/uninitialized/</link><description>Recent content in 第5章 未初始化内存 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustonomicon/uninitialized/index.xml" rel="self" type="application/rss+xml"/><item><title>5.1 受检的未初始化</title><link>https://before80.github.io/prgms/Rust/rustonomicon/uninitialized/01-checked/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/uninitialized/01-checked/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="受检的未初始化"&gt;受检的未初始化&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/checked-uninit.html"&gt;https://doc.rust-lang.org/nomicon/checked-uninit.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　与 C 类似，Rust 中所有栈变量在显式赋值之前都是未初始化的。与 C 不同，Rust 静态阻止你在赋值前读取它们：&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,compile_fail" data-lang="rust,compile_fail"&gt;fn main() {
+ let x: i32;
+ println!(&amp;#34;{}&amp;#34;, x);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; |
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;3 | println!(&amp;#34;{}&amp;#34;, x);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; | ^ use of possibly uninitialized `x`
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　　这基于基本分支分析：每个分支在首次使用前必须为 &lt;code&gt;x&lt;/code&gt; 赋值。简言之，也说「&lt;code&gt;x&lt;/code&gt; 已初始化」或「&lt;code&gt;x&lt;/code&gt; 未初始化」。&lt;/p&gt;</description></item><item><title>5.2 Drop 标志</title><link>https://before80.github.io/prgms/Rust/rustonomicon/uninitialized/02-drop-flags/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/uninitialized/02-drop-flags/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="drop-标志"&gt;Drop 标志&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/drop-flags.html"&gt;https://doc.rust-lang.org/nomicon/drop-flags.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　上一节的例子为 Rust 引入了一个有趣问题。
+　　我们已经看到可以有条件地初始化、去初始化和重新初始化内存位置，且完全安全。对 &lt;code&gt;Copy&lt;/code&gt; 类型这不特别值得注意，因为它们只是随机比特堆。但有析构函数的类型不同：Rust 需要知道变量被赋值或变量离开作用域时是否应调用析构函数。
+　　在有条件初始化的情况下如何做到？&lt;/p&gt;</description></item><item><title>5.3 未受检的未初始化</title><link>https://before80.github.io/prgms/Rust/rustonomicon/uninitialized/03-unchecked/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/uninitialized/03-unchecked/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="未受检的未初始化"&gt;未受检的未初始化&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/unchecked-uninit.html"&gt;https://doc.rust-lang.org/nomicon/unchecked-uninit.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　此规则的一个有趣例外是处理数组。Safe Rust 不允许部分初始化数组。初始化数组时，要么用 &lt;code&gt;let x = [val; N]&lt;/code&gt; 把所有元素设为同一值，要么用 &lt;code&gt;let x = [val1, val2, val3]&lt;/code&gt; 逐个指定。遗憾的是这相当死板，尤其需要更渐进或动态方式初始化数组时。&lt;/p&gt;</description></item></channel></rss>

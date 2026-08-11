@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>5 构建规则 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/build-rules/</link><description>Recent content in 5 构建规则 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/build-rules/index.xml" rel="self" type="application/rss+xml"/><item><title>5.1 Unsafe 代码</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/build-rules/01-unsafe/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/build-rules/01-unsafe/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/build-rules/unsafe.html"&gt;https://google.github.io/comprehensive-rust/chromium/build-rules/unsafe.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="51-unsafe-代码"&gt;5.1 Unsafe 代码&lt;/h1&gt;
+&lt;p&gt;默认情况下，&lt;code&gt;rust_static_library&lt;/code&gt; 禁止 unsafe Rust 代码——它不会编译。若你需要 unsafe Rust 代码，在 gn 目标中加入 &lt;code&gt;allow_unsafe = true&lt;/code&gt;。（课程稍后我们会看到必须这样做的情形。）&lt;/p&gt;</description></item><item><title>5.2 从 Chromium C++ 依赖 Rust 代码</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/build-rules/02-depending/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/build-rules/02-depending/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/build-rules/depending.html"&gt;https://google.github.io/comprehensive-rust/chromium/build-rules/depending.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="52-从-chromium-c-依赖-rust-代码"&gt;5.2 从 Chromium C++ 依赖 Rust 代码&lt;/h1&gt;
+&lt;p&gt;只需把上述目标加到某个 Chromium C++ 目标的 &lt;code&gt;deps&lt;/code&gt; 中。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-gn" data-lang="gn"&gt;import(&amp;#34;//build/rust/rust_static_library.gni&amp;#34;)
+
+rust_static_library(&amp;#34;my_rust_lib&amp;#34;) {
+ crate_root = &amp;#34;lib.rs&amp;#34;
+ sources = [ &amp;#34;lib.rs&amp;#34; ]
+}
+
+# 也可以是 source_set、static_library 等。
+component(&amp;#34;preexisting_cpp&amp;#34;) {
+ deps = [ &amp;#34;:my_rust_lib&amp;#34; ]
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;p&gt;我们会看到，只有当 Rust 代码暴露可从 C++ 调用的纯 C API，或我们使用 C++/Rust 互操作工具时，这种关系才有效。&lt;/p&gt;</description></item><item><title>5.3 Visual Studio Code</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/build-rules/03-vscode/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/build-rules/03-vscode/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/build-rules/vscode.html"&gt;https://google.github.io/comprehensive-rust/chromium/build-rules/vscode.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="53-visual-studio-code"&gt;5.3 Visual Studio Code&lt;/h1&gt;
+&lt;p&gt;Rust 代码中类型常被省略，这使好用的 IDE 比在 C++ 中更有价值。Visual Studio Code 在 Chromium 中写 Rust 效果很好。用法如下：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;确保 VSCode 安装了 &lt;code&gt;rust-analyzer&lt;/code&gt; 扩展，而不是更早的 Rust 支持形式&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;gn gen out/Debug --export-rust-project&lt;/code&gt;（或对你的输出目录使用等价命令）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ln -s out/Debug/rust-project.json rust-project.json&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;img src="img/vscode.png" style="border: 1px solid black;" alt="VSCode 示例截图"&gt;
+&lt;blockquote&gt;
+&lt;p&gt;若听众对 IDE 天然持怀疑态度，演示 rust-analyzer 的一些代码标注与探索功能可能有益。&lt;/p&gt;</description></item><item><title>5.4 练习</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/build-rules/04-build-rules/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/build-rules/04-build-rules/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/exercises/chromium/build-rules.html"&gt;https://google.github.io/comprehensive-rust/exercises/chromium/build-rules.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="54-练习"&gt;5.4 练习&lt;/h1&gt;
+&lt;p&gt;在你的 Chromium 构建中，向 &lt;code&gt;//ui/base/BUILD.gn&lt;/code&gt; 添加一个新的 Rust 目标，内容为：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// Copyright 2023 Google LLC
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// SPDX-License-Identifier: Apache-2.0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// SAFETY: 不存在其他同名的全局函数。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[unsafe(no_mangle)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;extern&lt;/span&gt; &lt;span style="color:#98c379"&gt;&amp;#34;C&amp;#34;&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;hello_from_rust&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;Hello from Rust!&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;strong&gt;重要：&lt;/strong&gt; 注意这里的 &lt;code&gt;no_mangle&lt;/code&gt; 被 Rust 编译器视为一种 unsafety，因此你需要在 &lt;code&gt;gn&lt;/code&gt; 目标中允许 unsafe 代码。&lt;/p&gt;</description></item></channel></rss>

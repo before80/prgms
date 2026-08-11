@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第9章 错误处理 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/trpl/error-handling/</link><description>Recent content in 第9章 错误处理 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/trpl/error-handling/index.xml" rel="self" type="application/rss+xml"/><item><title>9.1 用 panic! 处理不可恢复错误</title><link>https://before80.github.io/prgms/Rust/trpl/error-handling/01-unrecoverable-errors-with-panic/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/error-handling/01-unrecoverable-errors-with-panic/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="panic"&gt;用 panic! 处理不可恢复错误&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch09-01-unrecoverable-errors-with-panic.html"&gt;https://doc.rust-lang.org/stable/book/ch09-01-unrecoverable-errors-with-panic.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="用-panic-处理不可恢复错误"&gt;用 &lt;code&gt;panic!&lt;/code&gt; 处理不可恢复错误&lt;/h2&gt;
+&lt;p&gt;　　有时代码里会发生你无能为力的坏事。这时可以用 Rust 的 &lt;code&gt;panic!&lt;/code&gt; 宏。实践中引发 panic 的方式有两种：一是执行了会让代码 panic 的操作（例如访问数组越界），二是显式调用 &lt;code&gt;panic!&lt;/code&gt; 宏。无论哪种，都会在程序中引发 panic。默认情况下，这些 panic 会打印失败信息、展开（unwind）并清理栈，然后退出。你也可以通过环境变量让 Rust 在 panic 时显示调用栈，以便更容易定位 panic 的来源。&lt;/p&gt;</description></item><item><title>9.2 用 Result 处理可恢复错误</title><link>https://before80.github.io/prgms/Rust/trpl/error-handling/02-recoverable-errors-with-result/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/error-handling/02-recoverable-errors-with-result/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="result"&gt;用 Result 处理可恢复错误&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch09-02-recoverable-errors-with-result.html"&gt;https://doc.rust-lang.org/stable/book/ch09-02-recoverable-errors-with-result.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="用-result-处理可恢复错误"&gt;用 &lt;code&gt;Result&lt;/code&gt; 处理可恢复错误&lt;/h2&gt;
+&lt;p&gt;　　多数错误还不至于要求程序完全停止。有时函数失败的原因很容易理解并做出响应。例如，若打开文件失败是因为文件不存在，你可能希望创建该文件，而不是终止进程。&lt;/p&gt;</description></item><item><title>9.3 要不要 panic!</title><link>https://before80.github.io/prgms/Rust/trpl/error-handling/03-to-panic-or-not-to-panic/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/error-handling/03-to-panic-or-not-to-panic/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="panic"&gt;要不要 panic!&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch09-03-to-panic-or-not-to-panic.html"&gt;https://doc.rust-lang.org/stable/book/ch09-03-to-panic-or-not-to-panic.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="to-panic-or-not-to-panic"&gt;要不要 &lt;code&gt;panic!&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;　　那么，何时该调用 &lt;code&gt;panic!&lt;/code&gt;，何时该返回 &lt;code&gt;Result&lt;/code&gt;？代码一旦 panic，就无法恢复。你当然可以对任何错误情况都调用 &lt;code&gt;panic!&lt;/code&gt;——无论是否有可能恢复——但那等于替调用方认定“这种情况不可恢复”。若选择返回 &lt;code&gt;Result&lt;/code&gt;，就把选择权交给调用方：调用方可以按自己的场景尝试恢复，也可以认定此时的 &lt;code&gt;Err&lt;/code&gt; 不可恢复，于是再调用 &lt;code&gt;panic!&lt;/code&gt;，把你的可恢复错误变成不可恢复错误。因此，定义可能失败的函数时，返回 &lt;code&gt;Result&lt;/code&gt; 是良好的默认选择。&lt;/p&gt;</description></item></channel></rss>

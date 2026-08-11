@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Cargo手册 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/cargo/</link><description>Recent content in Cargo手册 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/cargo/index.xml" rel="self" type="application/rss+xml"/><item><title>05-常见问题</title><link>https://before80.github.io/prgms/Rust/cargo/05-faq/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/05-faq/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/"&gt;The Cargo Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="frequently-asked-questions"&gt;常见问题&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/faq.html"&gt;https://doc.rust-lang.org/cargo/faq.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="is-the-plan-to-use-github-as-a-package-repository"&gt;计划使用 GitHub 作为包仓库吗？&lt;/h2&gt;
+&lt;p&gt;不会。Cargo 计划使用 &lt;a href="https://crates.io/"&gt;crates.io&lt;/a&gt;，就像 npm 或 Rubygems 分别使用
+&lt;a href="https://www.npmjs.com"&gt;npmjs.com&lt;/a&gt; 和 &lt;a href="https://rubygems.org"&gt;rubygems.org&lt;/a&gt; 一样。&lt;/p&gt;
+&lt;p&gt;我们计划永久支持将 git 仓库作为包的来源，
+因为它们可用于早期开发与临时补丁，
+即便人们以注册表作为包的主要来源时也是如此。&lt;/p&gt;</description></item><item><title>06-更新日志</title><link>https://before80.github.io/prgms/Rust/cargo/06-changelog/</link><pubDate>Thu, 30 Jul 2026 14:49:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/cargo/06-changelog/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/cargo/CHANGELOG.html"&gt;The Cargo Book&lt;/a&gt;（源：cargo 标签 0.98.0 / Rust 1.97 文档）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="更新日志"&gt;更新日志&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/cargo/CHANGELOG.html"&gt;https://doc.rust-lang.org/cargo/CHANGELOG.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="cargo-197-2026-07-09"&gt;Cargo 1.97 (2026-07-09)&lt;/h2&gt;
+&lt;p&gt;&lt;a href="https://github.com/rust-lang/cargo/compare/eb94155a...HEAD"&gt;eb94155a&amp;hellip;HEAD&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="新增"&gt;新增&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;为 &lt;code&gt;--manifest-path&lt;/code&gt; 增加 &lt;code&gt;-m&lt;/code&gt; 简写
+&lt;a href="https://github.com/rust-lang/cargo/pull/16858"&gt;#16858&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="变更"&gt;变更&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;改进误输入 &lt;code&gt;-p&lt;/code&gt; 时的错误信息，会建议相似的工作空间成员名称
+&lt;a href="https://github.com/rust-lang/cargo/pull/16844"&gt;#16844&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;cargo-clean：当 &lt;code&gt;--target-dir&lt;/code&gt; 看起来不像 Cargo 目标目录时报错。
+这可防止误删非目标目录。
+&lt;a href="https://github.com/rust-lang/cargo/pull/16712"&gt;#16712&lt;/a&gt;
+&lt;a href="https://github.com/rust-lang/cargo/pull/16878"&gt;#16878&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="修复"&gt;修复&lt;/h3&gt;
+&lt;h3 id="仅-nightly"&gt;仅 Nightly&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;-Zscript&lt;/code&gt;：教用户如何固定 edition
+&lt;a href="https://github.com/rust-lang/cargo/pull/16851"&gt;#16851&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-Zcargo-lints&lt;/code&gt;：优先使用已定义的 lint 级别，而非默认级别
+&lt;a href="https://github.com/rust-lang/cargo/pull/16879"&gt;#16879&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-Zcargo-lints&lt;/code&gt;：&lt;code&gt;unused_dependencies&lt;/code&gt; 忽略 rustc 的
+&lt;code&gt;unused_crate_dependencies&lt;/code&gt; lint 状态
+&lt;a href="https://github.com/rust-lang/cargo/pull/16877"&gt;#16877&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="文档"&gt;文档&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;澄清 registry 的 &lt;code&gt;config.json&lt;/code&gt; 中 “api” 不应包含尾部斜杠。
+&lt;a href="https://github.com/rust-lang/cargo/pull/16869"&gt;#16869&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="内部"&gt;内部&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;更新依赖。
+&lt;a href="https://github.com/rust-lang/cargo/pull/16883"&gt;#16883&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;ci：将 GitHub Actions 固定到提交 SHA
+&lt;a href="https://github.com/rust-lang/cargo/pull/16867"&gt;#16867&lt;/a&gt;
+&lt;a href="https://github.com/rust-lang/cargo/pull/16868"&gt;#16868&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;test：为经由 github 快路径的 cargo install 添加测试
+&lt;a href="https://github.com/rust-lang/cargo/pull/16866"&gt;#16866&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="cargo-196-2026-05-28"&gt;Cargo 1.96 (2026-05-28)&lt;/h2&gt;
+&lt;p&gt;&lt;a href="https://github.com/rust-lang/cargo/compare/f298b8c8...rust-1.96.0"&gt;f298b8c8&amp;hellip;rust-1.96.0&lt;/a&gt;&lt;/p&gt;</description></item></channel></rss>

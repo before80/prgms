@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第1章 认识 Safe 与 Unsafe on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustonomicon/meet-safe-and-unsafe/</link><description>Recent content in 第1章 认识 Safe 与 Unsafe on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustonomicon/meet-safe-and-unsafe/index.xml" rel="self" type="application/rss+xml"/><item><title>1.1 Safe 与 Unsafe 如何交互</title><link>https://before80.github.io/prgms/Rust/rustonomicon/meet-safe-and-unsafe/01-how-safe-and-unsafe-interact/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/meet-safe-and-unsafe/01-how-safe-and-unsafe-interact/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="safe-与-unsafe-如何交互"&gt;Safe 与 Unsafe 如何交互&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/safe-unsafe-meaning.html"&gt;https://doc.rust-lang.org/nomicon/safe-unsafe-meaning.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　Safe Rust 与 Unsafe Rust 是什么关系？它们如何交互？&lt;/p&gt;
+&lt;p&gt;　　Safe 与 Unsafe 的分界由 &lt;code&gt;unsafe&lt;/code&gt; 关键字控制，它充当二者之间的接口。因此我们说 Safe Rust 是安全语言：所有 unsafe 部分都严格关在 &lt;code&gt;unsafe&lt;/code&gt; 边界之后。若愿意，你甚至可以在代码库中加入 &lt;code&gt;#![forbid(unsafe_code)]&lt;/code&gt;，静态保证只写 Safe Rust。&lt;/p&gt;</description></item><item><title>1.2 Unsafe 能做什么</title><link>https://before80.github.io/prgms/Rust/rustonomicon/meet-safe-and-unsafe/02-what-unsafe-can-do/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/meet-safe-and-unsafe/02-what-unsafe-can-do/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="unsafe-能做什么"&gt;Unsafe 能做什么&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/what-unsafe-does.html"&gt;https://doc.rust-lang.org/nomicon/what-unsafe-does.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　Unsafe Rust 与 Safe Rust 的唯一区别在于，你可以：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;解引用裸指针&lt;/li&gt;
+&lt;li&gt;调用 &lt;code&gt;unsafe&lt;/code&gt; 函数（包括 C 函数、编译器内建 intrinsic、原始分配器）&lt;/li&gt;
+&lt;li&gt;实现 &lt;code&gt;unsafe&lt;/code&gt; trait&lt;/li&gt;
+&lt;li&gt;访问或修改可变静态变量&lt;/li&gt;
+&lt;li&gt;访问 &lt;code&gt;union&lt;/code&gt; 的字段&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;　　就这些。这些操作被 relegated 到 Unsafe，是因为误用任意一项都会导致令人畏惧的未定义行为。触发未定义行为等于赋予编译器对你的程序为所欲为的权限。你&lt;em&gt;绝对不应&lt;/em&gt;触发未定义行为。&lt;/p&gt;</description></item><item><title>1.3 使用 Unsafe</title><link>https://before80.github.io/prgms/Rust/rustonomicon/meet-safe-and-unsafe/03-working-with-unsafe/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/meet-safe-and-unsafe/03-working-with-unsafe/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="使用-unsafe"&gt;使用 Unsafe&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/working-with-unsafe.html"&gt;https://doc.rust-lang.org/nomicon/working-with-unsafe.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　Rust 通常只给我们以有范围、二元的方式讨论 Unsafe Rust 的工具。遗憾的是，现实远比这复杂。例如看这个玩具函数：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;index&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;idx&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;usize&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;arr&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;])&lt;/span&gt; -&amp;gt; &lt;span style="color:#e5c07b"&gt;Option&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;if&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;idx&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;arr&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;len&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;unsafe&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e5c07b"&gt;Some&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;*&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;arr&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;get_unchecked&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;idx&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;else&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e5c07b"&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　　该函数安全且正确。我们检查索引在界内，若在界内则无检查地索引数组。这种正确但不安全实现的函数称为&lt;em&gt;健全（sound）&lt;/em&gt;：Safe 代码不能通过它导致未定义行为（记住，这是 Safe Rust 的唯一基本性质）。&lt;/p&gt;</description></item></channel></rss>

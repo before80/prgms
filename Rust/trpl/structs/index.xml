@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第5章 使用结构体组织相关联的数据 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/trpl/structs/</link><description>Recent content in 第5章 使用结构体组织相关联的数据 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/trpl/structs/index.xml" rel="self" type="application/rss+xml"/><item><title>5.1 定义并实例化结构体</title><link>https://before80.github.io/prgms/Rust/trpl/structs/01-defining-structs/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/structs/01-defining-structs/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="定义并实例化结构体"&gt;定义并实例化结构体&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch05-01-defining-structs.html"&gt;https://doc.rust-lang.org/stable/book/ch05-01-defining-structs.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="定义并实例化结构体-1"&gt;定义并实例化结构体&lt;/h2&gt;
+&lt;p&gt;　　结构体与&lt;a href="../../common-programming-concepts/02-data-types/"&gt;「元组类型」&lt;/a&gt;一节讨论的元组相似，两者都能存放多个相关值。和元组一样，结构体的各个部分可以是不同类型。与元组不同的是，结构体会为每一块数据命名，因而值的含义更清晰。有了这些名字，结构体比元组更灵活：你不必依赖数据的顺序来指定或访问实例中的值。&lt;/p&gt;
+&lt;p&gt;　　要定义结构体，先写关键字 &lt;code&gt;struct&lt;/code&gt; 并为整个结构体命名。结构体的名字应能说明被组合在一起的这些数据有何意义。然后在花括号内定义各块数据的名字和类型，这些称为&lt;em&gt;字段&lt;/em&gt;（field）。例如，示例 5-1 展示了一个存储用户账户信息的结构体。&lt;/p&gt;</description></item><item><title>5.2 结构体示例程序</title><link>https://before80.github.io/prgms/Rust/trpl/structs/02-example-structs/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/structs/02-example-structs/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="结构体示例程序"&gt;结构体示例程序&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch05-02-example-structs.html"&gt;https://doc.rust-lang.org/stable/book/ch05-02-example-structs.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="使用结构体的示例程序"&gt;使用结构体的示例程序&lt;/h2&gt;
+&lt;p&gt;　　为理解何时可能想用结构体，我们来写一个计算矩形面积的程序。先从单独的变量开始，再逐步重构，直到改用结构体。&lt;/p&gt;</description></item><item><title>5.3 方法</title><link>https://before80.github.io/prgms/Rust/trpl/structs/03-method-syntax/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/structs/03-method-syntax/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="方法"&gt;方法&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch05-03-method-syntax.html"&gt;https://doc.rust-lang.org/stable/book/ch05-03-method-syntax.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="方法-1"&gt;方法&lt;/h2&gt;
+&lt;p&gt;　　方法与函数类似：用 &lt;code&gt;fn&lt;/code&gt; 关键字和名字声明，可以有参数和返回值，并包含从别处调用时运行的代码。与函数不同的是，方法定义在结构体（或枚举，或特征对象——分别在&lt;a href="../../enums/"&gt;第 6 章&lt;/a&gt;和&lt;a href="../../oop/02-trait-objects/"&gt;第 18 章&lt;/a&gt;讨论）的上下文中，并且第一个参数总是 &lt;code&gt;self&lt;/code&gt;，表示调用该方法的结构体实例。&lt;/p&gt;</description></item></channel></rss>

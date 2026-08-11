@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第4章 认识所有权 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/trpl/understanding-ownership/</link><description>Recent content in 第4章 认识所有权 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/trpl/understanding-ownership/index.xml" rel="self" type="application/rss+xml"/><item><title>4.1 什么是所有权？</title><link>https://before80.github.io/prgms/Rust/trpl/understanding-ownership/01-what-is-ownership/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/understanding-ownership/01-what-is-ownership/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="什么是所有权"&gt;什么是所有权？&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch04-01-what-is-ownership.html"&gt;https://doc.rust-lang.org/stable/book/ch04-01-what-is-ownership.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="什么是所有权-1"&gt;什么是所有权？&lt;/h2&gt;
+&lt;p&gt;　　&lt;em&gt;所有权&lt;/em&gt;（ownership）是一套规则，用来管理 Rust 程序如何使用内存。所有程序在运行时都要管理计算机内存的使用方式。有些语言靠垃圾回收在运行过程中定期查找不再使用的内存；另一些语言则要求程序员显式分配和释放内存。Rust 采用第三种方式：通过所有权系统以及一组由编译器检查的规则来管理内存。只要违反任一规则，程序就无法编译。所有权相关的特性都不会在运行时拖慢你的程序。&lt;/p&gt;</description></item><item><title>4.2 引用与借用</title><link>https://before80.github.io/prgms/Rust/trpl/understanding-ownership/02-references-and-borrowing/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/understanding-ownership/02-references-and-borrowing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="引用与借用"&gt;引用与借用&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch04-02-references-and-borrowing.html"&gt;https://doc.rust-lang.org/stable/book/ch04-02-references-and-borrowing.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="引用与借用-1"&gt;引用与借用&lt;/h2&gt;
+&lt;p&gt;　　示例 4-5 中元组写法的问题在于：我们必须把 &lt;code&gt;String&lt;/code&gt; 返回给调用方，才能在调用 &lt;code&gt;calculate_length&lt;/code&gt; 之后继续使用它，因为 &lt;code&gt;String&lt;/code&gt; 被移动进了 &lt;code&gt;calculate_length&lt;/code&gt;。取而代之，我们可以提供指向该 &lt;code&gt;String&lt;/code&gt; 值的引用。引用很像指针：它是一个地址，你可以跟着它去访问该地址上存放的数据；而数据本身由某个其他变量拥有。与指针不同的是，引用在其生命周期内保证指向某一特定类型的有效值。&lt;/p&gt;</description></item><item><title>4.3 切片类型</title><link>https://before80.github.io/prgms/Rust/trpl/understanding-ownership/03-slices/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/understanding-ownership/03-slices/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="切片类型"&gt;切片类型&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch04-03-slices.html"&gt;https://doc.rust-lang.org/stable/book/ch04-03-slices.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="the-slice-type"&gt;切片类型&lt;/h2&gt;
+&lt;p&gt;　　&lt;em&gt;切片&lt;/em&gt;（slice）让你引用&lt;a href="../../common-collections/"&gt;集合&lt;/a&gt;中一段连续的元素。切片是一种引用，因此不拥有所有权。&lt;/p&gt;
+&lt;p&gt;　　来看一个小编程问题：编写一个函数，接收由空格分隔的单词组成的字符串，并返回其中找到的第一个单词。若函数在字符串中找不到空格，整个字符串就是一个单词，应返回整个字符串。&lt;/p&gt;</description></item></channel></rss>

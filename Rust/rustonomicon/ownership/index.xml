@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第3章 所有权 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustonomicon/ownership/</link><description>Recent content in 第3章 所有权 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustonomicon/ownership/index.xml" rel="self" type="application/rss+xml"/><item><title>3.1 引用</title><link>https://before80.github.io/prgms/Rust/rustonomicon/ownership/01-references/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/ownership/01-references/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="引用"&gt;引用&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/references.html"&gt;https://doc.rust-lang.org/nomicon/references.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　引用有两种：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;共享引用：&lt;code&gt;&amp;amp;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;可变引用：&lt;code&gt;&amp;amp;mut&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;　　遵循下列规则：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;引用不能比被引用对象活得更久&lt;/li&gt;
+&lt;li&gt;可变引用不能 alias（别名）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;　　就这些。这就是引用遵循的完整模型。&lt;/p&gt;</description></item><item><title>3.2 别名</title><link>https://before80.github.io/prgms/Rust/rustonomicon/ownership/02-aliasing/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/ownership/02-aliasing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="别名"&gt;别名&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/aliasing.html"&gt;https://doc.rust-lang.org/nomicon/aliasing.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　首先，先把几个重要前提说清楚：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;为便于讨论，我们采用 alias（别名）最宽泛的定义。Rust 的定义可能会更受限，以纳入 mutation（变更）与 liveness（存活期）。&lt;/p&gt;</description></item><item><title>3.3 生命周期</title><link>https://before80.github.io/prgms/Rust/rustonomicon/ownership/03-lifetimes/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/ownership/03-lifetimes/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="生命周期"&gt;生命周期&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/lifetimes.html"&gt;https://doc.rust-lang.org/nomicon/lifetimes.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　Rust 通过&lt;em&gt;生命周期（lifetime）&lt;/em&gt; 强制这些规则。生命周期是引用必须有效的命名代码区域。这些区域可能相当复杂，对应程序中的执行路径。路径中甚至可能有「洞」——只要在使用前重新初始化，引用就可能失效。含引用（或假装含引用）的类型也可标生命周期，以便 Rust 防止它们被失效。&lt;/p&gt;</description></item><item><title>3.4 生命周期的局限</title><link>https://before80.github.io/prgms/Rust/rustonomicon/ownership/04-limits-of-lifetimes/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/ownership/04-limits-of-lifetimes/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="生命周期的局限"&gt;生命周期的局限&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/lifetime-mismatch.html"&gt;https://doc.rust-lang.org/nomicon/lifetime-mismatch.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　给定下列代码：&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,compile_fail" data-lang="rust,compile_fail"&gt;#[derive(Debug)]
+struct Foo;
+
+impl Foo {
+ fn mutate_and_share(&amp;amp;mut self) -&amp;gt; &amp;amp;Self { &amp;amp;*self }
+ fn share(&amp;amp;self) {}
+}
+
+fn main() {
+ let mut foo = Foo;
+ let loan = foo.mutate_and_share();
+ foo.share();
+ println!(&amp;#34;{:?}&amp;#34;, loan);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;　　有人可能期望它能编译。我们调用 &lt;code&gt;mutate_and_share&lt;/code&gt;，它临时可变借用 &lt;code&gt;foo&lt;/code&gt;，但只返回共享引用。因此我们期望 &lt;code&gt;foo.share()&lt;/code&gt; 成功，因为 &lt;code&gt;foo&lt;/code&gt; 不应仍被可变借用。&lt;/p&gt;</description></item><item><title>3.5 生命周期省略</title><link>https://before80.github.io/prgms/Rust/rustonomicon/ownership/05-lifetime-elision/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/ownership/05-lifetime-elision/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="生命周期省略"&gt;生命周期省略&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/lifetime-elision.html"&gt;https://doc.rust-lang.org/nomicon/lifetime-elision.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　为使常见模式更易用，Rust 允许在函数签名中&lt;em&gt;省略&lt;/em&gt;生命周期。&lt;/p&gt;
+&lt;p&gt;　　&lt;em&gt;生命周期位置&lt;/em&gt;指类型中可写生命周期的任意位置：&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,ignore" data-lang="rust,ignore"&gt;&amp;amp;&amp;#39;a T
+&amp;amp;&amp;#39;a mut T
+T&amp;lt;&amp;#39;a&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;　　生命周期位置可为「输入」或「输出」：&lt;/p&gt;</description></item><item><title>3.6 无界生命周期</title><link>https://before80.github.io/prgms/Rust/rustonomicon/ownership/06-unbounded-lifetimes/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/ownership/06-unbounded-lifetimes/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="无界生命周期"&gt;无界生命周期&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/unbounded-lifetimes.html"&gt;https://doc.rust-lang.org/nomicon/unbounded-lifetimes.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　Unsafe 代码常常凭空产生引用或生命周期。
+　　这类生命周期以&lt;em&gt;无界&lt;/em&gt;（unbounded）的形式出现。最常见的来源是对解引用后的裸指针取引用，由此得到的引用具有无界生命周期。这种生命周期会随上下文需要而「撑大」。事实上它比单纯变成 &lt;code&gt;'static&lt;/code&gt; 更强大——例如 &lt;code&gt;&amp;amp;'static &amp;amp;'a T&lt;/code&gt; 会类型检查失败，而无界生命周期却能按需完美适配为 &lt;code&gt;&amp;amp;'a &amp;amp;'a T&lt;/code&gt;。不过对大多数意图和目的而言，无界生命周期可以视为 &lt;code&gt;'static&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>3.7 高阶 trait 约束（HRTB）</title><link>https://before80.github.io/prgms/Rust/rustonomicon/ownership/07-higher-rank-trait-bounds/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/ownership/07-higher-rank-trait-bounds/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="高阶-trait-约束hrtb"&gt;高阶 trait 约束（HRTB）&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/hrtb.html"&gt;https://doc.rust-lang.org/nomicon/hrtb.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　Rust 的 &lt;code&gt;Fn&lt;/code&gt; trait 有点「魔法」。例如，我们可以写出如下代码：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;18
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;19
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Closure&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;F&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;data&lt;/span&gt;: &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;u16&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;),&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;func&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;F&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;impl&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;F&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Closure&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;F&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;where&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;F&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;Fn&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;u16&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;))&lt;/span&gt; -&amp;gt; &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;call&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;func&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;data&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;do_it&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;data&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;u16&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;))&lt;/span&gt; -&amp;gt; &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;data&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#d19a66"&gt;0&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;main&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;clo&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Closure&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;data&lt;/span&gt;: &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#d19a66"&gt;0&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;),&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;func&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;do_it&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#98c379"&gt;{}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;clo&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;call&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;());&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　　若我们像&lt;a href="./03-lifetimes.html"&gt;生命周期章节&lt;/a&gt;那样天真地脱糖这段代码，就会遇到麻烦：&lt;/p&gt;</description></item><item><title>3.8 子类型与型变</title><link>https://before80.github.io/prgms/Rust/rustonomicon/ownership/08-subtyping-and-variance/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/ownership/08-subtyping-and-variance/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="子类型与型变"&gt;子类型与型变&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/subtyping.html"&gt;https://doc.rust-lang.org/nomicon/subtyping.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　Rust 用生命周期追踪借用与所有权之间的关系。
+　　然而，生命周期的朴素实现要么过于严格，要么允许未定义行为。&lt;/p&gt;
+&lt;p&gt;　　为了在允许灵活使用生命周期的同时防止误用，Rust 采用&lt;strong&gt;子类型&lt;/strong&gt;（subtyping）和&lt;strong&gt;型变&lt;/strong&gt;（variance）。&lt;/p&gt;</description></item><item><title>3.9 Drop 检查</title><link>https://before80.github.io/prgms/Rust/rustonomicon/ownership/09-drop-check/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/ownership/09-drop-check/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="drop-检查"&gt;Drop 检查&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/dropck.html"&gt;https://doc.rust-lang.org/nomicon/dropck.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　我们已经看到生命周期如何提供相当简单的规则，确保我们从不读取悬垂引用。但到目前为止，我们仅以包含方式与 &lt;em&gt;outlives&lt;/em&gt; 关系交互。也就是说，当谈到 &lt;code&gt;'a: 'b&lt;/code&gt; 时，&lt;code&gt;'a&lt;/code&gt; 与 &lt;code&gt;'b&lt;/code&gt; &lt;em&gt;恰好&lt;/em&gt;一样长是可以的。乍看之下，这似乎是毫无意义的区分——没有任何东西会与另一个同时被 drop，对吧？因此我们使用了 &lt;code&gt;let&lt;/code&gt; 语句的如下脱糖：&lt;/p&gt;</description></item><item><title>3.10 PhantomData</title><link>https://before80.github.io/prgms/Rust/rustonomicon/ownership/10-phantom-data/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/ownership/10-phantom-data/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="phantomdata"&gt;PhantomData&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/phantom-data.html"&gt;https://doc.rust-lang.org/nomicon/phantom-data.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　处理 unsafe 代码时，常会遇到类型或生命周期在逻辑上与结构体关联，却并非实际字段的情况。最常见的是生命周期。例如 &lt;code&gt;&amp;amp;'a [T]&lt;/code&gt; 的 &lt;code&gt;Iter&lt;/code&gt;（近似）定义如下：&lt;/p&gt;</description></item><item><title>3.11 拆分借用</title><link>https://before80.github.io/prgms/Rust/rustonomicon/ownership/11-splitting-borrows/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/ownership/11-splitting-borrows/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="拆分借用"&gt;拆分借用&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/borrow-splitting.html"&gt;https://doc.rust-lang.org/nomicon/borrow-splitting.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　可变引用的互斥性质在处理复合结构时可能非常受限。借用检查器（borrowck）理解一些基础情况，但很容易翻车。它足够理解结构体，知道可以同时借用结构体的互不相交字段。因此下面代码今天能工作：&lt;/p&gt;</description></item></channel></rss>

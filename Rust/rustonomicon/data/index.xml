@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第2章 数据布局 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustonomicon/data/</link><description>Recent content in 第2章 数据布局 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustonomicon/data/index.xml" rel="self" type="application/rss+xml"/><item><title>2.1 repr(Rust)</title><link>https://before80.github.io/prgms/Rust/rustonomicon/data/01-repr-rust/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/data/01-repr-rust/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="reprrust"&gt;repr(Rust)&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/repr-rust.html"&gt;https://doc.rust-lang.org/nomicon/repr-rust.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　​	首先，所有类型都有以字节为单位的对齐（alignment）。对齐指定哪些地址可合法存储该值。对齐为 &lt;code&gt;n&lt;/code&gt; 的值只能存放在 &lt;code&gt;n&lt;/code&gt; 的倍数地址上。对齐 2 表示必须存在偶地址；对齐 1 表示可存任意处。对齐至少为 1，且恒为 2 的幂。&lt;/p&gt;</description></item><item><title>2.2 奇异大小的类型</title><link>https://before80.github.io/prgms/Rust/rustonomicon/data/02-exotically-sized-types/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/data/02-exotically-sized-types/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="奇异大小的类型"&gt;奇异大小的类型&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/exotic-sizes.html"&gt;https://doc.rust-lang.org/nomicon/exotic-sizes.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　多数时候，我们期望类型有静态已知且为正的大小。在 Rust 中并非总是如此。&lt;/p&gt;
+&lt;h2 id="动态大小类型dst"&gt;动态大小类型（DST）&lt;/h2&gt;
+&lt;p&gt;　　Rust 支持动态大小类型（Dynamically Sized Types，DST）：无静态已知大小或对齐的类型。表面上有悖常理：Rust &lt;em&gt;必须&lt;/em&gt;知道某物的大小与对齐才能正确操作！就此而言，DST 不是普通类型。因缺乏静态已知大小，这些类型只能存在于指针之后。指向 DST 的任意指针因而成为&lt;em&gt;宽指针&lt;/em&gt;，由指针与「补全」它的信息组成（下文详述）。&lt;/p&gt;</description></item><item><title>2.3 其他 repr</title><link>https://before80.github.io/prgms/Rust/rustonomicon/data/03-other-reprs/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/data/03-other-reprs/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="其他-repr"&gt;其他 repr&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/other-reprs.html"&gt;https://doc.rust-lang.org/nomicon/other-reprs.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　Rust 允许指定与默认不同的数据布局策略。&lt;/p&gt;
+&lt;h2 id="reprc"&gt;repr(C)&lt;/h2&gt;
+&lt;p&gt;　　这是最重要的 &lt;code&gt;repr&lt;/code&gt;。意图 fairly 简单：按 C 的方式做。字段顺序、大小与对齐与 C 或 C++ 中预期完全一致。类型跨 &lt;code&gt;extern &amp;quot;C&amp;quot;&lt;/code&gt; 函数调用边界传递的方式也与 C 传递对应类型相同。任何期望通过 FFI 边界的类型都应有 &lt;code&gt;repr(C)&lt;/code&gt;，因为 C 是编程世界的 lingua franca。要对数据布局做更 elaborate 的双关（如把值重新解释为不同类型），这也是 soundly 做的必要条件。&lt;/p&gt;</description></item></channel></rss>

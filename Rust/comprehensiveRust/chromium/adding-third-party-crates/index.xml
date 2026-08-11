@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>8 添加第三方 Crate on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/</link><description>Recent content in 8 添加第三方 Crate on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/index.xml" rel="self" type="application/rss+xml"/><item><title>8.1 配置 Cargo.toml</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/01-configuring-cargo-toml/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/01-configuring-cargo-toml/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/configuring-cargo-toml.html"&gt;https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/configuring-cargo-toml.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="81-配置-cargotoml"&gt;8.1 配置 Cargo.toml&lt;/h1&gt;
+&lt;p&gt;Chromium 有一组集中管理的直接 crate 依赖。它们通过单个 &lt;a href="https://source.chromium.org/chromium/chromium/src/+/main:third_party/rust/chromium_crates_io/Cargo.toml"&gt;&lt;code&gt;Cargo.toml&lt;/code&gt;&lt;/a&gt; 管理：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-toml" data-lang="toml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;dependencies&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;bitflags&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;cfg-if&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;cxx&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# 还有很多……&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;与任何其他 &lt;code&gt;Cargo.toml&lt;/code&gt; 一样，你可以&lt;a href="https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html"&gt;指定更多依赖细节&lt;/a&gt;——通常，你会想指定希望在 crate 中启用的 &lt;code&gt;features&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>8.2 配置 `gnrt_config.toml`</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/02-configuring-gnrt-config-toml/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/02-configuring-gnrt-config-toml/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/configuring-gnrt-config-toml.html"&gt;https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/configuring-gnrt-config-toml.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="82-配置-gnrt_configtoml"&gt;8.2 配置 &lt;code&gt;gnrt_config.toml&lt;/code&gt;&lt;/h1&gt;
+&lt;p&gt;与 &lt;code&gt;Cargo.toml&lt;/code&gt; 并列的是 &lt;a href="https://source.chromium.org/chromium/chromium/src/+/main:third_party/rust/chromium_crates_io/gnrt_config.toml"&gt;&lt;code&gt;gnrt_config.toml&lt;/code&gt;&lt;/a&gt;。它包含 Chromium 特有的 crate 处理扩展。&lt;/p&gt;
+&lt;p&gt;若你添加新 crate，至少应指定 &lt;code&gt;group&lt;/code&gt;。它是以下之一：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-toml" data-lang="toml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# &amp;#39;safe&amp;#39;: 该库满足 rule-of-2，可在任何进程中使用。&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# &amp;#39;sandbox&amp;#39;: 该库不满足 rule-of-2，必须在沙箱进程中使用，&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# 例如渲染器或 utility 进程。&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# &amp;#39;test&amp;#39;: 该库仅用于测试。&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;例如，&lt;/p&gt;</description></item><item><title>8.3 下载 Crate</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/03-downloading-crates/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/03-downloading-crates/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/downloading-crates.html"&gt;https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/downloading-crates.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="83-下载-crate"&gt;8.3 下载 Crate&lt;/h1&gt;
+&lt;p&gt;名为 &lt;code&gt;gnrt&lt;/code&gt; 的工具知道如何下载 crate 以及如何生成 &lt;code&gt;BUILD.gn&lt;/code&gt; 规则。&lt;/p&gt;
+&lt;p&gt;首先，像这样下载你想要的 crate：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e5c07b"&gt;cd&lt;/span&gt; chromium/src
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;vpython3 tools/crates/run_gnrt.py -- vendor
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;虽然 &lt;code&gt;gnrt&lt;/code&gt; 工具是 Chromium 源码的一部分，但运行此命令会从 &lt;code&gt;crates.io&lt;/code&gt; 下载并运行其依赖。见&lt;a href="../03-cargo/"&gt;前面讨论这一安全决策的章节&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>8.4 生成 `gn` 构建规则</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/04-generating-gn-build-rules/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/04-generating-gn-build-rules/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/generating-gn-build-rules.html"&gt;https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/generating-gn-build-rules.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="84-生成-gn-构建规则"&gt;8.4 生成 &lt;code&gt;gn&lt;/code&gt; 构建规则&lt;/h1&gt;
+&lt;p&gt;下载 crate 后，像这样生成 &lt;code&gt;BUILD.gn&lt;/code&gt; 文件：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;vpython3 tools/crates/run_gnrt.py -- gen
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;现在运行 &lt;code&gt;git status&lt;/code&gt;。你应会发现：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在 &lt;code&gt;third_party/rust/chromium_crates_io/vendor&lt;/code&gt; 中至少有一个新的 crate 源码&lt;/li&gt;
+&lt;li&gt;在 &lt;code&gt;third_party/rust/&amp;lt;crate name&amp;gt;/v&amp;lt;major semver version&amp;gt;&lt;/code&gt; 中至少有一个新的 &lt;code&gt;BUILD.gn&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;一个合适的 &lt;code&gt;README.chromium&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;“major semver version” 是一个 &lt;a href="https://doc.rust-lang.org/cargo/reference/semver.html"&gt;Rust “semver” 版本号&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>8.6 依赖一个 Crate</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/05-depending-on-a-crate/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/05-depending-on-a-crate/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/depending-on-a-crate.html"&gt;https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/depending-on-a-crate.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="86-依赖一个-crate"&gt;8.6 依赖一个 Crate&lt;/h1&gt;
+&lt;p&gt;一旦你添加了第三方 crate 并生成了构建规则，依赖一个 crate 就很简单。找到你的 &lt;code&gt;rust_static_library&lt;/code&gt; 目标，并添加对你的 crate 内 &lt;code&gt;:lib&lt;/code&gt; 目标的 &lt;code&gt;dep&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;具体来说，&lt;/p&gt;</description></item><item><title>8.7 审查与审计</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/06-reviews-and-audits/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/06-reviews-and-audits/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/reviews-and-audits.html"&gt;https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/reviews-and-audits.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="87-审查与审计"&gt;8.7 审查与审计&lt;/h1&gt;
+&lt;p&gt;添加新库须遵守 Chromium 的标准&lt;a href="https://chromium.googlesource.com/chromium/src/+/refs/heads/main/docs/rust.md#Third_party-review"&gt;策略&lt;/a&gt;，当然也须经过安全审查。由于你可能带来的不只是单个 crate，还有传递依赖，可能有大量代码需要审查。另一方面，安全的 Rust 代码负面副作用可能有限。你应如何审查它？&lt;/p&gt;</description></item><item><title>8.8 检入 Chromium 源码</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/07-checking-in/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/07-checking-in/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/checking-in.html"&gt;https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/checking-in.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="88-检入-chromium-源码"&gt;8.8 检入 Chromium 源码&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;git status&lt;/code&gt; 应会显示：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;//third_party/rust/chromium_crates_io&lt;/code&gt; 中的 crate 代码&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;//third_party/rust/&amp;lt;crate&amp;gt;/&amp;lt;version&amp;gt;&lt;/code&gt; 中的元数据（&lt;code&gt;BUILD.gn&lt;/code&gt; 与 &lt;code&gt;README.chromium&lt;/code&gt;）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;请也在后一位置添加一个 &lt;code&gt;OWNERS&lt;/code&gt; 文件。&lt;/p&gt;</description></item><item><title>8.9 保持 Crate 更新</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/08-keeping-up-to-date/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/08-keeping-up-to-date/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/keeping-up-to-date.html"&gt;https://google.github.io/comprehensive-rust/chromium/adding-third-party-crates/keeping-up-to-date.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="89-保持-crate-更新"&gt;8.9 保持 Crate 更新&lt;/h1&gt;
+&lt;p&gt;作为任何第三方 Chromium 依赖的 OWNER，你被&lt;a href="https://chromium.googlesource.com/chromium/src/+/main/docs/adding_to_third_party.md#add-owners"&gt;要求用任何安全修复保持其更新&lt;/a&gt;。希望我们很快能为 Rust crate 自动化这一点，但目前，这仍是你的责任，就像对任何其他第三方依赖一样。&lt;/p&gt;</description></item><item><title>8.10 练习</title><link>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/09-third-party/</link><pubDate>Tue, 11 Aug 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/comprehensiveRust/chromium/adding-third-party-crates/09-third-party/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://google.github.io/comprehensive-rust/"&gt;Comprehensive Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://google.github.io/comprehensive-rust/exercises/chromium/third-party.html"&gt;https://google.github.io/comprehensive-rust/exercises/chromium/third-party.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="810-练习"&gt;8.10 练习&lt;/h1&gt;
+&lt;p&gt;把 &lt;a href="https://crates.io/crates/uwuify"&gt;uwuify&lt;/a&gt; 加到 Chromium，并关闭该 crate 的&lt;a href="https://doc.rust-lang.org/cargo/reference/features.html#the-default-feature"&gt;默认 features&lt;/a&gt;。假设该 crate 将用于发布版 Chromium，但不会用于处理不可信输入。&lt;/p&gt;</description></item></channel></rss>

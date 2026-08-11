@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第21章 最终项目：构建多线程 Web 服务器 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/trpl/final-project/</link><description>Recent content in 第21章 最终项目：构建多线程 Web 服务器 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/trpl/final-project/index.xml" rel="self" type="application/rss+xml"/><item><title>21.1 构建单线程 Web 服务器</title><link>https://before80.github.io/prgms/Rust/trpl/final-project/01-single-threaded/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/final-project/01-single-threaded/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="web"&gt;构建单线程 Web 服务器&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch21-01-single-threaded.html"&gt;https://doc.rust-lang.org/stable/book/ch21-01-single-threaded.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="构建单线程-web-服务器"&gt;构建单线程 Web 服务器&lt;/h2&gt;
+&lt;p&gt;　　我们先让单线程 Web 服务器跑起来。动手之前，先快速看一眼构建 Web 服务器会涉及的协议。这些协议的细节超出本书范围，但简要概述能给你所需的信息。&lt;/p&gt;</description></item><item><title>21.2 从单线程到多线程服务器</title><link>https://before80.github.io/prgms/Rust/trpl/final-project/02-multithreaded/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/final-project/02-multithreaded/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="从单线程到多线程服务器"&gt;从单线程到多线程服务器&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch21-02-multithreaded.html"&gt;https://doc.rust-lang.org/stable/book/ch21-02-multithreaded.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="从单线程到多线程服务器-1"&gt;从单线程到多线程服务器&lt;/h2&gt;
+&lt;p&gt;　　眼下服务器会依次处理每个请求，也就是说在第一个连接处理完之前，不会处理第二个连接。若服务器收到越来越多的请求，这种串行执行会越来越不理想。若服务器收到一个要花很长时间处理的请求，后续请求就得等到这个长请求结束——哪怕新请求其实可以很快处理完。我们需要修好这一点，但先亲眼看看问题。&lt;/p&gt;</description></item><item><title>21.3 优雅停机与清理</title><link>https://before80.github.io/prgms/Rust/trpl/final-project/03-graceful-shutdown-and-cleanup/</link><pubDate>Wed, 05 Aug 2026 08:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/trpl/final-project/03-graceful-shutdown-and-cleanup/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/book/"&gt;The Rust Programming Language&lt;/a&gt;（rustc 1.97.1）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="优雅停机与清理"&gt;优雅停机与清理&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/book/ch21-03-graceful-shutdown-and-cleanup.html"&gt;https://doc.rust-lang.org/stable/book/ch21-03-graceful-shutdown-and-cleanup.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="优雅停机与清理-1"&gt;优雅停机与清理&lt;/h2&gt;
+&lt;p&gt;　　示例 21-20 中的代码正如我们所愿，通过线程池异步响应请求。我们收到一些关于 &lt;code&gt;workers&lt;/code&gt;、&lt;code&gt;id&lt;/code&gt; 和 &lt;code&gt;thread&lt;/code&gt; 字段未被直接使用的警告，这提醒我们还没有清理任何东西。当我们用不那么优雅的 &lt;kbd&gt;ctrl&lt;/kbd&gt;-&lt;kbd&gt;C&lt;/kbd&gt; 方式停掉主线程时，其他线程也会立即停止，哪怕它们正处在服务某个请求的中途。&lt;/p&gt;</description></item></channel></rss>

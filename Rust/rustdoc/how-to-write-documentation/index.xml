@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>04-如何编写文档 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustdoc/how-to-write-documentation/</link><description>Recent content in 04-如何编写文档 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustdoc/how-to-write-documentation/index.xml" rel="self" type="application/rss+xml"/><item><title>01-应包含（和排除）什么</title><link>https://before80.github.io/prgms/Rust/rustdoc/how-to-write-documentation/01-what-to-include/</link><pubDate>Sat, 01 Aug 2026 07:35:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustdoc/how-to-write-documentation/01-what-to-include/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/rustdoc/"&gt;The rustdoc book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="what-to-include"&gt;应包含（和排除）什么&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/rustdoc/write-documentation/what-to-include.html"&gt;https://doc.rust-lang.org/rustdoc/write-documentation/what-to-include.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;说项目里的一切都必须有文档很容易，而且往往正确，但怎样做到？又有没有本不该写进文档的东西？&lt;/p&gt;
+&lt;p&gt;在二进制项目的 &lt;code&gt;src/lib.rs&lt;/code&gt; 或 &lt;code&gt;main.rs&lt;/code&gt; 文件顶部加入如下属性（attribute）：&lt;/p&gt;</description></item><item><title>02-#[doc] 属性</title><link>https://before80.github.io/prgms/Rust/rustdoc/how-to-write-documentation/02-the-doc-attribute/</link><pubDate>Sat, 01 Aug 2026 07:35:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustdoc/how-to-write-documentation/02-the-doc-attribute/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/rustdoc/"&gt;The rustdoc book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="the-doc-attribute"&gt;#[doc] 属性&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/rustdoc/write-documentation/the-doc-attribute.html"&gt;https://doc.rust-lang.org/rustdoc/write-documentation/the-doc-attribute.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;#[doc]&lt;/code&gt; 属性（attribute）让你控制 &lt;code&gt;rustdoc&lt;/code&gt; 工作方式的多个方面。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;#[doc]&lt;/code&gt; 最基本的功能是处理实际的文档文本。也就是说，&lt;code&gt;///&lt;/code&gt; 是 &lt;code&gt;#[doc]&lt;/code&gt; 的语法糖（&lt;code&gt;//!&lt;/code&gt; 对应 &lt;code&gt;#![doc]&lt;/code&gt;）。这意味着下面两者等价：&lt;/p&gt;</description></item><item><title>03-重导出</title><link>https://before80.github.io/prgms/Rust/rustdoc/how-to-write-documentation/03-re-exports/</link><pubDate>Sat, 01 Aug 2026 07:35:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustdoc/how-to-write-documentation/03-re-exports/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/rustdoc/"&gt;The rustdoc book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="re-exports"&gt;重导出&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/rustdoc/write-documentation/re-exports.html"&gt;https://doc.rust-lang.org/rustdoc/write-documentation/re-exports.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;先解释什么是重导出。为此用一个例子：我们正在编写一个库（名为 &lt;code&gt;lib&lt;/code&gt;），其中一些类型分散在子模块中：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;mod&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;sub_module1&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Foo&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;mod&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;sub_module2&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;AnotherFoo&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;用户可以这样导入：&lt;/p&gt;</description></item><item><title>04-按名称链接到项</title><link>https://before80.github.io/prgms/Rust/rustdoc/how-to-write-documentation/04-linking-to-items-by-name/</link><pubDate>Sat, 01 Aug 2026 07:35:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustdoc/how-to-write-documentation/04-linking-to-items-by-name/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/rustdoc/"&gt;The rustdoc book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="linking-to-items-by-name"&gt;按名称链接到项&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/rustdoc/write-documentation/linking-to-items-by-name.html"&gt;https://doc.rust-lang.org/rustdoc/write-documentation/linking-to-items-by-name.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Rustdoc 能够用项的路径作为链接，直接链接到其他 rustdoc 页面。这称为「文档内链接（intra-doc link）」。&lt;/p&gt;
+&lt;p&gt;例如，在下面的代码中，所有链接都会指向 &lt;code&gt;Bar&lt;/code&gt; 的 rustdoc 页面：&lt;/p&gt;</description></item><item><title>05-文档测试</title><link>https://before80.github.io/prgms/Rust/rustdoc/how-to-write-documentation/05-documentation-tests/</link><pubDate>Sat, 01 Aug 2026 07:35:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustdoc/how-to-write-documentation/05-documentation-tests/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/rustdoc/"&gt;The rustdoc book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="documentation-tests"&gt;文档测试&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/rustdoc/write-documentation/documentation-tests.html"&gt;https://doc.rust-lang.org/rustdoc/write-documentation/documentation-tests.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;rustdoc&lt;/code&gt; 支持把文档示例当作测试执行。这能确保文档中的示例是最新的且可运行。&lt;/p&gt;
+&lt;p&gt;基本思路如下：&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,no_run" data-lang="rust,no_run"&gt;/// # 示例
+///
+/// ```
+/// let x = 5;
+/// ```
+# fn f() {}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这里，三个反引号开始并结束代码块。若这在名为 &lt;code&gt;foo.rs&lt;/code&gt; 的文件中，运行 &lt;code&gt;rustdoc --test foo.rs&lt;/code&gt; 会提取该示例，然后作为测试运行。&lt;/p&gt;</description></item></channel></rss>

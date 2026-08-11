@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第8章 并发 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustonomicon/concurrency/</link><description>Recent content in 第8章 并发 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 11 Aug 2026 23:57:44 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustonomicon/concurrency/index.xml" rel="self" type="application/rss+xml"/><item><title>8.1 竞态</title><link>https://before80.github.io/prgms/Rust/rustonomicon/concurrency/01-races/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/concurrency/01-races/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="竞态"&gt;竞态&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/races.html"&gt;https://doc.rust-lang.org/nomicon/races.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　Safe Rust 保证不存在数据竞争（data race），其定义为：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;两个或多个线程并发访问同一内存位置&lt;/li&gt;
+&lt;li&gt;其中至少一个是写&lt;/li&gt;
+&lt;li&gt;其中至少一个是未同步的&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;　　数据竞争具有未定义行为，因此在 Safe Rust 中不可能发生。数据竞争&lt;em&gt;主要&lt;/em&gt;通过 Rust 的所有权系统 alone 来防止：不可能别名可变引用，因此不可能发生数据竞争。内部可变性（interior mutability）使情况更复杂，这也是我们有 &lt;code&gt;Send&lt;/code&gt; 和 &lt;code&gt;Sync&lt;/code&gt; trait 的重要原因（下一节详述）。&lt;/p&gt;</description></item><item><title>8.2 Send 与 Sync</title><link>https://before80.github.io/prgms/Rust/rustonomicon/concurrency/02-send-and-sync/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/concurrency/02-send-and-sync/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="send-与-sync"&gt;Send 与 Sync&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/send-and-sync.html"&gt;https://doc.rust-lang.org/nomicon/send-and-sync.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　并非一切都服从 inherited mutability。有些类型允许在 mutate 内存位置的同时拥有多个别名。除非这些类型用同步管理访问，它们绝对不安全。Rust 通过 &lt;code&gt;Send&lt;/code&gt; 和 &lt;code&gt;Sync&lt;/code&gt; trait 捕获这一点。&lt;/p&gt;</description></item><item><title>8.3 原子操作</title><link>https://before80.github.io/prgms/Rust/rustonomicon/concurrency/03-atomics/</link><pubDate>Thu, 06 Aug 2026 17:08:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustonomicon/concurrency/03-atomics/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/nomicon/"&gt;The Rustonomicon&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="原子操作"&gt;原子操作&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/nomicon/atomics.html"&gt;https://doc.rust-lang.org/nomicon/atomics.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　　Rust 相当直白地从 C++20 继承 atomics 的内存模型。并非因为该模型特别优秀或易懂——事实上它相当复杂，且已知有&lt;a href="http://plv.mpi-sws.org/c11comp/popl15.pdf"&gt;若干缺陷&lt;/a&gt;。而是出于务实考虑，承认&lt;em&gt;每个人&lt;/em&gt;在 atomics 建模上都不太行。至少我们可以受益于围绕 C/C++ 内存模型的现有工具与研究。（你常看到该模型被称为「C/C++11」或「C11」。C 只是复制 C++ 内存模型；C++11 是该模型首版，此后有过一些 bugfix。）&lt;/p&gt;</description></item></channel></rss>
