@@ -1,5 +1,5 @@
 +++
-title = "11-ownership"
+title = "11-所有权"
 date = 2026-07-28T14:49:00+08:00
 weight = 110
 type = "docs"

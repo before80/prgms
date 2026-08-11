@@ -1,5 +1,5 @@
 +++
-title = "08-data-types"
+title = "08-数据类型"
 date = 2026-07-28T14:49:00+08:00
 weight = 80
 type = "docs"

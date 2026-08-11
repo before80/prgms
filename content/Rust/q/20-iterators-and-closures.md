@@ -1,5 +1,5 @@
 +++
-title = "20-iterators-and-closures"
+title = "20-迭代器与闭包"
 date = 2026-07-28T14:49:00+08:00
 weight = 200
 type = "docs"

@@ -1,5 +1,5 @@
 +++
-title = "25-generics"
+title = "25-泛型"
 date = 2026-07-28T14:49:00+08:00
 weight = 250
 type = "docs"

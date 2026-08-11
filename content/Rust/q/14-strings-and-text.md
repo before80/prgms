@@ -1,5 +1,5 @@
 +++
-title = "14-strings-and-text"
+title = "14-字符串与文本"
 date = 2026-07-28T14:49:00+08:00
 weight = 140
 type = "docs"

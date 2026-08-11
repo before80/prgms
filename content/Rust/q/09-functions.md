@@ -1,5 +1,5 @@
 +++
-title = "09-functions"
+title = "09-函数"
 date = 2026-07-28T14:49:00+08:00
 weight = 90
 type = "docs"

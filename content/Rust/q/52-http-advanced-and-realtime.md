@@ -1,5 +1,5 @@
 +++
-title = "52-http-advanced-and-realtime"
+title = "52-HTTP 进阶与实时通信"
 date = 2026-07-28T14:49:00+08:00
 weight = 520
 type = "docs"

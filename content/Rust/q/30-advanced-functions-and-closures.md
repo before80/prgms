@@ -1,5 +1,5 @@
 +++
-title = "30-advanced-functions-and-closures"
+title = "30-高级函数与闭包"
 date = 2026-07-28T14:49:00+08:00
 weight = 300
 type = "docs"

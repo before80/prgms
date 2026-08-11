@@ -1,5 +1,5 @@
 +++
-title = "27-lifetimes"
+title = "27-生命周期"
 date = 2026-07-28T14:49:00+08:00
 weight = 270
 type = "docs"

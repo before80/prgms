@@ -1,5 +1,5 @@
 +++
-title = "40-http-client-and-server"
+title = "40-HTTP 客户端与服务端"
 date = 2026-07-28T14:49:00+08:00
 weight = 400
 type = "docs"

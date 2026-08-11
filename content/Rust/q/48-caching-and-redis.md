@@ -1,5 +1,5 @@
 +++
-title = "48-caching-and-redis"
+title = "48-缓存与 Redis"
 date = 2026-07-28T14:49:00+08:00
 weight = 480
 type = "docs"

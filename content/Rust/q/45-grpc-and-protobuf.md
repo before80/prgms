@@ -1,5 +1,5 @@
 +++
-title = "45-grpc-and-protobuf"
+title = "45-gRPC 与 Protobuf"
 date = 2026-07-28T14:49:00+08:00
 weight = 450
 type = "docs"

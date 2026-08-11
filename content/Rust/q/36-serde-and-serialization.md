@@ -1,5 +1,5 @@
 +++
-title = "36-serde-and-serialization"
+title = "36-Serde 与序列化"
 date = 2026-07-28T14:49:00+08:00
 weight = 360
 type = "docs"

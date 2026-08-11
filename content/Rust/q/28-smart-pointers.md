@@ -1,5 +1,5 @@
 +++
-title = "28-smart-pointers"
+title = "28-智能指针"
 date = 2026-07-28T14:49:00+08:00
 weight = 280
 type = "docs"

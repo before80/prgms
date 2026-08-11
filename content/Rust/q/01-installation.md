@@ -1,5 +1,5 @@
 +++
-title = "01-installation"
+title = "01-安装"
 date = 2026-07-28T14:49:00+08:00
 weight = 10
 type = "docs"

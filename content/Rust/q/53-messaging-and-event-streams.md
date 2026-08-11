@@ -1,5 +1,5 @@
 +++
-title = "53-messaging-and-event-streams"
+title = "53-消息队列与事件流"
 date = 2026-07-28T14:49:00+08:00
 weight = 530
 type = "docs"

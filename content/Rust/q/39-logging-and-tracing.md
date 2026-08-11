@@ -1,5 +1,5 @@
 +++
-title = "39-logging-and-tracing"
+title = "39-日志与 tracing"
 date = 2026-07-28T14:49:00+08:00
 weight = 390
 type = "docs"

@@ -1,5 +1,5 @@
 +++
-title = "54-observability-metrics-and-otel"
+title = "54-可观测性：指标与 OTel"
 date = 2026-07-28T14:49:00+08:00
 weight = 540
 type = "docs"

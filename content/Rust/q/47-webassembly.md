@@ -1,5 +1,5 @@
 +++
-title = "47-webassembly"
+title = "47-WebAssembly"
 date = 2026-07-28T14:49:00+08:00
 weight = 470
 type = "docs"

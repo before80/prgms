@@ -1,5 +1,5 @@
 +++
-title = "46-cryptography-and-hashing"
+title = "46-密码学与哈希"
 date = 2026-07-28T14:49:00+08:00
 weight = 460
 type = "docs"

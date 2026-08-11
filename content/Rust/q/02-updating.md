@@ -1,5 +1,5 @@
 +++
-title = "02-updating"
+title = "02-更新与版本管理"
 date = 2026-07-28T14:49:00+08:00
 weight = 20
 type = "docs"

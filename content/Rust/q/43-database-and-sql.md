@@ -1,5 +1,5 @@
 +++
-title = "43-database-and-sql"
+title = "43-数据库与 SQL"
 date = 2026-07-28T14:49:00+08:00
 weight = 430
 type = "docs"

@@ -1,5 +1,5 @@
 +++
-title = "49-deployment-and-docker"
+title = "49-部署与 Docker"
 date = 2026-07-28T14:49:00+08:00
 weight = 490
 type = "docs"

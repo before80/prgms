@@ -1,5 +1,5 @@
 +++
-title = "29-concurrency-and-threads"
+title = "29-并发与线程"
 date = 2026-07-28T14:49:00+08:00
 weight = 290
 type = "docs"

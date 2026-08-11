@@ -1,5 +1,5 @@
 +++
-title = "23-cargo-workflow"
+title = "23-Cargo 工作流"
 date = 2026-07-28T14:49:00+08:00
 weight = 230
 type = "docs"

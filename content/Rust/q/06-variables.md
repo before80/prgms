@@ -1,5 +1,5 @@
 +++
-title = "06-variables"
+title = "06-变量与可变性"
 date = 2026-07-28T14:49:00+08:00
 weight = 60
 type = "docs"

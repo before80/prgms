@@ -1,5 +1,5 @@
 +++
-title = "07-constants"
+title = "07-常量与静态量"
 date = 2026-07-28T14:49:00+08:00
 weight = 70
 type = "docs"

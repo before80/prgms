@@ -1,5 +1,5 @@
 +++
-title = "51-profiling-and-benchmarking"
+title = "51-性能剖析与基准"
 date = 2026-07-28T14:49:00+08:00
 weight = 510
 type = "docs"

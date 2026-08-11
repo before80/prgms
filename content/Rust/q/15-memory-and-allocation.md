@@ -1,5 +1,5 @@
 +++
-title = "15-memory-and-allocation"
+title = "15-内存与分配"
 date = 2026-07-28T14:49:00+08:00
 weight = 150
 type = "docs"

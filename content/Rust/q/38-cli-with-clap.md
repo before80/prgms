@@ -1,5 +1,5 @@
 +++
-title = "38-cli-with-clap"
+title = "38-命令行与 clap"
 date = 2026-07-28T14:49:00+08:00
 weight = 380
 type = "docs"

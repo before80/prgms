@@ -1,5 +1,5 @@
 +++
-title = "42-regex"
+title = "42-正则表达式"
 date = 2026-07-28T14:49:00+08:00
 weight = 420
 type = "docs"

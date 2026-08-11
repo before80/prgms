@@ -1,5 +1,5 @@
 +++
-title = "44-configuration"
+title = "44-配置管理"
 date = 2026-07-28T14:49:00+08:00
 weight = 440
 type = "docs"

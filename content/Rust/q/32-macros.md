@@ -1,5 +1,5 @@
 +++
-title = "32-macros"
+title = "32-宏"
 date = 2026-07-28T14:49:00+08:00
 weight = 320
 type = "docs"

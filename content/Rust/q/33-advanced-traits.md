@@ -1,5 +1,5 @@
 +++
-title = "33-advanced-traits"
+title = "33-高级 Trait"
 date = 2026-07-28T14:49:00+08:00
 weight = 330
 type = "docs"

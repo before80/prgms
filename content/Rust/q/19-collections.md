@@ -1,5 +1,5 @@
 +++
-title = "19-collections"
+title = "19-常见集合"
 date = 2026-07-28T14:49:00+08:00
 weight = 190
 type = "docs"
