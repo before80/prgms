@@ -1,0 +1,48 @@
++++
+title = "04-生命周期"
+date = 2026-08-20T21:20:00+08:00
+weight = 110
+type = "docs"
+description = "生命周期 — Rust By Example"
+isCJKLanguage = true
+draft = false
++++
+
+> 译文 · 基于 [Rust By Example](https://doc.rust-lang.org/stable/rust-by-example/)
+
+> 原文链接: [https://doc.rust-lang.org/stable/rust-by-example/scope/lifetime.html](https://doc.rust-lang.org/stable/rust-by-example/scope/lifetime.html)
+
+# 生命周期
+
+**生命周期**（lifetime）是这样一种概念，编译器（中的借用检查器）用它来保证所有的借用都是有效的。确切地说，一个变量的生命周期在它创建的时候开始，在它销毁的时候结束。虽然生命周期和作用域经常被一起提到，但它们并不相同。
+
+例如考虑这种情况，我们通过 `&` 来借用一个变量。该借用拥有一个生命周期，此生命周期由它声明的位置决定。于是，只要该借用在出借者（lender）被销毁前结束，借用就是有效的。然而，借用的作用域则是由使用引用的位置决定的。
+
+在下面的例子和本章节剩下的内容里，我们将看到生命周期和作用域的联系与区别。
+
+> 译注：如果代码中的生命周期示意图乱掉了，请把它复制到任何编辑器中，用等宽字体查看。为避免中文的显示问题，下面一些注释没有翻译。
+
+```rust
+// 下面使用连线来标注各个变量的创建和销毁，从而显示出生命周期。
+// `i` 的生命周期最长，因为它的作用域完全覆盖了 `borrow1` 和
+// `borrow2` 的。`borrow1` 和 `borrow2` 的周期没有关联，
+// 因为它们各不相交。
+fn main() {
+    let i = 3; // Lifetime for `i` starts. ────────────────┐
+    //                                                     │
+    { //                                                   │
+        let borrow1 = &i; // `borrow1` lifetime starts. ──┐│
+        //                                                ││
+        println!("borrow1: {}", borrow1); //              ││
+    } // `borrow1 ends. ──────────────────────────────────┘│
+    //                                                     │
+    //                                                     │
+    { //                                                   │
+        let borrow2 = &i; // `borrow2` lifetime starts. ──┐│
+        //                                                ││
+        println!("borrow2: {}", borrow2); //              ││
+    } // `borrow2` ends. ─────────────────────────────────┘│
+    //                                                     │
+}   // Lifetime ends. ─────────────────────────────────────┘
+```
+注意到这里没有用到名称或类型来标注生命周期，这限制了生命周期的用法，在后面我们将会看到生命周期更强大的功能。

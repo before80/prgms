@@ -1,0 +1,56 @@
++++
+title = "02-路径表达式"
+date = 2026-08-18T08:45:00+08:00
+weight = 45
+type = "docs"
+description = "路径表达式 — The Rust Reference"
+isCJKLanguage = true
+draft = false
++++
+
+> 译文 · 基于 [The Rust Reference](https://doc.rust-lang.org/reference/)
+
+> 原文链接: [https://doc.rust-lang.org/reference/expressions/path-expr.html](https://doc.rust-lang.org/reference/expressions/path-expr.html)
+
+r[expr.path]
+# 路径表达式
+
+r[expr.path.syntax]
+```grammar,expressions
+PathExpression ->
+      PathInExpression
+    | QualifiedPathInExpression
+```
+
+r[expr.path.intro]
+在表达式上下文中使用的[路径][path]表示局部变量或项。
+
+r[expr.path.place]
+解析为局部变量或静态变量的路径表达式是[位置表达式][place expressions]；其他路径是[值表达式][value expressions]。
+
+r[expr.path.safety]
+使用 [`static mut`] 变量需要 [`unsafe` 块][`unsafe` block]。
+
+```rust
+## mod globals {
+##     pub static STATIC_VAR: i32 = 5;
+##     pub static mut STATIC_MUT_VAR: i32 = 7;
+## }
+## let local_var = 3;
+local_var;
+globals::STATIC_VAR;
+unsafe { globals::STATIC_MUT_VAR };
+let some_constructor = Some::<i32>;
+let push_integer = Vec::<i32>::push;
+let slice_reverse = <[i32]>::reverse;
+```
+
+r[expr.path.const]
+关联常量的求值方式与 [`const` 块][`const` blocks]相同。
+
+[place expressions]: ../expressions.md#place-expressions-and-value-expressions
+[value expressions]: ../expressions.md#place-expressions-and-value-expressions
+[path]: ../paths.md
+[`static mut`]: ../items/static-items.md#mutable-statics
+[`unsafe` block]: block-expr.md#unsafe-blocks
+[`const` blocks]: block-expr.md#const-blocks

@@ -1,0 +1,107 @@
++++
+title = "01-结构体"
+date = 2026-08-20T21:20:00+08:00
+weight = 15
+type = "docs"
+description = "结构体 — Rust By Example"
+isCJKLanguage = true
+draft = false
++++
+
+> 译文 · 基于 [Rust By Example](https://doc.rust-lang.org/stable/rust-by-example/)
+
+> 原文链接: [https://doc.rust-lang.org/stable/rust-by-example/custom_types/structs.html](https://doc.rust-lang.org/stable/rust-by-example/custom_types/structs.html)
+
+# 结构体
+
+结构体（structure，缩写成 struct）有 3 种类型，使用 `struct` 关键字来创建：
+
+* 元组结构体（tuple struct），事实上就是具名元组而已。
+* 经典的 [C 语言风格结构体][c_struct]（C struct）。
+* 单元结构体（unit struct），不带字段，在泛型中很有用。
+
+```rust
+#[derive(Debug)]
+struct Person {
+    name: String,
+    age: u8,
+}
+
+// 单元结构体
+struct Unit;
+
+// 元组结构体
+struct Pair(i32, f32);
+
+// 带有两个字段的结构体
+struct Point {
+    x: f32,
+    y: f32,
+}
+
+// 结构体可以作为另一个结构体的字段
+#[allow(dead_code)]
+struct Rectangle {
+    // 可以在空间中给定左上角和右下角在空间中的位置来指定矩形。
+    top_left: Point,
+    bottom_right: Point,
+}
+
+fn main() {
+    // 使用简单的写法初始化字段，并创建结构体
+    let name = String::from("Peter");
+    let age = 27;
+    let peter = Person { name, age };
+
+    // 以 Debug 方式打印结构体
+    println!("{:?}", peter);
+
+    // 实例化结构体 `Point`
+    let point: Point = Point { x: 10.3, y: 0.4 };
+
+    // 访问 point 的字段
+    println!("point coordinates: ({}, {})", point.x, point.y);
+
+    // 使用结构体更新语法创建新的 point，
+    // 这样可以用到之前的 point 的字段
+    let bottom_right = Point { x: 5.2, ..point };
+
+    // `bottom_right.y` 与 `point.y` 一样，因为这个字段就是从 `point` 中来的
+    println!("second point: ({}, {})", bottom_right.x, bottom_right.y);
+
+    // 使用 `let` 绑定来解构 point
+    let Point { x: left_edge, y: top_edge } = point;
+
+    let _rectangle = Rectangle {
+        // 结构体的实例化也是一个表达式
+        top_left: Point { x: left_edge, y: top_edge },
+        bottom_right: bottom_right,
+    };
+
+    // 实例化一个单元结构体
+    let _unit = Unit;
+
+    // 实例化一个元组结构体
+    let pair = Pair(1, 0.1);
+
+    // 访问元组结构体的字段
+    println!("pair contains {:?} and {:?}", pair.0, pair.1);
+
+    // 解构一个元组结构体
+    let Pair(integer, decimal) = pair;
+
+    println!("pair contains {:?} and {:?}", integer, decimal);
+}
+```
+### 动手试一试: {#动手试一试}
+
+1. 增加一个计算 `Rectangle` （长方形）面积的函数 `rect_area`（尝试使用嵌套的解构方式）。
+2. 增加一个函数 `square`，接受的参数是一个 `Point` 和一个 `f32`，并返回一个 `Rectangle`（长方形），其左上角位于该点上，长和宽都对应于 `f32`。
+
+### 参见: {#参见}
+
+[属性][attributes] 和 [解构][destructuring]
+
+[attributes]: ../attribute/
+[c_struct]: https://en.wikipedia.org/wiki/Struct_(C_programming_language)
+[destructuring]: ../flow-control/05-match/01-destructuring/

@@ -1,5 +1,5 @@
 +++
-title = "入门"
+title = "Command Line Applications in Rust"
 date = 2026-08-01T10:33:00+08:00
 weight = 1
 type = "docs"

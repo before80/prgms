@@ -1,0 +1,46 @@
++++
+title = "04-输入函数"
+date = 2026-08-20T21:20:00+08:00
+weight = 61
+type = "docs"
+description = "输入函数 — Rust By Example"
+isCJKLanguage = true
+draft = false
++++
+
+> 译文 · 基于 [Rust By Example](https://doc.rust-lang.org/stable/rust-by-example/)
+
+> 原文链接: [https://doc.rust-lang.org/stable/rust-by-example/fn/closures/input_functions.html](https://doc.rust-lang.org/stable/rust-by-example/fn/closures/input_functions.html)
+
+# 输入函数
+
+既然闭包可以作为参数，你很可能想知道函数是否也可以呢。确实可以！如果你声明一个接受闭包作为参数的函数，那么任何满足该闭包的 trait 约束的函数都可以作为其参数。
+
+```rust
+// 定义一个函数，可以接受一个由 `Fn` 限定的泛型 `F` 参数并调用它。
+fn call_me<F: Fn()>(f: F) {
+    f()
+}
+
+// 定义一个满足 `Fn` 约束的封装函数（wrapper function）。
+fn function() {
+    println!("I'm a function!");
+}
+
+fn main() {
+    // 定义一个满足 `Fn` 约束的闭包。
+    let closure = || println!("I'm a closure!");
+    
+    call_me(closure);
+    call_me(function);
+}
+```
+多说一句，`Fn`、`FnMut` 和 `FnOnce` 这些 `trait` 明确了闭包如何从周围的作用域中捕获变量。
+
+### 参见： {#参见}
+
+[`Fn`][fn], [`FnMut`][fn_mut], 和 [`FnOnce`][fn_once]
+
+[fn]: https://rustwiki.org/zh-CN/std/ops/trait.Fn.html
+[fn_mut]: https://rustwiki.org/zh-CN/std/ops/trait.FnMut.html
+[fn_once]: https://rustwiki.org/zh-CN/std/ops/trait.FnOnce.html
