@@ -200,6 +200,7 @@ fn main() {
 | `*r` | **解引用** [BK](https://doc.rust-lang.org/book/ch15-02-deref.html) [STD](https://doc.rust-lang.org/std/ops/trait.Deref.html) [NOM](https://doc.rust-lang.org/nomicon/vec-deref.html) 引用 `r` 以访问指针指向的内容. |
 |  `*r = s;` | 如果 `r` 是一个可变引用, 则将 `s` 移动或复制到目标内存.  |
 |  `s = *r;` | 如果 `r` 可 `Copy`, 则将 `r` 引用的内容复制到 `s`.  |
+|  `s = *r;` | 若 `*r` 不是 `Copy` 则**不可用**🛑：那样会移出并留下空位。 |
 |  `s = *my_box;` | `Box` 有一个特例[🔗](https://www.reddit.com/r/rust/comments/b4so6i/what_is_exactly/ej8xwg8), 即便它不可 `Copy`, 也仍会从 Box 里面移动出来. |
 | `'a`  | **生命周期参数**, [BK](https://doc.rust-lang.org/book/ch10-00-generics.html) [EX](https://doc.rust-lang.org/rust-by-example/scope/lifetime.html) [NOM](https://doc.rust-lang.org/nomicon/lifetimes.html) [REF](https://doc.rust-lang.org/reference/items/generics.html#type-and-lifetime-parameters), 为静态分析声明一块代码的持续时间. |
 |   `&'a S`  | 仅支持生存时间不短于 `'a` 的地址 `s` . |
@@ -242,33 +243,41 @@ fn main() {
 
 ### 控制流程 {#control-flow}
 
-在函数中控制执行. 
+在函数中控制执行。
 
 | 示例 | 说明 |
 |---------|-------------|
-| `while x {}`  | **循环**[REF](https://doc.rust-lang.org/reference/expressions/loop-expr.html#predicate-loops), 当表达式 `x` 为真时运行. |
-| `loop {}`  | **无限循环**[REF](https://doc.rust-lang.org/reference/expressions/loop-expr.html#infinite-loops)直到 `break`. 可以用 `break x` 来 yield 一个值出来. |
-| `for x in iter {}` | 在**迭代器**上循环的语法糖.[BK](https://doc.rust-lang.org/book/ch13-02-iterators.html) [STD](https://doc.rust-lang.org/std/iter/index.html) [REF](https://doc.rust-lang.org/reference/expressions/loop-expr.html#iterator-loops) |
-| `if x {} else {}`  | **条件分支** [REF](https://doc.rust-lang.org/reference/expressions/if-expr.html). 如果表达式为真则...否则... |
-| `'label: loop {}` | **循环标签** [EX](https://doc.rust-lang.org/rust-by-example/flow_control/loop/nested.html) [REF](https://doc.rust-lang.org/reference/expressions/loop-expr.html#loop-labels), 用于嵌套循环的流程控制. |
-| `break`  | **Break 表达式** [REF](https://doc.rust-lang.org/reference/expressions/loop-expr.html#break-expressions), 用于退出循环. |
-|  `break x`  | 同上, 但将 `x` 作为循环表达式的值(仅在 `loop` 中有效). |
-|  `break 'label`  | 不单单退出的是当前循环, 而是最近一个标记有 `'label` 的循环. |
-|  `break 'label x`  |  同上, 但返回 `x` 作为闭包循环 `'label` 的值. |
-| `continue `  | **Continue 表达式** [REF](https://doc.rust-lang.org/reference/expressions/loop-expr.html#continue-expressions), 用于继续该循环的下一次迭代. |
-| `continue 'label`  | 同上, 但继续的是最近标记有 `'label` 的循环迭代. |
-| `x?` | 如果 `x` 是 [Err](https://doc.rust-lang.org/std/result/enum.Result.html#variant.Err) 或 [None](https://doc.rust-lang.org/std/option/enum.Option.html#variant.None), **返回并向上传播**.[BK](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#propagating-errors) [EX](https://doc.rust-lang.org/rust-by-example/error/result/enter_question_mark.html) [STD](https://doc.rust-lang.org/std/result/index.html#the-question-mark-operator-) [REF](https://doc.rust-lang.org/reference/expressions/operator-expr.html#the-question-mark-operator) |
-| `x.await` | 仅在 `async` 中可用. yield 当前控制流直到 **`Future`** [STD](https://doc.rust-lang.org/std/future/trait.Future.html) 或流 `x` 已就绪. [REF](https://doc.rust-lang.org/reference/expressions/await-expr.html#await-expressions) `'18` |
-| `return x`  | 从函数中提前返回.然而以表达式结束的方式更惯用. |
-| `f()` | 调用 `f`(如函数, 闭包, 函数指针或 `Fn` 等). |
-| `x.f()` | 调用成员函数(方法), 要求 `f` 以 `self`, `&self` 等作为第一个参数. |
-|  `X::f(x)` | 同 `x.f()`.除非 `impl Copy for X {}`, 否则 `f` 仅可调用一次. |
-|  `X::f(&x)` | 同 `x.f()`. |
-|  `X::f(&mut x)` | 同 `x.f()`. |
-|  `S::f(&x)` | 同 `x.f()`, 仅当 `X` 实现了对 `S` 的 [Deref](https://doc.rust-lang.org/std/ops/trait.Deref.html).这里 `x.f()` 会去找 `S` 的方法. |
-|  `T::f(&x)` | 同 `x.f()`, 仅当 `X impl T`. 这里 `x.f()` 会去找作用域内 `T` 的方法. |
-| `X::f()` | 调用关联函数, 比如 `X::new()`. |
-|  `<X as T>::f()` | 调用为 `X` 实现了的 trait 方法 `T::f(). |
+| `while x {}` | **循环**[REF](https://doc.rust-lang.org/reference/expressions/loop-expr.html#predicate-loops)，当表达式 `x` 为真时运行。 |
+| `loop {}` | **无限循环**[REF](https://doc.rust-lang.org/reference/expressions/loop-expr.html#infinite-loops)直到 `break`。可用 `break x` 产出值。 |
+| `for x in collection {}` | 在**迭代器**上循环的语法糖。[BK](https://doc.rust-lang.org/book/ch13-02-iterators.html) [STD](https://doc.rust-lang.org/std/iter/index.html) [REF](https://doc.rust-lang.org/reference/expressions/loop-expr.html#iterator-loops) |
+| `collection.into_iter()` | ↪ 实际上会先把任意 **`IntoIterator`**[STD](https://doc.rust-lang.org/std/iter/trait.IntoIterator.html) 转成真正的迭代器。 |
+| `iterator.next()` | ↪ 在真正的 **`Iterator`**[STD](https://doc.rust-lang.org/std/iter/trait.Iterator.html) 上反复 `x = next()`，直到耗尽（首个 `None`）。 |
+| `if x {} else {}` | **条件分支**[REF](https://doc.rust-lang.org/reference/expressions/if-expr.html)。表达式为真则走对应分支。 |
+| `'label: {}` | **块标签**[RFC](https://rust-lang.github.io/rfcs/2046-label-break-value.html)，可与 `break` 配合跳出该块。`'1.65+` |
+| `'label: loop {}` | 类似的**循环标签**[EX](https://doc.rust-lang.org/rust-by-example/flow_control/loop/nested.html) [REF](https://doc.rust-lang.org/reference/expressions/loop-expr.html#loop-labels)，便于嵌套循环控制流。 |
+| `break` | **Break 表达式**[REF](https://doc.rust-lang.org/reference/expressions/loop-expr.html#break-expressions)，退出带标签的块或循环。 |
+| `break 'label x` | 跳出名为 `'label` 的块/循环，并以 `x` 作为其值。 |
+| `break 'label` | 同上，但不产出值。 |
+| `break x` | 使最内层 `loop` 的值为 `x`（仅实际 `loop`）。 |
+| `continue` | **Continue 表达式**[REF](https://doc.rust-lang.org/reference/expressions/loop-expr.html#continue-expressions)，进入本循环下一次迭代。 |
+| `continue 'label` | 同上，但作用于标记为 `'label` 的外层循环。 |
+| `x?` | 若 `x` 是 [Err](https://doc.rust-lang.org/std/result/enum.Result.html#variant.Err) 或 [None](https://doc.rust-lang.org/std/option/enum.Option.html#variant.None)，则**返回并向上传播**。[BK](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#propagating-errors) [EX](https://doc.rust-lang.org/rust-by-example/error/result/enter_question_mark.html) [STD](https://doc.rust-lang.org/std/result/index.html#the-question-mark-operator-) [REF](https://doc.rust-lang.org/reference/expressions/operator-expr.html#the-question-mark-operator) |
+| `x.await` | 语法糖：**取得 Future、poll、yield**。[REF](https://doc.rust-lang.org/reference/expressions/await-expr.html#await-expressions) `'18` 仅在 `async` 内。 |
+| `x.into_future()` | ↪ 实际上会先把任意 **`IntoFuture`**[STD](https://doc.rust-lang.org/std/future/trait.IntoFuture.html) 转成真正的 Future。 |
+| `future.poll()` | ↪ 在真正的 **`Future`**[STD](https://doc.rust-lang.org/std/future/trait.Future.html) 上 `poll()`；若为 **`Poll::Pending`**[STD](https://doc.rust-lang.org/std/task/enum.Poll.html) 则让出控制流。 |
+| `return x` | 从函数**提前返回**[REF](https://doc.rust-lang.org/reference/expressions/return-expr.html)。更惯用的是以表达式结尾。 |
+| `{ return }` | 在普通 `{}` 块中，`return` 退出外围函数。 |
+| <code>&vert;&vert; { return }</code> | 在闭包中，`return` 只退出该闭包（闭包像小函数）。 |
+| `async { return }` | 在 `async` 中，`return` **只**[REF](https://doc.rust-lang.org/reference/expressions/block-expr.html#control-flow-operators)🛑 退出该 `{}`（`async {}` 像小函数）。 |
+| `f()` | 调用可调用对象 `f`（函数、闭包、函数指针、`Fn` 等）。 |
+| `x.f()` | 调用成员函数；要求 `f` 以 `self` / `&self` 等为第一参数。 |
+| `X::f(x)` | 同 `x.f()`。除非 `impl Copy for X {}`，否则 `f` 通常只能调用一次。 |
+| `X::f(&x)` | 同 `x.f()`。 |
+| `X::f(&mut x)` | 同 `x.f()`。 |
+| `S::f(&x)` | 同 `x.f()`，若 `X` 可 [Deref](https://doc.rust-lang.org/std/ops/trait.Deref.html) 到 `S`（即 `x.f()` 会找到 `S` 的方法）。 |
+| `T::f(&x)` | 同 `x.f()`，若 `X impl T` 且 `T` 在作用域内。 |
+| `X::f()` | 调用关联函数，例如 `X::new()`。 |
+| `<X as T>::f()` | 调用为 `X` 实现的 trait 方法 `T::f()`。 |
 
 ### 代码组织 {#organizing-code}
 
@@ -340,66 +349,72 @@ fn main() {
 |---------|---------|
 | `$x:ty`  | 宏捕获 (此处表示捕获一个类型), 详见**工具链命令**[↓](#tooling-directives). |
 | `$x` |  宏替换, 如使用上面的 `$x:ty` 捕获. |
-| `$(x),*` | 宏重复“零次或若干次”. |
-|  `$(x),?` | 宏重复“零次或一次”. |
-|  `$(x),+` | 宏重复“一次或若干次”. |
-|  `$(x)<<+` | 分隔符可以不是逗号“`,`”. 比如这里用 `<<` 作为分割符. |
+| `$(x),*` | 宏重复「零次或多次」。 |
+| `$(x),+` | 同上，但是「一次或多次」。 |
+| `$(x)?` | 同上，但是「零次或一次」（不适用分隔符）。 |
+| `$(x)<<+` | 分隔符也可以不是逗号 `,`；这里用 `<<`。 |
 
 ### 模式匹配 {#pattern-matching}
 
-函数参数, `match` 或 `let` 表达式中的构造. 
+在 `match`、`let` 表达式或函数参数中出现的构造。
 
 | 示例 | 说明 |
 |---------|-------------|
-| `match m {}` | **模式匹配**[BK](https://doc.rust-lang.org/book/ch06-02-match.html) [EX](https://doc.rust-lang.org/rust-by-example/flow_control/match.html) [REF](https://doc.rust-lang.org/reference/expressions/match-expr.html), 下面跟匹配分支. 参见下表. |
-| `let S(x) = get();`  | 显然, `let` 也和下表的模式匹配类似. |
-|   `let S { x } = s;` | 仅将 `x` 绑定到值 `s.x`. |
-|   `let (_, b, _) = abc;` | 仅将 `b` 绑定到值 `abc.1`. |
-|   `let (a, ..) = abc;` | 也可以将「剩余的」都忽略掉. |
-|   `let (.., a, b) = (1, 2);` | 忽略前面「剩余的」, 这里 `a` 是 `1`, `b` 是 `2`. |
-|   `let s @ S { x } = get();`  | 将 `s` 绑定到 `S` 并将 `x` 绑定到 `s.x`, **模式绑定**, [BK](https://doc.rust-lang.org/book/ch18-03-pattern-syntax.html#-bindings) [EX](https://doc.rust-lang.org/rust-by-example/flow_control/match/binding.html#binding) [REF](https://doc.rust-lang.org/reference/patterns.html#identifier-patterns) 见下 🝖 |
-|   `let w @ t @ f = get();`  | 存储 3 份 `get()` 结果的拷贝分别到 `w`, `t`, `f`. 🝖 |
-|   `let Some(x) = get();` | **不可用**🛑, 因为模式可能会**不匹配**[REF](https://doc.rust-lang.org/reference/expressions/if-expr.html#if-let-expressions). 换用 `if let`. |
-| `if let Some(x) = get() {}`  | 如果模式匹配则执行该分支(如某个 `enum` 变体). 语法糖<sup>*</sup>.  |
-| `while let Some(x) = get() {}`  | 等效; 这里继续调用 `get()`, 只要可以分配模式就运行 `{}`.  |
-| `fn f(S { x }: S)`  | 类似于 `let`, 模式匹配也可用在函数参数上. 这里 `f(s)` 的 `x` 被绑定到 `s.x`.🝖|
+| `match m {}` | 发起**模式匹配**[BK](https://doc.rust-lang.org/book/ch06-02-match.html) [EX](https://doc.rust-lang.org/rust-by-example/flow_control/match.html) [REF](https://doc.rust-lang.org/reference/expressions/match-expr.html)，随后使用匹配分支；参见下表。 |
+| `let S(x) = get();` | 注意：`let` 也会像下表一样做**解构**[EX](https://doc.rust-lang.org/rust-by-example/flow_control/match/destructuring.html)。 |
+| `let S { x } = s;` | 仅将 `x` 绑定到值 `s.x`。 |
+| `let (_, b, _) = abc;` | 仅将 `b` 绑定到值 `abc.1`。 |
+| `let (a, ..) = abc;` | 「剩余部分」也可以忽略。 |
+| `let (.., a, b) = (1, 2);` | 具体绑定优先于「剩余」；这里 `a` 为 `1`，`b` 为 `2`。 |
+| `let s @ S { x } = get();` | 将 `s` 绑定到整个 `S`，同时把 `x` 绑定到 `s.x`，即**模式绑定**[BK](https://doc.rust-lang.org/book/ch18-03-pattern-syntax.html#-bindings) [EX](https://doc.rust-lang.org/rust-by-example/flow_control/match/binding.html#binding) [REF](https://doc.rust-lang.org/reference/patterns.html#identifier-patterns)；见下。🝖 |
+| `let w @ t @ f = get();` | 把 `get()` 结果的 3 份拷贝分别存到 `w`、`t`、`f`。🝖 |
+| <code>let (&vert;x&vert; x) = get();</code> | **病态或模式**[↓](#pattern-matching)，**不是**闭包。🛑 等价于 `let x = get();`。🝖 |
+| `let Ok(x) = f();` | 若模式可能**可反驳**则**不可用**🛑[REF](https://doc.rust-lang.org/reference/expressions/if-expr.html#if-let-expressions)；改用 `let else` 或 `if let`。 |
+| `let Ok(x) = f();` | 但若其它分支不可居住，例如 `f` 返回 `Result<T, !>`，则可工作。`'1.82+` |
+| `let Ok(x) = f() else {};` | 尝试赋值[RFC](https://rust-lang.github.io/rfcs/3137-let-else.html)；若不匹配则执行 `else {}`，其中必须 `break` / `return` / `panic!` 等。`'1.65+` 🔥 |
+| `if let Ok(x) = f() {}` | 若模式可绑定则进入分支（如某个 `enum` 变体）。语法糖。<sup>*</sup> |
+| <code>if let &hellip; && let &hellip; { }</code> | **Let 链**[REF](https://doc.rust-lang.org/reference/expressions/if-expr.html#r-expr.if.chains.bindings)，可在不嵌套的情况下使用多个绑定。`'24` |
+| `while let Ok(x) = f() {}` | 等价写法；这里持续调用 `f()`，只要模式仍可绑定就执行 `{}`。 |
+| `fn f(S { x }: S)` | 函数参数也像 `let` 一样工作；这里 `f(s)` 会把 `x` 绑定到 `s.x`。🝖 |
 
 <footnotes>
 
-<sup>*</sup> 展开后是 `match get() { Some(x) => {}, _ => () }`.
+<sup>*</sup> 展开为 `match f() { Ok(x) => {}, _ => () }`。
 
 </footnotes>
 
-`match` 表达式的模式匹配分支. 左列的分支也可用于 `let` 表达式. 
+`match` 表达式中的匹配分支。这些分支左侧也可用于 `let`。
 
 | 匹配分支 | 说明 |
 |---------|-------------|
-|  `E::A => {}` | 匹配枚举变体 `A`. 参见**模式匹配**.[BK](https://doc.rust-lang.org/book/ch06-02-match.html) [EX](https://doc.rust-lang.org/rust-by-example/flow_control/match.html) [REF](https://doc.rust-lang.org/reference/expressions/match-expr.html) |
-|  `E::B ( .. ) => {}` | 匹配枚举元组变体 `B`, 通配所有下标. |
-|  `E::C { .. } => {}` | 匹配枚举结构变体 `C`, 通配所有字段. |
-|  `S { x: 0, y: 1 } => {}` | 匹配含特定值的结构体(仅匹配 `s` 的 `s.x` 为 `0` 且 `s.y` 为 `1` 的情况). |
-|  `S { x: a, y: b } => {}` | 匹配为**任意**(!)值的该类型结构体, 并绑定 `s.x` 到 `a`, 绑定 `s.y` 到 `b`. |
-|   `S { x, y } => {}` | 同上, 但将 `s.x` 和 `s.y` 分别简写地绑定为 `x` 和 `y`. |
-|  `S { .. } => {}` | 匹配任意值的该类型结构体. |
-|  `D => {}` | 匹配枚举变体 `E::D`.仅当 `D` 已由 `use` 引入. |
-|  `D => {}` | 匹配任意事物并绑定到 `D`.如果 `D` 没被 `use` 进来, 怕不是个 `E::D` 的假朋友.🛑 |
-|  `_ => {}` | 通配所有, 或者所有剩下的. |
-| <code>0 &vert; 1 => {}</code> | 可选模式列表, **或模式**. [RFC](https://rust-lang.github.io/rfcs/2535-or-patterns.html)|
-|   <code>E::A &vert; E::Z </code> | 同上, 但为枚举变体. |
-|   <code>E::C {x} &vert; E::D {x}</code> | 同上, 但如果所有变体都有 `x` 则绑定. |
-|   <code>Some(A &vert; B)</code> | 同上, 可以嵌套匹配. |
-|  `(a, 0) => {}` | 匹配元组, 绑定第一个值到 `a`, 要求第二个是 `0`. |
-|  `[a, 0] => {}` | **切片模式**[REF](https://doc.rust-lang.org/reference/patterns.html?highlight=slice,pattern#slice-patterns) [🔗](https://doc.rust-lang.org/edition-guide/rust-2018/slice-patterns.html). 绑定第一个值到 `a`, 要求第二个是 `0`. |
-|   `[1, ..] => {}` | 匹配以 `1` 开始的数组, 剩下的不管. **子切片模式**.? |
-|   `[1, .., 5] => {}` | 匹配以 `1` 开始以 `5` 结束的数组. |
-|   `[1, x @ .., 5] => {}` | 同上, 但将 `x` 绑定到中间部分的切片上(见匹配绑定)  |
-|   `[a, x @ .., b] => {}` | 同上, 但可以指定任意上下界 `a`, `b`.  |
-|  `1 .. 3 => {}` | **范围模式**, [BK](https://doc.rust-lang.org/book/ch18-03-pattern-syntax.html#matching-ranges-of-values-with-) [REF](https://doc.rust-lang.org/reference/patterns.html#range-patterns) 这里匹配 `1` 和 `2`. 尚不稳定. 🚧 |
-|   `1 ..= 3 => {}` | 闭区间范围模式, 匹配 `1`, `2` 和 `3`. |
-|   `1 .. => {}` | 开区间范围模式, 匹配 `1` 和更大的数字.  |
-| `x @ 1..=5 => {}` | 绑定匹配到 `x`, 即**模式绑定**[BK](https://doc.rust-lang.org/book/ch18-03-pattern-syntax.html#-bindings) [EX](https://doc.rust-lang.org/rust-by-example/flow_control/match/binding.html#binding) [REF](https://doc.rust-lang.org/reference/patterns.html#identifier-patterns). 这里 `x` 可以是 `1`, `2` 直到 `5`.  |
-|  `Err(x @ Error {..}) => {}` | 嵌套使用, 这里 `x` 绑定到 `Error`, 下常跟 `if`. |
-| `S { x } if x > 10 => {}`  | 模式**匹配条件**[BK](https://doc.rust-lang.org/book/ch18-03-pattern-syntax.html#extra-conditionals-with-match-guards) [EX](https://doc.rust-lang.org/rust-by-example/flow_control/match/guard.html#guards) [REF](https://doc.rust-lang.org/reference/expressions/match-expr.html#match-guards). 该匹配会要求这个条件也为真. |
+| `E::A => {}` | 匹配枚举变体 `A`；参见**模式匹配**。[BK](https://doc.rust-lang.org/book/ch06-02-match.html) [EX](https://doc.rust-lang.org/rust-by-example/flow_control/match.html) [REF](https://doc.rust-lang.org/reference/expressions/match-expr.html) |
+| `E::B ( .. ) => {}` | 匹配枚举元组变体 `B`，忽略任意下标。 |
+| `E::C { .. } => {}` | 匹配枚举结构体变体 `C`，忽略任意字段。 |
+| `S { x: 0, y: 1 } => {}` | 匹配含特定值的结构体（仅当 `s.x` 为 `0` 且 `s.y` 为 `1`）。 |
+| `S { x: a, y: b } => {}` | 匹配**任意**(!)字段值，并把 `s.x` 绑定到 `a`、`s.y` 绑定到 `b`。 |
+| `S { x, y } => {}` | 同上，简写为把 `s.x`、`s.y` 分别绑定为 `x`、`y`。 |
+| `S { .. } => {}` | 匹配该类型结构体的任意值。 |
+| `D => {}` | 若 `D` 已由 `use` 引入，则匹配枚举变体 `E::D`。 |
+| `D => {}` | 匹配任意值并绑定到 `D`；若 `D` 未 `use`，可能是 `E::D` 的假朋友。🛑 |
+| `_ => {}` | 真正的通配，匹配任意 /「其余全部」。 |
+| <code>0 &vert; 1 => {}</code> | 模式备选，即**或模式**。[RFC](https://rust-lang.github.io/rfcs/2535-or-patterns.html) |
+| <code>E::A &vert; E::Z => {}</code> | 同上，作用于枚举变体。 |
+| <code>E::C {x} &vert; E::D {x} => {}</code> | 同上；若各变体都有 `x` 则可绑定 `x`。 |
+| <code>Some(A &vert; B) => {}</code> | 同上，也可在深层嵌套处匹配备选。 |
+| <code>&vert;x&vert; x => {}</code> | **病态或模式**[↑](#pattern-matching)🛑：前导 <code>&vert;</code> 被忽略，实际就是 <code>x &vert; x</code>，因而等于 <code>x</code>。🝖 |
+| <code>&vert;x => {}</code> | 类似，前导 <code>&vert;</code> 被忽略。🝖 |
+| `(a, 0) => {}` | 匹配元组：第一个为任意值绑定到 `a`，第二个必须为 `0`。 |
+| `[a, 0] => {}` | **切片模式**[REF](https://doc.rust-lang.org/reference/patterns.html#slice-patterns) [🔗](https://doc.rust-lang.org/edition-guide/rust-2018/slice-patterns.html)：第一个绑定到 `a`，第二个必须为 `0`。 |
+| `[1, ..] => {}` | 匹配以 `1` 开头的数组，其余任意；**子切片模式**。[REF](https://doc.rust-lang.org/reference/patterns.html#rest-patterns) [RFC](https://rust-lang.github.io/rfcs/2359-subslice-pattern-syntax.html) |
+| `[1, .., 5] => {}` | 匹配以 `1` 开头、以 `5` 结尾的数组。 |
+| `[1, x @ .., 5] => {}` | 同上，并把中间切片绑定到 `x`（见模式绑定）。 |
+| `[a, x @ .., b] => {}` | 同上，但首尾可为任意值，并分别绑定为 `a`、`b`。 |
+| `1 .. 3 => {}` | **范围模式**[BK](https://doc.rust-lang.org/book/ch18-03-pattern-syntax.html#matching-ranges-of-values-with-) [REF](https://doc.rust-lang.org/reference/patterns.html#range-patterns)，此处匹配 `1` 与 `2`；部分尚不稳定。🚧 |
+| `1 ..= 3 => {}` | 闭区间范围模式，匹配 `1`、`2`、`3`。 |
+| `1 .. => {}` | 开区间范围模式，匹配 `1` 及更大的数。 |
+| `x @ 1..=5 => {}` | 将匹配结果绑定到 `x`，即**模式绑定**[BK](https://doc.rust-lang.org/book/ch18-03-pattern-syntax.html#-bindings) [EX](https://doc.rust-lang.org/rust-by-example/flow_control/match/binding.html#binding) [REF](https://doc.rust-lang.org/reference/patterns.html#identifier-patterns)；此处 `x` 为 `1`…`5`。 |
+| `Err(x @ Error {..}) => {}` | 也可嵌套；这里 `x` 绑定到 `Error`，尤其常与下方 `if` 合用。 |
+| `S { x } if x > 10 => {}` | 模式**匹配守卫**[BK](https://doc.rust-lang.org/book/ch18-03-pattern-syntax.html#extra-conditionals-with-match-guards) [EX](https://doc.rust-lang.org/rust-by-example/flow_control/match/guard.html#guards) [REF](https://doc.rust-lang.org/reference/expressions/match-expr.html#match-guards)；条件也须为真才能匹配。 |
 
 ### 泛型 & 约束 {#generics-constraints}
 
@@ -427,15 +442,25 @@ fn main() {
 |  `S<T = u8>` | 类型默认参数. 如 `f(x: S) {}` 中参数 `T` 为 `u8`. |
 | `S<'_>` | 推断**匿名生命周期**. 让编译器 *“想办法”* 明确生命周期.  |
 | `S<_>` | 推断**匿名类型**. 比如 `let x: Vec<_> = iter.collect()`  |
-| `S::<T>` | **Turbofish**[STD](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.collect) 消歧义类型调用. 如 `f::<u32>()` |
+| `S::<T>` | **Turbofish**[STD](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.collect) 调用点类型消歧，例如 `f::<u32>()`。 |
+| `E::<T>::A` | 泛型枚举可在类型 `E` 上给出类型参数…… |
+| `E::A::<T>` | ……或在变体（此处 `A`）上给出；因而可写 `Ok::<R, E>(r)` 等。 |
 | `trait T<X> {}`  | `X` 的 trait 泛型.可以有多个 `impl T for S`(每个 `X` 一个). |
-| `trait T { type X; }`  | 定义**关联类型**[BK](https://doc.rust-lang.org/book/ch19-03-advanced-traits.html#specifying-placeholder-types-in-trait-definitions-with-associated-types) [REF](https://doc.rust-lang.org/reference/items/associated-items.html#associated-types) `X`. 仅可有一个 `impl T for S` . |
-|  `type X = R;`  | 设置关联类型. 仅在 `impl T for S { type X = R; }` 内. |
+| `trait T { type X; }` | 定义**关联类型**[BK](https://doc.rust-lang.org/book/ch19-03-advanced-traits.html#specifying-placeholder-types-in-trait-definitions-with-associated-types) [REF](https://doc.rust-lang.org/reference/items/associated-items.html#associated-types) `X`。只能有一个 `impl T for S`。 |
+| `trait T { type X<G>; }` | 定义**泛型关联类型**（GAT）[RFC](https://rust-lang.github.io/rfcs/1598-generic_associated_types.html)，`X` 可以是泛型如 `Vec<>`。 |
+| `trait T { type X<'a>; }` | 定义对生命周期泛型的 GAT。 |
+| `type X = R;` | 在 `impl T for S { type X = R; }` 中设置关联类型。 |
+| `type X<G> = R<G>;` | GAT 同理，例如 `impl T for S { type X<G> = Vec<G>; }`。 |
 | `impl<T> S<T> {}`  | 实现 `S<T>` 任意类型 `T` 的功能. |
 | `impl S<T> {}`  | 实现确定 `S<T>` 的功能. 如 `S<u32>`. |
-| `fn f() -> impl T`  | **存在类型** [BK](https://doc.rust-lang.org/book/ch10-02-traits.html#returning-types-that-implement-traits)。返回某个对调用者未知、但实现了 `T` 的 `S`。 |
+| `fn f() -> impl T`  | **存在类型**（又称 [RPIT](https://santiagopastorino.com/2022/10/20/what-rpits-rpitits-and-afits-and-their-relationship/)）[BK](https://doc.rust-lang.org/book/ch10-02-traits.html#returning-types-that-implement-traits)。返回某个对调用者未知、但实现了 `T` 的 `S`。 |
+| `-> impl T + 'a` | 表明隐藏类型至少活得和 `'a` 一样长。[RFC](https://rust-lang.github.io/rfcs/3498-lifetime-capture-rules-2024.html#capturing-lifetimes) |
+| `-> impl T + use<'a>` | 改为表明隐藏类型捕获了生命周期 `'a`，即 **use 约束**。[🔗](https://blog.rust-lang.org/2024/09/05/impl-trait-capture-rules.html) ? |
+| `-> impl T + use<'a, R>` | 还表明隐藏类型可能捕获了来自 `R` 的生命周期。 |
+| `-> S<impl T>` | `impl T` 也可出现在类型参数内部。 |
 | `fn f(x: &impl T)`  | Trait 约束, 「**impl trait**」[BK](https://doc.rust-lang.org/book/ch10-02-traits.html#trait-bound-syntax).和 `fn f<S:T>(x: &S)` 有点类似. |
-| `fn f(x: &dyn T)`  | **动态分发**标记[BK](https://doc.rust-lang.org/book/ch17-02-trait-objects.html#using-trait-objects-that-allow-for-values-of-different-types) [REF](https://doc.rust-lang.org/reference/types.html#trait-objects). `f` 不再单态. |
+| `fn f(x: &dyn T)` | **动态分发**标记[BK](https://doc.rust-lang.org/book/ch17-02-trait-objects.html#using-trait-objects-that-allow-for-values-of-different-types) [REF](https://doc.rust-lang.org/reference/types.html#trait-objects)。`f` 不会按 `x` 单态化。 |
+| `fn f<X: T>(x: X)` | 对 `X` 泛型的函数；会对每个 `X` 做实例化（[单态化](https://en.wikipedia.org/wiki/Monomorphization)）。 |
 | `fn f() where Self: R`  | 在 `trait T {}` 中标记 `f` 仅可由实现了 `impl R` 的类型访问. |
 |  `fn f() where Self: Sized;`  | 使用 `Sized` 可以指定 `f` 对于 `dyn T` 的 trait 对象对应的虚表. |
 |  `fn f() where Self: R {}`  | 其他 `R` 约束对带**默认方法**的情形也有用（非默认方法本来就得实现）。 |
@@ -470,21 +495,26 @@ fn main() {
 
 ### 字符串 & 字符 {#strings-chars}
 
-Rust 提供了若干种创建字符串和字符字面量的办法. 
+Rust 提供了若干种创建文本值的方式。
 
 | 示例 | 说明 |
 |--------|-------------|
-| `"..."` | UTF-8 **字符串字面量**[REF](https://doc.rust-lang.org/reference/tokens.html#string-literals)<sup>, 1</sup>.会将 `\n` 等看作换行 `0xA` 等. |
-| `r"..."` | UTF-8 **裸字符串字面量**[REF](https://doc.rust-lang.org/reference/tokens.html#raw-string-literals)<sup>, 1</sup>. 不会处理 `\n` 等. |
-| `r#"..."#` 等 | UTF-8 裸字符串字面量. 但可以包含 `"`. |
-| `b"..."` | **字节串字面量**[REF](https://doc.rust-lang.org/reference/tokens.html#byte-and-byte-string-literals)<sup>, 1</sup>, 由 ASCII `[u8]` 组成. 并不是字 *符* 串. |
-| `br"..."`, `br#"..."#` 等 | 裸字节串字面量, ASCII `[u8]`. 说明见上. |
-| `'🦀'` | **字符字面量**[REF](https://doc.rust-lang.org/reference/tokens.html#character-and-string-literals), 固定的 4 字节 Unicode '**字符**'.[STD](https://doc.rust-lang.org/std/primitive.char.html) |
-| `b'x'` | ASCII **字节字面量**.[REF](https://doc.rust-lang.org/reference/tokens.html#byte-literals) |
+| `"..."` | **字符串字面量**[REF](https://doc.rust-lang.org/reference/tokens.html#string-literals)<sup>, 1</sup>：UTF-8 的 `&'static str`[STD](https://doc.rust-lang.org/std/primitive.str.html)，支持下列转义： |
+| `"\n\r\t\0\\"` | **常见转义**[REF](https://doc.rust-lang.org/reference/tokens.html#ascii-escapes)，例如 `"\n"` 变成换行。 |
+| `"\x36"` | **ASCII 转义**[REF](https://doc.rust-lang.org/reference/tokens.html#ascii-escapes)，最大到 `7f`；例如 `"\x36"` 变成 `6`。 |
+| `"\u{7fff}"` | **Unicode 转义**[REF](https://doc.rust-lang.org/reference/tokens.html#unicode-escapes)，最多 6 位十六进制；例如 `"\u{7fff}"` 变成 `翿`。 |
+| `r"..."` | **裸字符串字面量**[REF](https://doc.rust-lang.org/reference/tokens.html#raw-string-literals)<sup>, 1</sup>：UTF-8，但不解释上述转义。 |
+| `r#"..."#` | 裸字符串字面量（UTF-8），还可包含 `"`；`#` 的数量可变。 |
+| `c"..."` | **C 字符串字面量**[REF](https://doc.rust-lang.org/reference/tokens.html#c-string-literals)：以 NUL 结尾的 `&'static CStr`[STD](https://doc.rust-lang.org/std/ffi/struct.CStr.html)，用于 FFI。`'1.77+` |
+| `cr"..."` , `cr#"..."#` | 裸 C 字符串字面量，组合规则同上。 |
+| `b"..."` | **字节串字面量**[REF](https://doc.rust-lang.org/reference/tokens.html#byte-and-byte-string-literals)<sup>, 1</sup>：构造仅含 ASCII 的 `&'static [u8; N]`。 |
+| `br"..."`，`br#"..."#` | 裸字节串字面量，组合规则同上。 |
+| `b'x'` | ASCII **字节字面量**[REF](https://doc.rust-lang.org/reference/tokens.html#byte-literals)，单个 `u8`。 |
+| `'🦀'` | **字符字面量**[REF](https://doc.rust-lang.org/reference/tokens.html#character-and-string-literals)：固定 4 字节 Unicode **`char`**[STD](https://doc.rust-lang.org/std/primitive.char.html)。 |
 
 <footnotes>
 
-<sup>1</sup> 均支持多行字符串. 但要注意 `Debug`[↓](#string-output) (例如 `dbg!(x)` 和 `println!("{x:?}")`) 会将换行符渲染成 `\n`, 而 `Display`[↓](#string-output) (例如 `println!("{x}")`) 则会输出换行.
+<sup>1</sup> 均支持多行。注意 `Debug`[↓](#string-output)（如 `dbg!(x)`、`println!("{x:?}")`）可能把换行渲染成 `\n`，而 `Display`[↓](#string-output)（如 `println!("{x}")`）会正常换行输出。
 
 </footnotes>
 
@@ -509,19 +539,25 @@ Rust 提供了若干种创建字符串和字符字面量的办法.
 
 ### 杂项 {#miscellaneous}
 
-这些小技巧不属于其他分类但最好了解一下. 
+这些符号不好归入其它分类，但最好了解。
 
 | 示例 | 说明 |
 |---------|-------------|
-| `!` | 永远为空的 **never 类型**.🚧 [BK](https://doc.rust-lang.org/book/ch19-04-advanced-types.html#the-never-type-that-never-returns) [EX](https://doc.rust-lang.org/rust-by-example/fn/diverging.html#diverging-functions) [STD](https://doc.rust-lang.org/std/primitive.never.html) [REF](https://doc.rust-lang.org/reference/types.html#never-type) |
-| `_` | 无名变量绑定.如 <code>&vert;x, _&vert; {}</code>.|
-|  `let _ = x;`  | 匿名赋值等于无操作 (no-op), **不会**🛑将 `x` 移出当前作用域! |
-| `_x` | 变量绑定, 明确标记该变量未使用. |
-| `1_234_567` | 为了易读加入的数字分隔符. |
-| `1_u8` | **数字字面量**的类型说明符.[EX](https://doc.rust-lang.org/rust-by-example/types/literals.html#literals) [REF](https://doc.rust-lang.org/reference/tokens.html#number-literals) (又见 `i8`, `u16`等). |
-| `0xBEEF`, `0o777`, `0b1001`  | 十六进制(`0x`), 八进制(`0o`)和二进制(`0b`) 整型字面量. |
-| `r#foo` | **原始标识符** [BK](https://doc.rust-lang.org/book/appendix-01-keywords.html#raw-identifiers) [EX](https://doc.rust-lang.org/rust-by-example/compatibility/raw_identifiers.html#raw-identifiers). 用于版本兼容. 🝖 |
-| `x;` | **语句**[REF](https://doc.rust-lang.org/reference/statements.html)终止符. 见**表达式**[EX](https://doc.rust-lang.org/rust-by-example/expression.html) [REF](https://doc.rust-lang.org/reference/expressions.html). |
+| `!` | 永远为空的 **never 类型**。[BK](https://doc.rust-lang.org/book/ch19-04-advanced-types.html#the-never-type-that-never-returns) [EX](https://doc.rust-lang.org/rust-by-example/fn/diverging.html#diverging-functions) [STD](https://doc.rust-lang.org/std/primitive.never.html) [REF](https://doc.rust-lang.org/reference/types.html#never-type) |
+| `fn f() -> ! {}` | 永不返回的函数；可与任意类型兼容，例如 `let x: u8 = f();`。 |
+| `fn f() -> Result<(), !> {}` | 必须返回 `Result`，但表明永远不会 `Err`。🚧 |
+| `fn f(x: !) {}` | 函数存在，但永远无法被调用。不太实用。🝖 🚧 |
+| `_` | 无名**通配**绑定[REF](https://doc.rust-lang.org/reference/patterns.html#wildcard-pattern)，例如 <code>&vert;x, _&vert; {}</code>。 |
+| `let _ = x;` | 匿名赋值是空操作，**不会**🛑 移出 `x`，也不延长作用域！ |
+| `_ = x;` | 也可不写 `let` 就赋值给 `_`，例如 `_ = ignore_rval();`。🔥 |
+| `_x` | 变量绑定，不会触发「未使用变量」警告。 |
+| `1_234_567` | 数字分隔符，便于阅读。 |
+| `1_u8` | **数字字面量**的类型后缀[EX](https://doc.rust-lang.org/rust-by-example/types/literals.html#literals) [REF](https://doc.rust-lang.org/reference/tokens.html#number-literals)（还有 `i8`、`u16` 等）。 |
+| `0xBEEF`, `0o777`, `0b1001` | 十六进制（`0x`）、八进制（`0o`）、二进制（`0b`）整型字面量。 |
+| `12.3e4`, `1E-8` | 浮点字面量的**科学计数法**。[REF](https://doc.rust-lang.org/reference/tokens.html#floating-point-literals) |
+| `r#foo` | **原始标识符**[BK](https://doc.rust-lang.org/book/appendix-01-keywords.html#raw-identifiers) [EX](https://doc.rust-lang.org/rust-by-example/compatibility/raw_identifiers.html#raw-identifiers)，用于 edition 兼容。🝖 |
+| `'r#a` | **原始生命周期标签**，用于 edition 兼容。? 🝖 |
+| `x;` | **语句**[REF](https://doc.rust-lang.org/reference/statements.html)终止符；参见**表达式**[EX](https://doc.rust-lang.org/rust-by-example/expression.html) [REF](https://doc.rust-lang.org/reference/expressions.html)。 |
 
 ### 通用运算符 {#common-operators}
 
