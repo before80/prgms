@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第6章 项 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/ref/items/</link><description>Recent content in 第6章 项 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/ref/items/index.xml" rel="self" type="application/rss+xml"/><item><title>01-模块</title><link>https://before80.github.io/prgms/Rust/ref/items/01-modules/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/01-modules/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/modules.html"&gt;https://doc.rust-lang.org/reference/items/modules.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.mod]&lt;/p&gt;
+&lt;h1 id="模块"&gt;模块&lt;/h1&gt;
+&lt;p&gt;r[items.mod.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;Module -&amp;gt;
+ `unsafe`? `mod` IDENTIFIER `;`
+ | `unsafe`? `mod` IDENTIFIER `{`
+ InnerAttribute*
+ Item*
+ `}`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.mod.intro]
+模块是零个或多个&lt;a href="../items.md"&gt;项&lt;/a&gt;的容器。&lt;/p&gt;
+&lt;p&gt;r[items.mod.def]
+&lt;em&gt;模块项&lt;/em&gt;是一个用花括号包围、具名、并以关键字 &lt;code&gt;mod&lt;/code&gt; 为前缀的模块。模块项会在构成 crate 的模块树中引入一个新的具名模块。&lt;/p&gt;</description></item><item><title>02-Extern crate</title><link>https://before80.github.io/prgms/Rust/ref/items/02-extern-crates/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/02-extern-crates/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/extern-crates.html"&gt;https://doc.rust-lang.org/reference/items/extern-crates.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.extern-crate]&lt;/p&gt;
+&lt;h1 id="extern-crate"&gt;Extern crate&lt;/h1&gt;
+&lt;p&gt;r[items.extern-crate.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;ExternCrate -&amp;gt; `extern` `crate` CrateRef AsClause? `;`
+
+CrateRef -&amp;gt; IDENTIFIER | `self`
+
+AsClause -&amp;gt; `as` ( IDENTIFIER | `_` )
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.extern-crate.intro]
+&lt;em&gt;&lt;code&gt;extern crate&lt;/code&gt; 声明&lt;/em&gt;指定对外部 crate 的依赖。&lt;/p&gt;
+&lt;p&gt;r[items.extern-crate.namespace]
+随后，该外部 crate 以给定的&lt;a href="../identifiers.md"&gt;标识符&lt;/a&gt;绑定到声明所在作用域的&lt;a href="../names/namespaces.md"&gt;类型命名空间&lt;/a&gt;中。&lt;/p&gt;
+&lt;p&gt;r[items.extern-crate.extern-prelude]
+此外，若 &lt;code&gt;extern crate&lt;/code&gt; 出现在 crate 根中，则 crate 名也会加入&lt;a href="../names/preludes.md#extern-prelude"&gt;extern prelude&lt;/a&gt;，从而在所有模块中自动进入作用域。&lt;/p&gt;</description></item><item><title>03-use 声明</title><link>https://before80.github.io/prgms/Rust/ref/items/03-use-declarations/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/03-use-declarations/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/use-declarations.html"&gt;https://doc.rust-lang.org/reference/items/use-declarations.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.use]&lt;/p&gt;
+&lt;h1 id="use-声明"&gt;use 声明&lt;/h1&gt;
+&lt;p&gt;r[items.use.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;UseDeclaration -&amp;gt; `use` UseTree `;`
+
+UseTree -&amp;gt;
+ (SimplePath? `::`)? `*`
+ | (SimplePath? `::`)? `{` (UseTree ( `,` UseTree )* `,`?)? `}`
+ | SimplePath ( `as` ( IDENTIFIER | `_` ) )?
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.use.intro]
+&lt;em&gt;use 声明&lt;/em&gt;创建一或多个与某个其他&lt;a href="../paths.md"&gt;路径&lt;/a&gt;同义的局部名称绑定。通常用 &lt;code&gt;use&lt;/code&gt; 声明来缩短引用模块项所需的路径。这些声明可以出现在&lt;a href="modules.md"&gt;模块&lt;/a&gt;和&lt;a href="../expressions/block-expr.md"&gt;块&lt;/a&gt;中，通常位于顶部。&lt;code&gt;use&lt;/code&gt; 声明有时也称为&lt;em&gt;导入&lt;/em&gt;；若它是公开的，则称为&lt;em&gt;再导出&lt;/em&gt;。&lt;/p&gt;</description></item><item><title>04-函数</title><link>https://before80.github.io/prgms/Rust/ref/items/04-functions/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/04-functions/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/functions.html"&gt;https://doc.rust-lang.org/reference/items/functions.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.fn]&lt;/p&gt;
+&lt;h1 id="函数"&gt;函数&lt;/h1&gt;
+&lt;p&gt;r[items.fn.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;Function -&amp;gt;
+ FunctionQualifiers `fn` IDENTIFIER GenericParams?
+ `(` FunctionParameters? `)`
+ FunctionReturnType? WhereClause?
+ ( BlockExpression | `;` )
+
+FunctionQualifiers -&amp;gt; `const`? `async`?[^async-edition] ItemSafety?[^extern-qualifiers] (`extern` Abi?)?
+
+ItemSafety -&amp;gt; `safe`[^extern-safe] | `unsafe`
+
+Abi -&amp;gt; STRING_LITERAL | RAW_STRING_LITERAL
+
+FunctionParameters -&amp;gt;
+ SelfParam `,`?
+ | (SelfParam `,`)? FunctionParam (`,` FunctionParam)* `,`?
+
+SelfParam -&amp;gt; OuterAttribute* ( ShorthandSelf | TypedSelf )
+
+ShorthandSelf -&amp;gt; (`&amp;amp;` | `&amp;amp;` Lifetime)? `mut`? `self`
+
+TypedSelf -&amp;gt; `mut`? `self` `:` Type
+
+FunctionParam -&amp;gt; OuterAttribute* ( FunctionParamPattern | `...` | Type[^fn-param-2015] )
+
+FunctionParamPattern -&amp;gt; PatternNoTopAlt `:` ( Type | `...` )
+
+FunctionReturnType -&amp;gt; `-&amp;gt;` Type
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.fn.intro]
+&lt;em&gt;函数&lt;/em&gt;由一个&lt;a href="../expressions/block-expr.md"&gt;块&lt;/a&gt;（即函数的&lt;em&gt;函数体&lt;/em&gt;）、一个名称、一组参数以及一个输出类型组成。除名称外，这些都是可选的。&lt;/p&gt;</description></item><item><title>05-类型别名</title><link>https://before80.github.io/prgms/Rust/ref/items/05-type-aliases/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/05-type-aliases/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/type-aliases.html"&gt;https://doc.rust-lang.org/reference/items/type-aliases.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.type]&lt;/p&gt;
+&lt;h1 id="类型别名"&gt;类型别名&lt;/h1&gt;
+&lt;p&gt;r[items.type.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;TypeAlias -&amp;gt;
+ `type` IDENTIFIER GenericParams? ( `:` Bounds? )?
+ WhereClause?
+ ( `=` Type WhereClause?)? `;`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.type.intro]
+&lt;em&gt;类型别名&lt;/em&gt;在其所在模块或块的&lt;a href="../names/namespaces.md"&gt;类型命名空间&lt;/a&gt;中为已有&lt;a href="../types.md"&gt;类型&lt;/a&gt;定义一个新名称。类型别名用关键字 &lt;code&gt;type&lt;/code&gt; 声明。每个值都有单一、具体的类型，但可以实现若干不同的 trait，并可能与若干不同的类型约束兼容。&lt;/p&gt;</description></item><item><title>06-结构体</title><link>https://before80.github.io/prgms/Rust/ref/items/06-structs/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/06-structs/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/structs.html"&gt;https://doc.rust-lang.org/reference/items/structs.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.struct]&lt;/p&gt;
+&lt;h1 id="结构体"&gt;结构体&lt;/h1&gt;
+&lt;p&gt;r[items.struct.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;Struct -&amp;gt;
+ StructStruct
+ | TupleStruct
+
+StructStruct -&amp;gt;
+ `struct` IDENTIFIER GenericParams? WhereClause? ( `{` StructFields? `}` | `;` )
+
+TupleStruct -&amp;gt;
+ `struct` IDENTIFIER GenericParams? `(` TupleFields? `)` WhereClause? `;`
+
+StructFields -&amp;gt; StructField (`,` StructField)* `,`?
+
+StructField -&amp;gt; OuterAttribute* Visibility? IDENTIFIER `:` Type
+
+TupleFields -&amp;gt; TupleField (`,` TupleField)* `,`?
+
+TupleField -&amp;gt; OuterAttribute* Visibility? Type
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.struct.intro]
+&lt;em&gt;结构体&lt;/em&gt;是用关键字 &lt;code&gt;struct&lt;/code&gt; 定义的名义&lt;a href="../types/struct.md"&gt;结构体类型&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>07-枚举</title><link>https://before80.github.io/prgms/Rust/ref/items/07-enumerations/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/07-enumerations/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/enumerations.html"&gt;https://doc.rust-lang.org/reference/items/enumerations.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.enum]&lt;/p&gt;
+&lt;h1 id="枚举"&gt;枚举&lt;/h1&gt;
+&lt;p&gt;r[items.enum.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;Enumeration -&amp;gt;
+ `enum` IDENTIFIER GenericParams? WhereClause? `{` EnumVariants? `}`
+
+EnumVariants -&amp;gt; EnumVariant ( `,` EnumVariant )* `,`?
+
+EnumVariant -&amp;gt;
+ OuterAttribute* Visibility?
+ IDENTIFIER ( EnumVariantTuple | EnumVariantStruct )? EnumVariantDiscriminant?
+
+EnumVariantTuple -&amp;gt; `(` TupleFields? `)`
+
+EnumVariantStruct -&amp;gt; `{` StructFields? `}`
+
+EnumVariantDiscriminant -&amp;gt; `=` Expression
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.enum.intro]
+&lt;em&gt;枚举&lt;/em&gt;（enumeration），也称 &lt;em&gt;enum&lt;/em&gt;，同时定义一个名义&lt;a href="../types/enum.md"&gt;枚举类型&lt;/a&gt;以及一组&lt;em&gt;构造器&lt;/em&gt;，这些构造器可用于创建或模式匹配相应枚举类型的值。&lt;/p&gt;</description></item><item><title>08-联合体</title><link>https://before80.github.io/prgms/Rust/ref/items/08-unions/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/08-unions/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/unions.html"&gt;https://doc.rust-lang.org/reference/items/unions.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.union]&lt;/p&gt;
+&lt;h1 id="联合体"&gt;联合体&lt;/h1&gt;
+&lt;p&gt;r[items.union.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;Union -&amp;gt;
+ `union` IDENTIFIER GenericParams? WhereClause? `{` StructFields? `}`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.union.intro]
+联合体声明使用与结构体声明相同的语法，只是用 &lt;code&gt;union&lt;/code&gt; 代替 &lt;code&gt;struct&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;r[items.union.namespace]
+联合体声明在其所在模块或块的&lt;a href="../names/namespaces.md"&gt;类型命名空间&lt;/a&gt;中定义给定名称。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[repr(C)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;union&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;MyUnion&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;f1&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;u32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;f2&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;f32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;r[items.union.common-storage]
+联合体的关键性质是其所有字段共享同一存储。因此，写入联合体的一个字段可以覆盖其他字段，联合体的大小由其最大字段的大小决定。&lt;/p&gt;</description></item><item><title>09-常量项</title><link>https://before80.github.io/prgms/Rust/ref/items/09-constant-items/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/09-constant-items/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/constant-items.html"&gt;https://doc.rust-lang.org/reference/items/constant-items.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.const]&lt;/p&gt;
+&lt;h1 id="常量项"&gt;常量项&lt;/h1&gt;
+&lt;p&gt;r[items.const.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;ConstantItem -&amp;gt;
+ `const` ( IDENTIFIER | `_` ) `:` Type ( `=` Expression )? `;`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.const.intro]
+&lt;em&gt;常量项&lt;/em&gt;是一个可选具名的*&lt;a href="../const_eval.md#constant-expressions"&gt;常量值&lt;/a&gt;*，它不与程序中的特定内存位置关联。&lt;/p&gt;
+&lt;p&gt;r[items.const.behavior]
+常量本质上会在使用处内联，意味着使用时会直接复制到相关上下文中。这包括使用来自外部 crate 的常量，以及非 &lt;a href="../special-types-and-traits.md#copy"&gt;&lt;code&gt;Copy&lt;/code&gt;&lt;/a&gt; 类型。对同一常量的引用不一定保证指向同一内存地址。&lt;/p&gt;</description></item><item><title>10-静态项</title><link>https://before80.github.io/prgms/Rust/ref/items/10-static-items/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/10-static-items/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/static-items.html"&gt;https://doc.rust-lang.org/reference/items/static-items.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.static]&lt;/p&gt;
+&lt;h1 id="静态项"&gt;静态项&lt;/h1&gt;
+&lt;p&gt;r[items.static.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;StaticItem -&amp;gt;
+ ItemSafety?[^extern-safety] `static` `mut`? IDENTIFIER `:` Type ( `=` Expression )? `;`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.static.intro]
+&lt;em&gt;静态项&lt;/em&gt;类似于&lt;a href="constant-items.md"&gt;常量&lt;/a&gt;，不同之处在于它表示程序中的一块分配，该分配用初始化表达式进行初始化。所有指向该静态项的引用和原始指针都指向同一块分配。&lt;/p&gt;
+&lt;p&gt;r[items.static.lifetime]
+静态项具有 &lt;code&gt;static&lt;/code&gt; 生命周期，它长于 Rust 程序中的所有其他生命周期。静态项在程序结束时不会调用 &lt;a href="../destructors.md"&gt;&lt;code&gt;drop&lt;/code&gt;&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>11-Trait</title><link>https://before80.github.io/prgms/Rust/ref/items/11-traits/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/11-traits/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/traits.html"&gt;https://doc.rust-lang.org/reference/items/traits.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.traits]&lt;/p&gt;
+&lt;h1 id="trait"&gt;Trait&lt;/h1&gt;
+&lt;p&gt;r[items.traits.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;Trait -&amp;gt;
+ `unsafe`? `trait` IDENTIFIER GenericParams? ( `:` Bounds? )? WhereClause?
+ `{`
+ InnerAttribute*
+ AssociatedItem*
+ `}`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.traits.intro]
+&lt;em&gt;trait&lt;/em&gt; 描述类型可以实现的抽象接口。该接口由&lt;a href="associated-items.md"&gt;关联项&lt;/a&gt;组成，关联项有三种：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="associated-items.md#associated-functions-and-methods"&gt;函数&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="associated-items.md#associated-types"&gt;类型&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="associated-items.md#associated-constants"&gt;常量&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;r[items.traits.namespace]
+trait 声明在其所在模块或块的&lt;a href="../names/namespaces.md"&gt;类型命名空间&lt;/a&gt;中定义一个 trait。&lt;/p&gt;</description></item><item><title>12-实现</title><link>https://before80.github.io/prgms/Rust/ref/items/12-implementations/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/12-implementations/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/implementations.html"&gt;https://doc.rust-lang.org/reference/items/implementations.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.impl]&lt;/p&gt;
+&lt;h1 id="实现"&gt;实现&lt;/h1&gt;
+&lt;p&gt;r[items.impl.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;Implementation -&amp;gt; InherentImpl | TraitImpl
+
+InherentImpl -&amp;gt;
+ `impl` GenericParams? Type WhereClause? `{`
+ InnerAttribute*
+ AssociatedItem*
+ `}`
+
+TraitImpl -&amp;gt;
+ `unsafe`? `impl` GenericParams? `!`? TypePath `for` Type
+ WhereClause?
+ `{`
+ InnerAttribute*
+ AssociatedItem*
+ `}`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.impl.intro]
+&lt;em&gt;实现&lt;/em&gt;是将项与&lt;em&gt;实现类型&lt;/em&gt;关联起来的项。实现用关键字 &lt;code&gt;impl&lt;/code&gt; 定义，并包含属于正在被实现的类型的实例或静态属于该类型的函数。&lt;/p&gt;</description></item><item><title>13-外部块</title><link>https://before80.github.io/prgms/Rust/ref/items/13-external-blocks/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/13-external-blocks/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/external-blocks.html"&gt;https://doc.rust-lang.org/reference/items/external-blocks.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.extern]&lt;/p&gt;
+&lt;h1 id="外部块"&gt;外部块&lt;/h1&gt;
+&lt;p&gt;r[items.extern.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;ExternBlock -&amp;gt;
+ `unsafe`?[^unsafe-2024] `extern` Abi? `{`
+ InnerAttribute*
+ ExternalItem*
+ `}`
+
+ExternalItem -&amp;gt;
+ OuterAttribute* (
+ MacroInvocationSemi
+ | Visibility? StaticItem
+ | Visibility? Function
+ )
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.extern.intro]
+外部块提供当前 crate 中未&lt;em&gt;定义&lt;/em&gt;的项的&lt;em&gt;声明&lt;/em&gt;，是 Rust 外部函数接口的基础。它们类似于未经检查的导入。&lt;/p&gt;</description></item><item><title>14-泛型参数</title><link>https://before80.github.io/prgms/Rust/ref/items/14-generics/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/14-generics/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/generics.html"&gt;https://doc.rust-lang.org/reference/items/generics.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.generics]&lt;/p&gt;
+&lt;h1 id="泛型参数"&gt;泛型参数&lt;/h1&gt;
+&lt;p&gt;r[items.generics.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;GenericParams -&amp;gt; `&amp;lt;` ( GenericParam (`,` GenericParam)* `,`? )? `&amp;gt;`
+
+GenericParam -&amp;gt; OuterAttribute* ( LifetimeParam | TypeParam | ConstParam )
+
+LifetimeParam -&amp;gt; Lifetime ( `:` LifetimeBounds? )?
+
+TypeParam -&amp;gt; IDENTIFIER ( `:` Bounds? )? ( `=` Type )?
+
+ConstParam -&amp;gt;
+ `const` IDENTIFIER `:` Type
+ ( `=` ( BlockExpression | IDENTIFIER | `-`?LiteralExpression ) )?
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.generics.syntax.intro]
+&lt;a href="functions.md"&gt;函数&lt;/a&gt;、&lt;a href="type-aliases.md"&gt;类型别名&lt;/a&gt;、&lt;a href="structs.md"&gt;结构体&lt;/a&gt;、&lt;a href="enumerations.md"&gt;枚举&lt;/a&gt;、&lt;a href="unions.md"&gt;联合体&lt;/a&gt;、&lt;a href="traits.md"&gt;trait&lt;/a&gt; 和&lt;a href="implementations.md"&gt;实现&lt;/a&gt;都可以由类型、常量和生命周期&lt;em&gt;参数化&lt;/em&gt;。这些参数列在尖&lt;span class="parenthetical"&gt;括号（&lt;code&gt;&amp;lt;...&amp;gt;&lt;/code&gt;）&lt;/span&gt;中，通常紧跟在项名之后、定义之前。对于没有名称的实现，它们直接出现在 &lt;code&gt;impl&lt;/code&gt; 之后。&lt;/p&gt;</description></item><item><title>15-关联项</title><link>https://before80.github.io/prgms/Rust/ref/items/15-associated-items/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/items/15-associated-items/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/items/associated-items.html"&gt;https://doc.rust-lang.org/reference/items/associated-items.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[items.associated]&lt;/p&gt;
+&lt;h1 id="关联项"&gt;关联项&lt;/h1&gt;
+&lt;p&gt;r[items.associated.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;AssociatedItem -&amp;gt;
+ OuterAttribute* (
+ MacroInvocationSemi
+ | ( Visibility? ( TypeAlias | ConstantItem | Function ) )
+ )
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[items.associated.intro]
+&lt;em&gt;关联项&lt;/em&gt;是在 &lt;a href="traits.md"&gt;trait&lt;/a&gt; 中声明或在&lt;a href="implementations.md"&gt;实现&lt;/a&gt;中定义的项。之所以这样称呼，是因为它们定义在关联类型上——即实现中的类型。&lt;/p&gt;
+&lt;p&gt;r[items.associated.kinds]
+它们是可以在模块中声明的项种类的子集。具体来说，有&lt;a href="#associated-functions-and-methods"&gt;关联函数&lt;/a&gt;（包括方法）、&lt;a href="#associated-types"&gt;关联类型&lt;/a&gt;和&lt;a href="#associated-constants"&gt;关联常量&lt;/a&gt;。&lt;/p&gt;</description></item></channel></rss>

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第9章 项目的结构和管理 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/</link><description>Recent content in 第9章 项目的结构和管理 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/tourOfRust/project-structure/index.xml" rel="self" type="application/rss+xml"/><item><title>01-模块</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/01-modules/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/01-modules/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/106_zh-cn.html"&gt;https://tourofrust.com/106_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="模块"&gt;模块&lt;/h1&gt;
+&lt;p&gt;每个 Rust 程序或者库都叫 &lt;em&gt;crate&lt;/em&gt;。&lt;/p&gt;
+&lt;p&gt;每个 crate 都是由&lt;em&gt;模块&lt;/em&gt;的层次结构组成。&lt;/p&gt;
+&lt;p&gt;每个 crate 都有一个根模块。&lt;/p&gt;
+&lt;p&gt;模块里面可以有全局变量、全局函数、全局结构体、全局 Trait 甚至是全局模块！&lt;/p&gt;</description></item><item><title>02-编写程序</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/02-writing-a-program/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/02-writing-a-program/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/107_zh-cn.html"&gt;https://tourofrust.com/107_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="编写程序"&gt;编写程序&lt;/h1&gt;
+&lt;p&gt;应用程序的根模块需要在一个叫 &lt;code&gt;main.rs&lt;/code&gt; 的文件里面。&lt;/p&gt;</description></item><item><title>03-编写库</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/03-writing-a-library/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/03-writing-a-library/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/108_zh-cn.html"&gt;https://tourofrust.com/108_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="编写库"&gt;编写库&lt;/h1&gt;
+&lt;p&gt;库的根模块需要在一个叫 &lt;code&gt;lib.rs&lt;/code&gt; 的文件里面。&lt;/p&gt;</description></item><item><title>04-引用其他模块和 crate</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/04-referencing-other-modules-and-crates/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/04-referencing-other-modules-and-crates/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/109_zh-cn.html"&gt;https://tourofrust.com/109_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="引用其他模块和-crate"&gt;引用其他模块和 crate&lt;/h1&gt;
+&lt;p&gt;你可以使用完整的模块路径路径引用模块中的项目： &lt;code&gt;std::f64::consts::PI&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;更简单的方法是使用&lt;strong&gt;use&lt;/strong&gt;关键字。此关键字可以让我们在代码中使用模块中的项目而无需指定完整路径。例如 &lt;code&gt;use std::f64::consts::PI&lt;/code&gt;
+这样我在 main 函数中只需要写 &lt;code&gt;PI&lt;/code&gt; 就可以了。&lt;/p&gt;</description></item><item><title>05-引用多个项目</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/05-referencing-multiple-items/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/05-referencing-multiple-items/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/110_zh-cn.html"&gt;https://tourofrust.com/110_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="引用多个项目"&gt;引用多个项目&lt;/h1&gt;
+&lt;p&gt;在同一个模块路径中可以引用多个项目，比如：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;use&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;std&lt;/span&gt;::&lt;span style="color:#e5c07b"&gt;f64&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;consts&lt;/span&gt;::&lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;&lt;span style="color:#aa89ea;font-weight:bold"&gt;PI&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;&lt;span style="color:#aa89ea;font-weight:bold"&gt;TAU&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;Ferris 不吃桃（TAU），它只吃派（PI）。&lt;/p&gt;</description></item><item><title>06-创建模块</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/06-creating-modules/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/06-creating-modules/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/111_zh-cn.html"&gt;https://tourofrust.com/111_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="创建模块"&gt;创建模块&lt;/h1&gt;
+&lt;p&gt;当我们想到项目时，我们通常会想象一个以目录组织的文件层次结构。Rust 允许您创建与您的文件结构密切相关的模块。&lt;/p&gt;</description></item><item><title>07-模块层次结构</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/07-module-hierarchy/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/07-module-hierarchy/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/112_zh-cn.html"&gt;https://tourofrust.com/112_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="模块层次结构"&gt;模块层次结构&lt;/h1&gt;
+&lt;p&gt;模块可以互相依赖。要建立一个模块和其子模块之间的关系，你需要在父模块中这样写：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;mod&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;foo&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;上面的声明将使编译器寻找一个名为 &lt;code&gt;foo.rs &lt;/code&gt;或 &lt;code&gt;foo/mod.rs&lt;/code&gt; 的文件，并将其内容插入这个作用域内名为 &lt;code&gt;foo&lt;/code&gt; 的模块中。&lt;/p&gt;</description></item><item><title>08-内联模块</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/08-inline-module/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/08-inline-module/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/113_zh-cn.html"&gt;https://tourofrust.com/113_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="内联模块"&gt;内联模块&lt;/h1&gt;
+&lt;p&gt;一个子模块可以直接内联在一个模块的代码中。&lt;/p&gt;
+&lt;p&gt;内联模块最常见的用途是创建单元测试。 下面我们创建一个只有在使用 Rust 进行测试时才会存在的内联模块！&lt;/p&gt;</description></item><item><title>09-模块内部引用</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/09-internal-module-referencing/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/09-internal-module-referencing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/114_zh-cn.html"&gt;https://tourofrust.com/114_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="模块内部引用"&gt;模块内部引用&lt;/h1&gt;
+&lt;p&gt;你可以在你的 &lt;code&gt;use&lt;/code&gt; 路径中使用如下 Rust 关键字来获得你想要的模块：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;crate&lt;/code&gt; - 你的 crate 的根模块&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;super&lt;/code&gt; - 当前模块的父模块&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;self&lt;/code&gt; - 当前模块&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>10-导出</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/10-exporting/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/10-exporting/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/115_zh-cn.html"&gt;https://tourofrust.com/115_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="导出"&gt;导出&lt;/h1&gt;
+&lt;p&gt;默认情况下，&lt;em&gt;模块&lt;/em&gt;的成员不能从模块外部访问（甚至它的子模块也不行！）。 我们可以使用 &lt;code&gt;pub&lt;/code&gt; 关键字使一个模块的成员可以从外部访问。&lt;/p&gt;</description></item><item><title>11-结构体可见性</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/11-structure-visibility/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/11-structure-visibility/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/116_zh-cn.html"&gt;https://tourofrust.com/116_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="结构体可见性"&gt;结构体可见性&lt;/h1&gt;
+&lt;p&gt;就像函数一样，结构体可以使用 &lt;code&gt;pub&lt;/code&gt; 声明它们想要在模块外暴露的东西。&lt;/p&gt;
+&lt;h2 id="示例代码"&gt;示例代码&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// SeaCreature 结构体在我们的模块外面也能使用了
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;SeaCreature&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;animal_type&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;String&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;name&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;String&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;arms&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;legs&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 我们把武器信息保密起来好了
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;weapon&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;String&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>12-Prelude</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/12-prelude/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/12-prelude/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/117_zh-cn.html"&gt;https://tourofrust.com/117_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="prelude"&gt;Prelude&lt;/h1&gt;
+&lt;p&gt;你可能很好奇，为什么我们在没用 &lt;code&gt;use&lt;/code&gt; 导入 &lt;code&gt;Vec&lt;/code&gt; 或 &lt;code&gt;Box&lt;/code&gt; 的情况下却可以到处使用它们。
+这是因为标准库中有一个叫 &lt;code&gt;prelude&lt;/code&gt; 的模块。&lt;/p&gt;</description></item><item><title>13-你自己的 Prelude</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/13-your-own-prelude/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/13-your-own-prelude/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/118_zh-cn.html"&gt;https://tourofrust.com/118_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="你自己的-prelude"&gt;你自己的 Prelude&lt;/h1&gt;
+&lt;p&gt;你看，既然标准库里面有 prelude，那么你自己的库里面最好也要有一个 prelude 模块。 这个模块可以作为其他使用你的库的用户的起点：他们可以借此导入你的库里面所有常用的数据结构 (例如 &lt;code&gt;use my_library::prelude::*&lt;/code&gt;)。
+当然，这个模块就不会在用了你的库的程序或别的库里面自动启用了。不过使用这个惯例的话，大家会很轻松地知道从何开始的。&lt;/p&gt;</description></item><item><title>14-第九章 - 总结</title><link>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/14-chapter-9-conclusion/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/project-structure/14-chapter-9-conclusion/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/119_zh-cn.html"&gt;https://tourofrust.com/119_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="第九章---总结"&gt;第九章 - 总结&lt;/h1&gt;
+&lt;p&gt;现在，你应该学会了如何创建并与世界分享你的 Rust 应用程序和库了。 不要担心现在记不住这些东西。等以后你的库发展了，用的人多了，你自己会清楚每个阶段应该做什么的。&lt;/p&gt;</description></item></channel></rss>

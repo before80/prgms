@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第6章 类型转换 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/RustByExample/conversion/</link><description>Recent content in 第6章 类型转换 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/RustByExample/conversion/index.xml" rel="self" type="application/rss+xml"/><item><title>01-`From` 和 `Into`</title><link>https://before80.github.io/prgms/Rust/RustByExample/conversion/01-from-into/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/conversion/01-from-into/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/"&gt;Rust By Example&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/conversion/from_into.html"&gt;https://doc.rust-lang.org/stable/rust-by-example/conversion/from_into.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="from-和-into"&gt;&lt;code&gt;From&lt;/code&gt; 和 &lt;code&gt;Into&lt;/code&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;a href="https://rustwiki.org/zh-CN/std/convert/trait.From.html"&gt;&lt;code&gt;From&lt;/code&gt;&lt;/a&gt; 和 &lt;a href="https://rustwiki.org/zh-CN/std/convert/trait.Into.html"&gt;&lt;code&gt;Into&lt;/code&gt;&lt;/a&gt; 两个 trait 是内部相关联的，实际上这是它们实现的一部分。如果我们能够从类型 B 得到类型 A，那么很容易相信我们也能够把类型 A 转换为类型 B。&lt;/p&gt;</description></item><item><title>02-`TryFrom` 和 `TryInto`</title><link>https://before80.github.io/prgms/Rust/RustByExample/conversion/02-try-from-try-into/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/conversion/02-try-from-try-into/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/"&gt;Rust By Example&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/conversion/try_from_try_into.html"&gt;https://doc.rust-lang.org/stable/rust-by-example/conversion/try_from_try_into.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="tryfrom-和-tryinto"&gt;&lt;code&gt;TryFrom&lt;/code&gt; 和 &lt;code&gt;TryInto&lt;/code&gt;&lt;/h1&gt;
+&lt;p&gt;类似于 &lt;a href="01-from-into/"&gt;&lt;code&gt;From&lt;/code&gt; 和 &lt;code&gt;Into&lt;/code&gt;&lt;/a&gt;，&lt;a href="https://rustwiki.org/zh-CN/std/convert/trait.TryFrom.html"&gt;&lt;code&gt;TryFrom&lt;/code&gt;&lt;/a&gt; 和 &lt;a href="https://rustwiki.org/zh-CN/std/convert/trait.TryInto.html"&gt;&lt;code&gt;TryInto&lt;/code&gt;&lt;/a&gt; 是类型转换的通用 trait。不同于 &lt;code&gt;From&lt;/code&gt;/&lt;code&gt;Into&lt;/code&gt; 的是，&lt;code&gt;TryFrom&lt;/code&gt; 和 &lt;code&gt;TryInto&lt;/code&gt; trait 用于易出错的转换，也正因如此，其返回值是 &lt;a href="https://rustwiki.org/zh-CN/std/result/enum.Result.html"&gt;&lt;code&gt;Result&lt;/code&gt;&lt;/a&gt; 型。&lt;/p&gt;</description></item><item><title>03-`ToString` 和 `FromStr`</title><link>https://before80.github.io/prgms/Rust/RustByExample/conversion/03-string/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/conversion/03-string/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/"&gt;Rust By Example&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/conversion/string.html"&gt;https://doc.rust-lang.org/stable/rust-by-example/conversion/string.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="tostring-和-fromstr"&gt;&lt;code&gt;ToString&lt;/code&gt; 和 &lt;code&gt;FromStr&lt;/code&gt;&lt;/h1&gt;
+&lt;h2 id="tostring"&gt;&lt;code&gt;ToString&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;要把任何类型转换成 &lt;code&gt;String&lt;/code&gt;，只需要实现那个类型的 &lt;a href="https://rustwiki.org/zh-CN/std/string/trait.ToString.html"&gt;&lt;code&gt;ToString&lt;/code&gt;&lt;/a&gt; trait。然而不要直接这么做，您应该实现&lt;a href="https://rustwiki.org/zh-CN/std/fmt/trait.Display.html"&gt;&lt;code&gt;fmt::Display&lt;/code&gt;&lt;/a&gt; trait，它会自动提供 &lt;a href="https://rustwiki.org/zh-CN/std/string/trait.ToString.html"&gt;&lt;code&gt;ToString&lt;/code&gt;&lt;/a&gt;，并且还可以用来打印类型，就像 &lt;a href="../hello/02-print/"&gt;&lt;code&gt;print!&lt;/code&gt;&lt;/a&gt; 一节中讨论的那样。&lt;/p&gt;</description></item></channel></rss>

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第8章 智能指针 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/</link><description>Recent content in 第8章 智能指针 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/index.xml" rel="self" type="application/rss+xml"/><item><title>01-重温引用</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/01-references-revisited/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/01-references-revisited/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/90_zh-cn.html"&gt;https://tourofrust.com/90_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="重温引用"&gt;重温引用&lt;/h1&gt;
+&lt;p&gt;引用本质上只是表示内存中某些字节起始位置的数字。 它唯一的目的就是表示特定类型的数据存在于何处。 引用与数字的不同之处在于，Rust 将验证引用自身的生命周期不会超过它指向的内容（否则我们在使用它时会出错！）。&lt;/p&gt;</description></item><item><title>02-指针</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/02-raw-pointers/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/02-raw-pointers/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/91_zh-cn.html"&gt;https://tourofrust.com/91_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="指针"&gt;指针&lt;/h1&gt;
+&lt;p&gt;引用可以转换成一个更原始的类型，指针(raw pointer)。 像数字一样，它可以不受限制地复制和传递，但是Rust 不保证它指向的内存位置的有效性。
+有两种指针类型：&lt;/p&gt;</description></item><item><title>03-解引用</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/03-dereferencing/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/03-dereferencing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/92_zh-cn.html"&gt;https://tourofrust.com/92_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="解引用"&gt;解引用&lt;/h1&gt;
+&lt;p&gt;访问或操作 由&lt;em&gt;引用&lt;/em&gt;（例如&lt;code&gt;&amp;amp;i32&lt;/code&gt;）指向的数据的过程称为&lt;em&gt;解除引用&lt;/em&gt;。 &lt;br&gt;
+有两种方式通过引用来访问或操作数据：&lt;/p&gt;</description></item><item><title>04-运算符 *</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/04-the-operator/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/04-the-operator/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/93_zh-cn.html"&gt;https://tourofrust.com/93_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="运算符-"&gt;运算符 *&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;*&lt;/code&gt; 运算符是一种很明确的解引用的方法。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;a&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#d19a66"&gt;42&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;ref_ref_ref_a&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&amp;amp;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;&amp;amp;&amp;amp;&amp;amp;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;a&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;ref_a&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;**&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;ref_ref_ref_a&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;*&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;ref_a&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;内存细节:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;因为 i32 是实现了 &lt;code&gt;Copy&lt;/code&gt; 特性的原始类型，堆栈上变量 &lt;code&gt;a&lt;/code&gt; 的字节被复制到变量 &lt;code&gt;b&lt;/code&gt; 的字节中。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="示例代码"&gt;示例代码&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;main&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;a&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#d19a66"&gt;42&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;ref_ref_ref_a&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&amp;amp;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;&amp;amp;&amp;amp;&amp;amp;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;a&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;ref_a&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;**&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;ref_ref_ref_a&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;*&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;ref_a&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#98c379"&gt;{}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>05-运算符 .</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/05-the-operator/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/05-the-operator/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/94_zh-cn.html"&gt;https://tourofrust.com/94_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="运算符-"&gt;运算符 .&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;.&lt;/code&gt;运算符用于访问引用的字段和方法，它的工作原理更加巧妙。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;f&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Foo&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;value&lt;/span&gt;: &lt;span style="color:#d19a66"&gt;42&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;ref_ref_ref_f&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;&amp;amp;&amp;amp;&amp;amp;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;f&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#98c379"&gt;{}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;ref_ref_ref_f&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;value&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;哇，为什么我们不需要在&lt;code&gt;ref_ref_ref_f&lt;/code&gt;之前添加&lt;code&gt;***&lt;/code&gt;？这是因为 &lt;code&gt;.&lt;/code&gt; 运算符会做一些列自动解引用操作。 最后一行由编译器自动转换为以下内容。&lt;/p&gt;</description></item><item><title>06-智能指针</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/06-smart-pointers/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/06-smart-pointers/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/95_zh-cn.html"&gt;https://tourofrust.com/95_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="智能指针"&gt;智能指针&lt;/h1&gt;
+&lt;p&gt;除了能够使用&lt;code&gt;&amp;amp;&lt;/code&gt;运算符创建对现有类型数据的引用之外, Rust 给我们提供了能够创建称为&lt;em&gt;智能指针&lt;/em&gt;的&lt;em&gt;类引用&lt;/em&gt;结构。&lt;br&gt;
+我们可以在高层次上将引用视为一种类型，它使我们能够访问另一种类型. 智能指针的行为与普通引用不同，因为它们基于程序员编写的内部逻辑进行操作. 作为程序员的你就是&lt;em&gt;智能&lt;/em&gt;的一部分。&lt;br&gt;
+通常，智能指针实现了 &lt;code&gt;Deref&lt;/code&gt;、&lt;code&gt;DerefMut&lt;/code&gt; 和 &lt;code&gt;Drop&lt;/code&gt; 特征，以指定当使用 &lt;code&gt;*&lt;/code&gt; 和 &lt;code&gt;.&lt;/code&gt; 运算符时解引用应该触发的逻辑。&lt;/p&gt;</description></item><item><title>07-智能不安全代码</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/07-smart-unsafe-code/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/07-smart-unsafe-code/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/96_zh-cn.html"&gt;https://tourofrust.com/96_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="智能不安全代码"&gt;智能不安全代码&lt;/h1&gt;
+&lt;p&gt;智能指针倾向于经常使用&lt;em&gt;不安全&lt;/em&gt;的代码。如前所述，它们是与 Rust 中最低级别的内存进行交互的常用工具。&lt;br&gt;
+什么是不安全代码? 不安全代码的行为与普通 Rust 完全一样，除了一些 Rust 编译器无法保证的功能。 &lt;br&gt;
+不安全代码的主要功能是&lt;em&gt;解引用指针&lt;/em&gt;。 这意味着将&lt;em&gt;原始指针&lt;/em&gt;指向内存中的某个位置并声明“此处存在数据结构！” 并将其转换为您可以使用的数据表示（例如将&lt;code&gt;*const u8&lt;/code&gt; 转换为&lt;code&gt;u8&lt;/code&gt;）。 Rust 无法跟踪写入内存的每个字节的含义。
+因为 Rust 不能保证在用作 &lt;em&gt;指针&lt;/em&gt; 的任意数字上存在什么，所以它将解引用放在一个 &lt;code&gt;unsafe { ... }&lt;/code&gt; 块中。&lt;/p&gt;</description></item><item><title>08-熟悉的朋友</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/08-familiar-friends/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/08-familiar-friends/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/97_zh-cn.html"&gt;https://tourofrust.com/97_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="熟悉的朋友"&gt;熟悉的朋友&lt;/h1&gt;
+&lt;p&gt;想一想一些我们已经见过的智能指针，例如 &lt;code&gt;Vec&amp;lt;T&amp;gt;&lt;/code&gt; 和 &lt;code&gt;String&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Vec&amp;lt;T&amp;gt;&lt;/code&gt; 是一个智能指针，它只拥有一些字节的内存区域。 Rust 编译器不知道这些字节中存在着什么。 智能指针解释从它管理的内存区域获取数据意味着什么，跟踪这些字节中的数据结构开始和结束的位置，最后将指针解引用到数据结构中， 成为一个漂亮干净的可以阅读的接口供我们使用（例如&lt;code&gt;my_vec[3]&lt;/code&gt;）。&lt;/p&gt;</description></item><item><title>09-堆分配内存</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/09-heap-allocated-memory/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/09-heap-allocated-memory/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/98_zh-cn.html"&gt;https://tourofrust.com/98_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="堆分配内存"&gt;堆分配内存&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;Box&lt;/code&gt; 是一个可以让我们将数据从堆栈移动到堆的智能指针。&lt;/p&gt;
+&lt;p&gt;解引用可以让我们以人类更容易理解的方式使用堆分配的数据，就好像它是原始类型一样。&lt;/p&gt;</description></item><item><title>10-重温error的使用</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/10-failable-main-revisited/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/10-failable-main-revisited/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/99_zh-cn.html"&gt;https://tourofrust.com/99_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="重温error的使用"&gt;重温error的使用&lt;/h1&gt;
+&lt;p&gt;Rust可能有过多的错误表示方法，但标准库有一个通用特性 &lt;code&gt;std::error::Error&lt;/code&gt; 来描述错误。&lt;/p&gt;
+&lt;p&gt;使用智能指针“Box”，我们可以使用类型&lt;code&gt;Box&amp;lt;dyn std::error::Error&amp;gt;&lt;/code&gt;作为常见的返回错误类型，因为它允许我们在堆上、高级别的传播错误，而不必知道特定的类型。&lt;/p&gt;</description></item><item><title>11-引用计数</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/11-referencing-counting/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/11-referencing-counting/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/100_zh-cn.html"&gt;https://tourofrust.com/100_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="引用计数"&gt;引用计数&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;Rc&lt;/code&gt; 是一个能将数据从栈移动到智能指针。 它允许我们克隆其他&lt;code&gt;Rc&lt;/code&gt;智能指针，这些指针都具有不可改变地借用放在堆上的数据的能力。&lt;/p&gt;</description></item><item><title>12-共享访问</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/12-sharing-access/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/12-sharing-access/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/101_zh-cn.html"&gt;https://tourofrust.com/101_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="共享访问"&gt;共享访问&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;RefCell&lt;/code&gt; 是一个容器数据结构，通常由智能指针拥有，它接收数据并让我们借用可变或不可变引用来访问内部内容。 当您要求借用数据时，它通过在运行时强制执行 Rust 的内存安全规则来防止借用被滥用&lt;/p&gt;</description></item><item><title>13-线程间共享</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/13-sharing-across-threads/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/13-sharing-across-threads/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/102_zh-cn.html"&gt;https://tourofrust.com/102_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="线程间共享"&gt;线程间共享&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;Mutex&lt;/code&gt; 是一种容器数据结构，通常由智能指针持有，它接收数据并让我们借用对其中数据的可变和不可变引用。 这可以防止借用被滥用，因为操作系统一次只限制一个 CPU 线程访问数据，阻塞其他线程，直到原线程完成其锁定的借用。&lt;/p&gt;</description></item><item><title>14-组合智能指针</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/14-combining-smart-pointers/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/14-combining-smart-pointers/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/103_zh-cn.html"&gt;https://tourofrust.com/103_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="组合智能指针"&gt;组合智能指针&lt;/h1&gt;
+&lt;p&gt;智能指针看起来可能会存在一些限制，但是我们可以做一些非常有用的结合。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Rc&amp;lt;Vec&amp;lt;Foo&amp;gt;&amp;gt;&lt;/code&gt; - 允许克隆多个可以借用堆上不可变数据结构的相同向量的智能指针。&lt;/p&gt;</description></item><item><title>15-第8章 - 总结</title><link>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/15-chapter-8-conclusion/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/smart-pointers/15-chapter-8-conclusion/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/104_zh-cn.html"&gt;https://tourofrust.com/104_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="第8章---总结"&gt;第8章 - 总结&lt;/h1&gt;
+&lt;p&gt;智能指针是 Rust编程中经常使用的，它可以让我们不必重新创建非常常见的内存使用范式。 有了它，您可以准备好应对最艰难的挑战了！ 现在我们掌握了 Rust 的基础，让我们来谈谈如何编写更庞大的项目。 在下一章中，我们将摆脱一个文件包含所有代码的束缚。&lt;/p&gt;</description></item></channel></rss>

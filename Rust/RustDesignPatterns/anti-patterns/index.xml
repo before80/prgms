@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第3章 反模式 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/anti-patterns/</link><description>Recent content in 第3章 反模式 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/RustDesignPatterns/anti-patterns/index.xml" rel="self" type="application/rss+xml"/><item><title>01-为通过借用检查而 Clone</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/anti-patterns/01-clone-to-satisfy-the-borrow-checker/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/anti-patterns/01-clone-to-satisfy-the-borrow-checker/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/anti_patterns/borrow_clone.html"&gt;https://rust-unofficial.github.io/patterns/anti_patterns/borrow_clone.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="为通过借用检查而-clone"&gt;为通过借用检查而 Clone&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;借用检查器通过确保以下条件之一成立，防止 Rust 用户写出否则不安全的代码：要么只存在一个可变引用，要么可以有许多但全部都是不可变引用。若所写代码不满足这些条件，而开发者靠克隆变量来消除编译器错误，就会出现这种反模式。&lt;/p&gt;</description></item><item><title>02-`#[deny(warnings)]`</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/anti-patterns/02-deny-warnings/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/anti-patterns/02-deny-warnings/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/anti_patterns/deny-warnings.html"&gt;https://rust-unofficial.github.io/patterns/anti_patterns/deny-warnings.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="denywarnings"&gt;&lt;code&gt;#[deny(warnings)]&lt;/code&gt;&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;用心良苦的 crate 作者希望确保代码在无警告的情况下构建。于是他们在 crate 根上加了如下注解：&lt;/p&gt;
+&lt;h2 id="example"&gt;示例&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#![deny(warnings)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 一切正常。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="advantages"&gt;优点&lt;/h2&gt;
+&lt;p&gt;写法简短，一旦出问题就会中止构建。&lt;/p&gt;</description></item><item><title>03-Deref 多态</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/anti-patterns/03-deref-polymorphism/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/anti-patterns/03-deref-polymorphism/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/anti_patterns/deref.html"&gt;https://rust-unofficial.github.io/patterns/anti_patterns/deref.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="deref-多态"&gt;Deref 多态&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;滥用 &lt;code&gt;Deref&lt;/code&gt; trait 来模拟结构体之间的继承，从而复用方法。&lt;/p&gt;
+&lt;h2 id="example"&gt;示例&lt;/h2&gt;
+&lt;p&gt;有时我们想模拟 Java 等 OO 语言中的如下常见模式：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-java" data-lang="java"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;class&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Foo&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e5c07b"&gt;void&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;m&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;...&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;class&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Bar&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;extends&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Foo&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;public&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;static&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;void&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;main&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;String&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;[]&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;args&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Bar&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;new&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Bar&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;();&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;m&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;();&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;我们可以用 Deref 多态这一反模式来做到：&lt;/p&gt;</description></item></channel></rss>

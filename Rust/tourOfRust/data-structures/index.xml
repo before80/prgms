@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第3章 基本数据结构类型 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/</link><description>Recent content in 第3章 基本数据结构类型 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/tourOfRust/data-structures/index.xml" rel="self" type="application/rss+xml"/><item><title>01-结构体</title><link>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/01-structures/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/01-structures/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/23_zh-cn.html"&gt;https://tourofrust.com/23_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="结构体"&gt;结构体&lt;/h1&gt;
+&lt;p&gt;一个 &lt;code&gt;struct&lt;/code&gt; 就是一些字段的集合。&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;字段&lt;/em&gt;是一个与数据结构相关联的数据值。它的值可以是基本类型或结构体类型。&lt;/p&gt;
+&lt;p&gt;它的定义就像给编译器的蓝图，告诉编译器如何在内存中布局彼此相邻的字段。&lt;/p&gt;</description></item><item><title>02-方法调用</title><link>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/02-calling-methods/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/02-calling-methods/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/24_zh-cn.html"&gt;https://tourofrust.com/24_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="方法调用"&gt;方法调用&lt;/h1&gt;
+&lt;p&gt;与函数（function）不同，方法（method）是与特定数据类型关联的函数。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;静态方法&lt;/strong&gt; — 属于某个类型，调用时使用 &lt;code&gt;::&lt;/code&gt; 运算符。&lt;/p&gt;</description></item><item><title>03-内存</title><link>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/03-memory/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/03-memory/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/25_zh-cn.html"&gt;https://tourofrust.com/25_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="内存"&gt;内存&lt;/h1&gt;
+&lt;p&gt;Rust 程序有 3 个存放数据的内存区域：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;数据内存&lt;/strong&gt; - 对于固定大小和&lt;strong&gt;静态&lt;/strong&gt;（即在整个程序生命周期中都存在）的数据。
+考虑一下程序中的文本（例如 “Hello World”），该文本的字节只能读取，因此它们位于该区域中。
+编译器对这类数据做了很多优化，由于位置已知且固定，因此通常认为编译器使用起来非常快。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;栈内存&lt;/strong&gt; - 对于在函数中声明为变量的数据。
+在函数调用期间，内存的位置不会改变，因为编译器可以优化代码，所以栈数据使用起来比较快。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;堆内存&lt;/strong&gt; - 对于在程序运行时创建的数据。
+此区域中的数据可以添加、移动、删除、调整大小等。由于它的动态特性，通常认为它使用起来比较慢，
+但是它允许更多创造性的内存使用。当数据添加到该区域时，我们称其为&lt;strong&gt;分配&lt;/strong&gt;。 从本区域中删除
+数据后，我们将其称为&lt;strong&gt;释放&lt;/strong&gt;。&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>04-在内存中创建数据</title><link>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/04-creating-data-in-memory/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/04-creating-data-in-memory/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/26_zh-cn.html"&gt;https://tourofrust.com/26_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="在内存中创建数据"&gt;在内存中创建数据&lt;/h1&gt;
+&lt;p&gt;当我们在代码中&lt;strong&gt;实例化&lt;/strong&gt;一个&lt;strong&gt;结构体&lt;/strong&gt;时，我们的程序会在内存中并排创建关联的字段数据。&lt;/p&gt;
+&lt;p&gt;当我们通过制定所有字段值的方式来实例化时：&lt;/p&gt;</description></item><item><title>05-类元组结构体</title><link>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/05-tuple-like-structs/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/05-tuple-like-structs/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/27_zh-cn.html"&gt;https://tourofrust.com/27_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="类元组结构体"&gt;类元组结构体&lt;/h1&gt;
+&lt;p&gt;简洁起见，你可以创建像元组一样被使用的结构体。&lt;/p&gt;
+&lt;h2 id="示例代码"&gt;示例代码&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Location&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;main&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 这仍然是一个在栈上的结构体
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;loc&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Location&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#d19a66"&gt;42&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#98c379"&gt;{}&lt;/span&gt;&lt;span style="color:#98c379"&gt;, &lt;/span&gt;&lt;span style="color:#98c379"&gt;{}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;loc&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#d19a66"&gt;0&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;loc&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>06-类单元结构体</title><link>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/06-unit-like-structs/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/06-unit-like-structs/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/28_zh-cn.html"&gt;https://tourofrust.com/28_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="类单元结构体"&gt;类单元结构体&lt;/h1&gt;
+&lt;p&gt;结构体也可以没有任何字段。&lt;/p&gt;
+&lt;p&gt;就像第一章提到的，一个 &lt;em&gt;unit&lt;/em&gt; 是空元组 &lt;code&gt;()&lt;/code&gt; 的别称。这就是为什么，此类结构体被称为 &lt;code&gt;类单元&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>07-枚举</title><link>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/07-enumerations/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/07-enumerations/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/29_zh-cn.html"&gt;https://tourofrust.com/29_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="枚举"&gt;枚举&lt;/h1&gt;
+&lt;p&gt;枚举允许你使用 &lt;code&gt;enum&lt;/code&gt; 关键字创建一个新类型，该类型的值可以包含几个带标记的元素。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;match&lt;/code&gt; 有助于确保对所有可能的枚举值进行彻底的处理，使其成为确保高质量代码的强大工具。&lt;/p&gt;</description></item><item><title>08-带数据的枚举</title><link>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/08-enumerations-with-data/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/08-enumerations-with-data/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/30_zh-cn.html"&gt;https://tourofrust.com/30_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="带数据的枚举"&gt;带数据的枚举&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;enum&lt;/code&gt; 的元素可以有一个或多个数据类型，从而使其表现得像 C 语言中的&lt;em&gt;联合&lt;/em&gt;。&lt;/p&gt;
+&lt;p&gt;当使用 &lt;code&gt;match&lt;/code&gt; 对一个 &lt;code&gt;enum&lt;/code&gt; 进行模式匹配时，可以将变量名称绑定到每个数据值。&lt;/p&gt;</description></item><item><title>09-第三章 - 总结</title><link>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/09-chapter-3-conclusion/</link><pubDate>Mon, 17 Aug 2026 22:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tourOfRust/data-structures/09-chapter-3-conclusion/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;内容来源 · &lt;a href="https://github.com/richardanaya/tour_of_rust"&gt;Tour of Rust / Rust 语言之旅&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tourofrust.com/31_zh-cn.html"&gt;https://tourofrust.com/31_zh-cn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="第三章---总结"&gt;第三章 - 总结&lt;/h1&gt;
+&lt;p&gt;太好了！现在我们有了一些用代码来展示我们想法最基本的工具。
+希望现在我们能看到 Rust 的基本操作是如何与它的类型和谐一致地工作的。
+接下来我们将讨论一个概念，它为我们的数据类型提供了更大的灵活性：&lt;em&gt;泛型&lt;/em&gt;。&lt;/p&gt;</description></item></channel></rss>

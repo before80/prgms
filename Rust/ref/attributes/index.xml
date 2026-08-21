@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第7章 属性 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/ref/attributes/</link><description>Recent content in 第7章 属性 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/ref/attributes/index.xml" rel="self" type="application/rss+xml"/><item><title>01-测试</title><link>https://before80.github.io/prgms/Rust/ref/attributes/01-testing/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/attributes/01-testing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/attributes/testing.html"&gt;https://doc.rust-lang.org/reference/attributes/testing.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[attributes.testing]&lt;/p&gt;
+&lt;h1 id="测试"&gt;测试&lt;/h1&gt;
+&lt;p&gt;下列&lt;a href="../attributes.md"&gt;属性&lt;/a&gt;用于指定执行测试的函数。以“test”模式编译 crate 时，会一并构建测试函数以及用于执行测试的测试框架。启用测试模式同时也会启用 &lt;a href="../conditional-compilation.md#test"&gt;&lt;code&gt;test&lt;/code&gt; 条件编译选项&lt;/a&gt;。&lt;/p&gt;
+&lt;!-- template:attributes --&gt;
+&lt;p&gt;r[attributes.testing.test]&lt;/p&gt;
+&lt;h2 id="test-属性"&gt;&lt;code&gt;test&lt;/code&gt; 属性&lt;/h2&gt;
+&lt;p&gt;r[attributes.testing.test.intro]
+*&lt;code&gt;test&lt;/code&gt; &lt;a href="../attributes.md"&gt;属性&lt;/a&gt;*将函数标记为作为测试执行。&lt;/p&gt;
+&lt;div class="td-alert td-alert--md alert alert-example" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;[i18n] example&lt;/div&gt;
+ &lt;div class="td-alert-body"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;# &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;add&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;left&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;u64&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;right&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;u64&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#e5c07b"&gt;u64&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;left&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;+&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;right&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[test]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;it_works&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;result&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;add&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#d19a66"&gt;2&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;2&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;assert_eq!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;result&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;4&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;r[attributes.testing.test.syntax]
+&lt;code&gt;test&lt;/code&gt; 属性使用 [MetaWord] 语法。&lt;/p&gt;</description></item><item><title>02-Derive</title><link>https://before80.github.io/prgms/Rust/ref/attributes/02-derive/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/attributes/02-derive/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/attributes/derive.html"&gt;https://doc.rust-lang.org/reference/attributes/derive.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;!-- template:attributes --&gt;
+&lt;p&gt;r[attributes.derive]&lt;/p&gt;
+&lt;h1 id="derive"&gt;Derive&lt;/h1&gt;
+&lt;p&gt;r[attributes.derive.intro]
+*&lt;code&gt;derive&lt;/code&gt; [属性][attributes]*会调用一个或多个 &lt;a href="macro.proc.derive"&gt;derive 宏&lt;/a&gt;，从而为数据结构自动生成新的&lt;a href="../items.md"&gt;项&lt;/a&gt;。你可以通过&lt;a href="macro.proc.derive"&gt;过程宏&lt;/a&gt;创建 &lt;code&gt;derive&lt;/code&gt; 宏。&lt;/p&gt;
+&lt;div class="td-alert td-alert--md alert alert-example" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;[i18n] example&lt;/div&gt;
+ &lt;div class="td-alert-body"&gt;
+ &lt;p&gt;[&lt;code&gt;PartialEq&lt;/code&gt;][macro@PartialEq] derive 宏会为 &lt;code&gt;Foo&amp;lt;T&amp;gt; where T: PartialEq&lt;/code&gt; 生成 [&lt;code&gt;PartialEq&lt;/code&gt;] 的&lt;a href="../items/implementations.md"&gt;实现&lt;/a&gt;。[&lt;code&gt;Clone&lt;/code&gt;][macro@Clone] derive 宏对 [&lt;code&gt;Clone&lt;/code&gt;] 同理。&lt;/p&gt;</description></item><item><title>03-诊断</title><link>https://before80.github.io/prgms/Rust/ref/attributes/03-diagnostics/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/attributes/03-diagnostics/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/attributes/diagnostics.html"&gt;https://doc.rust-lang.org/reference/attributes/diagnostics.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[attributes.diagnostics]&lt;/p&gt;
+&lt;h1 id="诊断"&gt;诊断&lt;/h1&gt;
+&lt;p&gt;下列&lt;a href="../attributes.md"&gt;属性&lt;/a&gt;用于在编译期间控制或生成诊断消息。&lt;/p&gt;
+&lt;p&gt;r[attributes.diagnostics.lint]&lt;/p&gt;
+&lt;h2 id="lint-检查属性"&gt;Lint 检查属性&lt;/h2&gt;
+&lt;p&gt;Lint 检查会为可能不受欢迎的编码模式命名，例如不可达代码或缺失文档。&lt;/p&gt;
+&lt;p&gt;r[attributes.diagnostics.lint.level]
+Lint 属性 &lt;code&gt;allow&lt;/code&gt;、&lt;code&gt;expect&lt;/code&gt;、&lt;code&gt;warn&lt;/code&gt;、&lt;code&gt;deny&lt;/code&gt; 和 &lt;code&gt;forbid&lt;/code&gt; 使用 [MetaListPaths] 语法，指定一组 lint 名称，以更改该属性所应用实体的 lint 级别。&lt;/p&gt;</description></item><item><title>04-代码生成</title><link>https://before80.github.io/prgms/Rust/ref/attributes/04-codegen/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/attributes/04-codegen/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/attributes/codegen.html"&gt;https://doc.rust-lang.org/reference/attributes/codegen.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[attributes.codegen]&lt;/p&gt;
+&lt;h1 id="代码生成"&gt;代码生成&lt;/h1&gt;
+&lt;p&gt;下列&lt;a href="../attributes.md"&gt;属性&lt;/a&gt;用于控制代码生成。&lt;/p&gt;
+&lt;!-- template:attributes --&gt;
+&lt;p&gt;r[attributes.codegen.inline]&lt;/p&gt;
+&lt;h3 id="inline-属性"&gt;&lt;code&gt;inline&lt;/code&gt; 属性&lt;/h3&gt;
+&lt;p&gt;r[attributes.codegen.inline.intro]
+*&lt;code&gt;inline&lt;/code&gt; &lt;a href="../attributes.md"&gt;属性&lt;/a&gt;*建议是否将被标注函数的代码副本放入调用者中，而不是生成对该函数的调用。&lt;/p&gt;
+&lt;div class="td-alert td-alert--md alert alert-example" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;[i18n] example&lt;/div&gt;
+ &lt;div class="td-alert-body"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[inline]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;example1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[inline(always)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;example2&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[inline(never)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;example3&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;
+&lt;code&gt;rustc&lt;/code&gt; 在认为值得时会自动内联函数。请谨慎使用此属性，因为关于内联哪些函数的不当决策会拖慢程序。&lt;/p&gt;</description></item><item><title>05-限制</title><link>https://before80.github.io/prgms/Rust/ref/attributes/05-limits/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/attributes/05-limits/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/attributes/limits.html"&gt;https://doc.rust-lang.org/reference/attributes/limits.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[attributes.limits]&lt;/p&gt;
+&lt;h1 id="限制"&gt;限制&lt;/h1&gt;
+&lt;p&gt;下列&lt;a href="../attributes.md"&gt;属性&lt;/a&gt;影响编译期限制。&lt;/p&gt;
+&lt;p&gt;r[attributes.limits.recursion_limit]&lt;/p&gt;
+&lt;h2 id="recursion_limit-属性"&gt;&lt;code&gt;recursion_limit&lt;/code&gt; 属性&lt;/h2&gt;
+&lt;p&gt;r[attributes.limits.recursion_limit.intro]
+&lt;em&gt;&lt;code&gt;recursion_limit&lt;/code&gt; 属性&lt;/em&gt;可应用于 &lt;a href="../crates-and-source-files.md"&gt;crate&lt;/a&gt; 级别，以设置可能无限递归的编译期操作（如宏展开或自动解引用）的最大深度。&lt;/p&gt;
+&lt;p&gt;r[attributes.limits.recursion_limit.syntax]
+它使用 [MetaNameValueStr]
+语法来指定递归深度。&lt;/p&gt;</description></item><item><title>06-类型系统</title><link>https://before80.github.io/prgms/Rust/ref/attributes/06-type-system/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/attributes/06-type-system/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/attributes/type_system.html"&gt;https://doc.rust-lang.org/reference/attributes/type_system.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[attributes.type-system]&lt;/p&gt;
+&lt;h1 id="类型系统"&gt;类型系统&lt;/h1&gt;
+&lt;p&gt;下列&lt;a href="../attributes.md"&gt;属性&lt;/a&gt;用于改变类型的使用方式。&lt;/p&gt;
+&lt;p&gt;r[attributes.type-system.non_exhaustive]&lt;/p&gt;
+&lt;h2 id="non_exhaustive-属性"&gt;&lt;code&gt;non_exhaustive&lt;/code&gt; 属性&lt;/h2&gt;
+&lt;p&gt;r[attributes.type-system.non_exhaustive.intro]
+&lt;em&gt;&lt;code&gt;non_exhaustive&lt;/code&gt; 属性&lt;/em&gt;表示某类型或变体将来可能添加更多字段或变体。&lt;/p&gt;
+&lt;p&gt;r[attributes.type-system.non_exhaustive.allowed-positions]
+它可应用于 &lt;a href="../items/structs.md"&gt;&lt;code&gt;struct&lt;/code&gt;&lt;/a&gt;、&lt;a href="../items/enumerations.md"&gt;&lt;code&gt;enum&lt;/code&gt;&lt;/a&gt; 以及 &lt;code&gt;enum&lt;/code&gt; 变体。&lt;/p&gt;
+&lt;p&gt;r[attributes.type-system.non_exhaustive.syntax]
+&lt;code&gt;non_exhaustive&lt;/code&gt; 属性使用 [MetaWord] 语法，因此不接受任何输入。&lt;/p&gt;</description></item><item><title>07-调试器</title><link>https://before80.github.io/prgms/Rust/ref/attributes/07-debugger/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/attributes/07-debugger/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/attributes/debugger.html"&gt;https://doc.rust-lang.org/reference/attributes/debugger.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[attributes.debugger]&lt;/p&gt;
+&lt;h1 id="调试器"&gt;调试器&lt;/h1&gt;
+&lt;p&gt;下列&lt;a href="../attributes.md"&gt;属性&lt;/a&gt;用于在使用 GDB 或 WinDbg 等第三方调试器时增强调试体验。&lt;/p&gt;
+&lt;!-- template:attributes --&gt;
+&lt;p&gt;r[attributes.debugger.debugger_visualizer]&lt;/p&gt;
+&lt;h2 id="debugger_visualizer-属性"&gt;&lt;code&gt;debugger_visualizer&lt;/code&gt; 属性&lt;/h2&gt;
+&lt;p&gt;r[attributes.debugger.debugger_visualizer.intro]
+*&lt;code&gt;debugger_visualizer&lt;/code&gt; &lt;a href="../attributes.md"&gt;属性&lt;/a&gt;*可将调试器可视化文件嵌入到调试信息中。这会改善显示值时的调试体验。&lt;/p&gt;
+&lt;div class="td-alert td-alert--md alert alert-example" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;[i18n] example&lt;/div&gt;
+ &lt;div class="td-alert-body"&gt;
+ &lt;!-- ignore: requires external files--&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#![debugger_visualizer(natvis_file = &lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;Example.natvis&amp;#34;&lt;/span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#![debugger_visualizer(gdb_script_file = &lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;example.py&amp;#34;&lt;/span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;r[attributes.debugger.debugger_visualizer.syntax]
+&lt;code&gt;debugger_visualizer&lt;/code&gt; 属性使用 [MetaListNameValueStr] 语法指定其输入。必须指定下列键之一：&lt;/p&gt;</description></item></channel></rss>

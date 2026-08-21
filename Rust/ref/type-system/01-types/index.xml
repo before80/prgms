@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>01-类型 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/</link><description>Recent content in 01-类型 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/ref/type-system/01-types/index.xml" rel="self" type="application/rss+xml"/><item><title>01-布尔类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/01-boolean/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/01-boolean/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/boolean.html"&gt;https://doc.rust-lang.org/reference/types/boolean.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.bool]&lt;/p&gt;
+&lt;h1 id="布尔类型"&gt;布尔类型&lt;/h1&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;bool&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;true&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;r[type.bool.intro]
+&lt;em&gt;布尔类型&lt;/em&gt;或 &lt;em&gt;bool&lt;/em&gt; 是一种基本数据类型，只能取两个值之一，分别称为 &lt;em&gt;true&lt;/em&gt; 和 &lt;em&gt;false&lt;/em&gt;。&lt;/p&gt;
+&lt;p&gt;r[type.bool.literal]
+该类型的值可以用&lt;a href="../expressions/literal-expr.md"&gt;字面量表达式&lt;/a&gt;创建，关键字 &lt;code&gt;true&lt;/code&gt; 和 &lt;code&gt;false&lt;/code&gt; 对应同名的值。&lt;/p&gt;</description></item><item><title>02-数值类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/02-numeric/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/02-numeric/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/numeric.html"&gt;https://doc.rust-lang.org/reference/types/numeric.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.numeric]&lt;/p&gt;
+&lt;h1 id="数值类型"&gt;数值类型&lt;/h1&gt;
+&lt;p&gt;r[type.numeric.int]&lt;/p&gt;
+&lt;h2 id="整数类型"&gt;整数类型&lt;/h2&gt;
+&lt;p&gt;r[type.numeric.int.unsigned]
+无符号整数类型包括：&lt;/p&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;类型&lt;/th&gt;
+ &lt;th&gt;最小值&lt;/th&gt;
+ &lt;th&gt;最大值&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;u8&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;0&lt;/td&gt;
+ &lt;td&gt;2&lt;sup&gt;8&lt;/sup&gt;-1&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;u16&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;0&lt;/td&gt;
+ &lt;td&gt;2&lt;sup&gt;16&lt;/sup&gt;-1&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;u32&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;0&lt;/td&gt;
+ &lt;td&gt;2&lt;sup&gt;32&lt;/sup&gt;-1&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;u64&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;0&lt;/td&gt;
+ &lt;td&gt;2&lt;sup&gt;64&lt;/sup&gt;-1&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;u128&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;0&lt;/td&gt;
+ &lt;td&gt;2&lt;sup&gt;128&lt;/sup&gt;-1&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;r[type.numeric.int.signed]
+有符号二进制补码整数类型包括：&lt;/p&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;类型&lt;/th&gt;
+ &lt;th&gt;最小值&lt;/th&gt;
+ &lt;th&gt;最大值&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;i8&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;-(2&lt;sup&gt;7&lt;/sup&gt;)&lt;/td&gt;
+ &lt;td&gt;2&lt;sup&gt;7&lt;/sup&gt;-1&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;i16&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;-(2&lt;sup&gt;15&lt;/sup&gt;)&lt;/td&gt;
+ &lt;td&gt;2&lt;sup&gt;15&lt;/sup&gt;-1&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;i32&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;-(2&lt;sup&gt;31&lt;/sup&gt;)&lt;/td&gt;
+ &lt;td&gt;2&lt;sup&gt;31&lt;/sup&gt;-1&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;i64&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;-(2&lt;sup&gt;63&lt;/sup&gt;)&lt;/td&gt;
+ &lt;td&gt;2&lt;sup&gt;63&lt;/sup&gt;-1&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;i128&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;-(2&lt;sup&gt;127&lt;/sup&gt;)&lt;/td&gt;
+ &lt;td&gt;2&lt;sup&gt;127&lt;/sup&gt;-1&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;r[type.numeric.float]&lt;/p&gt;</description></item><item><title>03-字符类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/03-char/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/03-char/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/char.html"&gt;https://doc.rust-lang.org/reference/types/char.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.char]&lt;/p&gt;
+&lt;h1 id="字符类型"&gt;字符类型&lt;/h1&gt;
+&lt;p&gt;r[type.char.intro]
+&lt;code&gt;char&lt;/code&gt; 类型表示单个 &lt;a href="http://www.unicode.org/glossary/#unicode_scalar_value"&gt;Unicode 标量值&lt;/a&gt;（即非代理项的码点）。&lt;/p&gt;
+&lt;div class="td-alert td-alert--md alert alert-example" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;[i18n] example&lt;/div&gt;
+ &lt;div class="td-alert-body"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;c&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;char&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#98c379"&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;emoji&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;char&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#98c379"&gt;&amp;#39;😀&amp;#39;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;unicode&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;char&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#98c379"&gt;&amp;#39;\u{1F600}&amp;#39;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;
+关于 &lt;code&gt;char&lt;/code&gt; 类型的 impl，见[标准库文档][&lt;code&gt;char&lt;/code&gt;]。&lt;/p&gt;</description></item><item><title>04-字符串切片类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/04-str/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/04-str/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/str.html"&gt;https://doc.rust-lang.org/reference/types/str.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.str]&lt;/p&gt;
+&lt;h1 id="字符串切片类型"&gt;字符串切片类型&lt;/h1&gt;
+&lt;p&gt;r[type.str.intro]
+字符串切片（&lt;code&gt;str&lt;/code&gt;）类型表示一个字符序列。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;greeting1&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;str&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#98c379"&gt;&amp;#34;Hello, world!&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;greeting2&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;str&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#98c379"&gt;&amp;#34;你好，世界&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;
+关于 &lt;code&gt;str&lt;/code&gt; 类型的 impl，见[标准库文档][&lt;code&gt;str&lt;/code&gt;]。&lt;/p&gt;</description></item><item><title>05-Never 类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/05-never/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/05-never/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/never.html"&gt;https://doc.rust-lang.org/reference/types/never.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.never]&lt;/p&gt;
+&lt;h1 id="never-类型"&gt;Never 类型&lt;/h1&gt;
+&lt;p&gt;r[type.never.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,types" data-lang="grammar,types"&gt;NeverType -&amp;gt; `!`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[type.never.intro]
+Never 类型 &lt;code&gt;!&lt;/code&gt; 是没有值的类型，表示永不完成的计算的结果。&lt;/p&gt;
+&lt;p&gt;r[type.never.coercion]
+类型为 &lt;code&gt;!&lt;/code&gt; 的表达式可以被强制转换为任何其他类型。&lt;/p&gt;
+&lt;p&gt;r[type.never.constraint]
+目前 &lt;code&gt;!&lt;/code&gt; 类型&lt;strong&gt;只能&lt;/strong&gt;出现在函数返回类型中，表示这是一个永不返回的发散函数。&lt;/p&gt;</description></item><item><title>06-元组类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/06-tuple/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/06-tuple/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/tuple.html"&gt;https://doc.rust-lang.org/reference/types/tuple.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.tuple]&lt;/p&gt;
+&lt;h1 id="元组类型"&gt;元组类型&lt;/h1&gt;
+&lt;p&gt;r[type.tuple.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,types" data-lang="grammar,types"&gt;TupleType -&amp;gt;
+ `(` `)`
+ | `(` ( Type `,` )+ Type? `)`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[type.tuple.intro]
+&lt;em&gt;元组类型&lt;/em&gt;是一族结构类型&lt;sup id="fnref:1"&gt;&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref"&gt;1&lt;/a&gt;&lt;/sup&gt;，用于表示其他类型的异构列表。&lt;/p&gt;
+&lt;p&gt;元组类型的语法是括号括起、逗号分隔的类型列表。&lt;/p&gt;
+&lt;p&gt;r[type.tuple.restriction]
+一元元组必须在其元素类型后加逗号，以便与&lt;a href="../types.md#parenthesized-types"&gt;括号类型&lt;/a&gt;区分。&lt;/p&gt;</description></item><item><title>07-数组类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/07-array/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/07-array/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/array.html"&gt;https://doc.rust-lang.org/reference/types/array.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.array]&lt;/p&gt;
+&lt;h1 id="数组类型"&gt;数组类型&lt;/h1&gt;
+&lt;p&gt;r[type.array.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,types" data-lang="grammar,types"&gt;ArrayType -&amp;gt; `[` Type `;` Expression `]`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[type.array.intro]
+数组是 &lt;code&gt;N&lt;/code&gt; 个类型为 &lt;code&gt;T&lt;/code&gt; 的元素组成的固定大小序列。数组类型写作 &lt;code&gt;[T; N]&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;r[type.array.constraint]
+大小是求值为 &lt;a href="numeric.md#machine-dependent-integer-types"&gt;&lt;code&gt;usize&lt;/code&gt;&lt;/a&gt; 的&lt;a href="../const_eval.md#constant-expressions"&gt;常量表达式&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;示例：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 栈上分配的数组
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;array&lt;/span&gt;: &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; &lt;span style="color:#d19a66"&gt;3&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;2&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;3&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;];&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 堆上分配的数组，被强制转换为切片
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;boxed_array&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;Box&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;Box&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;new&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;([&lt;/span&gt;&lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;2&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;3&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;r[type.array.index]
+数组的所有元素总是已初始化，并且在安全方法和运算符中对数组的访问总是会进行边界检查。&lt;/p&gt;</description></item><item><title>08-切片类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/08-slice/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/08-slice/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/slice.html"&gt;https://doc.rust-lang.org/reference/types/slice.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.slice]&lt;/p&gt;
+&lt;h1 id="切片类型"&gt;切片类型&lt;/h1&gt;
+&lt;p&gt;r[type.slice.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,types" data-lang="grammar,types"&gt;SliceType -&amp;gt; `[` Type `]`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[type.slice.intro]
+切片是一种&lt;a href="../dynamically-sized-types.md"&gt;动态大小类型&lt;/a&gt;，表示对类型为 &lt;code&gt;T&lt;/code&gt; 的元素序列的「视图」。切片类型写作 &lt;code&gt;[T]&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;r[type.slice.unsized]
+切片类型通常通过指针类型使用。例如：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;&amp;amp;[T]&lt;/code&gt;：共享切片，常直接称为「切片」。它不拥有所指向的数据，而是借用它。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;&amp;amp;mut [T]&lt;/code&gt;：可变切片。它可变地借用所指向的数据。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Box&amp;lt;[T]&amp;gt;&lt;/code&gt;：装箱切片&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;示例：&lt;/p&gt;</description></item><item><title>09-结构体类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/09-struct/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/09-struct/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/struct.html"&gt;https://doc.rust-lang.org/reference/types/struct.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.struct]&lt;/p&gt;
+&lt;h1 id="结构体类型"&gt;结构体类型&lt;/h1&gt;
+&lt;p&gt;r[type.struct.intro]
+&lt;code&gt;struct&lt;/code&gt; &lt;em&gt;类型&lt;/em&gt;是其他类型的异构积，这些其他类型称为该类型的&lt;em&gt;字段&lt;/em&gt;。&lt;sup id="fnref:1"&gt;&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref"&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+&lt;p&gt;r[type.struct.constructor]
+可以用&lt;a href="../expressions/struct-expr.md"&gt;结构体表达式&lt;/a&gt;构造 &lt;code&gt;struct&lt;/code&gt; 的新实例。&lt;/p&gt;
+&lt;p&gt;r[type.struct.layout]
+默认情况下 &lt;code&gt;struct&lt;/code&gt; 的内存布局未定义，以便编译器可以进行字段重排等优化，但可以用 &lt;a href="../type-layout.md#representations"&gt;&lt;code&gt;repr&lt;/code&gt; 属性&lt;/a&gt;固定布局。无论哪种情况，对应的结构体&lt;em&gt;表达式&lt;/em&gt;中字段可以按任意顺序给出；得到的 &lt;code&gt;struct&lt;/code&gt; 值总是具有相同的内存布局。&lt;/p&gt;</description></item><item><title>10-枚举类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/10-enum/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/10-enum/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/enum.html"&gt;https://doc.rust-lang.org/reference/types/enum.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.enum]&lt;/p&gt;
+&lt;h1 id="枚举类型"&gt;枚举类型&lt;/h1&gt;
+&lt;p&gt;r[type.enum.intro]
+&lt;em&gt;枚举类型&lt;/em&gt;是指名的、异构的不相交并类型，由 &lt;a href="../items/enumerations.md"&gt;&lt;code&gt;enum&lt;/code&gt; 项&lt;/a&gt;的名称表示。&lt;sup id="fnref:1"&gt;&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref"&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+&lt;p&gt;r[type.enum.declaration]
+&lt;a href="../items/enumerations.md"&gt;&lt;code&gt;enum&lt;/code&gt; 项&lt;/a&gt;同时声明该类型以及若干&lt;em&gt;变体&lt;/em&gt;，每个变体都有独立的名称，语法分别对应结构体、元组结构体或类单元结构体。&lt;/p&gt;</description></item><item><title>11-联合体类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/11-union/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/11-union/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/union.html"&gt;https://doc.rust-lang.org/reference/types/union.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.union]&lt;/p&gt;
+&lt;h1 id="联合体类型"&gt;联合体类型&lt;/h1&gt;
+&lt;p&gt;r[type.union.intro]
+&lt;em&gt;联合体类型&lt;/em&gt;是指名的、异构的类 C 联合体，由 &lt;a href="../items/unions.md"&gt;&lt;code&gt;union&lt;/code&gt; 项&lt;/a&gt;的名称表示。&lt;/p&gt;
+&lt;p&gt;r[type.union.access]
+联合体没有「活动字段」的概念。相反，每一次联合体访问都会把联合体内容的一部分 transmute 为所访问字段的类型。&lt;/p&gt;</description></item><item><title>12-函数项类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/12-function-item/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/12-function-item/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/function-item.html"&gt;https://doc.rust-lang.org/reference/types/function-item.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.fn-item]&lt;/p&gt;
+&lt;h1 id="函数项类型"&gt;函数项类型&lt;/h1&gt;
+&lt;p&gt;r[type.fn-item.intro]
+当被引用时，函数项，或类元组结构体 / 枚举变体的构造函数，会产生一个&lt;a href="glossary.zst"&gt;零大小&lt;/a&gt;的&lt;em&gt;函数项类型&lt;/em&gt;值。&lt;/p&gt;
+&lt;p&gt;r[type.fn-item.unique]
+该类型显式标识该函数——其名称、其类型实参，以及其早绑定生命周期实参（但不包括晚绑定生命周期实参，后者仅在函数被调用时才赋值）——因此该值不必包含实际的函数指针，调用函数时也不需要间接。&lt;/p&gt;</description></item><item><title>13-闭包类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/13-closure/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/13-closure/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/closure.html"&gt;https://doc.rust-lang.org/reference/types/closure.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.closure]&lt;/p&gt;
+&lt;h1 id="闭包类型"&gt;闭包类型&lt;/h1&gt;
+&lt;p&gt;r[type.closure.intro]
+&lt;a href="../expressions/closure-expr.md"&gt;闭包表达式&lt;/a&gt;产生一个具有无法写出的唯一匿名类型的闭包值。闭包类型大致等价于包含被捕获值的结构体。例如，下面的闭包：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;18
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;19
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[derive(Debug)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Point&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;x&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;y&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Rectangle&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;left_top&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;Point&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;right_bottom&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;Point&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;f&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;F&lt;/span&gt; : &lt;span style="color:#e5c07b"&gt;FnOnce&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; -&amp;gt; &lt;span style="color:#e5c07b"&gt;String&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;g&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;F&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#98c379"&gt;{}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;g&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;());&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;mut&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;rect&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Rectangle&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;left_top&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;Point&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;x&lt;/span&gt;: &lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;y&lt;/span&gt;: &lt;span style="color:#d19a66"&gt;1&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;right_bottom&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;Point&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;x&lt;/span&gt;: &lt;span style="color:#d19a66"&gt;0&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;y&lt;/span&gt;: &lt;span style="color:#d19a66"&gt;0&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;c&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;||&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;rect&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;left_top&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;x&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;+=&lt;/span&gt; &lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;rect&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;right_bottom&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;x&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;+=&lt;/span&gt; &lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;format!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#98c379"&gt;{:?}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;rect&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;left_top&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;f&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;c&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 打印 &amp;#34;Point { x: 2, y: 1 }&amp;#34;。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;会生成大致如下的闭包类型：&lt;/p&gt;</description></item><item><title>14-指针类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/14-pointer/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/14-pointer/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/pointer.html"&gt;https://doc.rust-lang.org/reference/types/pointer.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.pointer]&lt;/p&gt;
+&lt;h1 id="指针类型"&gt;指针类型&lt;/h1&gt;
+&lt;p&gt;r[type.pointer.intro]
+所有指针都是显式的一等值。它们可以被移动或复制，存入数据结构，以及从函数返回。&lt;/p&gt;
+&lt;p&gt;r[type.pointer.reference]&lt;/p&gt;
+&lt;h2 id="引用-和-mut"&gt;引用（&lt;code&gt;&amp;amp;&lt;/code&gt; 和 &lt;code&gt;&amp;amp;mut&lt;/code&gt;）&lt;/h2&gt;
+&lt;p&gt;r[type.pointer.reference.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,types" data-lang="grammar,types"&gt;ReferenceType -&amp;gt; `&amp;amp;` Lifetime? `mut`? TypeNoBounds
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[type.pointer.reference.shared]&lt;/p&gt;</description></item><item><title>15-函数指针类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/15-function-pointer/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/15-function-pointer/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/function-pointer.html"&gt;https://doc.rust-lang.org/reference/types/function-pointer.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.fn-pointer]&lt;/p&gt;
+&lt;h1 id="函数指针类型"&gt;函数指针类型&lt;/h1&gt;
+&lt;p&gt;r[type.fn-pointer.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,types" data-lang="grammar,types"&gt;BareFunctionType -&amp;gt;
+ ForLifetimes? FunctionTypeQualifiers `fn`
+ `(` FunctionParametersMaybeNamedVariadic? `)` BareFunctionReturnType?
+
+FunctionTypeQualifiers -&amp;gt; `unsafe`? (`extern` Abi?)?
+
+BareFunctionReturnType -&amp;gt; `-&amp;gt;` TypeNoBounds
+
+FunctionParametersMaybeNamedVariadic -&amp;gt;
+ MaybeNamedFunctionParameters | MaybeNamedFunctionParametersVariadic
+
+MaybeNamedFunctionParameters -&amp;gt;
+ MaybeNamedParam ( `,` MaybeNamedParam )* `,`?
+
+MaybeNamedParam -&amp;gt;
+ OuterAttribute* ( ( IDENTIFIER | `_` ) `:` )? Type
+
+MaybeNamedFunctionParametersVariadic -&amp;gt;
+ ( MaybeNamedParam `,` )* MaybeNamedParam `,` OuterAttribute* `...`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[type.fn-pointer.intro]
+函数指针类型使用 &lt;code&gt;fn&lt;/code&gt; 关键字书写，指的是其身份在编译时不一定已知的函数。&lt;/p&gt;</description></item><item><title>16-Trait 对象类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/16-trait-object/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/16-trait-object/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/trait-object.html"&gt;https://doc.rust-lang.org/reference/types/trait-object.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.trait-object]&lt;/p&gt;
+&lt;h1 id="trait-对象类型"&gt;Trait 对象类型&lt;/h1&gt;
+&lt;p&gt;r[type.trait-object.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,types" data-lang="grammar,types"&gt;TraitObjectType -&amp;gt; Bounds[^bare-2021] | `dyn`[^dyn-2018] Bounds?
+
+TraitObjectTypeOneBound -&amp;gt; TraitBound[^bare-2021] | `dyn`[^dyn-2018] TraitBound?
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[type.trait-object.intro]
+&lt;em&gt;trait 对象&lt;/em&gt; 是实现了一组 trait 的另一种类型的不透明值。这组 trait 由一个 &lt;a href="../items/traits.md#dyn-compatibility"&gt;dyn 兼容&lt;/a&gt;的 &lt;em&gt;基础 trait&lt;/em&gt; 加上任意数量的&lt;a href="../special-types-and-traits.md#auto-traits"&gt;自动 trait&lt;/a&gt;组成。&lt;/p&gt;</description></item><item><title>17-impl Trait 类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/17-impl-trait/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/17-impl-trait/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/impl-trait.html"&gt;https://doc.rust-lang.org/reference/types/impl-trait.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.impl-trait]&lt;/p&gt;
+&lt;h1 id="impl-trait-类型"&gt;impl Trait 类型&lt;/h1&gt;
+&lt;p&gt;r[type.impl-trait.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,types" data-lang="grammar,types"&gt;ImplTraitType -&amp;gt; `impl` Bounds?
+
+ImplTraitTypeOneBound -&amp;gt; `impl` TraitBound?
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[type.impl-trait.intro]
+&lt;code&gt;impl Trait&lt;/code&gt; 提供了指定实现特定 trait 的未命名但具体的类型的方式。它可以出现在两类位置：参数位置（在此它可以作为函数的匿名类型参数）和返回位置（在此它可以作为抽象返回类型）。&lt;/p&gt;</description></item><item><title>18-类型参数</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/18-parameters/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/18-parameters/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/parameters.html"&gt;https://doc.rust-lang.org/reference/types/parameters.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.generic]&lt;/p&gt;
+&lt;h1 id="类型参数"&gt;类型参数&lt;/h1&gt;
+&lt;p&gt;在带有类型参数声明的项的函数体中，其类型参数的名字就是类型：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;to_vec&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;A&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;Clone&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;xs&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;A&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;])&lt;/span&gt; -&amp;gt; &lt;span style="color:#e5c07b"&gt;Vec&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;A&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;if&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;xs&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;is_empty&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;return&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;vec!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;[];&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;first&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;A&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;xs&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#d19a66"&gt;0&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;].&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;clone&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;();&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;mut&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;rest&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;Vec&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;A&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;to_vec&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;xs&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;..&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;rest&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;insert&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#d19a66"&gt;0&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;first&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;rest&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;此处，&lt;code&gt;first&lt;/code&gt; 的类型为 &lt;code&gt;A&lt;/code&gt;，指的是 &lt;code&gt;to_vec&lt;/code&gt; 的类型参数 &lt;code&gt;A&lt;/code&gt;；而 &lt;code&gt;rest&lt;/code&gt; 的类型为 &lt;code&gt;Vec&amp;lt;A&amp;gt;&lt;/code&gt;，即元素类型为 &lt;code&gt;A&lt;/code&gt; 的向量。&lt;/p&gt;</description></item><item><title>19-推断类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/01-types/19-inferred/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/01-types/19-inferred/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/types/inferred.html"&gt;https://doc.rust-lang.org/reference/types/inferred.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[type.inferred]&lt;/p&gt;
+&lt;h1 id="推断类型"&gt;推断类型&lt;/h1&gt;
+&lt;p&gt;r[type.inferred.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,types" data-lang="grammar,types"&gt;InferredType -&amp;gt; `_`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[type.inferred.intro]
+推断类型要求编译器在可能的情况下，根据周围可用信息来推断类型。&lt;/p&gt;
+&lt;div class="td-alert td-alert--md alert alert-example" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;[i18n] example&lt;/div&gt;
+ &lt;div class="td-alert-body"&gt;
+ &lt;p&gt;推断类型常用于泛型参数：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;x&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;Vec&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;_&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#d19a66"&gt;0&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;..&lt;/span&gt;&lt;span style="color:#d19a66"&gt;10&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;).&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;collect&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;();&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;r[type.inferred.constraint]
+推断类型不能用在项的签名中。&lt;/p&gt;</description></item></channel></rss>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第12章 名称 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/ref/names/</link><description>Recent content in 第12章 名称 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/ref/names/index.xml" rel="self" type="application/rss+xml"/><item><title>01-命名空间</title><link>https://before80.github.io/prgms/Rust/ref/names/01-namespaces/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/names/01-namespaces/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/names/namespaces.html"&gt;https://doc.rust-lang.org/reference/names/namespaces.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[names.namespaces]&lt;/p&gt;
+&lt;h1 id="命名空间"&gt;命名空间&lt;/h1&gt;
+&lt;p&gt;r[names.namespaces.intro]
+&lt;em&gt;命名空间&lt;/em&gt;是已声明&lt;a href="../names.md"&gt;名称&lt;/a&gt;的逻辑分组。名称根据其所指实体的种类被分隔到不同的命名空间中。命名空间允许一个命名空间中出现的名称与另一命名空间中的同名不冲突。&lt;/p&gt;
+&lt;p&gt;存在若干不同的命名空间，各自包含不同种类的实体。对名称的使用会根据上下文在不同命名空间中查找该名称的声明，如&lt;a href="name-resolution.md"&gt;名称解析&lt;/a&gt;一章所述。&lt;/p&gt;</description></item><item><title>02-作用域</title><link>https://before80.github.io/prgms/Rust/ref/names/02-scopes/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/names/02-scopes/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/names/scopes.html"&gt;https://doc.rust-lang.org/reference/names/scopes.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[names.scopes]&lt;/p&gt;
+&lt;h1 id="作用域"&gt;作用域&lt;/h1&gt;
+&lt;p&gt;r[names.scopes.intro]
+&lt;em&gt;作用域&lt;/em&gt;是源文本中可以用该名称引用具名&lt;a href="../names.md"&gt;实体&lt;/a&gt;的区域。以下各节详细说明作用域规则与行为，它们取决于实体的种类及其声明位置。名称如何解析到实体的过程在&lt;a href="name-resolution.md"&gt;名称解析&lt;/a&gt;一章中描述。更多关于用于运行析构器的“析构作用域”的信息，可见&lt;a href="../destructors.md"&gt;析构器&lt;/a&gt;一章。&lt;/p&gt;
+&lt;p&gt;r[names.scopes.items]&lt;/p&gt;
+&lt;h2 id="项作用域"&gt;项作用域&lt;/h2&gt;
+&lt;p&gt;r[names.scopes.items.module]
+直接在&lt;a href="../items/modules.md"&gt;模块&lt;/a&gt;中声明的&lt;a href="../items.md"&gt;项&lt;/a&gt;的名称，其作用域从模块开始延伸到模块结束。这些项也是模块的成员，可以通过从其模块出发的&lt;a href="../paths.md"&gt;路径&lt;/a&gt;引用。&lt;/p&gt;
+&lt;p&gt;r[names.scopes.items.statement]
+作为&lt;a href="../statements.md"&gt;语句&lt;/a&gt;声明的项的名称，其作用域从该项语句所在块的开始延伸到该块的结束。&lt;/p&gt;
+&lt;p&gt;r[names.scopes.items.duplicate]
+在同一模块或块内的同一&lt;a href="namespaces.md"&gt;命名空间&lt;/a&gt;中，引入与另一项重名的项是错误的。&lt;a href="../items/use-declarations.md"&gt;星号 glob 导入&lt;/a&gt;在处理重复名称与遮蔽方面有特殊行为，详见所链接章节。&lt;/p&gt;</description></item><item><title>03-Prelude</title><link>https://before80.github.io/prgms/Rust/ref/names/03-preludes/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/names/03-preludes/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/names/preludes.html"&gt;https://doc.rust-lang.org/reference/names/preludes.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[names.preludes]&lt;/p&gt;
+&lt;h1 id="prelude"&gt;Prelude&lt;/h1&gt;
+&lt;p&gt;r[names.preludes.intro]
+&lt;em&gt;prelude&lt;/em&gt; 是自动带入 crate 中每个模块作用域的一组名称集合。&lt;/p&gt;
+&lt;p&gt;这些 prelude 名称不是模块本身的一部分：它们在&lt;a href="name-resolution.md"&gt;名称解析&lt;/a&gt;期间被隐式查询。例如，即便像 [&lt;code&gt;Box&lt;/code&gt;] 这样的名称在每个模块中都处于作用域内，也不能用 &lt;code&gt;self::Box&lt;/code&gt; 引用它，因为它不是当前模块的成员。&lt;/p&gt;</description></item><item><title>04-路径</title><link>https://before80.github.io/prgms/Rust/ref/names/04-paths/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/names/04-paths/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/paths.html"&gt;https://doc.rust-lang.org/reference/paths.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[paths]&lt;/p&gt;
+&lt;h1 id="路径"&gt;路径&lt;/h1&gt;
+&lt;p&gt;r[paths.intro]
+&lt;em&gt;路径&lt;/em&gt;（path）是由一个或多个路径段（path segment）组成的序列，各段之间以 &lt;code&gt;::&lt;/code&gt; 记号分隔。路径用于引用&lt;a href="items.md"&gt;条目&lt;/a&gt;、值、&lt;a href="types.md"&gt;类型&lt;/a&gt;、&lt;a href="macros.md"&gt;宏&lt;/a&gt;以及&lt;a href="attributes.md"&gt;属性&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>05-名称解析</title><link>https://before80.github.io/prgms/Rust/ref/names/05-name-resolution/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/names/05-name-resolution/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/names/name-resolution.html"&gt;https://doc.rust-lang.org/reference/names/name-resolution.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[names.resolution]&lt;/p&gt;
+&lt;h1 id="名称解析"&gt;名称解析&lt;/h1&gt;
+&lt;p&gt;r[names.resolution.intro]
+&lt;em&gt;名称解析&lt;/em&gt;（name resolution）是将路径及其他标识符与实体声明绑定的过程。名称按不同的&lt;a href="../names/namespaces.md"&gt;命名空间&lt;/a&gt;划分，使得不同命名空间中的实体可以共用同一名称而不冲突。每个名称在一个&lt;a href="../names/scopes.md"&gt;作用域&lt;/a&gt;内有效——即源码中允许引用该名称的区域。对名称的访问还可能受其&lt;a href="../visibility-and-privacy.md"&gt;可见性&lt;/a&gt;限制。&lt;/p&gt;
+&lt;p&gt;名称解析在整个编译过程中分为三个阶段。第一阶段是&lt;em&gt;展开期解析&lt;/em&gt;（expansion-time resolution），解析所有&lt;a href="../items/use-declarations.md"&gt;&lt;code&gt;use&lt;/code&gt; 声明&lt;/a&gt;和&lt;a href="../macros.md#macro-invocation"&gt;宏调用&lt;/a&gt;。第二阶段是&lt;em&gt;主解析&lt;/em&gt;（primary resolution），解析尚未解析且不依赖类型信息即可解析的所有名称。最后阶段是&lt;em&gt;相对类型的解析&lt;/em&gt;（type-relative resolution），在类型信息可用后解析剩余名称。&lt;/p&gt;</description></item><item><title>06-可见性与私有性</title><link>https://before80.github.io/prgms/Rust/ref/names/06-visibility-and-privacy/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/names/06-visibility-and-privacy/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/visibility-and-privacy.html"&gt;https://doc.rust-lang.org/reference/visibility-and-privacy.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[vis]&lt;/p&gt;
+&lt;h1 id="可见性与私有性"&gt;可见性与私有性&lt;/h1&gt;
+&lt;p&gt;r[vis.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,items" data-lang="grammar,items"&gt;Visibility -&amp;gt;
+ `pub`
+ | `pub` `(` `crate` `)`
+ | `pub` `(` `self` `)`
+ | `pub` `(` `super` `)`
+ | `pub` `(` `in` SimplePath `)`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[vis.intro]
+这两个术语经常互换使用，它们试图传达的是对“这个项能在这个位置使用吗？”这一问题的回答。&lt;/p&gt;</description></item></channel></rss>

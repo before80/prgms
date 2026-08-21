@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第1章 惯用法 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/</link><description>Recent content in 第1章 惯用法 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/index.xml" rel="self" type="application/rss+xml"/><item><title>01-参数使用借用类型</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/01-use-borrowed-types-for-arguments/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/01-use-borrowed-types-for-arguments/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/coercion-arguments.html"&gt;https://rust-unofficial.github.io/patterns/idioms/coercion-arguments.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="参数使用借用类型"&gt;参数使用借用类型&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;在决定函数参数使用何种类型时，以解引用强制转换（deref coercion）的目标类型作为参数，
+可以提高代码的灵活性。这样，函数就能接受更多的输入类型。&lt;/p&gt;</description></item><item><title>02-用 format! 拼接字符串</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/02-concatenating-strings-with-format/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/02-concatenating-strings-with-format/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/concat-format.html"&gt;https://rust-unofficial.github.io/patterns/idioms/concat-format.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="用-format-拼接字符串"&gt;用 format! 拼接字符串&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;可以用可变 &lt;code&gt;String&lt;/code&gt; 上的 &lt;code&gt;push&lt;/code&gt; 和 &lt;code&gt;push_str&lt;/code&gt; 方法，或使用它的 &lt;code&gt;+&lt;/code&gt; 运算符来逐步构建字符串。
+不过，使用 &lt;code&gt;format!&lt;/code&gt; 通常更方便，尤其是在字面量字符串与非字面量字符串混用的场合。&lt;/p&gt;</description></item><item><title>03-构造器</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/03-constructor/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/03-constructor/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/ctor.html"&gt;https://rust-unofficial.github.io/patterns/idioms/ctor.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="构造器"&gt;构造器&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;Rust 没有作为语言构造的构造器。约定是使用&lt;a href="https://doc.rust-lang.org/stable/book/ch05-03-method-syntax.html#associated-functions"&gt;关联函数&lt;/a&gt; &lt;code&gt;new&lt;/code&gt; 来创建对象：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;18
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;19
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;20
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;21
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;22
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;23
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;24
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#7e97c3"&gt;/// 以秒计的时间。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#7e97c3"&gt;///
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#7e97c3"&gt;/// # 示例
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#7e97c3"&gt;///
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#7e97c3"&gt;/// ```
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#7e97c3"&gt;/// let s = Second::new(42);
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#7e97c3"&gt;/// assert_eq!(42, s.value());
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#7e97c3"&gt;/// ```
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Second&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;value&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;u64&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;impl&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Second&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 构造 [`Second`] 的新实例。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 注意这是关联函数——没有 self。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;new&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;value&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;u64&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#ca72ff"&gt;Self&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e5c07b"&gt;Self&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;value&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#7e97c3"&gt;/// 返回以秒为单位的值。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;value&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#e5c07b"&gt;u64&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;value&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="default-constructors"&gt;默认构造器&lt;/h2&gt;
+&lt;p&gt;Rust 通过 &lt;a href="https://doc.rust-lang.org/stable/std/default/trait.Default.html"&gt;&lt;code&gt;Default&lt;/code&gt;&lt;/a&gt; trait 支持默认构造器：&lt;/p&gt;</description></item><item><title>04-Default Trait</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/04-the-default-trait/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/04-the-default-trait/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/default.html"&gt;https://rust-unofficial.github.io/patterns/idioms/default.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="default-trait"&gt;Default Trait&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;Rust 中许多类型都有&lt;a href="ctor.md"&gt;构造器&lt;/a&gt;。不过，这是类型&lt;em&gt;特有&lt;/em&gt;的；Rust 无法对「一切带有 &lt;code&gt;new()&lt;/code&gt; 方法的东西」进行抽象。
+为了允许这种抽象，人们构想了 &lt;a href="https://doc.rust-lang.org/stable/std/default/trait.Default.html"&gt;&lt;code&gt;Default&lt;/code&gt;&lt;/a&gt; trait，它可用于容器和其他泛型类型（例如参见 &lt;a href="https://doc.rust-lang.org/stable/std/option/enum.Option.html#method.unwrap_or_default"&gt;&lt;code&gt;Option::unwrap_or_default()&lt;/code&gt;&lt;/a&gt;）。
+值得注意的是，一些容器在适用处已经实现了它。&lt;/p&gt;</description></item><item><title>05-集合是智能指针</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/05-collections-are-smart-pointers/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/05-collections-are-smart-pointers/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/deref.html"&gt;https://rust-unofficial.github.io/patterns/idioms/deref.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="集合是智能指针"&gt;集合是智能指针&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;使用 &lt;a href="https://doc.rust-lang.org/std/ops/trait.Deref.html"&gt;&lt;code&gt;Deref&lt;/code&gt;&lt;/a&gt; trait，
+把集合当作智能指针来对待，从而提供数据的所有权视图和借用视图。&lt;/p&gt;
+&lt;h2 id="example"&gt;示例&lt;/h2&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,ignore" data-lang="rust,ignore"&gt;use std::ops::Deref;
+
+struct Vec&amp;lt;T&amp;gt; {
+ data: RawVec&amp;lt;T&amp;gt;,
+ //..
+}
+
+impl&amp;lt;T&amp;gt; Deref for Vec&amp;lt;T&amp;gt; {
+ type Target = [T];
+
+ fn deref(&amp;amp;self) -&amp;gt; &amp;amp;[T] {
+ //..
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;Vec&amp;lt;T&amp;gt;&lt;/code&gt; 是 &lt;code&gt;T&lt;/code&gt; 的所有权集合，而切片（&lt;code&gt;&amp;amp;[T]&lt;/code&gt;）是 &lt;code&gt;T&lt;/code&gt; 的借用集合。
+为 &lt;code&gt;Vec&lt;/code&gt; 实现 &lt;code&gt;Deref&lt;/code&gt; 允许从 &lt;code&gt;&amp;amp;Vec&amp;lt;T&amp;gt;&lt;/code&gt; 到 &lt;code&gt;&amp;amp;[T]&lt;/code&gt; 的隐式解引用，
+并把这种关系纳入自动解引用搜索。你可能期望为 &lt;code&gt;Vec&lt;/code&gt; 实现的大多数方法，实际上是为切片实现的。&lt;/p&gt;</description></item><item><title>06-析构器中的收尾</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/06-finalisation-in-destructors/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/06-finalisation-in-destructors/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/dtor-finally.html"&gt;https://rust-unofficial.github.io/patterns/idioms/dtor-finally.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="析构器中的收尾"&gt;析构器中的收尾&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;Rust 没有与 &lt;code&gt;finally&lt;/code&gt; 块等价的机制——无论函数以何种方式退出都会执行的代码。
+取而代之，可以使用对象的析构器来运行必须在退出前执行的代码。&lt;/p&gt;</description></item><item><title>07-`mem::{take(_), replace(_)}`</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/07-mem-take-replace/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/07-mem-take-replace/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/mem-replace.html"&gt;https://rust-unofficial.github.io/patterns/idioms/mem-replace.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="memtake_-replace_"&gt;&lt;code&gt;mem::{take(_), replace(_)}&lt;/code&gt;&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;假设我们有一个 &lt;code&gt;&amp;amp;mut MyEnum&lt;/code&gt;，它至少有两个变体：
+&lt;code&gt;A { name: String, x: u8 }&lt;/code&gt; 和 &lt;code&gt;B { name: String }&lt;/code&gt;。现在我们想在 &lt;code&gt;x&lt;/code&gt; 为零时把
+&lt;code&gt;MyEnum::A&lt;/code&gt; 改成 &lt;code&gt;B&lt;/code&gt;，同时保持 &lt;code&gt;MyEnum::B&lt;/code&gt; 不变。&lt;/p&gt;</description></item><item><title>08-栈上动态分发</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/08-on-stack-dynamic-dispatch/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/08-on-stack-dynamic-dispatch/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/on-stack-dyn-dispatch.html"&gt;https://rust-unofficial.github.io/patterns/idioms/on-stack-dyn-dispatch.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="栈上动态分发"&gt;栈上动态分发&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;我们可以对多个值进行动态分发，但为此需要声明多个变量，以绑定不同类型的对象。
+为了按需延长生命周期，我们可以使用延迟条件初始化，如下所示：&lt;/p&gt;</description></item><item><title>10-遍历 Option</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/10-iterating-over-an-option/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/10-iterating-over-an-option/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/option-iter.html"&gt;https://rust-unofficial.github.io/patterns/idioms/option-iter.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="遍历-option"&gt;遍历 Option&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;Option&lt;/code&gt; 可以看作一个包含零个或一个元素的容器。特别是，它实现了 &lt;code&gt;IntoIterator&lt;/code&gt; trait，因此可以用于需要此类类型的泛型代码。&lt;/p&gt;
+&lt;h2 id="examples"&gt;示例&lt;/h2&gt;
+&lt;p&gt;由于 &lt;code&gt;Option&lt;/code&gt; 实现了 &lt;code&gt;IntoIterator&lt;/code&gt;，它可以作为
+&lt;a href="https://doc.rust-lang.org/std/iter/trait.Extend.html#tymethod.extend"&gt;&lt;code&gt;.extend()&lt;/code&gt;&lt;/a&gt; 的参数：&lt;/p&gt;</description></item><item><title>11-向闭包传递变量</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/11-pass-variables-to-closure/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/11-pass-variables-to-closure/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/pass-var-to-closure.html"&gt;https://rust-unofficial.github.io/patterns/idioms/pass-var-to-closure.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="向闭包传递变量"&gt;向闭包传递变量&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;默认情况下，闭包通过借用捕获其环境。也可以使用 &lt;code&gt;move&lt;/code&gt; 闭包来移动整个环境。然而，你常常只想把部分变量移入闭包、给它一份数据的副本、按引用传递，或做其他某种转换。&lt;/p&gt;</description></item><item><title>12-用私有性保证可扩展性</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/12-privacy-for-extensibility/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/12-privacy-for-extensibility/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/priv-extend.html"&gt;https://rust-unofficial.github.io/patterns/idioms/priv-extend.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="用私有性保证可扩展性"&gt;用私有性保证可扩展性&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;在少数场景中，库作者可能希望向公开结构体添加公开字段，或向枚举添加新变体，同时不破坏向后兼容性。&lt;/p&gt;
+&lt;p&gt;Rust 为这个问题提供了两种解决方案：&lt;/p&gt;</description></item><item><title>13-简便的文档初始化</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/13-easy-doc-initialization/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/13-easy-doc-initialization/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/rustdoc-init.html"&gt;https://rust-unofficial.github.io/patterns/idioms/rustdoc-init.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="简便的文档初始化"&gt;简便的文档初始化&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;如果在写文档时初始化某个结构体很费功夫，用一个以该结构体为参数的辅助函数把示例包起来会更快。&lt;/p&gt;
+&lt;h2 id="motivation"&gt;动机&lt;/h2&gt;
+&lt;p&gt;有时结构体带有多个或复杂的参数，以及若干方法。这些方法各自都应当有示例。&lt;/p&gt;</description></item><item><title>14-临时可变性</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/14-temporary-mutability/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/14-temporary-mutability/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/temporary-mutability.html"&gt;https://rust-unofficial.github.io/patterns/idioms/temporary-mutability.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="临时可变性"&gt;临时可变性&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;常常需要准备并处理一些数据，但之后这些数据只会被查看、不会再被修改。把可变变量重新定义为不可变，可以把这一意图表达清楚。&lt;/p&gt;</description></item><item><title>15-出错时归还已消耗的参数</title><link>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/15-return-consumed-arg-on-error/</link><pubDate>Tue, 18 Aug 2026 22:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustDesignPatterns/idioms/15-return-consumed-arg-on-error/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-unofficial.github.io/patterns/"&gt;Rust Design Patterns&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-unofficial.github.io/patterns/idioms/return-consumed-arg-on-error.html"&gt;https://rust-unofficial.github.io/patterns/idioms/return-consumed-arg-on-error.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="出错时归还已消耗的参数"&gt;出错时归还已消耗的参数&lt;/h1&gt;
+&lt;h2 id="description"&gt;描述&lt;/h2&gt;
+&lt;p&gt;如果一个可能失败的函数会消耗（移动）某个参数，请在错误中把该参数归还回去。&lt;/p&gt;
+&lt;h2 id="example"&gt;示例&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;18
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;19
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;20
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;21
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;22
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;23
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;24
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;25
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;26
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;27
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;28
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;29
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;30
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;31
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;32
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;send&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;value&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;String&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#e5c07b"&gt;Result&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(),&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;SendError&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;using &lt;/span&gt;&lt;span style="color:#98c379"&gt;{value}&lt;/span&gt;&lt;span style="color:#98c379"&gt; in a meaningful way&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 模拟非确定性的可能失败的操作。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;use&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;std&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;time&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;SystemTime&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;period&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;SystemTime&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;now&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;duration_since&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;SystemTime&lt;/span&gt;::&lt;span style="color:#aa89ea;font-weight:bold"&gt;UNIX_EPOCH&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;unwrap&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;();&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;if&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;period&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;subsec_nanos&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;%&lt;/span&gt; &lt;span style="color:#d19a66"&gt;2&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;==&lt;/span&gt; &lt;span style="color:#d19a66"&gt;1&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e5c07b"&gt;Ok&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(())&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;else&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e5c07b"&gt;Err&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;SendError&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;value&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;SendError&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;String&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;main&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;mut&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;value&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#98c379"&gt;&amp;#34;imagine this is very long string&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;to_string&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;();&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;success&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#cebc3a"&gt;&amp;#39;s&lt;/span&gt;: &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 尝试发送 value 两次。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;for&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;_&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;in&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;..&lt;/span&gt;&lt;span style="color:#d19a66"&gt;2&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;value&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;match&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;send&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;value&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e5c07b"&gt;Ok&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(())&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&amp;gt;&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;break&lt;/span&gt; &lt;span style="color:#f5a40d"&gt;&amp;#39;s&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;true&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e5c07b"&gt;Err&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;SendError&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;value&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;))&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&amp;gt;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;value&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e5c07b"&gt;false&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;success: &lt;/span&gt;&lt;span style="color:#98c379"&gt;{success}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="motivation"&gt;动机&lt;/h2&gt;
+&lt;p&gt;出错时，你可能想尝试其他途径，或者在非确定性函数的情况下重试该操作。但如果参数总是被消耗，你就被迫在每次调用时克隆它，这不太高效。&lt;/p&gt;</description></item></channel></rss>

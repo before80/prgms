@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第3章 宏 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/ref/macros/</link><description>Recent content in 第3章 宏 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/ref/macros/index.xml" rel="self" type="application/rss+xml"/><item><title>01-示例宏</title><link>https://before80.github.io/prgms/Rust/ref/macros/01-macros-by-example/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/macros/01-macros-by-example/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/macros-by-example.html"&gt;https://doc.rust-lang.org/reference/macros-by-example.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[macro.decl]&lt;/p&gt;
+&lt;h1 id="示例宏"&gt;示例宏&lt;/h1&gt;
+&lt;p&gt;r[macro.decl.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,macros" data-lang="grammar,macros"&gt;MacroRulesDefinition -&amp;gt;
+ `macro_rules` `!` IDENTIFIER MacroRulesDef
+
+MacroRulesDef -&amp;gt;
+ `(` MacroRules `)` `;`
+ | `[` MacroRules `]` `;`
+ | `{` MacroRules `}`
+
+MacroRules -&amp;gt;
+ MacroRule ( `;` MacroRule )* `;`?
+
+MacroRule -&amp;gt;
+ MacroMatcher `=&amp;gt;` MacroTranscriber
+
+MacroMatcher -&amp;gt;
+ `(` MacroMatch* `)`
+ | `[` MacroMatch* `]`
+ | `{` MacroMatch* `}`
+
+MacroMatch -&amp;gt;
+ Token _except `$` and [delimiters][lex.token.delim]_
+ | MacroMatcher
+ | `$` ( IDENTIFIER_OR_KEYWORD _except `crate`_ | RAW_IDENTIFIER ) `:` MacroFragSpec
+ | `$` `(` MacroMatch+ `)` MacroRepSep? MacroRepOp
+
+MacroFragSpec -&amp;gt;
+ `block` | `expr` | `expr_2021` | `ident` | `item` | `lifetime` | `literal`
+ | `meta` | `pat` | `pat_param` | `path` | `stmt` | `tt` | `ty` | `vis`
+
+MacroRepSep -&amp;gt; Token _except [delimiters][lex.token.delim] and [MacroRepOp]_
+
+MacroRepOp -&amp;gt; `*` | `+` | `?`
+
+MacroTranscriber -&amp;gt; DelimTokenTree
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[macro.decl.intro]
+&lt;code&gt;macro_rules&lt;/code&gt; 允许用户以声明式方式定义语法扩展。我们称此类扩展为“示例宏”（macros by example），或简称“宏”。&lt;/p&gt;</description></item><item><title>02-过程宏</title><link>https://before80.github.io/prgms/Rust/ref/macros/02-procedural-macros/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/macros/02-procedural-macros/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/procedural-macros.html"&gt;https://doc.rust-lang.org/reference/procedural-macros.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[macro.proc]&lt;/p&gt;
+&lt;h1 id="过程宏"&gt;过程宏&lt;/h1&gt;
+&lt;p&gt;r[macro.proc.intro]
+&lt;em&gt;过程宏&lt;/em&gt; 允许以执行函数的方式创建语法扩展。过程宏有三种风格：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#the-proc_macro-attribute"&gt;函数式宏&lt;/a&gt; - &lt;code&gt;custom!(...)&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="macro.proc.derive"&gt;Derive 宏&lt;/a&gt; - &lt;code&gt;#[derive(CustomDerive)]&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#the-proc_macro_attribute-attribute"&gt;属性宏&lt;/a&gt; - &lt;code&gt;#[CustomAttribute]&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;过程宏允许你在编译期运行对 Rust 语法进行操作的代码，既消费也产生 Rust 语法。你可以大致把过程宏想成从一份 AST 到另一份 AST 的函数。&lt;/p&gt;</description></item></channel></rss>

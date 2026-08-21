@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第10章 类型系统 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/ref/type-system/</link><description>Recent content in 第10章 类型系统 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/ref/type-system/index.xml" rel="self" type="application/rss+xml"/><item><title>02-动态大小类型</title><link>https://before80.github.io/prgms/Rust/ref/type-system/02-dynamically-sized-types/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/02-dynamically-sized-types/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/dynamically-sized-types.html"&gt;https://doc.rust-lang.org/reference/dynamically-sized-types.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[dynamic-sized]&lt;/p&gt;
+&lt;h1 id="动态大小类型"&gt;动态大小类型&lt;/h1&gt;
+&lt;p&gt;r[dynamic-sized.intro]
+大多数类型具有在编译时已知的固定大小，并实现 trait &lt;a href="special-types-and-traits.md#sized"&gt;&lt;code&gt;Sized&lt;/code&gt;&lt;/a&gt;。大小仅在运行时才知道的类型称为 &lt;em&gt;动态大小类型&lt;/em&gt;（&lt;em&gt;DST&lt;/em&gt;），非正式地也称为不定大小类型。&lt;a href="types/slice.md"&gt;切片&lt;/a&gt;、&lt;a href="types/trait-object.md"&gt;trait 对象&lt;/a&gt;和 &lt;a href="types/str.md"&gt;str&lt;/a&gt; 都是 &lt;abbr title="dynamically sized types"&gt;DST&lt;/abbr&gt; 的例子。&lt;/p&gt;</description></item><item><title>03-类型布局</title><link>https://before80.github.io/prgms/Rust/ref/type-system/03-type-layout/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/03-type-layout/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/type-layout.html"&gt;https://doc.rust-lang.org/reference/type-layout.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[layout]&lt;/p&gt;
+&lt;h1 id="类型布局"&gt;类型布局&lt;/h1&gt;
+&lt;p&gt;r[layout.intro]
+类型的布局是其大小、对齐，以及其字段的相对偏移。对于枚举，判别式如何布局和解释也是类型布局的一部分。&lt;/p&gt;
+&lt;p&gt;r[layout.guarantees]
+类型布局可以随每次编译而改变。我们不会试图精确记录实际做了什么，而只记录今天所保证的内容。&lt;/p&gt;</description></item><item><title>04-内部可变性</title><link>https://before80.github.io/prgms/Rust/ref/type-system/04-interior-mutability/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/04-interior-mutability/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/interior-mutability.html"&gt;https://doc.rust-lang.org/reference/interior-mutability.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[interior-mut]&lt;/p&gt;
+&lt;h1 id="内部可变性"&gt;内部可变性&lt;/h1&gt;
+&lt;p&gt;r[interior-mut.intro]
+有时一个类型需要在存在多个别名的情况下被修改。在 Rust 中，这通过一种称为 &lt;em&gt;内部可变性&lt;/em&gt; 的模式来实现。&lt;/p&gt;
+&lt;p&gt;r[interior-mut.shared-ref]
+若一个类型的内部状态可以通过指向它的&lt;a href="types/pointer.md#shared-references-"&gt;共享引用&lt;/a&gt;来改变，则该类型具有内部可变性。&lt;/p&gt;</description></item><item><title>05-子类型与可变性</title><link>https://before80.github.io/prgms/Rust/ref/type-system/05-subtyping/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/05-subtyping/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/subtyping.html"&gt;https://doc.rust-lang.org/reference/subtyping.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[subtype]&lt;/p&gt;
+&lt;h1 id="子类型与可变性"&gt;子类型与可变性&lt;/h1&gt;
+&lt;p&gt;r[subtype.intro]
+子类型是隐式的，可以发生在类型检查或推断的任何阶段。&lt;/p&gt;
+&lt;p&gt;r[subtype.kinds]
+子类型仅限于两种情形：关于生命周期的型变，以及带有高阶生命周期的类型之间。若我们从类型中抹去生命周期，则唯一的子类型关系将来自类型相等。&lt;/p&gt;</description></item><item><title>06-Trait 与生命周期约束</title><link>https://before80.github.io/prgms/Rust/ref/type-system/06-trait-bounds/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/06-trait-bounds/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/trait-bounds.html"&gt;https://doc.rust-lang.org/reference/trait-bounds.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[bound]&lt;/p&gt;
+&lt;h1 id="trait-与生命周期约束"&gt;Trait 与生命周期约束&lt;/h1&gt;
+&lt;p&gt;r[bound.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,miscellaneous" data-lang="grammar,miscellaneous"&gt;Bounds -&amp;gt; Bound ( `+` Bound )* `+`?
+
+Bound -&amp;gt; Lifetime | TraitBound | UseBound
+
+TraitBound -&amp;gt;
+ ( `?` | ForLifetimes )? TypePath
+ | `(` ( `?` | ForLifetimes )? TypePath `)`
+
+LifetimeBounds -&amp;gt; ( Lifetime `+` )* Lifetime?
+
+Lifetime -&amp;gt;
+ LIFETIME_OR_LABEL
+ | `&amp;#39;static`
+ | `&amp;#39;_`
+
+UseBound -&amp;gt; `use` UseBoundGenericArgs
+
+UseBoundGenericArgs -&amp;gt;
+ `&amp;lt;` `&amp;gt;`
+ | `&amp;lt;` ( UseBoundGenericArg `,`)* UseBoundGenericArg `,`? `&amp;gt;`
+
+UseBoundGenericArg -&amp;gt;
+ Lifetime
+ | IDENTIFIER
+ | `Self`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[bound.intro]
+&lt;a href="items/traits.md#trait-bounds"&gt;Trait&lt;/a&gt; 与生命周期约束为&lt;a href="items/generics.md"&gt;泛型项&lt;/a&gt;提供了一种限制哪些类型和生命周期可用作其参数的方式。约束可以在 &lt;a href="items/generics.md#where-clauses"&gt;where 子句&lt;/a&gt;中施加于任何类型。对于某些常见情形还有更短的形式：&lt;/p&gt;</description></item><item><title>07-类型强制转换</title><link>https://before80.github.io/prgms/Rust/ref/type-system/07-type-coercions/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/07-type-coercions/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/type-coercions.html"&gt;https://doc.rust-lang.org/reference/type-coercions.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[coerce]&lt;/p&gt;
+&lt;h1 id="类型强制转换"&gt;类型强制转换&lt;/h1&gt;
+&lt;p&gt;r[coerce.intro]
+&lt;strong&gt;类型强制转换&lt;/strong&gt;是隐式改变值的类型的操作。它们在特定位置自动发生，并且实际会发生强制转换的类型受到严格限制。&lt;/p&gt;
+&lt;p&gt;r[coerce.as]
+强制转换所允许的任何转换也可以由&lt;a href="expressions/operator-expr.md#type-cast-expressions"&gt;类型转换运算符&lt;/a&gt; &lt;code&gt;as&lt;/code&gt; 显式执行。&lt;/p&gt;</description></item><item><title>08-发散</title><link>https://before80.github.io/prgms/Rust/ref/type-system/08-divergence/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/08-divergence/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/divergence.html"&gt;https://doc.rust-lang.org/reference/divergence.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[divergence]&lt;/p&gt;
+&lt;h1 id="发散"&gt;发散&lt;/h1&gt;
+&lt;p&gt;r[divergence.intro]
+&lt;em&gt;发散表达式&lt;/em&gt; 是永远不会正常执行完毕的表达式。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;diverges&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; -&amp;gt; &lt;span style="color:#54b1c7"&gt;!&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;panic!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;This function never returns!&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;example&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;x&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;diverges&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;();&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 这一行永远不会执行完毕。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;This is never printed: &lt;/span&gt;&lt;span style="color:#98c379"&gt;{x}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;关于特定表达式的发散行为，参见以下规则：&lt;/p&gt;</description></item><item><title>09-析构器</title><link>https://before80.github.io/prgms/Rust/ref/type-system/09-destructors/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/09-destructors/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/destructors.html"&gt;https://doc.rust-lang.org/reference/destructors.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r&lt;a href="destructors.md"&gt;destructors&lt;/a&gt;&lt;/p&gt;
+&lt;h1 id="析构器"&gt;析构器&lt;/h1&gt;
+&lt;p&gt;r[destructors.intro]
+当&lt;a href="glossary.md#initialized"&gt;已初始化&lt;/a&gt;的&lt;a href="variables.md"&gt;变量&lt;/a&gt;或&lt;a href="expressions.md#temporaries"&gt;临时值&lt;/a&gt;离开&lt;a href="#drop-scopes"&gt;作用域&lt;/a&gt;时，会运行其 &lt;em&gt;析构器&lt;/em&gt;，或者说它被 &lt;em&gt;drop&lt;/em&gt;。&lt;a href="expressions/operator-expr.md#assignment-expressions"&gt;赋值&lt;/a&gt;也会运行其左操作数的析构器（若它已初始化）。若变量只被部分初始化，则只 drop 其已初始化的字段。&lt;/p&gt;
+&lt;p&gt;r[destructors.operation]
+类型 &lt;code&gt;T&lt;/code&gt; 的析构器包括：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;若 &lt;code&gt;T: Drop&lt;/code&gt;，调用 &lt;a href="core::ops::Drop::drop"&gt;&lt;code&gt;&amp;lt;T as core::ops::Drop&amp;gt;::drop&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;递归运行其所有字段的析构器。
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="types/struct.md"&gt;结构体&lt;/a&gt;的字段按声明顺序 drop。&lt;/li&gt;
+&lt;li&gt;活动&lt;a href="types/enum.md"&gt;枚举变体&lt;/a&gt;的字段按声明顺序 drop。&lt;/li&gt;
+&lt;li&gt;&lt;a href="types/tuple.md"&gt;元组&lt;/a&gt;的字段按顺序 drop。&lt;/li&gt;
+&lt;li&gt;&lt;a href="types/array.md"&gt;数组&lt;/a&gt;或拥有所有权的&lt;a href="types/slice.md"&gt;切片&lt;/a&gt;的元素从第一个元素到最后一个元素 drop。&lt;/li&gt;
+&lt;li&gt;&lt;a href="types/closure.md"&gt;闭包&lt;/a&gt;按移动捕获的变量以未指定的顺序 drop。&lt;/li&gt;
+&lt;li&gt;&lt;a href="types/trait-object.md"&gt;Trait 对象&lt;/a&gt;运行底层类型的析构器。&lt;/li&gt;
+&lt;li&gt;其他类型不会导致任何进一步的 drop。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;r[destructors.drop_in_place]
+若必须手动运行析构器，例如在实现你自己的智能指针时，可以使用 [&lt;code&gt;core::ptr::drop_in_place&lt;/code&gt;]。&lt;/p&gt;</description></item><item><title>10-生命周期省略</title><link>https://before80.github.io/prgms/Rust/ref/type-system/10-lifetime-elision/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/type-system/10-lifetime-elision/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/lifetime-elision.html"&gt;https://doc.rust-lang.org/reference/lifetime-elision.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[lifetime-elision]&lt;/p&gt;
+&lt;h1 id="生命周期省略"&gt;生命周期省略&lt;/h1&gt;
+&lt;p&gt;Rust 有一些规则，允许在编译器可以推断出合理默认选择的各种位置省略生命周期。&lt;/p&gt;
+&lt;p&gt;r[lifetime-elision.function]&lt;/p&gt;
+&lt;h2 id="函数中的生命周期省略"&gt;函数中的生命周期省略&lt;/h2&gt;
+&lt;p&gt;r[lifetime-elision.function.intro]
+为了使常见模式更符合人体工学，可以在&lt;a href="types/function-item.md"&gt;函数项&lt;/a&gt;、&lt;a href="types/function-pointer.md"&gt;函数指针&lt;/a&gt;和&lt;a href="types/closure.md"&gt;闭包 trait&lt;/a&gt;签名中 &lt;em&gt;省略&lt;/em&gt; 生命周期参数。以下规则用于为被省略的生命周期推断生命周期参数。&lt;/p&gt;</description></item></channel></rss>

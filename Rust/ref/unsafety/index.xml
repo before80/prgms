@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第17章 不安全性 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/ref/unsafety/</link><description>Recent content in 第17章 不安全性 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/ref/unsafety/index.xml" rel="self" type="application/rss+xml"/><item><title>01-unsafe 关键字</title><link>https://before80.github.io/prgms/Rust/ref/unsafety/01-unsafe-keyword/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/unsafety/01-unsafe-keyword/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/unsafe-keyword.html"&gt;https://doc.rust-lang.org/reference/unsafe-keyword.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[unsafe]&lt;/p&gt;
+&lt;h1 id="unsafe-关键字"&gt;unsafe 关键字&lt;/h1&gt;
+&lt;p&gt;r[unsafe.intro]
+&lt;code&gt;unsafe&lt;/code&gt; 关键字用于创建或解除证明某事安全的义务。具体而言：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;用于标记那些&lt;em&gt;定义&lt;/em&gt;额外安全条件、且这些条件必须在别处得到满足的代码。
+&lt;ul&gt;
+&lt;li&gt;这包括 &lt;code&gt;unsafe fn&lt;/code&gt;、&lt;code&gt;unsafe static&lt;/code&gt; 和 &lt;code&gt;unsafe trait&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;用于标记程序员&lt;em&gt;断言&lt;/em&gt;已满足别处所定义安全条件的代码。
+&lt;ul&gt;
+&lt;li&gt;这包括 &lt;code&gt;unsafe {}&lt;/code&gt;、&lt;code&gt;unsafe impl&lt;/code&gt;、没有启用 &lt;a href="../rustc/lints/listing/allowed-by-default.html#unsafe-op-in-unsafe-fn"&gt;&lt;code&gt;unsafe_op_in_unsafe_fn&lt;/code&gt;&lt;/a&gt; 的 &lt;code&gt;unsafe fn&lt;/code&gt;、&lt;code&gt;unsafe extern&lt;/code&gt;，以及 &lt;code&gt;#[unsafe(attr)]&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;下文分别讨论这些情形。一些说明性示例见 &lt;a href="../std/keyword.unsafe.html"&gt;关键字文档&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>02-视为未定义行为</title><link>https://before80.github.io/prgms/Rust/ref/unsafety/02-behavior-considered-undefined/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/unsafety/02-behavior-considered-undefined/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/behavior-considered-undefined.html"&gt;https://doc.rust-lang.org/reference/behavior-considered-undefined.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[undefined]&lt;/p&gt;
+&lt;h1 id="视为未定义行为"&gt;视为未定义行为&lt;/h1&gt;
+&lt;p&gt;r[undefined.intro]
+若 Rust 代码表现出下列任一行为，则该代码不正确。这包括 &lt;code&gt;unsafe&lt;/code&gt; 块与 &lt;code&gt;unsafe&lt;/code&gt; 函数中的代码。&lt;code&gt;unsafe&lt;/code&gt; 仅意味着避免未定义行为是程序员的责任；它并不改变 Rust 程序绝不能导致未定义行为这一事实。&lt;/p&gt;</description></item><item><title>03-不视为不安全的行为</title><link>https://before80.github.io/prgms/Rust/ref/unsafety/03-behavior-not-considered-unsafe/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/unsafety/03-behavior-not-considered-unsafe/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/behavior-not-considered-unsafe.html"&gt;https://doc.rust-lang.org/reference/behavior-not-considered-unsafe.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="不视为不安全的行为"&gt;不视为不安全的行为&lt;/h1&gt;
+&lt;p&gt;Rust 编译器不认为下列行为是_不安全_的，尽管程序员可能（也应该）觉得它们不受欢迎、出乎意料或是错误的。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;死锁&lt;/li&gt;
+&lt;li&gt;内存及其他资源泄漏&lt;/li&gt;
+&lt;li&gt;未调用析构函数就退出&lt;/li&gt;
+&lt;li&gt;通过指针泄漏暴露随机化的基地址&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="整数溢出"&gt;整数溢出&lt;/h2&gt;
+&lt;p&gt;若程序包含算术溢出，则程序员犯了错误。在下文讨论中，我们区分算术溢出与回绕算术。前者是错误的，后者是有意为之。&lt;/p&gt;</description></item></channel></rss>

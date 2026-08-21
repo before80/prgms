@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>03-`Option` 和 `unwrap` on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/RustByExample/error/03-option-unwrap/</link><description>Recent content in 03-`Option` 和 `unwrap` on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/RustByExample/error/03-option-unwrap/index.xml" rel="self" type="application/rss+xml"/><item><title>01-使用 `?` 解开 `Option`</title><link>https://before80.github.io/prgms/Rust/RustByExample/error/03-option-unwrap/01-question-mark/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/error/03-option-unwrap/01-question-mark/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/"&gt;Rust By Example&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/error/option_unwrap/question_mark.html"&gt;https://doc.rust-lang.org/stable/rust-by-example/error/option_unwrap/question_mark.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="使用--解开-option"&gt;使用 &lt;code&gt;?&lt;/code&gt; 解开 &lt;code&gt;Option&lt;/code&gt;&lt;/h1&gt;
+&lt;p&gt;你可以使用 &lt;code&gt;match&lt;/code&gt; 语句来解开 &lt;code&gt;Option&lt;/code&gt;，但使用 &lt;code&gt;?&lt;/code&gt; 运算符通常会更容易。如果 &lt;code&gt;x&lt;/code&gt; 是 &lt;code&gt;Option&lt;/code&gt;，那么若 &lt;code&gt;x&lt;/code&gt; 是 &lt;code&gt;Some&lt;/code&gt; ，对&lt;code&gt;x?&lt;/code&gt;表达式求值将返回底层值，否则无论函数是否正在执行都将终止且返回 &lt;code&gt;None&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>02-组合算子：`map`</title><link>https://before80.github.io/prgms/Rust/RustByExample/error/03-option-unwrap/02-map/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/error/03-option-unwrap/02-map/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/"&gt;Rust By Example&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/error/option_unwrap/map.html"&gt;https://doc.rust-lang.org/stable/rust-by-example/error/option_unwrap/map.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="组合算子map"&gt;组合算子：&lt;code&gt;map&lt;/code&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;match&lt;/code&gt; 是处理 &lt;code&gt;Option&lt;/code&gt; 的一个可用的方法，但你会发现大量使用它会很繁琐，特别是当操作只对一种输入是有效的时。这时，可以使用&lt;a href="https://rustwiki.org/zh-CN/reference/glossary.html#%E7%BB%84%E5%90%88%E7%AE%97%E5%AD%90"&gt;组合算子&lt;/a&gt;（combinator），以模块化的风格来管理控制流。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Option&lt;/code&gt; 有一个内置方法 &lt;code&gt;map()&lt;/code&gt;，这个组合算子可用于 &lt;code&gt;Some -&amp;gt; Some&lt;/code&gt; 和
+&lt;code&gt;None -&amp;gt; None&lt;/code&gt; 这样的简单映射。多个不同的 &lt;code&gt;map()&lt;/code&gt; 调用可以串起来，这样更加灵活。&lt;/p&gt;</description></item><item><title>03-组合算子：`and_then`</title><link>https://before80.github.io/prgms/Rust/RustByExample/error/03-option-unwrap/03-and-then/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/error/03-option-unwrap/03-and-then/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/"&gt;Rust By Example&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/error/option_unwrap/and_then.html"&gt;https://doc.rust-lang.org/stable/rust-by-example/error/option_unwrap/and_then.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="组合算子and_then"&gt;组合算子：&lt;code&gt;and_then&lt;/code&gt;&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;map()&lt;/code&gt; 以链式调用的方式来简化 &lt;code&gt;match&lt;/code&gt; 语句。然而，如果以返回类型是 &lt;code&gt;Option&amp;lt;T&amp;gt;&lt;/code&gt;
+的函数作为 &lt;code&gt;map()&lt;/code&gt; 的参数，会导致出现嵌套形式 &lt;code&gt;Option&amp;lt;Option&amp;lt;T&amp;gt;&amp;gt;&lt;/code&gt;。这样多层串联调用就会变得混乱。所以有必要引入 &lt;code&gt;and_then()&lt;/code&gt;，在某些语言中它叫做 flatmap。&lt;/p&gt;</description></item><item><title>04-默认值：`or`、`or_else`、`get_or_insert`、`get_or_insert_with`</title><link>https://before80.github.io/prgms/Rust/RustByExample/error/03-option-unwrap/04-defaults/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/error/03-option-unwrap/04-defaults/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/"&gt;Rust By Example&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/error/option_unwrap/defaults.html"&gt;https://doc.rust-lang.org/stable/rust-by-example/error/option_unwrap/defaults.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="默认值oror_elseget_or_insertget_or_insert_with"&gt;默认值：&lt;code&gt;or&lt;/code&gt;、&lt;code&gt;or_else&lt;/code&gt;、&lt;code&gt;get_or_insert&lt;/code&gt;、&lt;code&gt;get_or_insert_with&lt;/code&gt;&lt;/h1&gt;
+&lt;p&gt;解包 &lt;code&gt;Option&lt;/code&gt; 并在其为 &lt;code&gt;None&lt;/code&gt; 时回退到默认值，有不止一种方式。要选择符合需求的方式，需要考虑：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;需要立即求值（eager）还是惰性求值（lazy）？&lt;/li&gt;
+&lt;li&gt;需要保留原来的空值不动，还是就地修改？&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="or-可链式调用立即求值保留空值不变"&gt;&lt;code&gt;or()&lt;/code&gt; 可链式调用、立即求值、保留空值不变&lt;/h2&gt;
+&lt;p&gt;如下所示，&lt;code&gt;or()&lt;/code&gt; 可链式调用，并立即求值其参数。注意：由于 &lt;code&gt;or&lt;/code&gt; 的参数会立即求值，传给 &lt;code&gt;or&lt;/code&gt; 的变量会被移动（move）。&lt;/p&gt;</description></item></channel></rss>

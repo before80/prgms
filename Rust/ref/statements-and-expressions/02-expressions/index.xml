@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>02-表达式 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/</link><description>Recent content in 02-表达式 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/index.xml" rel="self" type="application/rss+xml"/><item><title>01-字面量表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/01-literal-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/01-literal-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/literal-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/literal-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.literal]&lt;/p&gt;
+&lt;h1 id="字面量表达式"&gt;字面量表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.literal.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;LiteralExpression -&amp;gt;
+ CHAR_LITERAL
+ | STRING_LITERAL
+ | RAW_STRING_LITERAL
+ | BYTE_LITERAL
+ | BYTE_STRING_LITERAL
+ | RAW_BYTE_STRING_LITERAL
+ | C_STRING_LITERAL
+ | RAW_C_STRING_LITERAL
+ | INTEGER_LITERAL
+ | FLOAT_LITERAL
+ | `true`
+ | `false`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.literal.intro]
+&lt;em&gt;字面量表达式&lt;/em&gt;是由单个 token（而非一串 token）构成的表达式，它立即且直接地指明其求值所得的值，而不是通过名称或其他求值规则来引用该值。&lt;/p&gt;</description></item><item><title>02-路径表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/02-path-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/02-path-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/path-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/path-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.path]&lt;/p&gt;
+&lt;h1 id="路径表达式"&gt;路径表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.path.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;PathExpression -&amp;gt;
+ PathInExpression
+ | QualifiedPathInExpression
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.path.intro]
+在表达式上下文中使用的&lt;a href="../paths.md"&gt;路径&lt;/a&gt;表示局部变量或项。&lt;/p&gt;
+&lt;p&gt;r[expr.path.place]
+解析为局部变量或静态变量的路径表达式是&lt;a href="../expressions.md#place-expressions-and-value-expressions"&gt;位置表达式&lt;/a&gt;；其他路径是&lt;a href="../expressions.md#place-expressions-and-value-expressions"&gt;值表达式&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;r[expr.path.safety]
+使用 &lt;a href="../items/static-items.md#mutable-statics"&gt;&lt;code&gt;static mut&lt;/code&gt;&lt;/a&gt; 变量需要 &lt;a href="block-expr.md#unsafe-blocks"&gt;&lt;code&gt;unsafe&lt;/code&gt; 块&lt;/a&gt;。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;## &lt;span style="color:#76a9f9"&gt;mod&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;globals&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;## &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;static&lt;/span&gt; &lt;span style="color:#aa89ea;font-weight:bold"&gt;STATIC_VAR&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#d19a66"&gt;5&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;## &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;static&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;mut&lt;/span&gt; &lt;span style="color:#aa89ea;font-weight:bold"&gt;STATIC_MUT_VAR&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#d19a66"&gt;7&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;## &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;## &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;local_var&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#d19a66"&gt;3&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;local_var&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;globals&lt;/span&gt;::&lt;span style="color:#aa89ea;font-weight:bold"&gt;STATIC_VAR&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;unsafe&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;globals&lt;/span&gt;::&lt;span style="color:#aa89ea;font-weight:bold"&gt;STATIC_MUT_VAR&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;some_constructor&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;Some&lt;/span&gt;::&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;push_integer&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;Vec&lt;/span&gt;::&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;push&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;slice_reverse&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;reverse&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;r[expr.path.const]
+关联常量的求值方式与 &lt;a href="block-expr.md#const-blocks"&gt;&lt;code&gt;const&lt;/code&gt; 块&lt;/a&gt;相同。&lt;/p&gt;</description></item><item><title>03-块表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/03-block-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/03-block-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/block-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/block-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.block]&lt;/p&gt;
+&lt;h1 id="块表达式"&gt;块表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.block.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;BlockExpression -&amp;gt;
+ `{`
+ InnerAttribute*
+ Statements?
+ `}`
+
+BlockExpressionNoInnerAttributes -&amp;gt;
+ `{`
+ Statements?
+ `}`
+
+Statements -&amp;gt;
+ Statement+
+ | Statement+ ExpressionWithoutBlock
+ | ExpressionWithoutBlock
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.block.intro]
+&lt;em&gt;块表达式&lt;/em&gt;（&lt;em&gt;block expression&lt;/em&gt;），或称&lt;em&gt;块&lt;/em&gt;（&lt;em&gt;block&lt;/em&gt;），是一种控制流表达式，同时也是项与变量声明的匿名命名空间作用域。&lt;/p&gt;</description></item><item><title>04-运算符表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/04-operator-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/04-operator-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/operator-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/operator-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.operator]&lt;/p&gt;
+&lt;h1 id="运算符表达式"&gt;运算符表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.operator.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;OperatorExpression -&amp;gt;
+ BorrowExpression
+ | DereferenceExpression
+ | TryPropagationExpression
+ | NegationExpression
+ | ArithmeticOrLogicalExpression
+ | ComparisonExpression
+ | LazyBooleanExpression
+ | TypeCastExpression
+ | AssignmentExpression
+ | CompoundAssignmentExpression
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.operator.intro]
+Rust 语言为内建类型定义了运算符。&lt;/p&gt;
+&lt;p&gt;r[expr.operator.trait]
+下列许多运算符也可以使用 &lt;code&gt;std::ops&lt;/code&gt; 或 &lt;code&gt;std::cmp&lt;/code&gt; 中的 trait 进行重载。&lt;/p&gt;</description></item><item><title>05-分组表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/05-grouped-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/05-grouped-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/grouped-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/grouped-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.paren]&lt;/p&gt;
+&lt;h1 id="分组表达式"&gt;分组表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.paren.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;GroupedExpression -&amp;gt; `(` Expression `)`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.paren.intro]
+&lt;em&gt;圆括号表达式&lt;/em&gt;包装单个表达式，其求值结果就是该表达式。圆括号表达式的语法是 &lt;code&gt;(&lt;/code&gt;，然后是一个表达式（称为&lt;em&gt;被括操作数&lt;/em&gt;），最后是 &lt;code&gt;)&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>06-数组与索引表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/06-array-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/06-array-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/array-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/array-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.array]&lt;/p&gt;
+&lt;h1 id="数组与索引表达式"&gt;数组与索引表达式&lt;/h1&gt;
+&lt;h2 id="数组表达式"&gt;数组表达式&lt;/h2&gt;
+&lt;p&gt;r[expr.array.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;ArrayExpression -&amp;gt; `[` ArrayElements? `]`
+
+ArrayElements -&amp;gt;
+ Expression ( `,` Expression )* `,`?
+ | Expression `;` Expression
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.array.constructor]
+&lt;em&gt;数组表达式&lt;/em&gt;用于构造&lt;a href="../types/array.md"&gt;数组&lt;/a&gt;。数组表达式有两种形式。&lt;/p&gt;
+&lt;p&gt;r[expr.array.array]
+第一种形式逐一列出数组中的每个值。&lt;/p&gt;
+&lt;p&gt;r[expr.array.array-syntax]
+该形式的语法是：由方括号括起的、类型一致的、以逗号分隔的表达式列表。&lt;/p&gt;</description></item><item><title>07-元组与索引表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/07-tuple-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/07-tuple-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/tuple-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/tuple-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.tuple]&lt;/p&gt;
+&lt;h1 id="元组与索引表达式"&gt;元组与索引表达式&lt;/h1&gt;
+&lt;h2 id="元组表达式"&gt;元组表达式&lt;/h2&gt;
+&lt;p&gt;r[expr.tuple.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;TupleExpression -&amp;gt; `(` TupleElements? `)`
+
+TupleElements -&amp;gt; ( Expression `,` )+ Expression?
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.tuple.result]
+&lt;em&gt;元组表达式&lt;/em&gt;用于构造&lt;a href="../types/tuple.md"&gt;元组值&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;r[expr.tuple.intro]
+元组表达式的语法是用圆括号括起的、以逗号分隔的表达式列表，这些表达式称为&lt;em&gt;元组初始化操作数&lt;/em&gt;。&lt;/p&gt;</description></item><item><title>08-结构体表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/08-struct-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/08-struct-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/struct-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/struct-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.struct]&lt;/p&gt;
+&lt;h1 id="结构体表达式"&gt;结构体表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.struct.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;StructExpression -&amp;gt;
+ PathInExpression `{` (StructExprFields | StructBase)? `}`
+
+StructExprFields -&amp;gt;
+ StructExprField (`,` StructExprField)* (`,` StructBase | `,`?)
+
+StructExprField -&amp;gt;
+ OuterAttribute*
+ (
+ IDENTIFIER
+ | (IDENTIFIER | TUPLE_INDEX) `:` Expression
+ )
+
+StructBase -&amp;gt; `..` Expression
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.struct.intro]
+&lt;em&gt;结构体表达式&lt;/em&gt;用于创建结构体、枚举或联合体的值。它由指向&lt;a href="../items/structs.md"&gt;结构体&lt;/a&gt;、&lt;a href="../items/enumerations.md"&gt;枚举变体&lt;/a&gt;或&lt;a href="../items/unions.md"&gt;联合体&lt;/a&gt;项的路径，后跟该项各字段的值组成。&lt;/p&gt;</description></item><item><title>09-调用表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/09-call-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/09-call-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/call-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/call-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.call]&lt;/p&gt;
+&lt;h1 id="调用表达式"&gt;调用表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.call.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;CallExpression -&amp;gt; Expression `(` CallParams? `)`
+
+CallParams -&amp;gt; Expression ( `,` Expression )* `,`?
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.call.intro]
+&lt;em&gt;调用表达式&lt;/em&gt;用于调用函数。调用表达式的语法是一个表达式（称为&lt;em&gt;函数操作数&lt;/em&gt;），后跟一个由圆括号括起、以逗号分隔的表达式列表（称为&lt;em&gt;实参操作数&lt;/em&gt;）。&lt;/p&gt;</description></item><item><title>10-方法调用表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/10-method-call-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/10-method-call-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/method-call-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/method-call-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.method]&lt;/p&gt;
+&lt;h1 id="方法调用表达式"&gt;方法调用表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.method.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;MethodCallExpression -&amp;gt; Expression `.` PathExprSegment `(`CallParams? `)`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.method.intro]
+&lt;em&gt;方法调用&lt;/em&gt;由一个表达式（&lt;em&gt;接收者&lt;/em&gt;）、一个点号、一个表达式路径段，以及一个由圆括号括起的表达式列表组成。&lt;/p&gt;</description></item><item><title>11-字段访问表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/11-field-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/11-field-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/field-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/field-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.field]&lt;/p&gt;
+&lt;h1 id="字段访问表达式"&gt;字段访问表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.field.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;FieldExpression -&amp;gt; Expression `.` IDENTIFIER
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.field.intro]
+&lt;em&gt;字段表达式&lt;/em&gt;是一种&lt;a href="../expressions.md#place-expressions-and-value-expressions"&gt;位置表达式&lt;/a&gt;，求值为&lt;a href="../items/structs.md"&gt;结构体&lt;/a&gt;或&lt;a href="../items/unions.md"&gt;联合体&lt;/a&gt;某个字段所在的位置。&lt;/p&gt;
+&lt;p&gt;r[expr.field.mut]
+当操作数&lt;a href="../expressions.md#mutability"&gt;可变&lt;/a&gt;时，字段表达式也是可变的。&lt;/p&gt;
+&lt;p&gt;r[expr.field.form]
+字段表达式的语法是：一个表达式（称为&lt;em&gt;容器操作数&lt;/em&gt;），然后是 &lt;code&gt;.&lt;/code&gt;，最后是一个&lt;a href="../identifiers.md"&gt;标识符&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>12-闭包表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/12-closure-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/12-closure-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/closure-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/closure-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.closure]&lt;/p&gt;
+&lt;h1 id="闭包表达式"&gt;闭包表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.closure.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;ClosureExpression -&amp;gt;
+ `async`?[^cl-async-edition]
+ `move`?
+ ( `||` | `|` ClosureParameters? `|` )
+ (Expression | `-&amp;gt;` TypeNoBounds BlockExpression)
+
+ClosureParameters -&amp;gt; ClosureParam (`,` ClosureParam)* `,`?
+
+ClosureParam -&amp;gt; OuterAttribute* PatternNoTopAlt ( `:` Type )?
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.closure.intro]
+&lt;em&gt;闭包表达式&lt;/em&gt;也称 lambda 表达式或 lambda，它定义一种&lt;a href="../types/closure.md"&gt;闭包类型&lt;/a&gt;并求值为该类型的值。闭包表达式的语法是：可选的 &lt;code&gt;async&lt;/code&gt; 关键字、可选的 &lt;code&gt;move&lt;/code&gt; 关键字，然后是由管道符（&lt;code&gt;|&lt;/code&gt;）括起、以逗号分隔的&lt;a href="../patterns.md"&gt;模式&lt;/a&gt;列表（称为&lt;em&gt;闭包参数&lt;/em&gt;，每个参数后可选择跟 &lt;code&gt;:&lt;/code&gt; 和类型），然后是可选的 &lt;code&gt;-&amp;gt;&lt;/code&gt; 和类型（称为&lt;em&gt;返回类型&lt;/em&gt;），最后是一个表达式（称为&lt;em&gt;闭包体操作数&lt;/em&gt;）。&lt;/p&gt;</description></item><item><title>13-循环表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/13-loop-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/13-loop-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/loop-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/loop-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.loop]&lt;/p&gt;
+&lt;h1 id="循环表达式"&gt;循环表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.loop.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;LoopExpression -&amp;gt;
+ LoopLabel? (
+ InfiniteLoopExpression
+ | PredicateLoopExpression
+ | IteratorLoopExpression
+ | LabelBlockExpression
+ )
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.loop.intro]
+Rust 支持四种循环表达式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#infinite-loops"&gt;&lt;code&gt;loop&lt;/code&gt; 表达式&lt;/a&gt;表示无限循环。&lt;/li&gt;
+&lt;li&gt;&lt;a href="#predicate-loops"&gt;&lt;code&gt;while&lt;/code&gt; 表达式&lt;/a&gt;循环直到谓词为假。&lt;/li&gt;
+&lt;li&gt;&lt;a href="#iterator-loops"&gt;&lt;code&gt;for&lt;/code&gt; 表达式&lt;/a&gt;从迭代器中取出值，循环直到迭代器为空。&lt;/li&gt;
+&lt;li&gt;[带标签的块表达式][expr.loop.block-labels]恰好运行一次循环，但允许用 &lt;code&gt;break&lt;/code&gt; 提前退出。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;r[expr.loop.break-label]
+所有四种循环都支持 &lt;a href="#break-expressions"&gt;&lt;code&gt;break&lt;/code&gt; 表达式&lt;/a&gt;和&lt;a href="#loop-labels"&gt;标签&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>14-区间表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/14-range-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/14-range-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/range-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/range-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.range]&lt;/p&gt;
+&lt;h1 id="区间表达式"&gt;区间表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.range.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;RangeExpression -&amp;gt;
+ RangeExpr
+ | RangeFromExpr
+ | RangeToExpr
+ | RangeFullExpr
+ | RangeInclusiveExpr
+ | RangeToInclusiveExpr
+
+RangeExpr -&amp;gt; Expression `..` Expression
+
+RangeFromExpr -&amp;gt; Expression `..`
+
+RangeToExpr -&amp;gt; `..` Expression
+
+RangeFullExpr -&amp;gt; `..`
+
+RangeInclusiveExpr -&amp;gt; Expression `..=` Expression
+
+RangeToInclusiveExpr -&amp;gt; `..=` Expression
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.range.behavior]
+&lt;code&gt;..&lt;/code&gt; 和 &lt;code&gt;..=&lt;/code&gt; 运算符会根据下表构造 &lt;code&gt;std::ops::Range&lt;/code&gt;（或 &lt;code&gt;core::ops::Range&lt;/code&gt;）的某个变体对象：&lt;/p&gt;</description></item><item><title>15-if 表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/15-if-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/15-if-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/if-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/if-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.if]&lt;/p&gt;
+&lt;h1 id="if-表达式"&gt;if 表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.if.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;IfExpression -&amp;gt;
+ `if` Conditions BlockExpressionNoInnerAttributes
+ (`else` ( BlockExpressionNoInnerAttributes | IfExpression ) )?
+
+Conditions -&amp;gt;
+ Expression _except [StructExpression]_
+ | LetChain
+
+LetChain -&amp;gt; LetChainCondition ( `&amp;amp;&amp;amp;` LetChainCondition )*
+
+LetChainCondition -&amp;gt;
+ Expression _except [ExcludedConditions]_
+ | OuterAttribute* `let` Pattern `=` Scrutinee _except [ExcludedConditions]_
+
+@root ExcludedConditions -&amp;gt;
+ StructExpression
+ | LazyBooleanExpression
+ | RangeExpr
+ | RangeFromExpr
+ | RangeInclusiveExpr
+ | AssignmentExpression
+ | CompoundAssignmentExpression
+&lt;/code&gt;&lt;/pre&gt;&lt;!-- TODO: The struct exception above needs clarification, see https://github.com/rust-lang/reference/issues/1808
+ The chain grammar could use some work, see https://github.com/rust-lang/reference/issues/1811
+--&gt;
+&lt;p&gt;r[expr.if.intro]
+&lt;code&gt;if&lt;/code&gt; 表达式的语法是：由 &lt;code&gt;&amp;amp;&amp;amp;&lt;/code&gt; 分隔的一个或多个条件操作数，后跟一个 then 块、任意数量的 &lt;code&gt;else if&lt;/code&gt; 条件和块，以及一个可选的结尾 &lt;code&gt;else&lt;/code&gt; 块。&lt;/p&gt;</description></item><item><title>16-match 表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/16-match-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/16-match-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/match-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/match-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.match]&lt;/p&gt;
+&lt;h1 id="match-表达式"&gt;match 表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.match.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;MatchExpression -&amp;gt;
+ `match` Scrutinee `{`
+ InnerAttribute*
+ MatchArms?
+ `}`
+
+Scrutinee -&amp;gt; Expression _except [StructExpression]_
+
+MatchArms -&amp;gt;
+ ( MatchArm `=&amp;gt;` ( ExpressionWithoutBlock `,` | ExpressionWithBlock `,`? ) )*
+ MatchArm `=&amp;gt;` Expression `,`?
+
+MatchArm -&amp;gt; OuterAttribute* Pattern MatchArmGuard?
+
+MatchArmGuard -&amp;gt; `if` MatchConditions
+
+MatchConditions -&amp;gt;
+ MatchGuardChain
+ | Expression
+
+MatchGuardChain -&amp;gt; MatchGuardCondition ( `&amp;amp;&amp;amp;` MatchGuardCondition )*
+
+MatchGuardCondition -&amp;gt;
+ Expression _except [ExcludedMatchConditions]_
+ | OuterAttribute* `let` Pattern `=` MatchGuardScrutinee
+
+MatchGuardScrutinee -&amp;gt; Expression _except [ExcludedMatchConditions]_
+
+@root ExcludedMatchConditions -&amp;gt;
+ LazyBooleanExpression
+ | RangeExpr
+ | RangeFromExpr
+ | RangeInclusiveExpr
+ | AssignmentExpression
+ | CompoundAssignmentExpression
+&lt;/code&gt;&lt;/pre&gt;&lt;!-- TODO: The exception above isn't accurate, see https://github.com/rust-lang/reference/issues/569 --&gt;
+&lt;p&gt;r[expr.match.intro]
+&lt;em&gt;&lt;code&gt;match&lt;/code&gt; 表达式&lt;/em&gt;根据模式进行分支。具体发生何种匹配取决于&lt;a href="../patterns.md"&gt;模式&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>17-return 表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/17-return-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/17-return-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/return-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/return-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.return]&lt;/p&gt;
+&lt;h1 id="return-表达式"&gt;return 表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.return.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;ReturnExpression -&amp;gt; `return` Expression?
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.return.intro]
+return 表达式用关键字 &lt;code&gt;return&lt;/code&gt; 表示。&lt;/p&gt;
+&lt;p&gt;r[expr.return.behavior]
+求值 &lt;code&gt;return&lt;/code&gt; 表达式会将其参数移动到当前函数调用的指定输出位置，销毁当前函数的活动帧，并将控制转移到调用者帧。&lt;/p&gt;</description></item><item><title>18-await 表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/18-await-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/18-await-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/await-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/await-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.await]&lt;/p&gt;
+&lt;h1 id="await-表达式"&gt;await 表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.await.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;AwaitExpression -&amp;gt; Expression `.` `await`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.await.intro]
+&lt;code&gt;await&lt;/code&gt; 表达式是一种语法构造，用于挂起由 &lt;code&gt;std::future::IntoFuture&lt;/code&gt; 的实现所提供的计算，直到给定的 future 准备好产生一个值。&lt;/p&gt;
+&lt;p&gt;r[expr.await.construct]
+await 表达式的语法是：一个类型实现了 &lt;a href="std::future::IntoFuture"&gt;&lt;code&gt;IntoFuture&lt;/code&gt;&lt;/a&gt; trait 的表达式（称为 &lt;em&gt;future 操作数&lt;/em&gt;），然后是词法单元 &lt;code&gt;.&lt;/code&gt;，然后是 &lt;code&gt;await&lt;/code&gt; 关键字。&lt;/p&gt;</description></item><item><title>19-下划线表达式</title><link>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/19-underscore-expr/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/statements-and-expressions/02-expressions/19-underscore-expr/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/expressions/underscore-expr.html"&gt;https://doc.rust-lang.org/reference/expressions/underscore-expr.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[expr.placeholder]&lt;/p&gt;
+&lt;h1 id="下划线表达式"&gt;下划线表达式&lt;/h1&gt;
+&lt;p&gt;r[expr.placeholder.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,expressions" data-lang="grammar,expressions"&gt;UnderscoreExpression -&amp;gt; `_`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[expr.placeholder.intro]
+下划线表达式用符号 &lt;code&gt;_&lt;/code&gt; 表示，用于在解构赋值中标记占位符。&lt;/p&gt;
+&lt;p&gt;r[expr.placeholder.lhs-assignment-only]
+它们只能出现在赋值的左侧。&lt;/p&gt;
+&lt;p&gt;r[expr.placeholder.pattern]
+注意，这与&lt;a href="../../patterns/#wildcard-pattern"&gt;通配符模式&lt;/a&gt;不同。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;_&lt;/code&gt; 表达式的示例：&lt;/p&gt;</description></item></channel></rss>

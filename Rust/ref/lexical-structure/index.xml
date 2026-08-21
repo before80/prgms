@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第2章 词法结构 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/ref/lexical-structure/</link><description>Recent content in 第2章 词法结构 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/ref/lexical-structure/index.xml" rel="self" type="application/rss+xml"/><item><title>01-输入格式</title><link>https://before80.github.io/prgms/Rust/ref/lexical-structure/01-input-format/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/lexical-structure/01-input-format/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/input-format.html"&gt;https://doc.rust-lang.org/reference/input-format.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[input]&lt;/p&gt;
+&lt;h1 id="输入格式"&gt;输入格式&lt;/h1&gt;
+&lt;p&gt;r[input.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,lexer" data-lang="grammar,lexer"&gt;CHAR -&amp;gt; [U+0000-U+D7FF U+E000-U+10FFFF] // Unicode 标量值
+
+ASCII -&amp;gt; [U+0000-U+007F]
+
+NUL -&amp;gt; U+0000
+
+EOF -&amp;gt; !CHAR // 文件或输入结束
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[input.intro]
+本章描述如何将源文件解释为 token 序列。&lt;/p&gt;
+&lt;p&gt;程序如何组织到文件中，见 &lt;a href="crates-and-source-files.md"&gt;Crate 与源文件&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>02-Shebang</title><link>https://before80.github.io/prgms/Rust/ref/lexical-structure/02-shebang/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/lexical-structure/02-shebang/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/shebang.html"&gt;https://doc.rust-lang.org/reference/shebang.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r&lt;a href="https://en.wikipedia.org/wiki/Shebang_(Unix)"&gt;shebang&lt;/a&gt;&lt;/p&gt;
+&lt;h1 id="shebang"&gt;Shebang&lt;/h1&gt;
+&lt;p&gt;r[shebang.intro]
+&lt;em&gt;&lt;a href="https://en.wikipedia.org/wiki/Shebang_(Unix)"&gt;shebang&lt;/a&gt;&lt;/em&gt; 是可选的一行，在类 Unix 系统中通常用于指定执行该文件的解释器。&lt;/p&gt;
+&lt;div class="td-alert td-alert--md alert alert-example" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;[i18n] example&lt;/div&gt;
+ &lt;div class="td-alert-body"&gt;
+ &lt;!-- ignore: tests don't like shebang --&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#!/usr/bin/env rustx&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;main&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;Hello!&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;r[shebang.syntax]&lt;/p&gt;</description></item><item><title>03-关键字</title><link>https://before80.github.io/prgms/Rust/ref/lexical-structure/03-keywords/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/lexical-structure/03-keywords/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/keywords.html"&gt;https://doc.rust-lang.org/reference/keywords.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[lex.keywords]&lt;/p&gt;
+&lt;h1 id="关键字"&gt;关键字&lt;/h1&gt;
+&lt;p&gt;Rust 将关键字分为三类：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#%E4%B8%A5%E6%A0%BC%E5%85%B3%E9%94%AE%E5%AD%97"&gt;严格&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#%E4%BF%9D%E7%95%99%E5%85%B3%E9%94%AE%E5%AD%97"&gt;保留&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#%E5%BC%B1%E5%85%B3%E9%94%AE%E5%AD%97"&gt;弱&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;r[lex.keywords.strict]&lt;/p&gt;
+&lt;h2 id="严格关键字"&gt;严格关键字&lt;/h2&gt;
+&lt;p&gt;r[lex.keywords.strict.intro]
+这些关键字只能在其正确的上下文中使用。它们不能用作下列名称：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="items.md"&gt;项&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="variables.md"&gt;变量&lt;/a&gt; 与函数参数&lt;/li&gt;
+&lt;li&gt;字段与 &lt;a href="items/enumerations.md"&gt;变体&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="types/parameters.md"&gt;类型参数&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;生命周期参数或 &lt;a href="expressions/loop-expr.md#loop-labels"&gt;循环标签&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="macros.md"&gt;宏&lt;/a&gt; 或 &lt;a href="attributes.md"&gt;属性&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="macros-by-example.md"&gt;宏占位符&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="crates-and-source-files.md"&gt;Crate&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;r[lex.keywords.strict.list]
+下列关键字在所有 edition 中都存在：&lt;/p&gt;</description></item><item><title>04-标识符</title><link>https://before80.github.io/prgms/Rust/ref/lexical-structure/04-identifiers/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/lexical-structure/04-identifiers/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/identifiers.html"&gt;https://doc.rust-lang.org/reference/identifiers.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[ident]&lt;/p&gt;
+&lt;h1 id="标识符"&gt;标识符&lt;/h1&gt;
+&lt;p&gt;r[ident.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,lexer" data-lang="grammar,lexer"&gt;IDENTIFIER_OR_KEYWORD -&amp;gt; ( XID_Start | `_` ) XID_Continue*
+
+XID_Start -&amp;gt; &amp;lt;`XID_Start` defined by Unicode&amp;gt;
+
+XID_Continue -&amp;gt; &amp;lt;`XID_Continue` defined by Unicode&amp;gt;
+
+RAW_IDENTIFIER -&amp;gt; `r#` IDENTIFIER_OR_KEYWORD
+
+NON_KEYWORD_IDENTIFIER -&amp;gt; IDENTIFIER_OR_KEYWORD _except a [strict][lex.keywords.strict] or [reserved][lex.keywords.reserved] keyword_
+
+IDENTIFIER -&amp;gt; NON_KEYWORD_IDENTIFIER | RAW_IDENTIFIER
+
+RESERVED_RAW_IDENTIFIER -&amp;gt;
+ `r#` (`_` | `crate` | `self` | `Self` | `super`) !XID_Continue
+&lt;/code&gt;&lt;/pre&gt;&lt;!-- When updating the version, update the UAX links, too. --&gt;
+&lt;p&gt;r[ident.unicode]
+标识符遵循 &lt;a href="https://www.unicode.org/reports/tr31/tr31-43.html"&gt;Unicode 标准附录 #31&lt;/a&gt; 中针对 Unicode 17.0 版本的规范，并加上下文所述的补充。标识符的一些例子：&lt;/p&gt;</description></item><item><title>05-注释</title><link>https://before80.github.io/prgms/Rust/ref/lexical-structure/05-comments/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/lexical-structure/05-comments/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/comments.html"&gt;https://doc.rust-lang.org/reference/comments.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[comments]&lt;/p&gt;
+&lt;h1 id="注释"&gt;注释&lt;/h1&gt;
+&lt;p&gt;r[comments.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,lexer" data-lang="grammar,lexer"&gt;@root COMMENT -&amp;gt;
+ LINE_COMMENT
+ | INNER_LINE_DOC
+ | OUTER_LINE_DOC
+ | INNER_BLOCK_DOC
+ | OUTER_BLOCK_DOC
+ | BLOCK_COMMENT
+
+LINE_COMMENT -&amp;gt;
+ `//` (~[`/` `!` LF] | `//`) ~LF*
+ | `//` EOF
+ | `//` _immediately followed by LF_
+
+BLOCK_COMMENT -&amp;gt;
+ `/*` ^
+ ( BLOCK_COMMENT_OR_DOC | (!`*/` CHAR) )*
+ `*/`
+
+INNER_LINE_DOC -&amp;gt;
+ `//!` ^ LINE_DOC_COMMENT_CONTENT (LF | EOF)
+
+LINE_DOC_COMMENT_CONTENT -&amp;gt; (!CR ~LF)*
+
+INNER_BLOCK_DOC -&amp;gt;
+ `/*!` ^ ( BLOCK_COMMENT_OR_DOC | BLOCK_CHAR )* `*/`
+
+OUTER_LINE_DOC -&amp;gt;
+ `///` ^ LINE_DOC_COMMENT_CONTENT (LF | EOF)
+
+OUTER_BLOCK_DOC -&amp;gt;
+ `/**` ![`*` `/`]
+ ^
+ ( ~`*` | BLOCK_COMMENT_OR_DOC )
+ ( BLOCK_COMMENT_OR_DOC | BLOCK_CHAR )*
+ `*/`
+
+BLOCK_CHAR -&amp;gt; (!(`*/` | CR) CHAR)
+
+BLOCK_COMMENT_OR_DOC -&amp;gt;
+ INNER_BLOCK_DOC
+ | OUTER_BLOCK_DOC
+ | BLOCK_COMMENT
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[comments.normal]&lt;/p&gt;</description></item><item><title>06-空白</title><link>https://before80.github.io/prgms/Rust/ref/lexical-structure/06-whitespace/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/lexical-structure/06-whitespace/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/whitespace.html"&gt;https://doc.rust-lang.org/reference/whitespace.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[lex.whitespace]&lt;/p&gt;
+&lt;h1 id="空白"&gt;空白&lt;/h1&gt;
+&lt;p&gt;r[whitespace.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,lexer" data-lang="grammar,lexer"&gt;WHITESPACE -&amp;gt;
+ U+0009 // 水平制表符，`&amp;#39;\t&amp;#39;`
+ | U+000A // 换行，`&amp;#39;\n&amp;#39;`
+ | U+000B // 垂直制表符
+ | U+000C // 换页
+ | U+000D // 回车，`&amp;#39;\r&amp;#39;`
+ | U+0020 // 空格，`&amp;#39; &amp;#39;`
+ | U+0085 // 下一行
+ | U+200E // 从左至右标记
+ | U+200F // 从右至左标记
+ | U+2028 // 行分隔符
+ | U+2029 // 段分隔符
+
+TAB -&amp;gt; U+0009 // 水平制表符，`&amp;#39;\t&amp;#39;`
+
+LF -&amp;gt; U+000A // 换行，`&amp;#39;\n&amp;#39;`
+
+CR -&amp;gt; U+000D // 回车，`&amp;#39;\r&amp;#39;`
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[lex.whitespace.intro]
+空白是任何非空、且仅包含具有 &lt;a href="https://www.unicode.org/reports/tr31/"&gt;&lt;code&gt;Pattern_White_Space&lt;/code&gt;&lt;/a&gt; Unicode 属性的字符的字符串。&lt;/p&gt;</description></item><item><title>07-词法标记</title><link>https://before80.github.io/prgms/Rust/ref/lexical-structure/07-tokens/</link><pubDate>Tue, 18 Aug 2026 08:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/ref/lexical-structure/07-tokens/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/reference/"&gt;The Rust Reference&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/reference/tokens.html"&gt;https://doc.rust-lang.org/reference/tokens.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;r[lex.token]&lt;/p&gt;
+&lt;h1 id="词法标记"&gt;词法标记&lt;/h1&gt;
+&lt;p&gt;r[lex.token.syntax]&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-grammar,lexer" data-lang="grammar,lexer"&gt;Token -&amp;gt;
+ RESERVED_TOKEN
+ | RAW_IDENTIFIER
+ | CHAR_LITERAL
+ | STRING_LITERAL
+ | RAW_STRING_LITERAL
+ | BYTE_LITERAL
+ | BYTE_STRING_LITERAL
+ | RAW_BYTE_STRING_LITERAL
+ | C_STRING_LITERAL
+ | RAW_C_STRING_LITERAL
+ | FLOAT_LITERAL
+ | INTEGER_LITERAL
+ | LIFETIME_TOKEN
+ | PUNCTUATION
+ | IDENTIFIER_OR_KEYWORD
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;r[lex.token.intro]
+Token 是文法中由正则（非递归）语言定义的基本产生式。Rust 源输入可分解为下列种类的 token：&lt;/p&gt;</description></item></channel></rss>
