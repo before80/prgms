@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>24-值得了解的变通方法 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/asyncBook/workarounds/</link><description>Recent content in 24-值得了解的变通方法 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/asyncBook/workarounds/index.xml" rel="self" type="application/rss+xml"/><item><title>24.1-Send 近似</title><link>https://before80.github.io/prgms/Rust/asyncBook/workarounds/01-send-approximation/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/workarounds/01-send-approximation/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="send-approximation"&gt;Send 近似&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/07_workarounds/03_send_approximation.html"&gt;https://rust-lang.github.io/async-book/07_workarounds/03_send_approximation.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;某些 &lt;code&gt;async fn&lt;/code&gt; 状态机可以安全地在线程间发送，而其他则不行。&lt;code&gt;async fn&lt;/code&gt; &lt;code&gt;Future&lt;/code&gt; 是否为 &lt;code&gt;Send&lt;/code&gt; 取决于是否在 &lt;code&gt;.await&lt;/code&gt; 点持有非 &lt;code&gt;Send&lt;/code&gt; 类型。编译器会尽力近似值何时可能在 &lt;code&gt;.await&lt;/code&gt; 点被持有，但此分析在当今若干地方过于保守。&lt;/p&gt;</description></item><item><title>24.2-递归</title><link>https://before80.github.io/prgms/Rust/asyncBook/workarounds/02-recursion/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/workarounds/02-recursion/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="recursion"&gt;递归&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/07_workarounds/04_recursion.html"&gt;https://rust-lang.github.io/async-book/07_workarounds/04_recursion.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在内部，&lt;code&gt;async fn&lt;/code&gt; 会创建包含每个被 &lt;code&gt;.await&lt;/code&gt; 的子 &lt;code&gt;Future&lt;/code&gt; 的状态机类型。这使得递归 &lt;code&gt;async fn&lt;/code&gt; 有点棘手，因为生成的状态机类型必须包含自身：&lt;/p&gt;</description></item><item><title>24.3-Trait 中的 async</title><link>https://before80.github.io/prgms/Rust/asyncBook/workarounds/03-async-in-traits/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/workarounds/03-async-in-traits/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="async-in-traits"&gt;Trait 中的 async&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/07_workarounds/05_async_in_traits.html"&gt;https://rust-lang.github.io/async-book/07_workarounds/05_async_in_traits.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;目前，在 Rust 稳定版中不能在 trait 中使用 &lt;code&gt;async fn&lt;/code&gt;。自 2022 年 11 月 17 日起，nightly 工具链上提供了 async-fn-in-trait 的 MVP，&lt;a href="https://blog.rust-lang.org/inside-rust/2022/11/17/async-fn-in-trait-nightly.html"&gt;详见此处&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;与此同时，稳定工具链上可使用 &lt;a href="https://github.com/dtolnay/async-trait"&gt;crates.io 上的 async-trait crate&lt;/a&gt; 作为变通方法。&lt;/p&gt;</description></item></channel></rss>

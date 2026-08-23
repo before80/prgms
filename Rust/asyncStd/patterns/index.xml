@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>4 异步模式 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/asyncStd/patterns/</link><description>Recent content in 4 异步模式 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/asyncStd/patterns/index.xml" rel="self" type="application/rss+xml"/><item><title>4.1 小型模式集锦</title><link>https://before80.github.io/prgms/Rust/asyncStd/patterns/4.1-small-patterns/</link><pubDate>Sun, 23 Aug 2026 16:35:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncStd/patterns/4.1-small-patterns/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://book.async.rs/patterns/small-patterns.html"&gt;https://book.async.rs/patterns/small-patterns.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;一系列简短、实用的模式集合。&lt;/p&gt;
+&lt;h2 id="拆分流"&gt;拆分流&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;async-std&lt;/code&gt; 并未在 &lt;code&gt;io&lt;/code&gt; 句柄上提供 &lt;code&gt;split()&lt;/code&gt; 方法。将流拆分为读端和写端可以这样做：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;# &lt;span style="color:#76a9f9"&gt;extern&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;crate&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;async_std&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;use&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;async_std&lt;/span&gt;::&lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;io&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;net&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;TcpStream&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;async&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;echo&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;stream&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;TcpStream&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;reader&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;writer&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#76a9f9"&gt;mut&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;stream&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;stream&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;io&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;copy&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;reader&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;writer&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;).&lt;/span&gt;&lt;span style="color:#76a9f9"&gt;await&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>4.2 生产级 Accept 循环</title><link>https://before80.github.io/prgms/Rust/asyncStd/patterns/4.2-accept-loop/</link><pubDate>Sun, 23 Aug 2026 16:35:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncStd/patterns/4.2-accept-loop/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://book.async.rs/patterns/accept-loop.html"&gt;https://book.async.rs/patterns/accept-loop.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;生产级的 accept 循环需要具备以下要素：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;错误处理&lt;/li&gt;
+&lt;li&gt;限制并发连接数，以避免拒绝服务（DoS）攻击&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="错误处理"&gt;错误处理&lt;/h2&gt;
+&lt;p&gt;accept 循环中有两类错误：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;单连接错误。系统用它们通知：队列中曾有连接，但已被对端丢弃。后续连接可能已在队列中，因此必须立即接受下一个连接。&lt;/li&gt;
+&lt;li&gt;资源不足。遇到此类错误时，立即接受下一个套接字没有意义。但监听器仍保持活跃，因此服务器应稍后再次尝试接受套接字。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;以下是单连接错误的示例（正常模式与调试模式下的输出）：&lt;/p&gt;</description></item></channel></rss>

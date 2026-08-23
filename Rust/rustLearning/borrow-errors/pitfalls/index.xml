@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>2.9 常见陷阱与反模式 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/</link><description>Recent content in 2.9 常见陷阱与反模式 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/index.xml" rel="self" type="application/rss+xml"/><item><title>2.9.1 dyn Trait 生命周期与 Box</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/2.9.1-dyn-trait-lifetimes-box/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/2.9.1-dyn-trait-lifetimes-box/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="dyn-trait-lifetimes-box"&gt;dyn Trait 生命周期与 Box&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/pf-dyn.html"&gt;https://quinedot.github.io/rust-learning/pf-dyn.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;每个 trait 对象（&lt;code&gt;dyn Trait&lt;/code&gt;）都有一个可省略的生命周期，完全省略时有自己的默认值。这个默认值比普通的函数签名省略规则更强。最常见因此遇到生命周期错误的情况是在函数签名、结构体和类型别名中使用 &lt;code&gt;Box&amp;lt;dyn Trait&amp;gt;&lt;/code&gt;，它意味着 &lt;code&gt;Box&amp;lt;dyn Trait + 'static&amp;gt;&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>2.9.2 条件性返回借用</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/2.9.2-conditional-return-borrow/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/2.9.2-conditional-return-borrow/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="conditional-return-borrow"&gt;条件性返回借用&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/pf-nll3.html"&gt;https://quinedot.github.io/rust-learning/pf-nll3.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;编译器并不完美，有些事实上健全且可以被接受的东西它还不接受。也许最常见让人绊倒的是&lt;a href="https://github.com/rust-lang/rust/issues/51545"&gt;条件性返回借用&lt;/a&gt;，即 NLL 问题案例 #3。该 issue 及相关 issue 中有一些示例和变通方法。&lt;/p&gt;</description></item><item><title>2.9.3 永久借用</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/2.9.3-borrowing-forever/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/2.9.3-borrowing-forever/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="borrowing-forever"&gt;永久借用&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/pf-borrow-forever.html"&gt;https://quinedot.github.io/rust-learning/pf-borrow-forever.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;你可能遇到的一种反模式是创建 &lt;code&gt;&amp;amp;'a mut Thing&amp;lt;'a&amp;gt;&lt;/code&gt;。这是一种反模式，因为它翻译为&amp;quot;在 &lt;code&gt;Thing&amp;lt;'a&amp;gt;&lt;/code&gt; 的整个剩余有效期（&lt;code&gt;'a&lt;/code&gt;）内对其取独占引用&amp;quot;。一旦你创建了独占借用，你就不能再使用 &lt;code&gt;Thing&amp;lt;'a&amp;gt;&lt;/code&gt;，只能通过那个借用来使用。&lt;/p&gt;</description></item><item><title>2.9.4 &amp;mut self 与 Self 别名</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/2.9.4-mut-self-aliasing/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/2.9.4-mut-self-aliasing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="mut-self-aliasing"&gt;&amp;amp;mut self 与 Self 别名&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/pf-self.html"&gt;https://quinedot.github.io/rust-learning/pf-self.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;fn foo(&amp;amp;'a mut self)&lt;/code&gt; 是一个危险信号——因为如果那个 &lt;code&gt;'a&lt;/code&gt; 不是在函数上声明的，它很可能是 &lt;code&gt;Self&lt;/code&gt; 结构体的一部分。如果是这样，这就是伪装起来的 &lt;code&gt;&amp;amp;'a mut Thing&amp;lt;'a&amp;gt;&lt;/code&gt;。&lt;a href="../2.9.3-borrowing-forever/"&gt;如上一节所讨论的，&lt;/a&gt; 这会使 &lt;code&gt;self&lt;/code&gt; 之后无法使用，因此是一种反模式。&lt;/p&gt;</description></item><item><title>2.9.5 避免自引用结构体</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/2.9.5-self-referential-structs/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/2.9.5-self-referential-structs/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="self-referential-structs"&gt;避免自引用结构体&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/pf-meta.html"&gt;https://quinedot.github.io/rust-learning/pf-meta.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;所谓自引用，是指你有一个字段是引用，而该引用指向同一结构体中的另一个字段（或字段的内容）。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Snek&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;owned&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;String&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 比如你想让这个指向 `owned` 字段
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;borrowed&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;str&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;构造这种自引用结构体的唯一安全方式是接受 &lt;code&gt;&amp;amp;'a mut Snek&amp;lt;'a&amp;gt;&lt;/code&gt;，获取指向 &lt;code&gt;owned&lt;/code&gt; 字段的 &lt;code&gt;&amp;amp;'a str&lt;/code&gt;，并将其赋给 &lt;code&gt;borrowed&lt;/code&gt; 字段。&lt;/p&gt;</description></item><item><title>2.9.6 &amp;Struct 与协变</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/2.9.6-shared-nested-covariance/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/pitfalls/2.9.6-shared-nested-covariance/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="shared-nested-covariance"&gt;&amp;amp;Struct 与协变&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/pf-shared-nested.html"&gt;https://quinedot.github.io/rust-learning/pf-shared-nested.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;这里有一个看起来类似于&lt;a href="../2.9.3-borrowing-forever/"&gt;永远借用某物&lt;/a&gt;的情况，但实际上有些不同。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;17
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Person&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;given&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;str&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;sur&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;str&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;impl&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Person&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// vvvvvvvv `&amp;amp;&amp;#39;a Person&amp;lt;&amp;#39;a&amp;gt;`
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;given&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;str&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;given&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;example&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;person&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;Person&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;&amp;#39;_&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 与永远借用某物不同，这可以编译
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;_one&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;person&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;given&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;();&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;_two&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;person&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;given&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;();&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;区别在于 &lt;code&gt;&amp;amp;U&lt;/code&gt; 在 &lt;code&gt;U&lt;/code&gt; 上是协变的，所以
+&lt;a href="../../variance-references-reborrows/2.5.6-nested-borrows-invariance/"&gt;生命周期可以在引用背后&amp;quot;缩短&amp;quot;&lt;/a&gt;
+（与 &lt;code&gt;&amp;amp;mut U&lt;/code&gt; 不同，它在 &lt;code&gt;U&lt;/code&gt; 上是不变的）。&lt;code&gt;Person&amp;lt;'a&amp;gt;&lt;/code&gt; 在 &lt;code&gt;'a&lt;/code&gt; 上也是协变的，因为我们在定义中对 &lt;code&gt;'a&lt;/code&gt; 的所有使用都处于协变位置。&lt;/p&gt;</description></item></channel></rss>

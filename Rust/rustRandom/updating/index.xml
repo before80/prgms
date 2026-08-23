@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>4 升级指南 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustRandom/updating/</link><description>Recent content in 4 升级指南 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustRandom/updating/index.xml" rel="self" type="application/rss+xml"/><item><title>4.1 升级到 0.5</title><link>https://before80.github.io/prgms/Rust/rustRandom/updating/4.1-updating-to-0-5/</link><pubDate>Sun, 23 Aug 2026 16:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustRandom/updating/4.1-updating-to-0-5/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-random.github.io/book/update-0.5.html"&gt;https://rust-random.github.io/book/update-0.5.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;0.5 版本相比 0.4 版本有相当显著的变化；因此，阅读以下破坏性更改的说明可能值得。本版本还包含许多优化，下文未详细说明。&lt;/p&gt;
+&lt;h2 id="crate"&gt;Crate&lt;/h2&gt;
+&lt;p&gt;我们有了一个新 crate：&lt;code&gt;rand_core&lt;/code&gt;！该 crate 包含一些重要的 trait：&lt;code&gt;RngCore&lt;/code&gt;、&lt;code&gt;BlockRngCore&lt;/code&gt;、&lt;code&gt;SeedableRng&lt;/code&gt; 和 &lt;code&gt;CryptoRng&lt;/code&gt;，错误类型，以及两个用于实现的辅助模块：&lt;code&gt;le&lt;/code&gt; 和 &lt;code&gt;impls&lt;/code&gt;。建议生成器的实现使用 &lt;code&gt;rand_core&lt;/code&gt; crate，而其他用户仅使用 &lt;code&gt;rand&lt;/code&gt; crate，它重新导出了 &lt;code&gt;rand_core&lt;/code&gt; 的大部分内容。&lt;/p&gt;</description></item><item><title>4.2 升级到 0.6</title><link>https://before80.github.io/prgms/Rust/rustRandom/updating/4.2-updating-to-0-6/</link><pubDate>Sun, 23 Aug 2026 16:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustRandom/updating/4.2-updating-to-0-6/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-random.github.io/book/update-0.6.html"&gt;https://rust-random.github.io/book/update-0.6.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在 0.6 周期中，Rand 在 &lt;a href="https://github.com/rust-random"&gt;rust-random&lt;/a&gt; 项目下找到了新家。我们已经感到宾至如归，但如果你想帮我们装饰，一个&lt;a href="https://github.com/rust-random/rand/issues/278"&gt;新 logo&lt;/a&gt; 将不胜感激！&lt;/p&gt;
+&lt;p&gt;我们还为面向用户的文档找到了新家——就是本书！&lt;/p&gt;</description></item><item><title>4.3 升级到 0.7</title><link>https://before80.github.io/prgms/Rust/rustRandom/updating/4.3-updating-to-0-7/</link><pubDate>Sun, 23 Aug 2026 16:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustRandom/updating/4.3-updating-to-0-7/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-random.github.io/book/update-0.7.html"&gt;https://rust-random.github.io/book/update-0.7.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;自 0.6 发布以来，&lt;a href="https://github.com/rust-random"&gt;rust-random&lt;/a&gt; 获得了 logo 和一个新 crate：&lt;a href="https://github.com/rust-random/getrandom"&gt;getrandom&lt;/a&gt;！&lt;/p&gt;
+&lt;h2 id="依赖"&gt;依赖&lt;/h2&gt;
+&lt;p&gt;Rand crate 现在需要 &lt;code&gt;rustc&lt;/code&gt; 版本 1.32.0 或更高。
+这使我们能够移除所有 &lt;code&gt;build.rs&lt;/code&gt; 文件以加快编译。&lt;/p&gt;
+&lt;p&gt;Rand crate 现在总体依赖更少，尽管有一些新的依赖。&lt;/p&gt;</description></item><item><title>4.4 升级到 0.8</title><link>https://before80.github.io/prgms/Rust/rustRandom/updating/4.4-updating-to-0-8/</link><pubDate>Sun, 23 Aug 2026 16:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustRandom/updating/4.4-updating-to-0-8/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-random.github.io/book/update-0.8.html"&gt;https://rust-random.github.io/book/update-0.8.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;下文提供了将代码从 &lt;code&gt;rand 0.7&lt;/code&gt; 和 &lt;code&gt;rand_distr 0.2&lt;/code&gt; 迁移到 &lt;code&gt;rand 0.8&lt;/code&gt; 和 &lt;code&gt;rand_distr 0.3&lt;/code&gt; 的说明。&lt;/p&gt;
+&lt;h2 id="依赖"&gt;依赖&lt;/h2&gt;
+&lt;p&gt;Rand crate 现在需要 &lt;strong&gt;&lt;code&gt;rustc&lt;/code&gt;&lt;/strong&gt; 版本 1.36.0 或更高。
+这使我们能够移除一些 unsafe 代码并简化内部 &lt;code&gt;cfg&lt;/code&gt; 逻辑。&lt;/p&gt;
+&lt;p&gt;对 &lt;strong&gt;&lt;code&gt;getrandom&lt;/code&gt;&lt;/strong&gt; 的依赖已升级到版本 0.2。虽然这不影响 Rand 的 API，但如果你仅将 &lt;code&gt;getrandom&lt;/code&gt; 用作依赖，你可能受到一些破坏性更改的影响：&lt;/p&gt;</description></item><item><title>4.5 升级到 0.9</title><link>https://before80.github.io/prgms/Rust/rustRandom/updating/4.5-updating-to-0-9/</link><pubDate>Sun, 23 Aug 2026 16:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustRandom/updating/4.5-updating-to-0-9/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-random.github.io/book/update-0.9.html"&gt;https://rust-random.github.io/book/update-0.9.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;下文提供了将代码从 &lt;code&gt;rand 0.8&lt;/code&gt; 和 &lt;code&gt;rand_distr 0.4&lt;/code&gt; 迁移到 &lt;code&gt;rand 0.9&lt;/code&gt; 和 &lt;code&gt;rand_distr 0.5&lt;/code&gt; 的说明。&lt;/p&gt;
+&lt;p&gt;以下是侧重于潜在破坏性更改的迁移指南。完整更改列表请参阅相关变更日志：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/rust-random/rand/blob/master/CHANGELOG.md"&gt;CHANGELOG.md&lt;/a&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://docs.rs/crate/rand_core/latest/source/CHANGELOG.md"&gt;rand_core/CHANGELOG.md&lt;/a&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/rust-random/rand/blob/master/rand_distr/CHANGELOG.md"&gt;rand_distr/CHANGELOG.md&lt;/a&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="重命名的函数和方法"&gt;重命名的函数和方法&lt;/h2&gt;
+&lt;p&gt;在 2024 edition 中，&lt;a href="https://doc.rust-lang.org/edition-guide/rust-2024/gen-keyword.html"&gt;&lt;code&gt;gen&lt;/code&gt; 是保留关键字&lt;/a&gt;。原始语法 &lt;code&gt;r#gen()&lt;/code&gt; 很别扭，因此 &lt;code&gt;rand::Rng&lt;/code&gt; 中的一些方法已重命名：&lt;/p&gt;</description></item><item><title>4.6 升级到 0.10</title><link>https://before80.github.io/prgms/Rust/rustRandom/updating/4.6-updating-to-0-10/</link><pubDate>Sun, 23 Aug 2026 16:44:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustRandom/updating/4.6-updating-to-0-10/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-random.github.io/book/update-0.10.html"&gt;https://rust-random.github.io/book/update-0.10.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;下文提供了将代码从 &lt;code&gt;rand 0.9&lt;/code&gt; 迁移到 &lt;code&gt;rand 0.10&lt;/code&gt; 的说明。&lt;/p&gt;
+&lt;p&gt;以下是侧重于潜在破坏性更改的迁移指南。完整更改列表请参阅相关变更日志：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/rust-random/rand/blob/master/CHANGELOG.md"&gt;CHANGELOG.md&lt;/a&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://docs.rs/crate/rand_core/latest/source/CHANGELOG.md"&gt;rand_core/CHANGELOG.md&lt;/a&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="tryrng-trait"&gt;[Try]Rng trait&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;rand_core&lt;/code&gt; trait &lt;code&gt;RngCore&lt;/code&gt;、&lt;code&gt;TryRngCore&lt;/code&gt; 已重命名为 &lt;code&gt;Rng&lt;/code&gt;、&lt;code&gt;TryRng&lt;/code&gt;，&lt;code&gt;rand&lt;/code&gt; trait &lt;code&gt;Rng&lt;/code&gt; 分别重命名为 &lt;code&gt;RngExt&lt;/code&gt;。&lt;/p&gt;</description></item></channel></rss>

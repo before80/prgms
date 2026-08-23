@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>1 使用 cargo-fuzz 进行模糊测试 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/</link><description>Recent content in 1 使用 cargo-fuzz 进行模糊测试 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/index.xml" rel="self" type="application/rss+xml"/><item><title>1.1 安装</title><link>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.1-setup/</link><pubDate>Sun, 23 Aug 2026 13:50:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.1-setup/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-fuzz.github.io/book/"&gt;Rust Fuzz Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="setup"&gt;安装&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-fuzz.github.io/book/cargo-fuzz/setup.html"&gt;https://rust-fuzz.github.io/book/cargo-fuzz/setup.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="环境要求"&gt;环境要求&lt;/h2&gt;
+&lt;p&gt;libFuzzer 需要 LLVM 消毒器支持；适用于 x86-64 Linux、x86-64 macOS、Apple Silicon（aarch64）macOS 以及 Windows（得益于 &lt;a href="https://learn.microsoft.com/en-us/cpp/sanitizers/asan"&gt;MSVC AddressSanitizer&lt;/a&gt;）。需要支持 C++11 的 C++ 编译器。Rust 提供多种编译器。本项目需要 nightly 编译器，因为它使用 &lt;code&gt;-Z&lt;/code&gt; 编译器标志以启用地址消毒。若你通过 &lt;a href="https://github.com/rust-lang/rustup"&gt;rustup&lt;/a&gt; 安装 Rust，可用以下命令检查默认编译器：&lt;/p&gt;</description></item><item><title>1.2 教程</title><link>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.2-tutorial/</link><pubDate>Sun, 23 Aug 2026 13:50:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.2-tutorial/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-fuzz.github.io/book/"&gt;Rust Fuzz Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="tutorial"&gt;教程&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-fuzz.github.io/book/cargo-fuzz/tutorial.html"&gt;https://rust-fuzz.github.io/book/cargo-fuzz/tutorial.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在本教程中，我们将对 URL 解析 crate &lt;a href="https://github.com/servo/rust-url"&gt;rust-url&lt;/a&gt; 进行模糊测试。目标是找到模糊器生成的某种输入，在传给 &lt;code&gt;Url::parse&lt;/code&gt; 时会导致 panic 或崩溃。&lt;/p&gt;
+&lt;p&gt;首先克隆 rust-url 仓库并进入该目录：&lt;/p&gt;</description></item><item><title>1.3 指南</title><link>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.3-guide/</link><pubDate>Sun, 23 Aug 2026 13:50:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.3-guide/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-fuzz.github.io/book/"&gt;Rust Fuzz Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="guide"&gt;指南&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-fuzz.github.io/book/cargo-fuzz/guide.html"&gt;https://rust-fuzz.github.io/book/cargo-fuzz/guide.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;cargo-fuzz 所有可用命令：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cargo fuzz --help
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;运行某个目标：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cargo fuzz run &amp;lt;fuzz target name&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="cargo-特性"&gt;Cargo 特性&lt;/h2&gt;
+&lt;p&gt;可使用命令行选项 &lt;code&gt;--features&lt;/code&gt;、&lt;code&gt;--no-default-features&lt;/code&gt; 和 &lt;code&gt;--all-features&lt;/code&gt; 对启用不同 Cargo 特性配置的 crate 进行模糊测试。注意这些选项控制的是 &lt;code&gt;fuzz_targets&lt;/code&gt; crate；你需要将它们转发到被模糊测试的 crate，例如在 &lt;code&gt;fuzz_targets/Cargo.toml&lt;/code&gt; 中添加：&lt;/p&gt;</description></item><item><title>1.4 结构感知模糊测试</title><link>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.4-structure-aware-fuzzing/</link><pubDate>Sun, 23 Aug 2026 13:50:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.4-structure-aware-fuzzing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-fuzz.github.io/book/"&gt;Rust Fuzz Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="structure-aware-fuzzing"&gt;结构感知模糊测试&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-fuzz.github.io/book/cargo-fuzz/structure-aware-fuzzing.html"&gt;https://rust-fuzz.github.io/book/cargo-fuzz/structure-aware-fuzzing.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;并非每个被测系统都希望接受原始字节缓冲区作为输入；它可能希望得到某种结构化数据的良构实例。例如，模糊测试目标可能测试的系统及其期望的输入如下：&lt;/p&gt;</description></item><item><title>1.5 编写会访问数据的测试预言机</title><link>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.5-oracles-accessing-data/</link><pubDate>Sun, 23 Aug 2026 13:50:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.5-oracles-accessing-data/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-fuzz.github.io/book/"&gt;Rust Fuzz Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="oracles-accessing-data"&gt;编写会访问数据的测试预言机&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-fuzz.github.io/book/cargo-fuzz/oracles-accessing-data.html"&gt;https://rust-fuzz.github.io/book/cargo-fuzz/oracles-accessing-data.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Rust 要求引用必须指向有效值，如 &lt;a href="https://doc.rust-lang.org/reference/behavior-considered-undefined.html#r-undefined.validity.reference-box"&gt;Rust 参考手册&lt;/a&gt; 所述：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;引用或 &lt;code&gt;Box&amp;lt;T&amp;gt;&lt;/code&gt; 必须对齐且非空，不能悬空，且必须指向有效值。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;因此，高质量的 harness 应验证从目标库获得的&lt;strong&gt;每一个引用&lt;/strong&gt;。&lt;/p&gt;</description></item><item><title>1.6 代码覆盖率</title><link>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.6-coverage/</link><pubDate>Sun, 23 Aug 2026 13:50:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.6-coverage/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-fuzz.github.io/book/"&gt;Rust Fuzz Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="coverage"&gt;代码覆盖率&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-fuzz.github.io/book/cargo-fuzz/coverage.html"&gt;https://rust-fuzz.github.io/book/cargo-fuzz/coverage.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;可视化代码覆盖率有助于了解哪些代码路径正在被模糊测试覆盖，更重要的是——哪些还没有。为了帮助模糊器探索新代码路径，可以查看它未能到达的部分，然后添加新的种子输入到语料库，或调整模糊测试目标。本章介绍如何为模糊测试目标及其当前语料库生成覆盖率报告。&lt;/p&gt;</description></item><item><title>1.7 目标集合</title><link>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.7-targets/</link><pubDate>Sun, 23 Aug 2026 13:50:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.7-targets/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-fuzz.github.io/book/"&gt;Rust Fuzz Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="targets"&gt;目标集合&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-fuzz.github.io/book/cargo-fuzz/targets.html"&gt;https://rust-fuzz.github.io/book/cargo-fuzz/targets.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;社区维护的、与 cargo-fuzz 兼容的模糊测试目标合集见&lt;a href="https://github.com/rust-fuzz/targets"&gt;此处&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>1.9 在 CI 中模糊测试</title><link>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.9-ci/</link><pubDate>Sun, 23 Aug 2026 13:50:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustFuzz/cargo-fuzz/1.9-ci/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-fuzz.github.io/book/"&gt;Rust Fuzz Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="ci"&gt;在 CI 中模糊测试&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-fuzz.github.io/book/cargo-fuzz/ci.html"&gt;https://rust-fuzz.github.io/book/cargo-fuzz/ci.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在 CI 中短时间构建并运行模糊测试目标，作为冒烟测试会很有帮助。&lt;/p&gt;
+&lt;p&gt;若你使用的 CI 提供商未列于此，欢迎提交 PR 补充。&lt;/p&gt;
+&lt;h2 id="github-workflows"&gt;GitHub Workflows&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;18
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;19
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;20
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;21
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;22
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;23
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;24
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;25
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;26
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;27
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;28
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;29
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;30
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;31
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;32
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;33
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;34
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;35
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;36
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;37
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;38
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;39
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;40
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;41
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;42
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;43
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;44
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;45
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;46
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;47
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;48
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;49
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;50
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;51
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;52
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;name&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;Smoke-Test Fuzz Targets&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;on&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;push&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;branches&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;main&amp;#34;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pull_request&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;branches&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;main&amp;#34;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;jobs&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;fuzz&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;runs-on&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;ubuntu-latest&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;env&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# 要安装和使用的 cargo-fuzz 版本。&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;CARGO_FUZZ_VERSION&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0.12.0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# 运行模糊测试目标的秒数。300 秒 = 5 分钟。&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;FUZZ_TIME&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#d19a66"&gt;300&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;strategy&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;matrix&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;include&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# TODO: 在此列出你的模糊测试目标。&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;fuzz_target&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;my_first_fuzz_target&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;fuzz_target&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;my_second_fuzz_target&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# 等等...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;steps&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;uses&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;actions/checkout@v4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# 安装 nightly Rust 工具链。&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;run&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;rustup toolchain install nightly&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;run&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;rustup default nightly&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# 安装并缓存 cargo-fuzz。&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;uses&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;actions/cache@v4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;with&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;path&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;${{ runner.tool_cache }}/cargo-fuzz&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;key&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;cargo-fuzz-bin-${{ env.CARGO_FUZZ_VERSION }}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;run&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;echo &amp;#34;${{ runner.tool_cache }}/cargo-fuzz/bin&amp;#34; &amp;gt;&amp;gt; $GITHUB_PATH&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;run&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;cargo install --root &amp;#34;${{ runner.tool_cache }}/cargo-fuzz&amp;#34; --version ${{ env.CARGO_FUZZ_VERSION }} cargo-fuzz --locked&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# 构建并运行模糊测试目标。&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;run&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;cargo fuzz build ${{ matrix.fuzz_target }}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;run&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;cargo fuzz run ${{ matrix.fuzz_target }} -- -max_total_time=${{ env.FUZZ_TIME }}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# 失败时上传模糊测试产物以便事后调试。&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;uses&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;actions/upload-artifact@v4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;if&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;failure()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;with&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;name&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;fuzzing-artifacts-${{ matrix.fuzz_target }}-${{ github.sha }}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;path&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;fuzz/artifacts&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item></channel></rss>

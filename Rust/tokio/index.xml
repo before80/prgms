@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tokio on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/tokio/</link><description>Recent content in Tokio on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/tokio/index.xml" rel="self" type="application/rss+xml"/><item><title>1 环境准备</title><link>https://before80.github.io/prgms/Rust/tokio/1-setup/</link><pubDate>Sun, 23 Aug 2026 16:54:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tokio/1-setup/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tokio.rs/tokio/tutorial/setup"&gt;https://tokio.rs/tokio/tutorial/setup&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;本教程将带你逐步完成构建 &lt;a href="https://redis.io"&gt;Redis&lt;/a&gt; 客户端和服务器的过程。我们将从 Rust 异步编程的基础开始，逐步深入。我们将实现 Redis 命令的一个子集，但会全面了解 Tokio。&lt;/p&gt;
+&lt;p&gt;你在本教程中要构建的项目在 GitHub 上以 &lt;a href="https://github.com/tokio-rs/mini-redis"&gt;Mini-Redis&lt;/a&gt; 的形式提供。Mini-Redis 的主要设计目标是学习 Tokio，因此注释非常详尽，但这也意味着 Mini-Redis 缺少你在真正的 Redis 库中会想要的一些功能。你可以在 &lt;a href="https://crates.io/"&gt;crates.io&lt;/a&gt; 上找到可用于生产环境的 Redis 库。&lt;/p&gt;</description></item><item><title>2 Hello Tokio</title><link>https://before80.github.io/prgms/Rust/tokio/2-hello-tokio/</link><pubDate>Sun, 23 Aug 2026 16:54:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tokio/2-hello-tokio/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tokio.rs/tokio/tutorial/hello-tokio"&gt;https://tokio.rs/tokio/tutorial/hello-tokio&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;我们将从一个非常基础的 Tokio 应用开始。它会连接到 Mini-Redis 服务器，将键 &lt;code&gt;hello&lt;/code&gt; 的值设置为 &lt;code&gt;world&lt;/code&gt;，然后读回该键。这将使用 Mini-Redis 客户端库来完成。&lt;/p&gt;
+&lt;h2 id="创建新-crate"&gt;创建新 crate&lt;/h2&gt;
+&lt;p&gt;首先，创建一个新的 Rust 应用：&lt;/p&gt;</description></item><item><title>3 生成任务</title><link>https://before80.github.io/prgms/Rust/tokio/3-spawning/</link><pubDate>Sun, 23 Aug 2026 16:54:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tokio/3-spawning/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tokio.rs/tokio/tutorial/spawning"&gt;https://tokio.rs/tokio/tutorial/spawning&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;我们要转换方向，开始编写 Redis 服务器。&lt;/p&gt;
+&lt;p&gt;首先，将上一节中的客户端 &lt;code&gt;SET&lt;/code&gt;/&lt;code&gt;GET&lt;/code&gt; 代码移到一个示例文件中。这样我们就可以针对自己的服务器运行它。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ mkdir -p examples
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ mv src/main.rs examples/hello-redis.rs
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;然后创建一个新的、空的 &lt;code&gt;src/main.rs&lt;/code&gt; 并继续。&lt;/p&gt;</description></item><item><title>4 共享状态</title><link>https://before80.github.io/prgms/Rust/tokio/4-shared-state/</link><pubDate>Sun, 23 Aug 2026 16:54:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tokio/4-shared-state/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tokio.rs/tokio/tutorial/shared-state"&gt;https://tokio.rs/tokio/tutorial/shared-state&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;到目前为止，我们有一个可以工作的键值服务器。然而，有一个重大缺陷：状态不会在连接之间共享。我们将在本文中修复这个问题。&lt;/p&gt;
+&lt;p&gt;在 Tokio 中有几种不同的共享状态的方式。&lt;/p&gt;</description></item><item><title>5 通道</title><link>https://before80.github.io/prgms/Rust/tokio/5-channels/</link><pubDate>Sun, 23 Aug 2026 16:54:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tokio/5-channels/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tokio.rs/tokio/tutorial/channels"&gt;https://tokio.rs/tokio/tutorial/channels&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;既然我们已经了解了 Tokio 中的并发，让我们在客户端应用这些知识。将我们之前编写的服务器代码放入一个显式的二进制文件中：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ mkdir src/bin
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ mv src/main.rs src/bin/server.rs
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;然后创建一个新的二进制文件，其中包含客户端代码：&lt;/p&gt;</description></item><item><title>6 I/O</title><link>https://before80.github.io/prgms/Rust/tokio/6-io/</link><pubDate>Sun, 23 Aug 2026 16:54:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tokio/6-io/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tokio.rs/tokio/tutorial/io"&gt;https://tokio.rs/tokio/tutorial/io&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Tokio 中的 I/O 与 &lt;code&gt;std&lt;/code&gt; 中的工作方式大致相同，但是异步的。有一个用于读取的 trait（&lt;a href="https://docs.rs/tokio/1/tokio/io/trait.AsyncRead.html"&gt;&lt;code&gt;AsyncRead&lt;/code&gt;&lt;/a&gt;）和一个用于写入的 trait（&lt;a href="https://docs.rs/tokio/1/tokio/io/trait.AsyncWrite.html"&gt;&lt;code&gt;AsyncWrite&lt;/code&gt;&lt;/a&gt;。特定类型会视情况实现这些 trait（&lt;a href="https://docs.rs/tokio/1/tokio/net/struct.TcpStream.html"&gt;&lt;code&gt;TcpStream&lt;/code&gt;&lt;/a&gt;、&lt;a href="https://docs.rs/tokio/1/tokio/fs/struct.File.html"&gt;&lt;code&gt;File&lt;/code&gt;&lt;/a&gt;、&lt;a href="https://docs.rs/tokio/1/tokio/io/struct.Stdout.html"&gt;&lt;code&gt;Stdout&lt;/code&gt;&lt;/a&gt;）。许多数据结构也实现了 &lt;a href="https://docs.rs/tokio/1/tokio/io/trait.AsyncRead.html"&gt;&lt;code&gt;AsyncRead&lt;/code&gt;&lt;/a&gt; 和 &lt;a href="https://docs.rs/tokio/1/tokio/io/trait.AsyncWrite.html"&gt;&lt;code&gt;AsyncWrite&lt;/code&gt;&lt;/a&gt;，例如 &lt;code&gt;Vec&amp;lt;u8&amp;gt;&lt;/code&gt; 和 &lt;code&gt;&amp;amp;[u8]&lt;/code&gt;。这样就可以在需要 reader 或 writer 的地方使用字节数组。&lt;/p&gt;</description></item><item><title>7 分帧</title><link>https://before80.github.io/prgms/Rust/tokio/7-framing/</link><pubDate>Sun, 23 Aug 2026 16:54:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tokio/7-framing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tokio.rs/tokio/tutorial/framing"&gt;https://tokio.rs/tokio/tutorial/framing&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;现在我们将把刚学到的 I/O 知识应用到 Mini-Redis 的分帧层实现上。分帧（framing）是将字节流转换为帧流的过程。帧是两个对等方之间传输的数据单元。Redis 协议帧定义如下：&lt;/p&gt;</description></item><item><title>8 深入 async</title><link>https://before80.github.io/prgms/Rust/tokio/8-async/</link><pubDate>Sun, 23 Aug 2026 16:54:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tokio/8-async/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tokio.rs/tokio/tutorial/async"&gt;https://tokio.rs/tokio/tutorial/async&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;至此，我们已经相当全面地游览了异步 Rust 和 Tokio。现在我们将更深入地探讨 Rust 的异步运行时模型。在教程最开始，我们暗示异步 Rust 采取了一种独特的方式。现在，我们来解释这意味着什么。&lt;/p&gt;</description></item><item><title>9 Select</title><link>https://before80.github.io/prgms/Rust/tokio/9-select/</link><pubDate>Sun, 23 Aug 2026 16:54:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tokio/9-select/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tokio.rs/tokio/tutorial/select"&gt;https://tokio.rs/tokio/tutorial/select&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;到目前为止，当我们想为系统增加并发时，会生成一个新任务。接下来我们将介绍一些在 Tokio 中并发执行异步代码的其他方式。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;tokio::select!&lt;/code&gt; 宏允许同时等待多个异步计算，并在&lt;strong&gt;单个&lt;/strong&gt;计算完成时返回。&lt;/p&gt;</description></item><item><title>10 流</title><link>https://before80.github.io/prgms/Rust/tokio/10-streams/</link><pubDate>Sun, 23 Aug 2026 16:54:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tokio/10-streams/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tokio.rs/tokio/tutorial/streams"&gt;https://tokio.rs/tokio/tutorial/streams&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;流（stream）是一系列异步产生的值。它是 Rust &lt;a href="https://doc.rust-lang.org/book/ch13-02-iterators.html"&gt;&lt;code&gt;std::iter::Iterator&lt;/code&gt;&lt;/a&gt; 的异步等价物，由 &lt;a href="https://docs.rs/futures-core/0.3/futures_core/stream/trait.Stream.html"&gt;&lt;code&gt;Stream&lt;/code&gt;&lt;/a&gt; trait 表示。流可以在 &lt;code&gt;async&lt;/code&gt; 函数中迭代，也可以使用适配器进行转换。Tokio 在 &lt;a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html"&gt;&lt;code&gt;StreamExt&lt;/code&gt;&lt;/a&gt; trait 上提供了许多常用适配器。&lt;/p&gt;</description></item></channel></rss>

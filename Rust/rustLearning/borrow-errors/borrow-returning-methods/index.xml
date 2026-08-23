@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>2.6 理解返回借用的方法 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/borrow-returning-methods/</link><description>Recent content in 2.6 理解返回借用的方法 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/borrow-returning-methods/index.xml" rel="self" type="application/rss+xml"/><item><title>2.6.1 何时不应命名生命周期</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/borrow-returning-methods/2.6.1-when-not-to-name-lifetimes/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/borrow-returning-methods/2.6.1-when-not-to-name-lifetimes/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="when-not-to-name-lifetimes"&gt;何时不应命名生命周期&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/m-naming.html"&gt;https://quinedot.github.io/rust-learning/m-naming.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;有时新手会试图通过让代码更泛型来解决借用检查错误，这通常涉及添加生命周期并命名之前被省略的生命周期：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;# &lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;S&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;impl&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;S&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;quz&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt;: &lt;span style="color:#cebc3a"&gt;&amp;#39;b&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#cebc3a"&gt;&amp;#39;b&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;mut&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;b&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;str&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;todo!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// （由于 `&amp;#39;a: &amp;#39;b` 约束，含义仍然是&amp;#34;对返回值的使用让 `*self` 保持独占借用&amp;#34;：
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// `&amp;#39;a` 必须在 `&amp;#39;b` 有效的任何地方都有效。）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;# &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;但这实际上并不比下面这个允许多更多可能性：&lt;/p&gt;</description></item><item><title>2.6.2 约束相关的生命周期会相互「感染」</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/borrow-returning-methods/2.6.2-bound-lifetimes-infect/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/borrow-returning-methods/2.6.2-bound-lifetimes-infect/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="bound-lifetimes-infect"&gt;约束相关的生命周期会相互「感染」&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/m-infect.html"&gt;https://quinedot.github.io/rust-learning/m-infect.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;上一节中将 &lt;code&gt;'a&lt;/code&gt; 和 &lt;code&gt;'b&lt;/code&gt; 分开，在 &lt;code&gt;self&lt;/code&gt; 被借用方面并没有让事情更灵活。一旦你声明了像 &lt;code&gt;'a: 'b&lt;/code&gt; 这样的约束，两个生命周期就会相互&amp;quot;感染&amp;quot;。尽管返回类型与输入有不同的生命周期，它实际上仍然是对输入的重借用。&lt;/p&gt;</description></item><item><title>2.6.3 &amp;mut 输入不会降级为 &amp;</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/borrow-returning-methods/2.6.3-mut-no-downgrade/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/borrow-returning-methods/2.6.3-mut-no-downgrade/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="mut-no-downgrade"&gt;&amp;amp;mut 输入不会降级为 &amp;amp;&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/m-no-downgrades.html"&gt;https://quinedot.github.io/rust-learning/m-no-downgrades.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;仍然讨论这个签名：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;quz&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#76a9f9"&gt;mut&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;str&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;todo!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;新手常常期望 &lt;code&gt;quz&lt;/code&gt; 返回后 &lt;code&gt;self&lt;/code&gt; 只被共享借用，因为返回的是共享引用。但事实并非如此；只要返回的 &lt;code&gt;&amp;amp;str&lt;/code&gt; 仍然有效，&lt;code&gt;self&lt;/code&gt; 就保持&lt;strong&gt;独占&lt;/strong&gt;借用。&lt;/p&gt;</description></item><item><title>2.6.4 async 与返回 impl Trait</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/borrow-returning-methods/2.6.4-async-impl-trait/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/borrow-returning-methods/2.6.4-async-impl-trait/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="async-impl-trait"&gt;async 与返回 impl Trait&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/m-rpitit-alikes.html"&gt;https://quinedot.github.io/rust-learning/m-rpitit-alikes.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;关于 &lt;code&gt;async fn&lt;/code&gt; 和返回 &lt;code&gt;impl Trait&lt;/code&gt; 可以说的很多，这里无法全部涵盖。但特别需要注意的是，它们以几乎不可见的方式向函数签名引入借用关系。&lt;/p&gt;</description></item></channel></rss>

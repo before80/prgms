@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>2 培养借用错误直觉的实用建议 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/</link><description>Recent content in 2 培养借用错误直觉的实用建议 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/index.xml" rel="self" type="application/rss+xml"/><item><title>2.1 坚持学习并参与社区</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.1-community/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.1-community/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="community"&gt;坚持学习并参与社区&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/community.html"&gt;https://quinedot.github.io/rust-learning/community.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;经验在理解借用错误、并在合理时间内弄清某段代码为何有问题方面，起着非常重要的作用。遇到借用检查错误并解决它们——无论是靠自己还是求助——都是建立这种直觉的过程的一部分。&lt;/p&gt;</description></item><item><title>2.2 优先所有权而非长生命周期引用</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.2-prefer-ownership/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.2-prefer-ownership/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="prefer-ownership"&gt;优先所有权而非长生命周期引用&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/have-no-life.html"&gt;https://quinedot.github.io/rust-learning/have-no-life.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;新手常犯的一个错误，是过度使用引用或其他携带生命周期的数据结构，并将它们存入自己长生命周期的结构中。这往往是错误的，因为非 &lt;code&gt;'static&lt;/code&gt; 引用的主要用途是短期借用。&lt;/p&gt;</description></item><item><title>2.3 不要隐藏生命周期</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.3-dont-hide-lifetimes/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.3-dont-hide-lifetimes/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="dont-hide-lifetimes"&gt;不要隐藏生命周期&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/dont-hide.html"&gt;https://quinedot.github.io/rust-learning/dont-hide.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;当你使用携带生命周期的结构体（无论是自己的还是他人的）时，Rust 编译器有时允许你在提及该结构体时省略生命周期参数：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Foo&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;str&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;impl&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Foo&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;a&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 不需要生命周期语法 :-(
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// vvv
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;new&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;s&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;str&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#ca72ff"&gt;Foo&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Foo&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;s&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;这会让借用关系变得不那么明显，也更难弄清错误从何而来。上述代码过去会被静默接受，但现在有一些 lint（如 &lt;code&gt;mismatched_lifetime_syntaxes&lt;/code&gt;）会对最常见的麻烦模式报错。为避免头痛，你甚至可以把这些警告当作错误：&lt;/p&gt;</description></item><item><title>2.4 理解省略规则与何时命名生命周期</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.4-elision/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.4-elision/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="elision"&gt;理解省略规则与何时命名生命周期&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/elision.html"&gt;https://quinedot.github.io/rust-learning/elision.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a href="https://doc.rust-lang.org/reference/lifetime-elision.html"&gt;阅读函数生命周期省略规则。&lt;/a&gt; 大多数情况下它们很直观。省略规则围绕常见场景的需求而设计，但并非总是适用。例如，它们假定输入 &lt;code&gt;&amp;amp;'s self&lt;/code&gt; 意味着你想返回对 &lt;code&gt;self&lt;/code&gt; 或其内容的、生命周期为 &lt;code&gt;'s&lt;/code&gt; 的借用，但对于携带生命周期的数据结构，这往往&lt;em&gt;并不&lt;/em&gt;正确。&lt;/p&gt;</description></item><item><title>2.7 理解函数生命周期参数</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.7-function-lifetime-parameters/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.7-function-lifetime-parameters/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="function-lifetime-parameters"&gt;理解函数生命周期参数&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/fn-parameters.html"&gt;https://quinedot.github.io/rust-learning/fn-parameters.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;首先，注意函数签名中被省略的生命周期是函数上不可见的生命周期参数。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;zed&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;s&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;str&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 等价写法
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;zed&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;s&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;s&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;&amp;#39;s&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;str&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;当你有这样的生命周期参数时，&lt;em&gt;调用者&lt;/em&gt;选择生命周期。但你的函数体对调用者是不透明的：他们只能选择比你的函数体&lt;em&gt;稍长一点&lt;/em&gt;的生命周期。&lt;/p&gt;</description></item><item><title>2.8 理解函数内的借用</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.8-borrows-within-function/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.8-borrows-within-function/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="borrows-within-function"&gt;理解函数内的借用&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/lifetime-analysis.html"&gt;https://quinedot.github.io/rust-learning/lifetime-analysis.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;编译器为确定生命周期和借用检查而进行的&lt;em&gt;函数体内&lt;/em&gt;分析相当复杂。全面探索超出了本指南的范围，但这里我们会做一个简要介绍。&lt;/p&gt;
+&lt;p&gt;如果你遇到无法理解的错误，最好的办法是在论坛或其他地方寻求帮助。&lt;/p&gt;</description></item><item><title>2.12 回顾总结</title><link>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.12-circle-back/</link><pubDate>Sun, 23 Aug 2026 10:16:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustLearning/borrow-errors/2.12-circle-back/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://quinedot.github.io/rust-learning/"&gt;Learning Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="circle-back"&gt;回顾总结&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://quinedot.github.io/rust-learning/circle.html"&gt;https://quinedot.github.io/rust-learning/circle.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;所有权、借用和生命周期是巨大的话题。仅这本&amp;quot;入门&amp;quot;指南中的内容就太多，不可能一次全部吸收。因此，偶尔回过头来重读常见误解，或关于型变的文档，或者再次尝试解决你见过的某个复杂问题。你的心智模型会随时间扩展；在初期，知道某些东西存在，并在碰壁时重新回顾它们，就足够了。&lt;/p&gt;</description></item></channel></rss>

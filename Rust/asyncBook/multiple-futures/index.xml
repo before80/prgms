@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>23-同时执行多个 Future on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/asyncBook/multiple-futures/</link><description>Recent content in 23-同时执行多个 Future on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/asyncBook/multiple-futures/index.xml" rel="self" type="application/rss+xml"/><item><title>23.1-join!</title><link>https://before80.github.io/prgms/Rust/asyncBook/multiple-futures/01-join/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/multiple-futures/01-join/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="join"&gt;join!&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/06_multiple_futures/02_join.html"&gt;https://rust-lang.github.io/async-book/06_multiple_futures/02_join.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;futures::join&lt;/code&gt; 宏可以在并发执行多个不同 future 的同时等待它们全部完成。&lt;/p&gt;
+&lt;h2 id="join-1"&gt;&lt;code&gt;join!&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;执行多个异步操作时，很容易简单地依次 &lt;code&gt;.await&lt;/code&gt; 它们：&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,edition2018,ignore" data-lang="rust,edition2018,ignore"&gt;async fn get_book_and_music() -&amp;gt; (Book, Music) {
+ let book = get_book().await;
+ let music = get_music().await;
+ (book, music)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;然而，这比必要的更慢，因为在 &lt;code&gt;get_book&lt;/code&gt; 完成之前不会开始尝试 &lt;code&gt;get_music&lt;/code&gt;。在其他一些语言中，future 会在环境中自动运行至完成，因此可以先调用每个 &lt;code&gt;async fn&lt;/code&gt; 启动 future，然后同时 await 它们：&lt;/p&gt;</description></item><item><title>23.2-select!</title><link>https://before80.github.io/prgms/Rust/asyncBook/multiple-futures/02-select/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/multiple-futures/02-select/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="select"&gt;select!&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/06_multiple_futures/03_select.html"&gt;https://rust-lang.github.io/async-book/06_multiple_futures/03_select.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;futures::select&lt;/code&gt; 宏同时运行多个 future，允许用户在任意 future 完成时立即响应。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,edition2018" data-lang="rust,edition2018"&gt;use futures::{
+ future::FutureExt, // for `.fuse()`
+ pin_mut,
+ select,
+};
+
+async fn task_one() { /* ... */ }
+async fn task_two() { /* ... */ }
+
+async fn race_tasks() {
+ let t1 = task_one().fuse();
+ let t2 = task_two().fuse();
+
+ pin_mut!(t1, t2);
+
+ select! {
+ () = t1 =&amp;gt; println!(&amp;#34;task one completed first&amp;#34;),
+ () = t2 =&amp;gt; println!(&amp;#34;task two completed first&amp;#34;),
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;上面的函数将并发运行 &lt;code&gt;t1&lt;/code&gt; 和 &lt;code&gt;t2&lt;/code&gt;。当 &lt;code&gt;t1&lt;/code&gt; 或 &lt;code&gt;t2&lt;/code&gt; 完成时，对应的处理程序会调用 &lt;code&gt;println!&lt;/code&gt;，函数会结束而不完成剩余任务。&lt;/p&gt;</description></item><item><title>23.3-Spawning</title><link>https://before80.github.io/prgms/Rust/asyncBook/multiple-futures/03-spawning/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/multiple-futures/03-spawning/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="spawning"&gt;Spawning&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/06_multiple_futures/04_spawning.html"&gt;https://rust-lang.github.io/async-book/06_multiple_futures/04_spawning.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Spawning 允许你在后台运行新的异步任务。这使我们能在其运行的同时继续执行其他代码。&lt;/p&gt;
+&lt;p&gt;假设我们有一个 Web 服务器，希望在不阻塞主线程的情况下接受连接。为此，我们可以使用 &lt;code&gt;async_std::task::spawn&lt;/code&gt; 函数创建并运行处理连接的新任务。该函数接收一个 future 并返回 &lt;code&gt;JoinHandle&lt;/code&gt;，可在任务完成后用于等待任务结果。&lt;/p&gt;</description></item></channel></rss>

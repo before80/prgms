@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>2 使用 afl.rs 进行模糊测试 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/rustFuzz/afl/</link><description>Recent content in 2 使用 afl.rs 进行模糊测试 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/rustFuzz/afl/index.xml" rel="self" type="application/rss+xml"/><item><title>2.1 安装</title><link>https://before80.github.io/prgms/Rust/rustFuzz/afl/2.1-setup/</link><pubDate>Sun, 23 Aug 2026 13:50:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustFuzz/afl/2.1-setup/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-fuzz.github.io/book/"&gt;Rust Fuzz Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="afl-setup"&gt;安装&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-fuzz.github.io/book/afl/setup.html"&gt;https://rust-fuzz.github.io/book/afl/setup.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="环境要求"&gt;环境要求&lt;/h2&gt;
+&lt;h3 id="工具"&gt;工具&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;C 编译器（如 gcc 或 clang）&lt;/li&gt;
+&lt;li&gt;make&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="平台"&gt;平台&lt;/h3&gt;
+&lt;p&gt;afl.rs 支持 x86-64 Linux、x86-64 macOS 和 ARM64 macOS。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cargo install cargo-afl
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;或者，也可以&lt;a href="../2.3-installing-from-source/"&gt;从源码安装&lt;/a&gt; &lt;code&gt;cargo-afl&lt;/code&gt;。&lt;/p&gt;
+&lt;h2 id="升级"&gt;升级&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cargo install --force cargo-afl
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>2.2 教程</title><link>https://before80.github.io/prgms/Rust/rustFuzz/afl/2.2-tutorial/</link><pubDate>Sun, 23 Aug 2026 13:50:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustFuzz/afl/2.2-tutorial/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-fuzz.github.io/book/"&gt;Rust Fuzz Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="afl-tutorial"&gt;教程&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-fuzz.github.io/book/afl/tutorial.html"&gt;https://rust-fuzz.github.io/book/afl/tutorial.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在本教程中，我们将对 URL 解析器 &lt;a href="https://github.com/servo/rust-url"&gt;rust-url&lt;/a&gt; 进行模糊测试。目标是找到模糊器生成的某种输入，在传给 &lt;a href="https://docs.rs/url/*/url/struct.Url.html#method.parse"&gt;&lt;code&gt;Url::parse&lt;/code&gt;&lt;/a&gt; 时会导致 panic 或崩溃。&lt;/p&gt;
+&lt;h2 id="创建模糊测试目标"&gt;创建模糊测试目标&lt;/h2&gt;
+&lt;p&gt;首先要创建一个&lt;em&gt;模糊测试目标&lt;/em&gt;，形式为 Rust 二进制 crate。AFL 会调用生成的二进制文件，向标准输入提供生成的字节，我们再将其传给 &lt;code&gt;Url::parse&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>2.3 从源码安装</title><link>https://before80.github.io/prgms/Rust/rustFuzz/afl/2.3-installing-from-source/</link><pubDate>Sun, 23 Aug 2026 13:50:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/rustFuzz/afl/2.3-installing-from-source/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-fuzz.github.io/book/"&gt;Rust Fuzz Book&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="installing-from-source"&gt;从源码安装&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-fuzz.github.io/book/afl/installing-from-source.html"&gt;https://rust-fuzz.github.io/book/afl/installing-from-source.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;首先克隆 afl.rs：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;git clone https://github.com/rust-fuzz/afl.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e5c07b"&gt;cd&lt;/span&gt; afl.rs
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;接着检出 afl.rs 的子模块（&lt;a href="https://github.com/AFLplusplus/AFLplusplus"&gt;AFL++&lt;/a&gt;）。注意不需要 &lt;code&gt;--recursive&lt;/code&gt;。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;git submodule update --init
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;最后安装 &lt;code&gt;cargo-afl&lt;/code&gt;：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cargo install --path cargo-afl
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="故障排除"&gt;故障排除&lt;/h2&gt;
+&lt;p&gt;若 &lt;code&gt;cargo-afl&lt;/code&gt; 发生 panic，可尝试使用 &lt;code&gt;--debug&lt;/code&gt; 安装，并以 &lt;code&gt;RUST_BACKTRACE=1&lt;/code&gt; 运行 &lt;code&gt;cargo-afl&lt;/code&gt;，例如：&lt;/p&gt;</description></item></channel></rss>

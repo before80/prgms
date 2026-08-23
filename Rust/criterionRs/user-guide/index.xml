@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>2-用户指南 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/</link><description>Recent content in 2-用户指南 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/criterionRs/user-guide/index.xml" rel="self" type="application/rss+xml"/><item><title>2.1-从 libtest 迁移</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/01-migrating-from-libtest/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/01-migrating-from-libtest/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="migrating-from-libtest"&gt;从 libtest 迁移&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/migrating_from_libtest.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/migrating_from_libtest.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;本页展示如何将 libtest 或 bencher 基准测试迁移为使用 Criterion.rs。&lt;/p&gt;
+&lt;h2 id="the-benchmark"&gt;The Benchmark&lt;/h2&gt;
+&lt;p&gt;以下面的基准测试为例：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;17
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#![feature(test)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;extern&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;crate&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;test&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;use&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;test&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;Bencher&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;use&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;test&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;black_box&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;fibonacci&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;n&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;u64&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#e5c07b"&gt;u64&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;match&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;n&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d19a66"&gt;0&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&amp;gt;&lt;/span&gt; &lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d19a66"&gt;1&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&amp;gt;&lt;/span&gt; &lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;n&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&amp;gt;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;fibonacci&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;n&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;-&lt;/span&gt;&lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;+&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;fibonacci&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;n&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;-&lt;/span&gt;&lt;span style="color:#d19a66"&gt;2&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;),&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[bench]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;bench_fib&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#ca72ff"&gt;mut&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Bencher&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;iter&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;||&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;fibonacci&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;black_box&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#d19a66"&gt;20&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)));&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="the-migration"&gt;The Migration&lt;/h2&gt;
+&lt;p&gt;首先要更新 &lt;code&gt;Cargo.toml&lt;/code&gt;，禁用 libtest 基准测试 harness：&lt;/p&gt;</description></item><item><title>2.2-命令行输出</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/02-command-line-output/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/02-command-line-output/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="command-line-output"&gt;命令行输出&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/command_line_output.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/command_line_output.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;本页输出由运行 &lt;code&gt;cargo bench -- --verbose&lt;/code&gt; 产生。&lt;code&gt;cargo bench&lt;/code&gt; 会省略部分信息。注意：若 &lt;code&gt;cargo bench&lt;/code&gt; 因未知参数失败，请参阅 &lt;a href="../../faq/#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options"&gt;FAQ&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;每个 Criterion.rs 基准测试会根据测量迭代计算统计量，并生成类似下面的报告：&lt;/p&gt;</description></item><item><title>2.3-命令行选项</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/03-command-line-options/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/03-command-line-options/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="command-line-options"&gt;命令行选项&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/command_line_options.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/command_line_options.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意：若 &lt;code&gt;cargo bench&lt;/code&gt; 因未知参数失败，请参阅 &lt;a href="../../faq/#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options"&gt;FAQ&lt;/a&gt;。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Criterion.rs 基准测试接受多种自定义命令行参数。以下是最常用选项的列表。运行 &lt;code&gt;cargo bench -- -h&lt;/code&gt; 可查看完整列表。&lt;/p&gt;</description></item><item><title>2.4-HTML 报告</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/04-html-report/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/04-html-report/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="html-report"&gt;HTML 报告&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/html_report.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/html_report.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;从 Criterion.rs 0.4.0 起，必须通过 &lt;code&gt;html_reports&lt;/code&gt; &lt;a href="https://doc.rust-lang.org/cargo/reference/features.html#dependency-features"&gt;feature&lt;/a&gt; 显式启用 HTML 报告：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-toml" data-lang="toml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;dev-dependencies&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;criterion&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;version&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;0.5&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;features&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;html_reports&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;Criterion.rs 可在 &lt;code&gt;target/criterion/reports/index.html&lt;/code&gt; 生成展示基准测试结果的 HTML 报告。默认情况下，若可用则使用 &lt;a href="http://www.gnuplot.info/"&gt;gnuplot&lt;/a&gt; 生成图表，否则使用 &lt;a href="https://github.com/38/plotters"&gt;plotters&lt;/a&gt; crate。以下示例由 gnuplot 后端生成，plotters 生成的图表类似。&lt;/p&gt;</description></item><item><title>2.5-图表</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/05-plots-and-graphs/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/05-plots-and-graphs/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="plots-and-graphs"&gt;图表&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/plots_and_graphs.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/plots_and_graphs.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Criterion.rs 可生成多种有用的图表，便于更好理解基准测试行为。默认使用 &lt;a href="http://www.gnuplot.info/"&gt;gnuplot&lt;/a&gt; 生成，若不可用则回退到 &lt;code&gt;plotters&lt;/code&gt; crate。以下示例由 gnuplot 后端生成，plotters 版本类似。&lt;/p&gt;</description></item><item><title>2.6-带输入的基准测试</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/06-benchmarking-with-inputs/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/06-benchmarking-with-inputs/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="benchmarking-with-inputs"&gt;带输入的基准测试&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/benchmarking_with_inputs.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/benchmarking_with_inputs.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Criterion.rs 可使用一个或多个不同输入值运行基准测试，以研究性能如何随输入变化。&lt;/p&gt;
+&lt;h2 id="benchmarking-with-one-input"&gt;Benchmarking With One Input&lt;/h2&gt;
+&lt;p&gt;若函数只有一个输入，可使用 &lt;code&gt;Criterion&lt;/code&gt; 结构体上的简单接口运行该基准测试。&lt;/p&gt;</description></item><item><title>2.7-高级配置</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/07-advanced-configuration/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/07-advanced-configuration/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="advanced-configuration"&gt;高级配置&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/advanced_configuration.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/advanced_configuration.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Criterion.rs 为更复杂的用例提供多种配置选项，本文档说明这些选项。&lt;/p&gt;
+&lt;h2 id="configuring-sample-count--other-statistical-settings"&gt;Configuring Sample Count &amp;amp; Other Statistical Settings&lt;/h2&gt;
+&lt;p&gt;Criterion.rs 允许用户调整部分统计参数。最常见的方式是使用 &lt;code&gt;BenchmarkGroup&lt;/code&gt; 结构——该结构的文档列出了可用设置。&lt;/p&gt;</description></item><item><title>2.8-比较函数</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/08-comparing-functions/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/08-comparing-functions/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="comparing-functions"&gt;比较函数&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/comparing_functions.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/comparing_functions.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Criterion.rs 可以自动对函数的多种实现进行基准测试，并生成汇总图表以展示它们之间的性能差异。首先，让我们创建一个对比基准测试。我们还可以将其与对一系列输入进行基准测试结合起来。&lt;/p&gt;</description></item><item><title>2.9-CSV 输出</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/09-csv-output/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/09-csv-output/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="csv-output"&gt;CSV 输出&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/csv_output.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/csv_output.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;注意：CSV 输出正在逐步弃用。对于机器可读输出，建议使用 cargo-criterion 的 &lt;code&gt;--message-format=json&lt;/code&gt; 选项——参见&lt;a href="../../cargo-criterion/02-external-tools/"&gt;外部工具&lt;/a&gt;。CSV 输出将在 Criterion.rs 0.4.0 中成为可选功能。&lt;/p&gt;
+&lt;p&gt;Criterion.rs 将其测量结果保存在多个文件中，如下所示：&lt;/p&gt;</description></item><item><title>2.10-已知限制</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/10-known-limitations/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/10-known-limitations/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="known-limitations"&gt;已知限制&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/known_limitations.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/known_limitations.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="已知限制"&gt;已知限制&lt;/h2&gt;
+&lt;p&gt;目前，相对于标准基准测试 harness，Criterion.rs 的使用存在若干限制。&lt;/p&gt;
+&lt;p&gt;首先，Criterion.rs 必须使用 &lt;code&gt;criterion_main&lt;/code&gt; 宏提供自己的 &lt;code&gt;main&lt;/code&gt; 函数。这带来以下限制：&lt;/p&gt;</description></item><item><title>2.11-Bencher 兼容层</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/11-bencher-compatibility/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/11-bencher-compatibility/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="bencher-compatibility"&gt;Bencher 兼容层&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/bencher_compatibility.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/bencher_compatibility.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Criterion.rs 提供了一个小型 crate，可作为 &lt;code&gt;bencher&lt;/code&gt; 大多数常见用法的即插即用替代，便于现有 &lt;code&gt;bencher&lt;/code&gt; 用户试用 Criterion.rs。本页展示如何使用该 crate 的示例。&lt;/p&gt;</description></item><item><title>2.12-计时循环</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/12-timing-loops/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/12-timing-loops/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="timing-loops"&gt;计时循环&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/timing_loops.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/timing_loops.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a href="https://bheisler.github.io/criterion.rs/criterion/struct.Bencher.html"&gt;&lt;code&gt;Bencher&lt;/code&gt;&lt;/a&gt; 结构体提供多种函数，实现不同的计时循环以测量函数性能。本页说明这些计时循环的工作原理，以及在不同场景下应选用哪一种。&lt;/p&gt;</description></item><item><title>2.13-自定义测量</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/13-custom-measurements/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/13-custom-measurements/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="custom-measurements"&gt;自定义测量&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/custom_measurements.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/custom_measurements.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;默认情况下，Criterion.rs 测量基准测试的挂钟时间。然而，测量函数性能还有许多其他方式，例如硬件性能计数器或 POSIX 的 CPU 时间。自 0.3.0 版本起，Criterion.rs 支持接入替代计时测量。本页说明如何定义和使用这些自定义测量。&lt;/p&gt;</description></item><item><title>2.14-性能分析</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/14-profiling/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/14-profiling/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="profiling"&gt;性能分析&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/profiling.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/profiling.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;优化代码时，对其进行性能分析往往有助于理解其产生所测性能特征的原因。Criterion.rs 提供多项功能以协助对基准测试进行性能分析。&lt;/p&gt;</description></item><item><title>2.15-自定义测试框架</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/15-custom-test-framework/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/15-custom-test-framework/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="custom-test-framework"&gt;自定义测试框架&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/custom_test_framework.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/custom_test_framework.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Rust 编译器的 nightly 版本支持自定义测试框架。Criterion.rs 提供了自定义测试框架的实验性实现，这意味着你可以使用 &lt;code&gt;#[criterion]&lt;/code&gt; 属性标记基准测试，而无需使用常规的 &lt;code&gt;criterion_group!&lt;/code&gt; / &lt;code&gt;criterion_main!&lt;/code&gt; 宏。目前这需要一些不稳定特性，但未来某个时候 &lt;code&gt;criterion_group!&lt;/code&gt; / &lt;code&gt;criterion_main!&lt;/code&gt; 将被弃用，&lt;code&gt;#[criterion]&lt;/code&gt; 将成为定义 Criterion.rs 基准测试的标准方式。若想提前试用此功能，请参阅下文文档。&lt;/p&gt;</description></item><item><title>2.16-基准测试异步函数</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/16-benchmarking-async/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/16-benchmarking-async/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="benchmarking-async"&gt;基准测试异步函数&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/benchmarking_async.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/benchmarking_async.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="异步函数基准测试"&gt;异步函数基准测试&lt;/h2&gt;
+&lt;p&gt;自 0.3.4 版本起，Criterion.rs 可选支持对异步函数进行基准测试。对异步函数的基准测试与常规函数相同，只是调用方必须提供 futures 执行器来运行基准测试。&lt;/p&gt;</description></item><item><title>2.17-快速模式</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/17-quick-mode/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/17-quick-mode/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="quick-mode"&gt;快速模式&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/quick_mode.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/quick_mode.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="快速模式"&gt;快速模式&lt;/h2&gt;
+&lt;p&gt;快速模式通过 &lt;code&gt;--quick&lt;/code&gt; 标志启用，指示 criterion 在显著性水平低于某个值（默认 5%，参见 &lt;code&gt;--significance-level&lt;/code&gt; 标志）后提前停止基准测试。&lt;/p&gt;
+&lt;p&gt;criterion 中的快速模式与 &lt;code&gt;tasty-bench&lt;/code&gt; 的工作方式完全相同，后者有大量细节说明：https://github.com/Bodigrim/tasty-bench&lt;/p&gt;</description></item><item><title>2.18-WebAssembly/WASI</title><link>https://before80.github.io/prgms/Rust/criterionRs/user-guide/18-wasi/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/user-guide/18-wasi/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="wasi"&gt;WebAssembly/WASI&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/user_guide/wasi.html"&gt;https://bheisler.github.io/criterion.rs/book/user_guide/wasi.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Criterion 基准测试可以编译为 WebAssembly/WASI。这使你可以使用 &lt;a href="https://wasmer.io/"&gt;wasmer&lt;/a&gt; 和 &lt;a href="https://wasmtime.dev/"&gt;wasmtime&lt;/a&gt; 等运行时，以及 &lt;a href="https://nodejs.org/en/"&gt;NodeJS&lt;/a&gt; 或 Web 浏览器（&lt;a href="https://www.mozilla.org/en-US/firefox/new/"&gt;FireFox&lt;/a&gt;、&lt;a href="https://www.google.com/chrome/"&gt;Chrome&lt;/a&gt;、&lt;a href="https://www.apple.com/safari/"&gt;Safari&lt;/a&gt;）等 JavaScript 环境对代码进行性能测试。&lt;/p&gt;</description></item></channel></rss>

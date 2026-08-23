@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>20-底层原理：执行 Future 与 Task on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/asyncBook/execution/</link><description>Recent content in 20-底层原理：执行 Future 与 Task on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/asyncBook/execution/index.xml" rel="self" type="application/rss+xml"/><item><title>20.1-Future trait</title><link>https://before80.github.io/prgms/Rust/asyncBook/execution/01-the-future-trait/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/execution/01-the-future-trait/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="the-future-trait"&gt;Future trait&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/02_execution/02_future.html"&gt;https://rust-lang.github.io/async-book/02_execution/02_future.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;Future&lt;/code&gt; trait 是 Rust 异步编程的核心。&lt;code&gt;Future&lt;/code&gt; 是一种可产生值（该值可能为空，例如 &lt;code&gt;()&lt;/code&gt;）的异步计算。&lt;em&gt;简化版&lt;/em&gt;的 future trait 可能如下所示：&lt;/p&gt;</description></item><item><title>20.2-使用 Waker 唤醒 Task</title><link>https://before80.github.io/prgms/Rust/asyncBook/execution/02-task-wakeups-with-waker/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/execution/02-task-wakeups-with-waker/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="task-wakeups-with-waker"&gt;使用 Waker 唤醒 Task&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/02_execution/03_wakeups.html"&gt;https://rust-lang.github.io/async-book/02_execution/03_wakeups.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Future 在第一次被 &lt;code&gt;poll&lt;/code&gt; 时往往无法完成。此时，future 需要确保在准备好继续推进时再次被 poll。这通过 &lt;code&gt;Waker&lt;/code&gt; 类型完成。&lt;/p&gt;</description></item><item><title>20.3-实践：构建执行器</title><link>https://before80.github.io/prgms/Rust/asyncBook/execution/03-applied-build-an-executor/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/execution/03-applied-build-an-executor/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="applied-build-an-executor"&gt;实践：构建执行器&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/02_execution/04_executor.html"&gt;https://rust-lang.github.io/async-book/02_execution/04_executor.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Rust 的 &lt;code&gt;Future&lt;/code&gt; 是惰性的：除非被主动驱动至完成，否则不会做任何事。将 future 驱动至完成的一种方式是在 &lt;code&gt;async&lt;/code&gt; 函数内 &lt;code&gt;.await&lt;/code&gt; 它，但这只是把问题上移一层：谁来运行顶层 &lt;code&gt;async&lt;/code&gt; 函数返回的 future？答案是我们需要 &lt;code&gt;Future&lt;/code&gt; 执行器。&lt;/p&gt;</description></item><item><title>20.4-执行器与系统 IO</title><link>https://before80.github.io/prgms/Rust/asyncBook/execution/04-executors-and-system-io/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/execution/04-executors-and-system-io/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="executors-and-system-io"&gt;执行器与系统 IO&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/02_execution/05_io.html"&gt;https://rust-lang.github.io/async-book/02_execution/05_io.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在上一节[《&lt;code&gt;Future&lt;/code&gt; Trait》]中，我们讨论了这个在套接字上执行异步读取的 future 示例：&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code class="language-rust,ignore" data-lang="rust,ignore"&gt;pub struct SocketRead&amp;lt;&amp;#39;a&amp;gt; {
+ socket: &amp;amp;&amp;#39;a Socket,
+}
+
+impl SimpleFuture for SocketRead&amp;lt;&amp;#39;_&amp;gt; {
+ type Output = Vec&amp;lt;u8&amp;gt;;
+
+ fn poll(&amp;amp;mut self, wake: fn()) -&amp;gt; Poll&amp;lt;Self::Output&amp;gt; {
+ if self.socket.has_data_to_read() {
+ // The socket has data -- read it into a buffer and return it.
+ Poll::Ready(self.socket.read_buf())
+ } else {
+ // The socket does not yet have data.
+ //
+ // Arrange for `wake` to be called once data is available.
+ // When data becomes available, `wake` will be called, and the
+ // user of this `Future` will know to call `poll` again and
+ // receive data.
+ self.socket.set_readable_callback(wake);
+ Poll::Pending
+ }
+ }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;该 future 会读取套接字上的可用数据；若无数据可用，它会向执行器让出，请求在套接字再次可读时唤醒其任务。然而，从此示例并不清楚 &lt;code&gt;Socket&lt;/code&gt; 类型如何实现，特别是 &lt;code&gt;set_readable_callback&lt;/code&gt; 函数如何工作。我们如何在套接字可读时安排调用 &lt;code&gt;wake()&lt;/code&gt;？一种选择是让线程持续检查 &lt;code&gt;socket&lt;/code&gt; 是否可读，并在适当时调用 &lt;code&gt;wake()&lt;/code&gt;。但这效率很低，每个被阻塞的 IO future 都需要单独线程，会大大降低异步代码的效率。&lt;/p&gt;</description></item></channel></rss>

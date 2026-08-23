@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>26-最终项目：HTTP 服务器 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/asyncBook/example/</link><description>Recent content in 26-最终项目：HTTP 服务器 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/asyncBook/example/index.xml" rel="self" type="application/rss+xml"/><item><title>26.1-运行异步代码</title><link>https://before80.github.io/prgms/Rust/asyncBook/example/01-running-asynchronous-code/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/example/01-running-asynchronous-code/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="running-asynchronous-code"&gt;运行异步代码&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/09_example/01_running_async_code.html"&gt;https://rust-lang.github.io/async-book/09_example/01_running_async_code.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;HTTP 服务器应能并发服务多个客户端；也就是说，在处理当前请求时不应等待先前请求完成。书中通过&lt;a href="https://doc.rust-lang.org/book/ch20-02-multithreaded.html#turning-our-single-threaded-server-into-a-multithreaded-server"&gt;创建线程池&lt;/a&gt;解决此问题，每个连接在独立线程上处理。此处我们不通过添加线程提高吞吐量，而是用异步代码达到同样效果。&lt;/p&gt;
+&lt;p&gt;让我们将 &lt;code&gt;handle_connection&lt;/code&gt; 修改为通过声明为 &lt;code&gt;async fn&lt;/code&gt; 来返回 future：&lt;/p&gt;</description></item><item><title>26.2-并发处理连接</title><link>https://before80.github.io/prgms/Rust/asyncBook/example/02-handling-connections-concurrently/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/example/02-handling-connections-concurrently/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="handling-connections-concurrently"&gt;并发处理连接&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/09_example/02_handling_connections_concurrently.html"&gt;https://rust-lang.github.io/async-book/09_example/02_handling_connections_concurrently.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;我们目前代码的问题在于 &lt;code&gt;listener.incoming()&lt;/code&gt; 是阻塞迭代器。当 &lt;code&gt;listener&lt;/code&gt; 等待传入连接时，执行器无法运行其他 future，在处理完前一个连接之前也无法处理新连接。&lt;/p&gt;</description></item><item><title>26.3-测试服务器</title><link>https://before80.github.io/prgms/Rust/asyncBook/example/03-testing-the-server/</link><pubDate>Sat, 22 Aug 2026 19:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/asyncBook/example/03-testing-the-server/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://rust-lang.github.io/async-book/"&gt;Asynchronous Programming in Rust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="testing-the-server"&gt;测试服务器&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://rust-lang.github.io/async-book/09_example/03_tests.html"&gt;https://rust-lang.github.io/async-book/09_example/03_tests.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;让我们继续测试 &lt;code&gt;handle_connection&lt;/code&gt; 函数。&lt;/p&gt;
+&lt;p&gt;首先，我们需要一个可用的 &lt;code&gt;TcpStream&lt;/code&gt;。在端到端或集成测试中，我们可能希望建立真实的 TCP 连接来测试代码。一种策略是在 &lt;code&gt;localhost&lt;/code&gt; 端口 0 上启动监听器。端口 0 不是有效的 UNIX 端口，但用于测试可以。操作系统会为我们选择一个开放的 TCP 端口。&lt;/p&gt;</description></item></channel></rss>

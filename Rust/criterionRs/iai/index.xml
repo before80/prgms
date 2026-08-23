@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>4-Iai on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/criterionRs/iai/</link><description>Recent content in 4-Iai on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/criterionRs/iai/index.xml" rel="self" type="application/rss+xml"/><item><title>4.1-Iai 入门</title><link>https://before80.github.io/prgms/Rust/criterionRs/iai/01-getting-started-with-iai/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/iai/01-getting-started-with-iai/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="getting-started-with-iai"&gt;Iai 入门&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/iai/getting_started.html"&gt;https://bheisler.github.io/criterion.rs/book/iai/getting_started.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="入门"&gt;入门&lt;/h2&gt;
+&lt;p&gt;Iai 的接口设计力求与 Criterion.rs 相似，因此使用起来很方便。要开始使用，请在 &lt;code&gt;Cargo.toml&lt;/code&gt; 中添加以下内容：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-toml" data-lang="toml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;dev-dependencies&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;iai&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;0.1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;[[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;bench&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;name&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;my_benchmark&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;harness&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;false&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;接下来，在 &lt;code&gt;$PROJECT/benches/my_benchmark.rs&lt;/code&gt; 创建文件并定义基准测试，内容如下：&lt;/p&gt;</description></item><item><title>4.2-与 Criterion.rs 对比</title><link>https://before80.github.io/prgms/Rust/criterionRs/iai/02-comparison-to-criterion/</link><pubDate>Sat, 22 Aug 2026 20:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/criterionRs/iai/02-comparison-to-criterion/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;译文 · 基于 &lt;a href="https://bheisler.github.io/criterion.rs/book/"&gt;Criterion.rs Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="comparison-to-criterion"&gt;与 Criterion.rs 对比&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://bheisler.github.io/criterion.rs/book/iai/comparison.html"&gt;https://bheisler.github.io/criterion.rs/book/iai/comparison.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id="与-criterion-rs-对比"&gt;与 Criterion-rs 对比&lt;/h3&gt;
+&lt;p&gt;我希望 Iai 成为 Criterion-rs 的补充，而非竞争对手。这两个项目以不同方式测量不同事物，各有优缺点和限制，因此对大多数项目而言，最佳做法是两者兼用。&lt;/p&gt;</description></item></channel></rss>

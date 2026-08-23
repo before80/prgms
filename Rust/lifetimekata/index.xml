@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>LifetimeKata on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/lifetimekata/</link><description>Recent content in LifetimeKata on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 23 Aug 2026 21:05:58 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/lifetimekata/index.xml" rel="self" type="application/rss+xml"/><item><title>0 引用与生命周期回顾</title><link>https://before80.github.io/prgms/Rust/lifetimekata/0-references-and-lifetimes-review/</link><pubDate>Sun, 23 Aug 2026 16:26:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/lifetimekata/0-references-and-lifetimes-review/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tfpk.github.io/lifetimekata/chapter_0.html"&gt;https://tfpk.github.io/lifetimekata/chapter_0.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;em&gt;（本节为复习内容，部分读者可能已熟悉。
+若你已了解引用的概念，可以跳过。）&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;如果你使用 Rust 已有一段时间，想必已经接触过引用。对于任意类型 &lt;code&gt;T&lt;/code&gt;，都有两种引用形式：&lt;/p&gt;</description></item><item><title>1 为何需要生命周期</title><link>https://before80.github.io/prgms/Rust/lifetimekata/1-lifetimes-needed/</link><pubDate>Sun, 23 Aug 2026 16:26:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/lifetimekata/1-lifetimes-needed/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tfpk.github.io/lifetimekata/chapter_1.html"&gt;https://tfpk.github.io/lifetimekata/chapter_1.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;上一节我们讨论了单个函数内部的生命周期概念。在那些例子中，根据花括号就能清楚看出变量或引用的代码区域。生命周期标注用于帮助编译器理解那些无法仅靠作用域括号推断的情况（例如跨函数边界，以及在结构体和枚举内部）。&lt;/p&gt;</description></item><item><title>2 生命周期详解</title><link>https://before80.github.io/prgms/Rust/lifetimekata/2-lifetimes-explained/</link><pubDate>Sun, 23 Aug 2026 16:26:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/lifetimekata/2-lifetimes-explained/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tfpk.github.io/lifetimekata/chapter_2.html"&gt;https://tfpk.github.io/lifetimekata/chapter_2.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;我们可以看到，悬垂引用是因为函数丢失了关于引用来源的信息而产生的。&lt;/p&gt;
+&lt;p&gt;编译器只有在了解输入与输出的生命周期如何相互关联时，才能判断函数是否正确。因此我们需要告诉编译器：哪些输入与输出的生命周期是相同的。&lt;/p&gt;</description></item><item><title>3 生命周期省略</title><link>https://before80.github.io/prgms/Rust/lifetimekata/3-lifetime-elision/</link><pubDate>Sun, 23 Aug 2026 16:26:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/lifetimekata/3-lifetime-elision/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tfpk.github.io/lifetimekata/chapter_3.html"&gt;https://tfpk.github.io/lifetimekata/chapter_3.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;上一章我们了解了为什么需要生命周期。编译器无法自动判断参数或返回值中的引用如何相互关联，因此我们需要告诉编译器这些引用是相关的。&lt;/p&gt;
+&lt;p&gt;话虽如此，你大概写过需要引用（很可能是 &lt;code&gt;&amp;amp;str&lt;/code&gt;）的 Rust 函数，却从未写过生命周期。那时为什么不必标注？Rust 中有一些常见模式，能让编译器清楚推断生命周期应该是什么。让我们看几个例子：&lt;/p&gt;</description></item><item><title>4 可变引用与容器</title><link>https://before80.github.io/prgms/Rust/lifetimekata/4-mutable-references-and-containers/</link><pubDate>Sun, 23 Aug 2026 16:26:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/lifetimekata/4-mutable-references-and-containers/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tfpk.github.io/lifetimekata/chapter_4.html"&gt;https://tfpk.github.io/lifetimekata/chapter_4.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;就生命周期省略而言，可变引用的工作方式与普通引用完全相同。不过我们单独设一章来讲它们，是因为如果你持有可变引用，即使没有返回值，也可能需要向编译器说明生命周期。&lt;/p&gt;</description></item><item><title>5 类型上的生命周期</title><link>https://before80.github.io/prgms/Rust/lifetimekata/5-lifetimes-on-types/</link><pubDate>Sun, 23 Aug 2026 16:26:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/lifetimekata/5-lifetimes-on-types/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tfpk.github.io/lifetimekata/chapter_5.html"&gt;https://tfpk.github.io/lifetimekata/chapter_5.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;到目前为止，我们只讨论过应用于函数的生命周期。
+函数并不是唯一需要显式生命周期的地方。类型（结构体和枚举）也可以有生命周期。&lt;/p&gt;
+&lt;p&gt;这是因为如果结构体包含引用，用户需要说明它能存活多久。&lt;/p&gt;</description></item><item><title>6 impl 上的生命周期</title><link>https://before80.github.io/prgms/Rust/lifetimekata/6-lifetimes-on-impls/</link><pubDate>Sun, 23 Aug 2026 16:26:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/lifetimekata/6-lifetimes-on-impls/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tfpk.github.io/lifetimekata/chapter_6.html"&gt;https://tfpk.github.io/lifetimekata/chapter_6.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;当结构体或枚举带有生命周期时，&lt;code&gt;impl&lt;/code&gt; 块
+的工作方式也会略有变化。&lt;/p&gt;
+&lt;p&gt;例如，假设我们想创建一个让用户
+遍历一句话的结构体。你可能会从类似这样的代码开始：&lt;/p&gt;</description></item><item><title>7 特殊生命周期</title><link>https://before80.github.io/prgms/Rust/lifetimekata/7-special-lifetimes/</link><pubDate>Sun, 23 Aug 2026 16:26:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/lifetimekata/7-special-lifetimes/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tfpk.github.io/lifetimekata/chapter_7.html"&gt;https://tfpk.github.io/lifetimekata/chapter_7.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Rust 中有两个特殊的生命周期。值得把两者都讨论一下：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;'static&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;'_&lt;/code&gt;（隐式生命周期）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id="static-生命周期"&gt;&lt;code&gt;static&lt;/code&gt; 生命周期&lt;/h1&gt;
+&lt;p&gt;程序中的某些东西保证会永远存在。最常见的原因是
+它们的信息打包在你的二进制文件里。例如，当你写
+这样的程序时：&lt;/p&gt;</description></item><item><title>8 终章</title><link>https://before80.github.io/prgms/Rust/lifetimekata/8-finale/</link><pubDate>Sun, 23 Aug 2026 16:26:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/lifetimekata/8-finale/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tfpk.github.io/lifetimekata/chapter_8.html"&gt;https://tfpk.github.io/lifetimekata/chapter_8.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;恭喜你读到了 LifetimeKata 的结尾。接下来两章还有更多脚注和延伸阅读，但这一章可以算是某种意义上的「终章」。&lt;/p&gt;
+&lt;p&gt;在本练习中，我们将构建一个非常简单的 glob 系统克隆。
+它可以让使用者判断某段文本是否符合某种描述。&lt;/p&gt;</description></item><item><title>9 延伸阅读</title><link>https://before80.github.io/prgms/Rust/lifetimekata/9-further-reading/</link><pubDate>Sun, 23 Aug 2026 16:26:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/lifetimekata/9-further-reading/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tfpk.github.io/lifetimekata/chapter_9.html"&gt;https://tfpk.github.io/lifetimekata/chapter_9.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;关于生命周期，最好的信息来源是 Rust 参考（Rust Reference）和
+Rustonomicon。如果你要完成某个项目，确实需要非常深入的生命周期知识，
+参考文档里会有这些内容。不过大多数时候，
+当你觉得自己需要理解某种复杂的生命周期细节时，
+你可能会发现其实存在更简单的替代方案。&lt;/p&gt;</description></item><item><title>10 trait 生命周期边界脚注</title><link>https://before80.github.io/prgms/Rust/lifetimekata/10-footnote-trait-lifetime-bounds/</link><pubDate>Sun, 23 Aug 2026 16:26:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/lifetimekata/10-footnote-trait-lifetime-bounds/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tfpk.github.io/lifetimekata/chapter_10.html"&gt;https://tfpk.github.io/lifetimekata/chapter_10.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在第 7 章中，我们讨论了占位生命周期（&lt;code&gt;'_&lt;/code&gt;）。我们说过
+有三种使用方式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;简化 &lt;code&gt;impl&lt;/code&gt; 块&lt;/li&gt;
+&lt;li&gt;在消费/返回需要生命周期的类型时&lt;/li&gt;
+&lt;li&gt;编写包含引用的 trait 对象。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在第一种情况下，我们看到匿名生命周期只是简化了
+我们需要写的内容。&lt;/p&gt;</description></item></channel></rss>
