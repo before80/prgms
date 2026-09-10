@@ -24,7 +24,7 @@ class User {
     id: number;
     name: string;
     email: string;
-    private _age: number; // 私有属性（下划线约定，不是语法强制）
+    private _age: number; // private 是编译时可见性；_ 前缀只是常见命名习惯
 
     // 构造函数
     constructor(id: number, name: string, email: string, age: number) {
@@ -464,22 +464,28 @@ makeSpeak(dog); // 正常工作 —— Dog 可以替换 Animal
 
 **逆变**：子类方法的参数类型可以是父类方法参数类型的**父类型**（更宽泛）。
 
+> ⚠️ 一个容易混淆的细节：`strictFunctionTypes` 对“独立函数类型”执行严格逆变，但对“类方法”的入参检查仍保留双变兼容。理解理想模型时按里氏替换原则（逆变参数、协变返回值）思考即可，实际写类方法时不要依赖过宽的参数来破坏类型安全。
+
 ```typescript
 class Animal { name: string = "动物"; }
 class Dog extends Animal { breed: string = "狗"; }
 
-function handleAnimal(a: Animal): void {
-    console.log(a.name);
+function describeAnimal(a: Animal): void {
+    console.log(`Animal: ${a.name}`);
 }
 
-function handleDog(d: Dog): void { // 逆变：参数可以是更宽泛的 Animal
-    console.log(d.name, (d as Animal).name);
+function describeDog(d: Dog): void {
+    console.log(`Dog: ${d.name} / ${d.breed}`);
 }
 
-// 逆变：fn 的参数是 Dog（窄），handleAnimal 接受 Animal（宽）
-// 我们把宽的赋值给窄的 —— 合法，因为调用 fn 时只会用到 Dog 的属性
-const fn: (a: Dog) => void = handleAnimal; // OK！
-// const fn2: (a: Animal) => void = handleDog; // 报错！fn2 的参数是 Animal（宽），handleDog 只认识 Dog（窄）
+// 逆变：参数类型方向与返回值方向相反。
+// describeAnimal 能处理任意 Animal，因此也能安全处理 Dog；
+// 所以它可以赋值给参数类型更窄的 (dog: Dog) => void。
+const fn: (dog: Dog) => void = describeAnimal; // OK
+
+// 反过来不行：describeDog 依赖 Dog 特有的 breed，
+// 不能安全接收任意 Animal。
+// const fn2: (animal: Animal) => void = describeDog; // 报错
 ```
 
 #### 10.3.5.2 noImplicitOverride
@@ -514,8 +520,8 @@ class Parent {
 }
 
 class Child extends Parent {
-    helper() { console.log("Child"); } // 本意是新增一个方法
-    method() { console.log("Child"); } // 本意是新增一个方法 —— 但编译器认为这是 override
+    helper() { console.log("Child helper"); } // 新方法，不覆盖任何父类成员
+    method() { console.log("Child"); } // 与父类同名，意外覆盖了 Parent.method()
 }
 ```
 

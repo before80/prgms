@@ -117,14 +117,14 @@ type StringNumberPair = Pair<string, number>;
 泛型参数可以有默认值，当调用时没有显式指定且 TypeScript 推断不出类型时，就用默认值：
 
 ```typescript
-function wrap<T = string>(value: T): { data: T } {
+function wrap<T = string>(value: T = "hello" as T): { data: T } {
     return { data: value };
 }
 
 const a = wrap("hello");     // T = string（推断）
 const b = wrap(42);          // T = number（推断）
 const c = wrap();             // T = string（默认值）
-const d = wrap<number>();     // T = number（显式指定）
+const d = wrap<number>(0);    // T = number（显式指定，同时提供 number 值）
 
 console.log(a); // { data: 'hello' }
 console.log(c); // { data: 'hello' }
@@ -331,7 +331,7 @@ console.log(sumTree(tree)); // 15 (1+2+4+5+3)
 
 ### 9.3.4 泛型与设计模式
 
-#### 9.3.4.1 Option/Maybe：`<T> = T | undefined | null`
+#### 9.3.4.1 Option/Maybe：用联合类型显式表达“可能没有值”
 
 Option/Maybe 模式用于表示"可能有值，也可能没有"的情况：
 

@@ -466,8 +466,9 @@ setTimeout(() => {
 }, 100);
 
 // console.log(initValue + 1); // 报错！initValue 可能未被赋值
-console.log(initValue! + 1); // OK！确定赋值断言：我保证它会被赋值
-// 42! + 1 = 43
+console.log(initValue! + 1); // 编译通过：我保证它会被赋值
+// 注意：! 只存在于类型检查阶段，运行时会被完全擦除；
+// 如果这个保证不成立，实际执行仍然可能得到 NaN 或 undefined 相关错误。
 ```
 
 确定赋值断言通常用于：

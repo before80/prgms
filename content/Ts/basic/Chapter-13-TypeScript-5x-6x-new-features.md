@@ -12,7 +12,7 @@ draft = false
 
 > **本章说明**：TypeScript 从 5.0 到 6.x，引入了大量让人眼前一亮的新特性。本章按版本时间线，从实际应用角度讲解每个特性的设计动机、语法和典型使用场景，让你不仅「知道有这回事」，更能「知道什么时候用它」。
 
-## 13.1 TypeScript 5.0 ~ 5.4 核心新特性
+## 13.1 TypeScript 5.0 ~ 5.5 核心新特性
 
 TypeScript 5.0 是一个非常重要的里程碑版本，它带来了多个从 TypeScript 用户社区投票中诞生的特性（之前 TS 团队会从 GitHub issues 里收集用户投票最高的特性请求，然后实现它们）。
 
@@ -58,8 +58,8 @@ const result = inferLiteral("hello");
 
 ```typescript
 // ❌ 没有 const：path 被推断为 string
-function getConfig<const T>(path: T) {
-  return path;
+function getConfig<T>(path: T) {
+    return path;
 }
 
 const path1 = getConfig("/api/users");
@@ -93,13 +93,19 @@ const route = createRoute({
 **场景三：数组字面量**
 
 ```typescript
-function combine<const T extends string[]>(...parts: T): string {
-  return parts.join("-");
+type Join<T extends readonly string[], Sep extends string> =
+  T extends readonly [infer Head extends string, ...infer Tail extends string[]]
+    ? Tail extends []
+      ? Head
+      : `${Head}${Sep}${Join<Tail, Sep>}`
+    : "";
+
+function combine<const T extends readonly string[]>(...parts: T): Join<T, "-"> {
+  return parts.join("-") as Join<T, "-">;
 }
 
 const result = combine("a", "b", "c");
-// result 的类型是 "a" | "b" | "c" 拼接成的联合类型？
-// 不，是 "a-b-c" 这个精确的字面量！
+// result 的类型是 "a-b-c"，而不是 string
 ```
 
 > 💡 **什么时候用 const 类型参数**：当你的泛型函数期望接收字面量值，并且希望这些字面量类型被精确保留而不是被推断为宽泛的基础类型时，用它！
@@ -167,14 +173,14 @@ class DBConnection {
     console.log(`执行 SQL: ${sql}`);  // 输出: 执行 SQL: SELECT * FROM users
   }
 
-  [Symbol.asyncDispose]() {
+  async [Symbol.asyncDispose]() {
     this.connected = false;
     console.log("数据库连接已关闭！");  // 输出: 数据库连接已关闭！
   }
 }
 
 async function processData() {
-  using db = new DBConnection();
+  await using db = new DBConnection();
   await db.connect();
   await db.query("SELECT * FROM users");
   // 函数结束，Symbol.asyncDispose 自动调用
@@ -300,7 +306,7 @@ export function add(a: number, b: number) {
 
 ---
 
-### 13.1.4 NoInfer（TS 5.4）
+### 13.1.4 NoInfer（TS 5.4；按版本应早于 13.1.3，这里按主题归组）
 
 ---
 
@@ -344,25 +350,7 @@ const result = processValue(123, "default");
 // ✅ "default" 不能赋值给 number，因为 NoInfer<T> 阻止了推断被扩大
 ```
 
-**实际应用场景：React 的 `useState`**
-
-```typescript
-// 假设一个自定义的 useState：
-function useState<T>(initialValue: T | (() => T)): [T, (value: T) => void] {
-  // ...
-}
-
-// ❌ 没有 NoInfer：setState 可以接受比 T 更宽泛的类型
-// setState(string) 可能会被接受，即使 T 是 number
-
-// ✅ 使用 NoInfer：
-function useState<T>(
-  initialValue: NoInfer<T> | (() => NoInfer<T>)
-): [T, (value: NoInfer<T>) => void] {
-  // ...
-}
-// setState 现在严格要求传入 T 类型，不能传入更宽泛的类型
-```
+> ⚠️ `NoInfer` 不是“禁止某个参数参与推断”的万能开关，尤其不能包住所有参数。上面例子的关键是：`value` 仍参与推断，只有 `defaultValue` 被标记为 `NoInfer<T>`，因此默认值不会反过来扩大 `T`。
 
 > 💡 **什么时候用 NoInfer**：当你发现泛型参数被「意外扩大」，导致类型检查不严格时，用 `NoInfer<T>` 包裹那些不应该影响泛型推断的参数。
 
@@ -486,8 +474,8 @@ const first3 = doubled.take(3);
 const rest = doubled.drop(2);
 // rest 产出：12, 16, 20
 
-// ✅ chain：串联多个迭代器
-const chained = generateNumbers().chain([100, 200]);
+// ✅ flatMap：把每个元素映射为零个或多个元素
+const chained = generateNumbers().flatMap(x => x === 10 ? [10, 100, 200] : [x]);
 // chained 产出：1, 2, 3, ..., 10, 100, 200
 
 // ✅ reduce：聚合
@@ -524,12 +512,11 @@ const result = generateNumbers()
 `import defer` 是 TypeScript 5.9 引入的一个语法特性（参见第11章 11.2.2 节），它允许你「声明式地声明我要导入什么，但实际导入行为由 bundler 决定」。
 
 ```typescript
-// TS 5.9+：使用 import defer
-import defer { someFunction } from "./module";
+// TS 5.9+：使用 import defer（只允许命名空间导入）
+import defer * as someModule from "./module";
 
-// 这个导入的效果取决于 bundler 如何处理 defer：
-// - bundler 可能决定现在就加载（preload）
-// - 或者等到第一次使用时再加载（lazy load）
+// TypeScript 不会转译 import defer；它只在 module: "preserve" 或 "esnext"
+// 下保留语法，真正加载时机由原生运行时或 bundler 处理。
 ```
 
 > 📖 详细的 `import defer` 语法和应用场景，请参考第 11 章 11.2.2 节。
@@ -540,9 +527,9 @@ import defer { someFunction } from "./module";
 
 ---
 
-#### 13.2.4.1 详见第 12 章 12.1.2 节
+#### 13.2.4.1 详见第 12 章 12.2 节
 
-`tsc --init` 命令在 TypeScript 5.9 中得到了大幅精简 —— 从 50+ 行注释化配置项变成了一个极简的推荐配置。详见第 12 章 12.1.2 节。
+`tsc --init` 命令在 TypeScript 5.9 中得到了大幅精简 —— 从 50+ 行注释化配置项变成了一个极简的推荐配置。详见第 12 章 12.2 节。
 
 ---
 
@@ -550,9 +537,9 @@ import defer { someFunction } from "./module";
 
 ---
 
-#### 13.2.5.1 详见第 12 章 12.2.2 节
+#### 13.2.5.1 详见第 12 章 12.3.2.3 节
 
-TypeScript 5.9 新增了 `--module Node20` 配置，专门用于 Node.js 20+ 的原生 ESM 模式。详见第 12 章 12.2.2 节。
+TypeScript 5.9 新增了 `--module Node20` 配置，专门用于 Node.js 20+ 的原生 ESM 模式。详见第 12 章 12.3.2.3 节。
 
 ### 13.2.6 小结
 
@@ -660,13 +647,17 @@ tsc --stableTypeOrdering
 }
 ```
 
-开启后，TypeScript 会使用**稳定的语义排序**（按字母顺序或按类型优先级）来排列联合类型成员，而不是按内部 ID 排序：
+开启后，TypeScript 会使用**稳定的排序规则**来排列联合类型成员，而不是按内部 ID 排序：
 
 ```typescript
 // 开启 stableTypeOrdering 后，顺序是稳定的：
-type Mixed = boolean | null | number | string;
-// 按字母顺序：boolean → null → number → string
+export function foo(condition: boolean) {
+    return condition ? 100 : 500;
+}
+// 输出的联合类型顺序会固定为 100 | 500，不受其他无关声明影响
 ```
+
+> ⚠️ `stableTypeOrdering` 主要是为了对齐 TypeScript 7.0 的确定性排序，帮助比较 6.0 与 7.0 输出；它可能给类型检查带来明显性能开销（官方提到最多可达 25% 左右），并不一定适合长期作为日常配置。
 
 ---
 
@@ -708,7 +699,7 @@ TypeScript 6.0 废弃了 `import()` 类型断言的旧语法（`import assertion
 
 #### 13.3.6.1 TS 6.0 是最后一个基于当前 JS 代码库的版本
 
-TypeScript 6.0 是最后一个基于 **TypeScript 团队用 TypeScript/C++ 写的编译器代码库**的版本。
+TypeScript 6.0 是最后一个基于 **TypeScript 团队用 TypeScript/JavaScript 编写的编译器代码库**的版本。
 
 从 6.0 开始，TypeScript 团队宣布将启动一个雄心勃勃的计划：**用 Go 语言重写 TypeScript 编译器**。
 
@@ -718,7 +709,7 @@ TypeScript 7.0 预计将带来：
 
 | 改进点 | 当前编译器（TS 6.x）| 新编译器（TS 7.0 Go版）|
 |---|---|---|
-| 语言 | TypeScript/C++ | Go |
+| 语言 | TypeScript/JavaScript | Go |
 | 并行化 | 有限 | 原生多线程支持 |
 | 编译速度 | 较快 | 预计 5-10 倍提升 |
 | 内存占用 | 较高（Node.js 运行时）| 预计更低（原生二进制）|
@@ -737,6 +728,9 @@ TypeScript 7.0 预计将带来：
 - **moduleResolution bundler + module commonjs 组合**：解锁新的迁移路径
 - **stableTypeOrdering**：让 `.d.ts` 输出的联合类型顺序稳定，减少代码审查噪音
 - **import() 断言废弃**：向新的 import attributes 语法迁移
+- **es2025 target/lib**：补齐 ES2025 内置 API 类型（如 `RegExp.escape`）
+- **Temporal 类型**：为已进入 Stage 4 的 `Temporal` API 提供内置类型
+- **Map/WeakMap upsert**：加入 `getOrInsert` / `getOrInsertComputed` 类型
 - **TS 7.0 展望**：Go 语言重写编译器，原生多线程，编译速度 5-10 倍提升
 
 TypeScript 6.0 是一个「承上启下」的版本 —— 它在继续完善当前编译器的同时，也为即将到来的 Go 重写做好了铺垫。

@@ -1021,9 +1021,12 @@ function navigate(route: Route) {
 }
 
 navigate("/");              // OK
-navigate("/user/123");       // OK —— 符合/user/:id模式
+navigate("/user/:id");      // OK —— 路由定义里保存的正是这个字面量
+navigate("/user/123");      // 错误！Route 中只有 "/user/:id"，没有动态展开后的路径
 navigate("/invalid");        // 错误！不在允许的路由中
 ```
+
+> 💡 `as const` 会把路由对象中每个值固定为字面量字符串。如果业务上需要 `/user/123` 这类动态路径，应当把路径写成模板字面量类型（如 `` `/user/${string}` ``），而不是误以为 `/user/:id` 会自动匹配任意参数。
 
 ---
 
@@ -1050,7 +1053,6 @@ navigate("/invalid");        // 错误！不在允许的路由中
 **typeof运算符**：运行时返回类型字符串，TypeScript中可在类型位置使用`typeof variable`获取变量类型，配合`as const`获取最窄字面量类型。
 
 下一章我们将学习TypeScript的"特殊类型"——any、unknown、void、never，以及枚举和元组。这些类型虽然不像string/number那么常见，但在实际开发中扮演着重要角色。
-
 
 
 

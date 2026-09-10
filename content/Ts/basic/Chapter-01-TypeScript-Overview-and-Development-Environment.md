@@ -212,11 +212,11 @@ console.log(result); // 3 —— result的类型是number
 
 ### 1.1.3 TypeScript 的语言定位
 
-#### 1.1.3.1 JavaScript 超集（任何合法 JS 即合法 TS）
+#### 1.1.3.1 JavaScript 超集（大多数合法 JS 可直接作为 TS 运行）
 
 这是TypeScript最美好的特性之一：**它是JavaScript的超集**。
 
-什么叫超集？就是说，所有合法的JavaScript代码，本身就是合法的TypeScript代码。你不需要重写任何东西，直接把`.js`文件改成`.ts`文件，理论上就能跑了。
+什么叫超集？简单说，TypeScript 在 JavaScript 之上增加了类型系统。**大多数**合法的 JavaScript 代码可以直接作为 TypeScript 代码运行，通常只需把 `.js` 改成 `.ts` 就能开始逐步迁移。少数情况下（例如开启 `strict` 后的隐式 `any`、命名冲突等），TypeScript 会给出额外提示，但基本不需要推倒重写。
 
 ```javascript
 // 这是一段合法的JavaScript代码
@@ -569,7 +569,7 @@ let num: number = risky as number; // 编译通过，但运行时会发现risky�
 // 注释：42 + 1 = 421 而不是 43！
 ```
 
-3. **函数参数的双变点**（Bivariant Parameters）：在某些情况下，函数参数类型可以是双向协变的——这在理论上可能导致运行时错误。
+3. **方法参数的协变兼容**：TypeScript 对方法参数的检查历史上有过宽松处理，某些边界情况下会放过理论上可能不安全的赋值。这类兼容性取舍更多是历史包袱，而非当前推荐写法。
 
 ```typescript
 // 理论上可能出问题的代码
@@ -1038,9 +1038,9 @@ function* gen() {
 }
 ```
 
-#### 1.4.2.11 TypeScript 3.7：可选链（?.）、空值合并（??）、BigInt 支持
+#### 1.4.2.11 TypeScript 3.2：BigInt 支持；TypeScript 3.7：可选链（?.）、空值合并（??）
 
-这应该是大家最熟悉的功能了：
+`bigint` 类型在 TypeScript 3.2 引入，可选链和空值合并则是 TypeScript 3.7 引入：
 
 ```typescript
 // 可选链
@@ -1090,7 +1090,7 @@ const results = await Promise.allSettled([
 // results的类型是 PromiseSettledResult<unknown>[]
 ```
 
-#### 1.4.2.14 TypeScript 4.0：标记元组、类字段私有修饰符、Variadic Tuple Types
+#### 1.4.2.14 TypeScript 4.0：标记元组、Variadic Tuple Types
 
 ```typescript
 // 标记元组：给元组的位置起名字
@@ -1105,14 +1105,11 @@ function handleResponse(res: HTTPResponse) {
     }
 }
 
-// 类字段私有修饰符（比#更简洁，但只是TypeScript层面的私有）
-class Animal {
-    private name: string;  // TypeScript私有，编译后不生效
-    
-    constructor(name: string) {
-        this.name = name;
-    }
-}
+// Variadic Tuple Types：在元组类型中使用展开
+type Concat<T extends unknown[], U extends unknown[]> = [...T, ...U];
+
+type R = Concat<[1, 2], ["a", "b"]>;
+// R 的类型是 [1, 2, "a", "b"]
 ```
 
 #### 1.4.2.15 TypeScript 4.1：模板字面量类型、键重映射
@@ -1200,14 +1197,14 @@ type Config = { [key: string]: Color | Color[] };
 
 // 使用satisfies
 const palette = {
-    red: [255, 0, 0],   // Color[]，符合
-    green: "green",       // Color，符合 —— 注意不能写"#00ff00"，那不是Color类型
+    red: "red",               // Color，符合
+    green: ["green", "blue"], // Color[]，符合
 } satisfies Config;
 
-// 注释：palette的类型是 { red: Color[]; green: Color; }
+// 注释：palette 的类型是 { red: Color; green: Color[]; }
 // 而不是 { [key: string]: Color | Color[] }
 // 既保证了类型安全，又保留了具体的类型信息
-// 意味着 palette.red 是 Color[]，palette.green 是 Color
+// 意味着 palette.red 是 Color，palette.green 是 Color[]
 ```
 
 #### 1.4.2.21 TypeScript 5.0：const 类型参数
@@ -1259,16 +1256,13 @@ function createSignal<T>(value: T, defaultValue: NoInfer<T>) {
 }
 ```
 
-#### 1.4.2.26 TypeScript 5.5：Predicated Types（类型谓词改进）、Isolated Declarations、`import defer` 支持
+#### 1.4.2.26 TypeScript 5.5：Inferred Type Predicates（推断类型谓词）、Isolated Declarations
 
 ```typescript
-// Predicated Types改进：让类型谓词更智能
+// Inferred Type Predicates：让类型谓词更智能
 function isString(value: unknown): value is string {
     return typeof value === "string";
 }
-
-// import defer：延迟加载模块的导入声明
-// import defer * as utils from "./utils";
 ```
 
 #### 1.4.2.27 TypeScript 5.6：Iterator Helper Methods、Disallowed Nullish and Boolean Checks
@@ -1278,13 +1272,13 @@ function isString(value: unknown): value is string {
 const values = [1, 2, 3].values().filter(x => x > 1).toArray();
 ```
 
-#### 1.4.2.28 TypeScript 5.7：--moduleResolution bundler 支持配置化、Module Detection 自动配置
+#### 1.4.2.28 TypeScript 5.7：--target es2024、--module preserve 等
 
 ```json
 {
     "compilerOptions": {
-        // 新的bundler模式的moduleResolution
-        "moduleResolution": "bundler"
+        "target": "es2024",
+        "module": "preserve"
     }
 }
 ```
@@ -1301,7 +1295,7 @@ const values = [1, 2, 3].values().filter(x => x > 1).toArray();
 {
     "compilerOptions": {
         "module": "node20",  // Node 20的模块解析
-        "moduleResolution": "bundler"
+        "moduleResolution": "node20"
     }
 }
 ```
@@ -1312,13 +1306,15 @@ const values = [1, 2, 3].values().filter(x => x > 1).toArray();
 // TypeScript 6.0的主要新特性
 
 // 1. #/ Subpath Imports：更方便的子路径导入
-// import from "@/utils/helper" 直接映射到 src/utils/helper
+// import { helper } from "#/utils/helper"
 
-// 2. --stableTypeOrdering：让映射类型的键排序更稳定
+// 2. --stableTypeOrdering：让联合类型成员的输出顺序更稳定
 
 // 3. import() 断言废弃：改用import with
 // 旧写法（废弃）：import data from "./data.json" assert { type: "json" }
 // 新写法：import data from "./data.json" with { type: "json" }
+
+// 4. es2025 target/lib、Temporal API、Map/WeakMap 的 upsert 类型
 ```
 
 ---
@@ -1727,8 +1723,6 @@ Playground还可以生成分享链接，方便你把代码片段分享给别人�
 **开发环境**搭建非常简单：安装Node.js、安装TypeScript、选择一个编辑器（VS Code自带TypeScript支持）。第一个TypeScript程序只需要写代码、编译、运行三步曲。
 
 下一章我们将深入TypeScript的核心：**类型基础**。我们将学习原始类型（string、number、boolean等）、类型注解、类型推断，以及null和undefined的恩怨情仇。准备好了吗？让我们继续前进！
-
-
 
 
 

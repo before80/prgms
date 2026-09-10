@@ -195,11 +195,13 @@ function Button({ label }: { label: string }): JSX.Element {
 #### 方式三：显式标注 `React.ReactNode`（推荐用于更宽泛的场景）
 
 ```tsx
+import type { ReactNode } from "react";
+
 // ✅ ReactNode 比 JSX.Element 更宽泛，可以返回 null、undefined、字符串、数字等
 function ConditionalWrapper({ show, children }: {
   show: boolean;
-  children: React.ReactNode
-}): React.ReactNode {
+  children: ReactNode
+}): ReactNode {
   if (!show) return null;
   return <div>{children}</div>;
 }
@@ -213,13 +215,15 @@ function ConditionalWrapper({ show, children }: {
 | `React.ReactNode` | JSX 元素、字符串、数字、`null`、`undefined`、数组等 | 接受子组件、slot 的组件 |
 
 ```tsx
+import type { ReactNode } from "react";
+
 // ✅ JSX.Element：只能返回 JSX
 function Header(): JSX.Element {
   return <h1>Title</h1>;  // 只能返回 JSX
 }
 
 // ✅ React.ReactNode：可以返回更多类型的值
-function OptionalContent(): React.ReactNode {
+function OptionalContent(): ReactNode {
   const showContent = Math.random() > 0.5;
   if (showContent) {
     return <p>Content</p>;  // JSX
@@ -239,11 +243,13 @@ function OptionalContent(): React.ReactNode {
 Props 类型接口是 TypeScript + React 中最重要的概念之一。让我们从最核心的 `children` 开始：
 
 ```tsx
+import type { ReactNode } from "react";
+
 // ✅ 定义 props 类型接口
 interface CardProps {
   title: string;
   description: string;
-  children?: React.ReactNode;  // children 可以是 JSX、字符串、数字等
+  children?: ReactNode;  // children 可以是 JSX、字符串、数字等
 }
 
 // 使用接口
@@ -647,25 +653,26 @@ React 的事件系统基于「合成事件（SyntheticEvent）」，它是原生
 ```mermaid
 flowchart TD
     A["SyntheticEvent"] --> B["UIEvent"]
-    A --> C["FocusEvent"]
-    A --> D["KeyboardEvent"]
-    A --> E["MouseEvent"]
-    A --> F["TouchEvent"]
-    A --> G["ChangeEvent"]
-    A --> H["ClipboardEvent"]
-    A --> I["DragEvent"]
-    A --> J["WheelEvent"]
-    A --> K["AnimationEvent"]
-    A --> L["TransitionEvent"]
+    A --> C["ChangeEvent"]
+    A --> D["ClipboardEvent"]
+    A --> E["CompositionEvent"]
+    A --> F["AnimationEvent"]
+    A --> G["TransitionEvent"]
 
-    B --> M["InputEvent"]
-    B --> N["CompositionEvent"]
+    B --> H["FocusEvent"]
+    B --> I["KeyboardEvent"]
+    B --> J["TouchEvent"]
+    B --> K["MouseEvent"]
 
-    E --> O["MouseEvent<HTMLDivElement>"]
-    E --> P["MouseEvent<HTMLButtonElement>"]
-    G --> Q["ChangeEvent<HTMLInputElement>"]
-    G --> R["ChangeEvent<HTMLTextAreaElement>"]
-    G --> S["ChangeEvent<HTMLSelectElement>"]
+    K --> L["WheelEvent"]
+    K --> M["DragEvent"]
+
+    C --> N["ChangeEvent<HTMLInputElement>"]
+    C --> O["ChangeEvent<HTMLTextAreaElement>"]
+    C --> P["ChangeEvent<HTMLSelectElement>"]
+
+    K --> Q["MouseEvent<HTMLButtonElement>"]
+    K --> R["MouseEvent<HTMLDivElement>"]
 ```
 
 **常用事件类型速查表**：
@@ -747,6 +754,7 @@ React 的 Context 在 TypeScript 中需要正确地设置初始类型：
 
 ```tsx
 import { createContext, useContext, useState } from "react";
+import type { ReactNode } from "react";
 
 // ============================================
 // 定义 Context 的类型
@@ -764,7 +772,7 @@ const ThemeContext = createContext<ThemeContextType | null>(null);
 // ============================================
 // Provider 组件
 // ============================================
-function ThemeProvider({ children }: { children: React.ReactNode }) {
+function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   function toggleTheme() {
@@ -815,13 +823,14 @@ function ThemedButton() {
 
 ```tsx
 import { useState } from "react";
+import type { ReactNode } from "react";
 
 // ============================================
 // 定义 List 组件（泛型）
 // ============================================
 interface ListProps<T> {
   items: T[];
-  renderItem: (item: T) => React.ReactNode;
+  renderItem: (item: T) => ReactNode;
   keyExtractor: (item: T) => string;
   emptyMessage?: string;
 }
@@ -891,8 +900,9 @@ function ProductList() {
 Ant Design 是最流行的 React UI 组件库之一，TypeScript 支持开箱即用：
 
 ```tsx
-import { Button, Table, Modal, Form, Input, Select, message } from "antd";
+import { Button, Table, Modal, Form, Input, Select, Checkbox, message } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { useState } from "react";
 
 // ============================================
 // Table 类型化
@@ -956,11 +966,14 @@ interface LoginForm {
 
 function LoginFormComponent() {
   const [form] = Form.useForm<LoginForm>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(values: LoginForm) {
+  async function handleSubmit(values: LoginForm) {
+    setIsSubmitting(true);
     console.log("Login:", values);
     // values: { username: string; password: string; remember: boolean }
     message.success("Login successful!");
+    setIsSubmitting(false);
   }
 
   return (
@@ -1039,7 +1052,7 @@ React Hook Form + Zod 是目前最强大的类型安全表单方案：
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Checkbox } from "antd";
+import { Checkbox, message } from "antd";
 
 // ============================================
 // 第一步：用 Zod 定义表单 schema（带类型推断）

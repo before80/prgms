@@ -67,7 +67,9 @@ TypeScript 在 5.0 之前一直使用的是 **Stage 2** 版本的装饰器提案
 
 ## 16.2 类装饰器、方法装饰器、属性装饰器、参数装饰器
 
-装饰器一共有四种类型，按作用目标分：**类装饰器**、**方法装饰器**、**属性装饰器**、**参数装饰器**。下面逐一讲解。
+传统 `experimentalDecorators`（Stage 2）一共有四种类型：**类装饰器**、**方法装饰器**、**属性装饰器**、**参数装饰器**。下面逐一讲解。
+
+> ⚠️ **本节展示的是 Stage 2 旧语法**。TypeScript 5.0+ 默认支持的标准装饰器采用不同的签名，并且**没有参数装饰器**；标准装饰器支持类、方法、访问器、自动访问器和字段。标准写法请见 16.5，两套语法不要混用。
 
 ### 类装饰器
 
@@ -248,6 +250,8 @@ api.getCachedData("user:1");
 
 当一个类（或方法）上有多个装饰器时，执行顺序是一个容易被忽视但非常重要的知识点。
 
+> 📝 本节描述的是传统 `experimentalDecorators`（Stage 2）的执行顺序。标准装饰器的应用顺序同样是“先执行外层装饰器、再执行内层装饰器”，但具体钩子触发时机以 TC39 规范为准。
+
 **基本原则**：
 
 1. **参数装饰器**最先执行（从左到右，从上到下）
@@ -315,16 +319,13 @@ Stage 3 装饰器相比 Stage 2 增加了一个重要的新特性：**类字段�
 ```typescript
 // Stage 3 类字段装饰器
 function initialize(value: unknown) {
-    // 返回一个初始化器函数
-    return function (
-        this: unknown,
-        context: ClassFieldDecoratorContext
-    ) {
+    // 标准字段装饰器接收 (value, context)，可返回初始化器
+    return function (_value: undefined, context: ClassFieldDecoratorContext) {
         // context.name 是字段的名字
         console.log(`字段 ${String(context.name)} 正在被初始化`);
 
         // 返回初始化器
-        return function (this: unknown) {
+        return function () {
             console.log(`字段 ${String(context.name)} 初始化完成`);
             return value;
         };
@@ -354,10 +355,8 @@ console.log(p.age);  // 0
 
 ```typescript
 class Counter {
-    #count = 0;
-
     // 自动访问器：用 accessor 关键字声明
-    accessor count: number;
+    accessor count: number = 0;
 
     increment() {
         this.count++;
@@ -377,20 +376,26 @@ console.log(c.getValue()); // 2
 自动访问器本质上是一个**带 get/set 的字段**，但语法更简洁——编译器会自动生成 getter 和 setter。它的优势在于性能和可读性，而且自动访问器也可以被装饰器装饰：
 
 ```typescript
-function log(target: any, context: ClassAccessorDecoratorContext) {
-    return function (this: unknown, initialValue: number) {
-        let value = initialValue;
-        return {
-            get() {
-                console.log(`读取 count，当前值: ${value}`);
-                return value;
-            },
-            set(newValue: number) {
-                console.log(`设置 count: ${newValue}`);
-                value = newValue;
-            },
-        };
-    } as ClassAccessorDecoratorResult<number>;
+function log(
+    value: { get: () => number; set: (value: number) => void },
+    context: ClassAccessorDecoratorContext<unknown, number>
+) {
+    let current = value.get();
+
+    return {
+        get() {
+            console.log(`读取 count，当前值: ${current}`);
+            return current;
+        },
+        set(newValue: number) {
+            console.log(`设置 count: ${newValue}`);
+            current = newValue;
+        },
+        init(initialValue: number) {
+            current = initialValue;
+            return current;
+        }
+    };
 }
 
 class SafeCounter {

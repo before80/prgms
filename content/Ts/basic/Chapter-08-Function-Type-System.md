@@ -328,7 +328,7 @@ const person = {
 person.greet(); // "Hello, I'm 张三" —— this 是 person
 
 const greetFn = person.greet;
-greetFn(); // "Hello, I'm undefined" —— this 是 undefined（非严格模式）或 window（严格模式）
+greetFn(); // 严格模式下 this 是 undefined；非严格模式下可能是全局对象（如浏览器中的 window）
 ```
 
 这就是 JavaScript 的"this 陷阱"——同一个函数，不同调用方式，this 完全不同。
@@ -503,6 +503,10 @@ console.log(objects);  // [{ value: 1 }, { value: 2 }, { value: 3 }, { value: 4 
 `Promise<T>` 表示一个"将在未来产生 T 类型值"的操作。
 
 ```typescript
+interface User {
+    name: string;
+}
+
 function fetchUser(): Promise<User> {
     return fetch("/api/user")
         .then((res) => res.json())
@@ -606,7 +610,7 @@ const gen = numberGenerator();
 console.log(gen.next());       // { value: 0, done: false } - 生成器启动了，收到外部消息: undefined
 console.log(gen.next(true));   // { value: 1, done: false } - 收到外部消息: true
 console.log(gen.next(false));  // { value: 2, done: false } - 收到外部消息: false
-console.log(gen.next());       // { value: undefined, done: true } —— return 执行后生成器已结束，value 为 undefined（Generator 不保留 return 的值）
+console.log(gen.next());       // { value: "Done!", done: true } —— 生成器 return 的值会出现在最后一次 next() 的 value 中
 ```
 
 ### 8.7.2 异步生成器函数类型

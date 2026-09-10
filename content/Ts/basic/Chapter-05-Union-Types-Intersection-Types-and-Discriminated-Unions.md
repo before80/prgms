@@ -374,14 +374,17 @@ enhanced.log();                  // log: {"name":"孙悟空","age":500}
 #### 5.2.5.1 Mixins 混入模式：同时混入多个能力到同一个对象
 
 ```typescript
-// Mixin函数
-function Timestamped<T extends object>(Base: T) {
+// 先把构造签名抽出来：Mixin 的 Base 必须是一个可 new 的类
+type Constructor<T = {}> = new (...args: any[]) => T;
+
+// Mixin 函数
+function Timestamped<TBase extends Constructor>(Base: TBase) {
     return class extends Base {
         timestamp = new Date();
     };
 }
 
-function Serializable<T extends object>(Base: T) {
+function Serializable<TBase extends Constructor>(Base: TBase) {
     return class extends Base {
         serialize() {
             return JSON.stringify(this);
@@ -723,7 +726,6 @@ for (let i = 0; i < 3; i++) {
 恭喜你完成了TypeScript核心类型的全部内容！从原始类型到特殊类型，从接口到类型别名，从联合类型到可辨识联合——你已经具备了TypeScript类型系统的坚实基础。
 
 下一阶段的内容将是更高级的TypeScript特性，包括泛型、类型操作符、条件类型、映射类型等。继续保持这个学习节奏，你正在成为一个TypeScript高手！
-
 
 
 

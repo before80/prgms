@@ -881,13 +881,15 @@ interface Counter {
 }
 
 function createCounter(): Counter {
-    const counter = (() => {
-        return ++counter.count;
-    }) as Counter;
-    counter.count = 0;
-    counter.reset = () => {
-        counter.count = 0;
-    };
+    const state = { count: 0 };
+    const counter = Object.assign(
+        () => ++state.count,
+        {
+            get count() { return state.count; },
+            set count(value: number) { state.count = value; },
+            reset() { state.count = 0; }
+        }
+    ) as Counter;
     return counter;
 }
 
@@ -1048,8 +1050,6 @@ flowchart TD
 **type vs interface的选用**：大多数场景可以互换。interface适合描述对象结构和需要声明合并的场景；type适合联合类型、元组、条件类型、映射类型等类型运算场景。
 
 下一章我们将学习**联合类型、交叉类型与可辨识联合**——这些是TypeScript类型系统中非常强大的组合工具。
-
-
 
 
 

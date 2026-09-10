@@ -157,7 +157,7 @@ draft = false
 
 ---
 
-#### 12.1.1.4 `files`：显式指定要编译的单个文件列表（优先级高于 include）
+#### 12.1.1.4 `files`：显式指定一定会纳入编译的单个文件列表
 
 如果说 `include` 是「这个目录下的所有文件都归我管」，那么 `files` 就是「我只编译这几个文件，给我精确打击」。
 
@@ -171,7 +171,7 @@ draft = false
 }
 ```
 
-`files` 的优先级比 `include` **高**。如果你同时写了 `files` 和 `include`，TypeScript 会完全忽略 `include`，只看你 `files` 里列出的那几个文件。
+`files` 和 `include` 不是二选一的关系：**`files` 中列出的文件总是会被纳入编译**，而 `include` 仍会参与解析并补充其他匹配文件。也就是说，同时写两者时，TypeScript 会取“`files` 中的文件 + `include` 匹配到的文件”，并不会完全忽略 `include`。
 
 > 🎯 **使用场景**：`files` 适合用在小型项目或者配置文件驱动的场景，比如：
 > - 只有一个入口文件的简单工具
@@ -370,26 +370,47 @@ tsc --init
 
 ```json
 {
+  // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    /* 编译目标：ES 最新版本 */
-    "target": "ESNext",
-    /* 模块系统：NodeNext 模式（支持 ESM + CJS 混合）*/
-    "module": "NodeNext",
-    /* 不自动引入任何类型声明包（需要手动指定）*/
+    /* 环境设置 */
+    "module": "nodenext",
+    "target": "esnext",
     "types": [],
-    /* 生成 sourcemap，方便调试 */
+    // 对于 Node.js 项目，可取消注释：
+    // "lib": ["esnext"],
+    // "types": ["node"],
+    // 并执行 npm install -D @types/node
+
+    /* 其他输出 */
     "sourceMap": true,
-    /* 生成声明文件（.d.ts）*/
     "declaration": true,
-    /* 生成声明文件的 sourcemap */
     "declarationMap": true,
-    /* 开启所有严格类型检查 */
-    "strict": true
+
+    /* 更严格的类型检查 */
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    /* 风格选项（可按需取消注释） */
+    // "noImplicitReturns": true,
+    // "noImplicitOverride": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    // "noFallthroughCasesInSwitch": true,
+    // "noPropertyAccessFromIndexSignature": true,
+
+    /* 推荐选项 */
+    "strict": true,
+    "jsx": "react-jsx",
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true
   }
 }
 ```
 
-> ✨ **TS 5.9 的改进**：从 50+ 个注释选项精简到 7 个推荐选项，每个选项后面还有注释告诉你它是干啥的。这才是「新手友好」的正确打开方式！
+> ✨ **TS 5.9 的改进**：从 50+ 个注释选项精简为一小段更明确的推荐配置，并把 Node.js 专用设置以注释形式提示。这才是「新手友好」的正确打开方式！
 
 ### 12.2.3 推荐配置示例
 
@@ -590,7 +611,7 @@ const fs = require("fs");
 }
 ```
 
-> 🆕 **Node20 和 NodeNext 的区别**：`Node20` 是 TypeScript 5.9 专门为 Node.js 20+ 新增的模式，比 `NodeNext` 更精确地跟进 Node.js 的最新模块规范。
+> 🆕 **Node20 和 NodeNext 的区别**：`Node20` 是 TypeScript 5.9 新增的稳定模式，专门锁定 Node.js 20 的模块行为；`NodeNext` 则跟随 TypeScript 当前支持的最新 Node 版本行为。`module: "node20"` 还会默认把 `target` 设为 `es2023`。
 
 ### 12.3.3 moduleResolution：模块解析策略
 
@@ -638,9 +659,9 @@ TypeScript 4.7 引入了 `node16` 策略，专门用来支持 Node.js 16+ 的原
 
 > **建议**：新项目用 `nodenext`，老项目升级到 `node16` 就够了。
 
-#### 12.3.3.5 `bundler`（TS 5.7+）：模拟 Vite、Webpack、Rollup 等打包工具的模块解析行为
+#### 12.3.3.5 `bundler`（TS 5.0+）：模拟 Vite、Webpack、Rollup 等打包工具的模块解析行为
 
-TypeScript 5.7 引入了 `bundler` 策略，这是前端项目最推荐的模块解析策略。
+TypeScript 5.0 引入了 `bundler` 策略，这是前端项目最推荐的模块解析策略。
 
 | 特性 | Node.js (node/node16/nodenext) | Bundler (bundler) |
 |---|---|---|
@@ -684,9 +705,10 @@ TypeScript 5.7 引入了 `bundler` 策略，这是前端项目最推荐的模块
 | `"dom"` | 浏览器 DOM API（`document`、`window` 等）| 浏览器端项目 |
 | `"dom.iterable"` | DOM 的可迭代对象 API | 浏览器端项目 |
 | `"webworker"` | Web Worker API | Web Worker 环境 |
-| `"node"` | Node.js 内置 API（需要安装 `@types/node`）| Node.js 环境 |
 
 > 🐛 **常见错误**：当你设置了 `"target": "ES5"` 但没有指定 `lib` 时，TypeScript 会默认使用 ES5 的内置类型声明，而 ES5 标准里没有 DOM！所以写了 `document.querySelector()` 就会报错。解决方法：加上 `"lib": ["ES2020", "DOM"]`。
+
+> 📦 **`node` 不是 `lib` 值**：Node.js 的全局 API（如 `process`、`Buffer`）类型来自 `@types/node`，需要在 `"types": ["node"]` 中显式引入，而不是写进 `lib`。`lib` 只接受语言内置库名，例如 `ES2022`、`DOM`、`WebWorker`。
 
 ### 12.3.5 小结
 
@@ -837,7 +859,7 @@ export default {
 
 - **`include`**：glob 模式匹配，`"src/**/*"` 表示 src 目录下所有文件
 - **`exclude`**：排除模式，`"**/*.test.ts"` 排除所有测试文件
-- **`files`**：显式文件列表，优先级最高，一旦写了 `files`，`include` 就被完全忽略
+- **`files`**：显式文件列表；这些文件一定会被纳入编译，`include` 仍会继续匹配并补充其他文件
 
 > ⚠️ **常见错误**：显式写了 `exclude` 后，`node_modules` 不再被自动排除，必须手动加上。
 
@@ -991,12 +1013,10 @@ export default {
 | `strictPropertyInitialization` | 类属性必须在构造函数中初始化 |
 | `strictBindCallApply` | bind/call/apply 参数类型严格检查 |
 | `alwaysStrict` | 每个输出文件头部加 `"use strict"` |
-| `exactOptionalPropertyTypes` | 精确区分属性「值是 undefined」和「属性不存在」|
-| `noUncheckedIndexedAccess` | 数组/对象索引访问返回 T \| undefined |
 
 > 🔒 **建议**：新项目一定要开 `strict: true`。不要因为初期报错多就关掉它 —— 报错多说明代码问题多，早报错比晚报错好一万倍。
 
-> ⚠️ **注意**：`noImplicitReturns` 不是 strict 的子项，需单独开启。
+> ⚠️ **注意**：`exactOptionalPropertyTypes`、`noUncheckedIndexedAccess`、`noImplicitReturns` 都不是 `strict` 的子项，需要单独开启。
 
 ### 12.6.2 noImplicitAny
 
@@ -1341,7 +1361,7 @@ TypeScript 编译大型项目时，速度可能是一个让人抓狂的问题。
 
 性能提升效果：对于有大量 `node_modules` 的大型项目，`skipLibCheck` 可以将编译时间**减少 30% 到 50%**。
 
-> ⚠️ **注意**：不会跳过显式 `include` 的 `.d.ts` 文件。只有 `node_modules/@types` 下的文件会被跳过。
+> ⚠️ **注意**：`skipLibCheck` 会跳过声明文件的类型检查，但并不会阻止文件被加载。具体跳过范围取决于 `include`、`types` 等配置，显式加入编译范围的声明文件仍可能被解析；不要把它理解为“完全不读取 `.d.ts`”。
 
 ### 12.8.2 incremental
 
@@ -1574,14 +1594,19 @@ flowchart LR
 2. 生成 `.d.ts` 声明文件
 3. 必须设置 `rootDir` 和 `outDir`
 
-### 12.11.3 buildMode
+### 12.11.3 使用 tsc --build 而不是 buildMode
 
-`"buildMode": "build"`（TS 5.0+）只构建 `.d.ts` 声明输出，不构建 `.js` 文件。适合用 rollup 打包 JS 但需要统一构建 `.d.ts` 的库项目。
+`buildMode` 并不是 `tsconfig.json` 的 `compilerOptions` 字段，而是 TypeScript Compiler API 中的编程接口概念。日常配置项目引用时，应该使用命令行 `tsc --build`（或 `tsc -b`），并配合 `references`、`composite` 来构建声明树：
 
 ```bash
-# 增量构建类型声明
+# 构建当前项目及其引用的项目
+tsc --build
+
+# 强制重新构建
 tsc --build --force
 ```
+
+如果你只想生成声明文件，可以单独执行 `tsc --emitDeclarationOnly`；不要把 `"buildMode": "build"` 写进 `compilerOptions`。
 
 ### 12.11.4 小结
 
@@ -1589,7 +1614,7 @@ tsc --build --force
 
 - **`references`**：声明项目间的依赖关系
 - **`composite`**：启用增量构建支持，生成 `.tsbuildinfo` 缓存文件
-- **`buildMode`**：声明树构建模式，只输出 `.d.ts`
+- **`tsc --build` / `--emitDeclarationOnly`**：构建项目引用树，或只输出 `.d.ts`
 
 下一节我们将学习「环境配置文件」！
 
@@ -1633,7 +1658,7 @@ tsconfig.json
 ├── compilerOptions  ← 最核心，90%的配置都在这里
 ├── include          ← 指定编译范围
 ├── exclude          ← 排除编译范围
-├── files            ← 显式指定文件（优先级最高）
+├── files            ← 显式指定一定会纳入编译的文件
 ├── extends          ← 继承其他配置
 ├── compileOnSave    ← 保存时编译（基本无用）
 └── watchOptions     ← --watch 模式配置

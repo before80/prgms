@@ -137,7 +137,7 @@ type Config = typeof config;
 
 注意 `as const` 会把所有属性变成 `readonly`（只读）——这正是字面量类型应该有的语义。
 
-#### 7.1.3.3 typeof 获取类的类型：`typeof ClassName` 得到该类的实例类型；配合 `InstanceType<T>` 使用
+#### 7.1.3.3 typeof 获取类的类型：`typeof ClassName` 得到构造函数类型；配合 `InstanceType<T>` 使用
 
 `typeof` 在类身上的行为比较特殊：
 
@@ -279,7 +279,7 @@ type Partial<T> = {
 };
 
 type Readonly<T> = {
-    [K in keyof T]: readonly T[K];
+    readonly [K in keyof T]: T[K];
 };
 
 type UserPartial = Partial<User>;   // 自动生成！
@@ -410,7 +410,7 @@ const config = {
 
 这是 `satisfies` 最重要的特性——它**同时做两件事**：
 
-1. **检查**：`satisfies` 右边的类型约束（检查 config 是否满足 `Record<string, number | string>`）
+1. **检查**：`satisfies` 右边的类型约束（检查 config 是否满足 `Record<string, number>`）
 2. **保留**：保留 config 最窄的字面量类型（`{ readonly port: 3000; readonly timeout: 5000 }`）
 
 ```typescript
@@ -433,9 +433,9 @@ const config = {
 #### 7.2.7.3 与 as 类型断言的区别：as 强制转换类型，编译后值可能与预期不符；satisfies 在编译时验证类型，若不满足则报错，安全性更高
 
 ```typescript
-// as 断言：强制转换，编译后"静默失真"
+// as 断言：强制告诉 TypeScript 这是 number，但运行时值仍是字符串
 const a = "3000" as unknown as number;
-console.log(typeof a); // number —— 编译通过了，但值从字符串变成了数字
+console.log(typeof a); // string —— 编译期断言不会改变运行时值
 
 // satisfies：类型检查，不满足则报错
 // const b = "3000" satisfies number; // 报错！Type 'string' does not satisfy type 'number'
@@ -898,8 +898,10 @@ function parseJSON(json: string): JSONObject | null {
 
 const data = parseJSON('{"name": "张三", "age": 25, "friends": ["李四", "王五"]}');
 if (data) {
-    console.log(data.name); // 张三
-    console.log(data.friends[0]); // 李四
+    const name = typeof data.name === "string" ? data.name : null;
+    const firstFriend = Array.isArray(data.friends) ? data.friends[0] : null;
+    console.log(name);        // 张三
+    console.log(firstFriend); // 李四
 }
 ```
 
@@ -911,9 +913,17 @@ TypeScript 对递归类型的深度有限制。如果嵌套太深，会触发编
 // 这会报错！
 type Deepnest = { a: Deepnest }; // Type instantiation is excessively deep
 
-// 正确做法：设置终止条件
-type Deepnest<T extends number> = T extends 1 ? { value: true } : { nested: Deepnest<T[-1]> };
-// type Test = Deepnest<3>; // { nested: { nested: { value: true } } }
+// 正确做法：给递归设置有限的终止条件
+type Depth = 1 | 2 | 3;
+type Deepnest<T extends Depth> =
+    T extends 1
+        ? { value: true }
+        : T extends 2
+            ? { nested: { value: true } }
+            : { nested: { nested: { value: true } } };
+
+// type Test1 = Deepnest<1>; // { value: true }
+// type Test3 = Deepnest<3>; // { nested: { nested: { value: true } } }
 ```
 
 ---
@@ -1047,11 +1057,11 @@ let name: string = 123; // TS2322: Type 'number' is not assignable to type 'stri
 // 右侧 number 不能赋值给左侧 string 类型
 ```
 
-### 7.8.3 TS2532：可能为 null/undefined
+### 7.8.3 TS2531 / TS2532：可能为 null / undefined
 
 ```typescript
 let name: string | null = Math.random() > 0.5 ? "张三" : null;
-console.log(name.length); // TS2532: Object is possibly 'null'
+console.log(name.length); // TS2531: Object is possibly 'null'
 // name 可能是 null，直接访问 .length 危险
 
 // 修复：加非空检查
@@ -1059,6 +1069,8 @@ if (name !== null) {
     console.log(name.length); // OK!
 }
 ```
+
+如果值是 `string | undefined`，同类错误码通常是 TS2532（`Object is possibly 'undefined'`）。
 
 ### 7.8.4 TS2339：属性不存在
 

@@ -184,6 +184,8 @@ app.post("/user", (req, res) => {
 有了 TypeScript，我们需要先给 `req.body` 定义一个类型：
 
 ```typescript
+import { Request, Response } from "express";
+
 // 定义请求体的类型
 interface CreateUserBody {
     name: string;
@@ -191,7 +193,7 @@ interface CreateUserBody {
     age: number;
 }
 
-app.post<{ Body: CreateUserBody }>("/user", (req, res) => {
+app.post("/user", (req: Request<{}, {}, CreateUserBody>, res: Response) => {
     // 现在 req.body 的类型是 CreateUserBody
     const { name, email, age } = req.body;
 
@@ -206,16 +208,18 @@ app.post<{ Body: CreateUserBody }>("/user", (req, res) => {
 });
 ```
 
-Express 的路由泛型参数格式是 `app.METHOD<ReqParams, ResBody, ReqQuery, ReqBody>(path, handler)`。我们来逐一拆解：
+Express 的 `Request` 类型参数顺序是 `Request<Params, ResBody, ReqBody, ReqQuery, Locals>`。我们来逐一拆解：
 
-- **`ReqParams`**：URL 参数的类型，比如 `/user/:id` 中的 `id`
+- **`Params`**：URL 参数的类型，比如 `/user/:id` 中的 `id`
 - **`ResBody`**：响应的 JSON body 类型
-- **`ReqQuery`**：查询字符串（`?key=value`）的类型
 - **`ReqBody`**：请求体的类型
+- **`ReqQuery`**：查询字符串（`?key=value`）的类型
 
 一个完整的类型化 Express 接口：
 
 ```typescript
+import { Request, Response } from "express";
+
 interface UserParams {
     id: string;
 }
@@ -232,9 +236,9 @@ interface User {
     createdAt: string;
 }
 
-app.get<{ Params: UserParams; Query: UserQuery; Reply: User | User[] }>(
+app.get(
     "/user/:id",
-    (req, res) => {
+    (req: Request<UserParams, User | User[], {}, UserQuery>, res: Response<User | User[]>) => {
         const { id } = req.params;     // string（自动类型收窄）
         const includeStats = req.query.includeStats === "true";
         const page = req.query.page ? parseInt(req.query.page, 10) : 1;
@@ -368,6 +372,7 @@ npm install -D @fastify/type-provider-typebox tsx
 import Fastify from "fastify";
 import { Type, Static } from "@sinclair/typebox";
 import type { FastifyPluginAsync } from "fastify";
+import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 
 // 用 TypeBox 定义 schema（同时也是类型）
 const UserSchema = Type.Object({
@@ -389,9 +394,13 @@ const CreateUserSchema = Type.Object({
 
 // 用 FastifyPluginAsync 包装插件，获取完整的类型推导
 const userRoutes: FastifyPluginAsync = async (fastify) => {
-    fastify.post("/user", async (request, reply) => {
-        // request.body 的类型由 schema 自动推导，不需要手动写泛型
-        const { name, email, age } = request.body as Static<typeof CreateUserSchema>;
+    const typedFastify = fastify.withTypeProvider<TypeBoxTypeProvider>();
+
+    typedFastify.post("/user", {
+        schema: { body: CreateUserSchema },
+    }, async (request, reply) => {
+        // request.body 的类型由 TypeBox schema 自动推导
+        const { name, email, age } = request.body;
 
         // 模拟数据库插入
         const newUser: User = {
@@ -407,8 +416,8 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     // 查询单个用户
-    fastify.get("/user/:id", async (request) => {
-        const { id } = request.params as { id: string };
+    typedFastify.get<{ Params: { id: string } }>("/user/:id", async (request) => {
+        const { id } = request.params;
         console.log(`查询用户 ID: ${id}`);
 
         // 模拟数据库查询
@@ -436,7 +445,7 @@ server.listen({ port: 3000 }, (err, address) => {
 });
 ```
 
-这段代码的精妙之处在于：**`CreateUserBody` 和 `User` 类型都是从 JSON Schema 自动推断出来的**，你不需要写两遍类型定义。`as Static<...>` 只是一个显式的类型标注，让代码意图更清晰。
+这段代码的精妙之处在于：**`User` 类型从 JSON Schema 自动推断出来**，请求体的类型则通过 `schema.body` 交给 TypeBox provider 推导，你不需要手动 `as` 断言。
 
 `TypeBox` 是一个用 TypeScript 写的库，它的类型系统在**运行时是真实的 JSON Schema**，在**编译时是 TypeScript 类型**——两全其美。
 
@@ -460,7 +469,8 @@ npm run build
 安装 Prisma：
 
 ```bash
-npm install prisma @prisma/client
+npm install @prisma/client
+npm install -D prisma
 npx prisma init
 ```
 
@@ -857,12 +867,13 @@ async function createUser(
 async function getUserFullInfo(id: number) {
     const result = await findUserById(id);
 
-    // flatMap：只有在 ok 的情况下才调用后续逻辑
-    return flatMap(result, async (user) => {
-        // 假设这里还要查用户的文章数
-        const posts = await prisma.post.count({ where: { authorId: user.id } });
-        return ok({ ...user, postsCount: posts });
-    });
+    // 处理 Result：只有在 ok 的情况下才继续查询文章数
+    if (!result.ok) {
+        return result;
+    }
+
+    const posts = await prisma.post.count({ where: { authorId: result.value.id } });
+    return ok({ ...result.value, postsCount: posts });
 }
 ```
 
@@ -1102,7 +1113,7 @@ describe("UserService", () => {
 
 ### Express 与 Fastify 类型化
 
-Express 通过路由泛型参数 `app.get<{ Params, Query, Reply }>()` 实现请求/响应类型化。Fastify 更进一步，用 **TypeBox** 从 JSON Schema 自动推断 TypeScript 类型，schema 即类型定义，两全其美。
+Express 通过 `Request<Params, ResBody, ReqBody, ReqQuery>` 泛型实现请求/响应类型化。Fastify 更进一步，用 **TypeBox** 从 JSON Schema 自动推断 TypeScript 类型，schema 即类型定义，两全其美。
 
 ### Prisma ORM
 

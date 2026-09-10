@@ -321,7 +321,7 @@ TS Server 就是这个"常驻进程"，它用 Node.js 写成，通过 **LSP（La
 
 ### 17.4.1 为什么重写：当前 TypeScript 编译器使用 JavaScript/TypeScript 编写，性能受限于 JS 引擎
 
-TypeScript 编译器是用 TypeScript 自己写的（这很 meta）。但 JS 引擎（V8、Chakra）虽然是业界最顶尖的 JavaScript 运行时，它们对**编译型语言**（比如 Go、Rust）有天然的性能劣势——垃圾回收、内存布局、CPU 密集型计算。
+TypeScript 编译器是用 TypeScript 自己写的（这很 meta）。但 JS 引擎（V8、JavaScriptCore 等）虽然是业界最顶尖的 JavaScript 运行时，它们对**编译型语言**（比如 Go、Rust）有天然的性能劣势——垃圾回收、内存布局、CPU 密集型计算。
 
 TypeScript 编译器的瓶颈在 **Checker 阶段**——类型检查涉及大量 CPU 密集型计算，这是 JS 引擎的弱项。Go 语言天然支持多线程，有更高效的内存管理和更快的编译速度。
 
@@ -342,7 +342,7 @@ TS 6.0 是 Go 重写之前的最后一个版本，它的主要任务是**充当�
 - 用户的 `tsconfig.json` 不用改动
 - TypeScript Compiler API 的主要接口保持不变
 
-这就是 TS 6.0 的历史使命——**不是带来新功能，而是保持向后兼容**。
+TS 6.0 在继续提供新特性的同时，也承担了过渡桥梁的角色——让 `tsc` 命令、`tsserver` 接口和 `tsconfig.json` 尽量保持兼容，确保用户平滑进入未来的 Go 编译器时代。
 
 ---
 

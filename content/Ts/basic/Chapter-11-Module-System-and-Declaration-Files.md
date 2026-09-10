@@ -130,6 +130,8 @@ console.log(math.Calculator);    // [class Calculator]
 
 `import defer` 是 TypeScript 5.9 引入的新语法，允许你**延迟执行**模块的代码。
 
+> ⚠️ `import defer` 不会被 TypeScript 转译，仅在 `module: "preserve"` 或 `module: "esnext"` 下保留；它依赖原生运行时支持或由 bundler 处理。
+
 ```typescript
 // 定义一个延迟加载的模块
 import defer * as analytics from "./analytics";
@@ -217,14 +219,14 @@ import { formatDate } from "./src/utils/index.ts"; // 不用再写相对路径
 }
 ```
 
-#### 11.2.3.4 支持范围：`--moduleResolution` 为 node20 / nodenext / bundler 时启用
+#### 11.2.3.4 支持范围：`--moduleResolution` 为 nodenext / bundler 时启用
 
 这个功能需要正确的 `moduleResolution` 配置：
 
 ```json
 {
     "compilerOptions": {
-        "moduleResolution": "node20" // 或 "nodenext" 或 "bundler"
+        "moduleResolution": "nodenext" // 或 "bundler"
     }
 }
 ```
@@ -366,14 +368,17 @@ fs.readFileSync("./file.txt", "utf-8");
 
 #### 11.3.2.2 自动在输出的 bundle 中添加 ESM/CommonJS 兼容层（如 `__importStar`、`__importDefault`）
 
-`esModuleInterop` 会在编译输出中注入辅助函数：
+`esModuleInterop` 会在编译输出中注入 `__importDefault`、`__importStar` 等辅助函数，把 CommonJS 的 `module.exports` 包装成带 `default`/命名导出视图的对象：
 
 ```javascript
 // 编译前
 import fs from "fs";
 
-// 编译后（开启 esModuleInterop）
-import __import fs from "fs";
+// 编译后（示意：开启 esModuleInterop，module 为 CommonJS）
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+const fs_1 = __importDefault(require("fs"));
 ```
 
 ### 11.3.3 Combining --moduleResolution bundler with --module commonjs（TS 6.0 新增）
