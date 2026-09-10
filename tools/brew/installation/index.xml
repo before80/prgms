@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>2 安装与卸载 Homebrew on 编程那些事儿</title><link>https://before80.github.io/prgms/tools/brew/installation/</link><description>Recent content in 2 安装与卸载 Homebrew on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Thu, 10 Sep 2026 23:45:18 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/tools/brew/installation/index.xml" rel="self" type="application/rss+xml"/><item><title>2.1 在 macOS 上安装 Homebrew</title><link>https://before80.github.io/prgms/tools/brew/installation/2.1-install-on-macos/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/installation/2.1-install-on-macos/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://brew.sh/"&gt;https://brew.sh/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="官方支持的安装条件"&gt;官方支持的安装条件&lt;/h2&gt;
+&lt;p&gt;针对 macOS，官方支持的配置要求如下：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在 Apple Silicon 上使用 64 位 CPU（M4 完全满足）；&lt;/li&gt;
+&lt;li&gt;安装 macOS Sonoma（14）或更高版本；&lt;/li&gt;
+&lt;li&gt;已安装 Xcode 的 Command Line Tools（CLT），可通过 &lt;code&gt;xcode-select --install&lt;/code&gt; 安装，或从 &lt;a href="https://developer.apple.com/download/all/"&gt;Apple 开发者网站&lt;/a&gt; 获取；也可以安装完整 Xcode；&lt;/li&gt;
+&lt;li&gt;安装脚本使用 Bourne-again shell（即 &lt;code&gt;bash&lt;/code&gt;），不能用 zsh、fish、tcsh 或 csh 执行那一行安装命令。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;提示：CLT 是“从源码构建 formula”所必需的；cask 和 bottle 没有开发者工具也能安装，但官方仍建议先装好 CLT，&lt;code&gt;brew doctor&lt;/code&gt; 也不会因此报警。&lt;/p&gt;</description></item><item><title>2.2 安装后的环境配置与高级安装选项</title><link>https://before80.github.io/prgms/tools/brew/installation/2.2-configure-and-advanced/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/installation/2.2-configure-and-advanced/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/Installation"&gt;https://docs.brew.sh/Installation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="把-brew-加进-shell"&gt;把 brew 加进 shell&lt;/h2&gt;
+&lt;p&gt;Homebrew 安装完会打印一段提示：在 shell 配置文件中加入&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#e5c07b"&gt;eval&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#76a9f9"&gt;$(&lt;/span&gt;/opt/homebrew/bin/brew shellenv&lt;span style="color:#76a9f9"&gt;)&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;具体加到哪个文件取决于你的 shell：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;zsh（macOS 默认）：&lt;code&gt;~/.zshrc&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;bash：&lt;code&gt;~/.bashrc&lt;/code&gt;（或登录 shell 的 &lt;code&gt;~/.bash_profile&lt;/code&gt;）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;其中的 &lt;code&gt;/opt/homebrew/bin&lt;/code&gt; 就是你的 Homebrew prefix 路径。&lt;code&gt;brew shellenv&lt;/code&gt; 会设置好 &lt;code&gt;PATH&lt;/code&gt;、&lt;code&gt;MANPATH&lt;/code&gt;、shell 补全路径等环境变量，因此以后不要在配置里手工把 &lt;code&gt;/opt/homebrew/bin&lt;/code&gt; 写死，直接使用这行 &lt;code&gt;eval&lt;/code&gt; 最稳妥。&lt;/p&gt;</description></item><item><title>2.3 卸载 Homebrew 与旧版本清理</title><link>https://before80.github.io/prgms/tools/brew/installation/2.3-uninstall-and-cleanup/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/installation/2.3-uninstall-and-cleanup/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/FAQ"&gt;https://docs.brew.sh/FAQ&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="完整卸载-homebrew"&gt;完整卸载 Homebrew&lt;/h2&gt;
+&lt;p&gt;如需彻底卸载 Homebrew，运行 &lt;a href="https://github.com/Homebrew/install"&gt;Homebrew/install&lt;/a&gt; 仓库提供的卸载脚本：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;/bin/bash -c &lt;span style="color:#63c381"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#76a9f9"&gt;$(&lt;/span&gt;curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh&lt;span style="color:#76a9f9"&gt;)&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;脚本会移除 Homebrew 前缀、缓存、已安装的 formula 与 cask，并打印每步操作。卸载前如果希望保存当前安装清单以便日后恢复，先执行：&lt;/p&gt;</description></item></channel></rss>

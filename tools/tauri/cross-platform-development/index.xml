@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>5 跨平台开发与各平台工程布局 on 编程那些事儿</title><link>https://before80.github.io/prgms/tools/tauri/cross-platform-development/</link><description>Recent content in 5 跨平台开发与各平台工程布局 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Thu, 10 Sep 2026 23:45:18 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/tools/tauri/cross-platform-development/index.xml" rel="self" type="application/rss+xml"/><item><title>5.1 跨平台开发总览</title><link>https://before80.github.io/prgms/tools/tauri/cross-platform-development/5.1-cross-platform-overview/</link><pubDate>Wed, 09 Sep 2026 17:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/tools/tauri/cross-platform-development/5.1-cross-platform-overview/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/develop/"&gt;Develop&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="51-跨平台开发总览"&gt;5.1 跨平台开发总览&lt;/h1&gt;
+&lt;p&gt;到了这一章，我们要回答你最关心的问题：&lt;strong&gt;同一套代码在 macOS、Windows、Android、iOS 上分别是什么样子？&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>5.2 macOS 应用目录与构建</title><link>https://before80.github.io/prgms/tools/tauri/cross-platform-development/5.2-macos-directory-and-build/</link><pubDate>Wed, 09 Sep 2026 17:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/tools/tauri/cross-platform-development/5.2-macos-directory-and-build/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/distribute/macos-application-bundle/"&gt;macOS Application Bundle&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="52-macos-应用目录与构建"&gt;5.2 macOS 应用目录与构建&lt;/h1&gt;
+&lt;p&gt;macOS 应用不是一个“单个 exe”，而是一个被称为 &lt;strong&gt;Application Bundle（&lt;code&gt;.app&lt;/code&gt;）&lt;/strong&gt; 的目录结构。Finder 看到的是普通应用图标，实际上它是一个组织良好的文件夹。&lt;/p&gt;</description></item><item><title>5.3 Windows 应用目录与构建</title><link>https://before80.github.io/prgms/tools/tauri/cross-platform-development/5.3-windows-directory-and-build/</link><pubDate>Wed, 09 Sep 2026 17:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/tools/tauri/cross-platform-development/5.3-windows-directory-and-build/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/distribute/windows-installer/"&gt;Windows Installer&lt;/a&gt; 与 &lt;a href="https://tauri.app/start/prerequisites/#windows"&gt;Prerequisites&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="53-windows-应用目录与构建"&gt;5.3 Windows 应用目录与构建&lt;/h1&gt;
+&lt;p&gt;Windows 平台的 Tauri 应用最终通常以两种安装包发布：&lt;strong&gt;NSIS &lt;code&gt;.exe&lt;/code&gt;&lt;/strong&gt; 和 &lt;strong&gt;MSI &lt;code&gt;.msi&lt;/code&gt;&lt;/strong&gt;。&lt;/p&gt;
+&lt;h2 id="构建前提"&gt;构建前提&lt;/h2&gt;
+&lt;p&gt;在 Windows 上开发/构建需要：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Microsoft C++ Build Tools&lt;/strong&gt;：安装时勾选 “Desktop development with C++”。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Microsoft Edge WebView2 Runtime&lt;/strong&gt;：现代 Windows 通常已内置；开发机仍建议确认存在。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Rust&lt;/strong&gt;：推荐默认工具链为 MSVC。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;安装 Rust：&lt;/p&gt;</description></item><item><title>5.4 Android 工程目录与构建</title><link>https://before80.github.io/prgms/tools/tauri/cross-platform-development/5.4-android-directory-and-build/</link><pubDate>Wed, 09 Sep 2026 17:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/tools/tauri/cross-platform-development/5.4-android-directory-and-build/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/start/prerequisites/#android"&gt;Prerequisites&lt;/a&gt; 与 &lt;a href="https://tauri.app/distribute/google-play/"&gt;Google Play&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="54-android-工程目录与构建"&gt;5.4 Android 工程目录与构建&lt;/h1&gt;
+&lt;p&gt;Tauri 的 Android 支持不是“用模拟器包个网页”，而是生成一个真正的 &lt;strong&gt;Android Studio/Gradle 工程&lt;/strong&gt;。你的 Rust 代码会被编译成原生 &lt;code&gt;.so&lt;/code&gt; 库，由 Kotlin Activity 加载。&lt;/p&gt;
+&lt;h2 id="一句话流程"&gt;一句话流程&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;前端静态资源
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; │
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; Rust 编译为 .so（每 ABI 一个）
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; │
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;Gradle 把 .so + 资源 + AndroidManifest 打包
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; │
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; APK / AAB
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="初始化-android-工程"&gt;初始化 Android 工程&lt;/h2&gt;
+&lt;p&gt;确保已经完成 &lt;a href="../../environment-setup/2.2-mobile-prerequisites/"&gt;2.2 移动端环境配置&lt;/a&gt;，然后：&lt;/p&gt;</description></item><item><title>5.5 iOS 工程目录与构建</title><link>https://before80.github.io/prgms/tools/tauri/cross-platform-development/5.5-ios-directory-and-build/</link><pubDate>Wed, 09 Sep 2026 17:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/tools/tauri/cross-platform-development/5.5-ios-directory-and-build/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/distribute/app-store/"&gt;App Store&lt;/a&gt; 与 &lt;a href="https://tauri.app/start/prerequisites/#ios"&gt;Prerequisites&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="55-ios-工程目录与构建"&gt;5.5 iOS 工程目录与构建&lt;/h1&gt;
+&lt;p&gt;iOS 与 Android 思路一致：Tauri 生成一个 &lt;strong&gt;Xcode 工程&lt;/strong&gt;，Rust 代码编译成静态库，由原生入口加载。区别是 iOS 只能在 macOS 上开发，并且用 Xcode/CocoaPods 管理。&lt;/p&gt;</description></item></channel></rss>

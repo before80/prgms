@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>8 故障排查 on 编程那些事儿</title><link>https://before80.github.io/prgms/tools/brew/troubleshooting/</link><description>Recent content in 8 故障排查 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Thu, 10 Sep 2026 23:45:18 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/tools/brew/troubleshooting/index.xml" rel="self" type="application/rss+xml"/><item><title>8.1 排查清单</title><link>https://before80.github.io/prgms/tools/brew/troubleshooting/8.1-troubleshooting-checklist/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/troubleshooting/8.1-troubleshooting-checklist/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/Troubleshooting"&gt;https://docs.brew.sh/Troubleshooting&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="第一步更新并诊断"&gt;第一步：更新并诊断&lt;/h2&gt;
+&lt;p&gt;在向任何人提问之前，先按顺序执行：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;brew update
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;再执行一次 &lt;code&gt;brew update&lt;/code&gt;——第一次更新可能让失败命令仍停留在旧的 Homebrew 版本上。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;brew doctor
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;读完每一条警告，修复与失败命令相关的警告，然后&lt;strong&gt;重试原始命令并保存完整输出&lt;/strong&gt;。&lt;/p&gt;</description></item><item><title>8.2 常见问题：运行、下载与系统升级</title><link>https://before80.github.io/prgms/tools/brew/troubleshooting/8.2-common-issues/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/troubleshooting/8.2-common-issues/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/Common-Issues"&gt;https://docs.brew.sh/Common-Issues&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;本页覆盖反复出现的 Homebrew 问题及当前推荐的非破坏性诊断步骤。&lt;strong&gt;先从 &lt;a href="../8.1-troubleshooting-checklist/"&gt;8.1 排查清单&lt;/a&gt; 开始，完整阅读错误信息，再修改文件或权限。&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id="缺少-command-line-tools"&gt;缺少 Command Line Tools&lt;/h2&gt;
+&lt;p&gt;在 macOS 上从源码构建 formula 需要 Xcode Command Line Tools。反直觉的是：只安装完整 Xcode 并不够，CLT 是独立安装包：&lt;/p&gt;</description></item><item><title>8.3 Cask 安装问题</title><link>https://before80.github.io/prgms/tools/brew/troubleshooting/8.3-cask-issues/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/troubleshooting/8.3-cask-issues/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/Common-Issues"&gt;https://docs.brew.sh/Common-Issues&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="cask-下载失败"&gt;cask 下载失败&lt;/h2&gt;
+&lt;p&gt;用下面的命令打开 cask 官网，并亲自测试厂商的下载链接：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;brew home &amp;lt;cask&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;如果厂商下载本身也失败：向厂商报告，或检查网络连接；&lt;/li&gt;
+&lt;li&gt;如果厂商发布了不同版本或 URL：提交 cask 更新。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="cask-校验和不匹配"&gt;cask 校验和不匹配&lt;/h2&gt;
+&lt;p&gt;仔细阅读错误，找到下载文件，&lt;strong&gt;只删除那一个缓存文件&lt;/strong&gt;并重试一次：&lt;/p&gt;</description></item></channel></rss>

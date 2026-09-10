@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>3 核心概念 on 编程那些事儿</title><link>https://before80.github.io/prgms/tools/brew/concepts/</link><description>Recent content in 3 核心概念 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Thu, 10 Sep 2026 23:45:18 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/tools/brew/concepts/index.xml" rel="self" type="application/rss+xml"/><item><title>3.1 默认前缀、bottle 与下载缓存</title><link>https://before80.github.io/prgms/tools/brew/concepts/3.1-prefix-bottles-and-defaults/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/concepts/3.1-prefix-bottles-and-defaults/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/FAQ"&gt;https://docs.brew.sh/FAQ&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="为什么必须安装在默认位置"&gt;为什么必须安装在默认位置&lt;/h2&gt;
+&lt;p&gt;Homebrew 为大量 formula 提供了预编译二进制包，也就是 bottle。这些 bottle 只有在安装到默认前缀时才能直接使用；装在别的前缀时，Homebrew 只能从源码构建。源码构建耗时长、容易失败，而且官方不提供支持。默认前缀是：&lt;/p&gt;</description></item><item><title>3.2 keg-only 与链接机制</title><link>https://before80.github.io/prgms/tools/brew/concepts/3.2-keg-only-and-linking/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/concepts/3.2-keg-only-and-linking/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/FAQ"&gt;https://docs.brew.sh/FAQ&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="keg-only-是什么意思"&gt;keg-only 是什么意思&lt;/h2&gt;
+&lt;p&gt;前文提过，brew 通常会把 keg 里的文件符号链接到 prefix（例如把 &lt;code&gt;/opt/homebrew/Cellar/foo/1.0/bin/foo&lt;/code&gt; 链接为 &lt;code&gt;/opt/homebrew/bin/foo&lt;/code&gt;），这样工具才能被直接调用。&lt;/p&gt;</description></item><item><title>3.3 权限模型：为什么 Homebrew 拒绝 sudo</title><link>https://before80.github.io/prgms/tools/brew/concepts/3.3-permissions-and-sudo/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/concepts/3.3-permissions-and-sudo/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/FAQ"&gt;https://docs.brew.sh/FAQ&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="一句话结论"&gt;一句话结论&lt;/h2&gt;
+&lt;p&gt;Homebrew 明确拒绝在 &lt;code&gt;sudo&lt;/code&gt; 下工作。遇到任何“请用 sudo 运行 brew”的教程，都应当警惕。&lt;/p&gt;
+&lt;h2 id="为什么-sudo-是危险的"&gt;为什么 sudo 是危险的&lt;/h2&gt;
+&lt;p&gt;官方 FAQ 的答案很直白：sudo 很危险，而你当初安装 TextMate.app 时并没有 &lt;code&gt;chown root&lt;/code&gt;。意思是：&lt;/p&gt;</description></item><item><title>3.4 Tap 第三方仓库与信任模型</title><link>https://before80.github.io/prgms/tools/brew/concepts/3.4-taps-and-trust/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/concepts/3.4-taps-and-trust/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/Taps"&gt;https://docs.brew.sh/Taps&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/Tap-Trust"&gt;https://docs.brew.sh/Tap-Trust&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="brew-tap-是干什么的"&gt;brew tap 是干什么的&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;brew tap&lt;/code&gt; 用于添加可供 Homebrew 使用的软件来源仓库，仓库中可以包含 formula、cask 和外部命令：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;brew tap &lt;span style="color:#8a93a5;font-style:italic"&gt;# 列出当前已添加的 tap&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;brew tap user/repository &lt;span style="color:#8a93a5;font-style:italic"&gt;# 添加 GitHub 仓库&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;brew tap user/repository &amp;lt;URL&amp;gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# 从任意 Git URL 添加&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;brew untap user/repository &lt;span style="color:#8a93a5;font-style:italic"&gt;# 移除 tap&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;一个参数的形式默认假设仓库在 GitHub 上，并会克隆 &lt;code&gt;https://github.com/&amp;lt;user&amp;gt;/homebrew-&amp;lt;repository&amp;gt;&lt;/code&gt;；两个参数的形式接受 Git 支持的任何 URL。&lt;/p&gt;</description></item></channel></rss>

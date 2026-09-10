@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>7 进阶技巧与脚本查询 on 编程那些事儿</title><link>https://before80.github.io/prgms/tools/brew/advanced/</link><description>Recent content in 7 进阶技巧与脚本查询 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Thu, 10 Sep 2026 23:45:18 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/tools/brew/advanced/index.xml" rel="self" type="application/rss+xml"/><item><title>7.1 实用技巧精选</title><link>https://before80.github.io/prgms/tools/brew/advanced/7.1-practical-tips/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/advanced/7.1-practical-tips/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/Tips-and-Tricks"&gt;https://docs.brew.sh/Tips-and-Tricks&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="安装旧版本-formula"&gt;安装旧版本 formula&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;homebrew/core&lt;/code&gt; 中的部分 formula 以“版本化 formula”形式提供，命名形如 &lt;code&gt;gcc@9&lt;/code&gt;、&lt;code&gt;python@3.11&lt;/code&gt;。先搜索是否存在需要的版本：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;brew search gcc@
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;brew install gcc@9
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;找不到你需要的具体版本时，可参考官方 &lt;a href="https://github.com/Homebrew/brew/blob/master/docs/Locking-installed-formulae-at-specific-versions.md"&gt;Locking installed formulae at specific versions&lt;/a&gt;。请记住 Homebrew 是滚动发布，并不保证任意旧版本都可安装。&lt;/p&gt;</description></item><item><title>7.2 Shell 补全与命令缺失提示</title><link>https://before80.github.io/prgms/tools/brew/advanced/7.2-shell-completion-and-command-not-found/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/advanced/7.2-shell-completion-and-command-not-found/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/Shell-Completion"&gt;https://docs.brew.sh/Shell-Completion&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/Command-Not-Found"&gt;https://docs.brew.sh/Command-Not-Found&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="brew-的-shell-补全"&gt;brew 的 shell 补全&lt;/h2&gt;
+&lt;p&gt;Homebrew 为 Bash、fish 和 zsh 提供 &lt;code&gt;brew&lt;/code&gt; 自身的补全定义，某些 formula 与外部命令还会为自己的命令提供补全。Homebrew 把补全文件存放在 &lt;code&gt;HOMEBREW_PREFIX&lt;/code&gt; 下，系统 shell 默认不会自动搜索该目录，而安装器不会修改每种 shell 的启动配置（因为不同用户的启动文件和插件管理器差异很大）。&lt;/p&gt;</description></item><item><title>7.3 用 JSON 查询与脚本化 brew</title><link>https://before80.github.io/prgms/tools/brew/advanced/7.3-json-and-scripting/</link><pubDate>Wed, 09 Sep 2026 13:39:44 +0800</pubDate><guid>https://before80.github.io/prgms/tools/brew/advanced/7.3-json-and-scripting/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.brew.sh/Querying-Brew"&gt;https://docs.brew.sh/Querying-Brew&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="为什么需要-json-接口"&gt;为什么需要 JSON 接口&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;brew list&lt;/code&gt; 列出已安装 formula，&lt;code&gt;brew deps foo&lt;/code&gt; 显示 foo 的依赖。想获得更丰富、结构化的信息，官方建议使用 &lt;code&gt;brew info&lt;/code&gt; 的 JSON 输出，而不是针对 Homebrew 内部 Ruby 代码编写脚本。外部命令会随 Homebrew 代码重构而变化，而 JSON 输出更稳定。下面的示例统一用 &lt;code&gt;jq&lt;/code&gt; 解析 JSON：&lt;/p&gt;</description></item></channel></rss>
