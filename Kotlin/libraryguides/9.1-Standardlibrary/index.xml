@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>9.1 标准库 on 编程那些事儿</title><link>https://before80.github.io/prgms/Kotlin/libraryguides/9.1-Standardlibrary/</link><description>Recent content in 9.1 标准库 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 13 Sep 2026 18:20:56 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Kotlin/libraryguides/9.1-Standardlibrary/index.xml" rel="self" type="application/rss+xml"/><item><title>9.1.2 读取标准输入</title><link>https://before80.github.io/prgms/Kotlin/libraryguides/9.1-Standardlibrary/9.1.2-ReadStandardInput/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/libraryguides/9.1-Standardlibrary/9.1.2-ReadStandardInput/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/read-standard-input.html"&gt;https://kotlinlang.org/docs/read-standard-input.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="912-读取标准输入"&gt;9.1.2 读取标准输入&lt;/h1&gt;
+&lt;p&gt;使用 &lt;code&gt;readln()&lt;/code&gt; 函数从标准输入读取数据。它会把整行作为字符串读取：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-kotlin" data-lang="kotlin"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 读取用户输入并存入变量。例如：Hi there!
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;val&lt;/span&gt; &lt;span style="color:#cebc3a"&gt;myInput&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;readln&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;println&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;myInput&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// Hi there!
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 读取并打印用户输入，但不把它存入变量。例如：Hi, Kotlin!
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;println&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;readln&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;())&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// Hi, Kotlin!
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;你也可以把多行输入作为一个字符串读取。使用 &lt;a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.sequences/join-to-string.html"&gt;&lt;code&gt;joinToString()&lt;/code&gt;&lt;/a&gt; 函数把这些行组合起来：&lt;/p&gt;</description></item><item><title>9.1.3 选择启用（opt-in）要求</title><link>https://before80.github.io/prgms/Kotlin/libraryguides/9.1-Standardlibrary/9.1.3-OptInRequirements/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/libraryguides/9.1-Standardlibrary/9.1.3-OptInRequirements/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/opt-in-requirements.html"&gt;https://kotlinlang.org/docs/opt-in-requirements.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="913-选择启用opt-in要求"&gt;9.1.3 选择启用（opt-in）要求&lt;/h1&gt;
+&lt;p&gt;Kotlin 标准库提供了一种机制，用于要求并获取使用某些 API 元素的明确同意。这一机制让库作者可以告知用户需要选择启用的特定条件，例如某个 API 处于实验状态、未来可能发生变化。&lt;/p&gt;</description></item><item><title>9.1.4 作用域函数</title><link>https://before80.github.io/prgms/Kotlin/libraryguides/9.1-Standardlibrary/9.1.4-ScopeFunctions/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/libraryguides/9.1-Standardlibrary/9.1.4-ScopeFunctions/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/scope-functions.html"&gt;https://kotlinlang.org/docs/scope-functions.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="914-作用域函数"&gt;9.1.4 作用域函数&lt;/h1&gt;
+&lt;p&gt;Kotlin 标准库中包含若干函数，它们的唯一用途就是在某个对象的上下文中执行一段代码。当你在一个对象上调用这类函数并提供一个 &lt;a href="../../../languageguide/5.7-Functions/5.7.2-Lambdas/"&gt;lambda 表达式&lt;/a&gt;时，它会形成一个临时作用域。在这个作用域中，你无需使用名字就能访问该对象。这类函数称为&lt;em&gt;作用域函数&lt;/em&gt;。共有五个：&lt;a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/let.html"&gt;&lt;code&gt;let&lt;/code&gt;&lt;/a&gt;、&lt;a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/run.html"&gt;&lt;code&gt;run&lt;/code&gt;&lt;/a&gt;、&lt;a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/with.html"&gt;&lt;code&gt;with&lt;/code&gt;&lt;/a&gt;、&lt;a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/apply.html"&gt;&lt;code&gt;apply&lt;/code&gt;&lt;/a&gt; 和 &lt;a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/also.html"&gt;&lt;code&gt;also&lt;/code&gt;&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>9.1.5 时间测量</title><link>https://before80.github.io/prgms/Kotlin/libraryguides/9.1-Standardlibrary/9.1.5-TimeMeasurement/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/libraryguides/9.1-Standardlibrary/9.1.5-TimeMeasurement/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/time-measurement.html"&gt;https://kotlinlang.org/docs/time-measurement.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="915-时间测量"&gt;9.1.5 时间测量&lt;/h1&gt;
+&lt;p&gt;Kotlin 标准库提供了各种工具，让你可以用不同的单位计算和测量时间。精确的时间测量对于以下活动很重要：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;管理线程或进程&lt;/li&gt;
+&lt;li&gt;收集统计信息&lt;/li&gt;
+&lt;li&gt;检测超时&lt;/li&gt;
+&lt;li&gt;调试&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;默认情况下，时间使用单调时间源来测量，但也可以配置其他时间源。更多信息请参阅&lt;a href="#create-time-source"&gt;创建时间源&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>9.1.6 UUID</title><link>https://before80.github.io/prgms/Kotlin/libraryguides/9.1-Standardlibrary/9.1.6-Uuids/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/libraryguides/9.1-Standardlibrary/9.1.6-Uuids/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/uuids.html"&gt;https://kotlinlang.org/docs/uuids.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="916-uuid"&gt;9.1.6 UUID&lt;/h1&gt;
+&lt;p&gt;&lt;a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.uuid/-uuid/"&gt;&lt;code&gt;Uuid&lt;/code&gt;&lt;/a&gt; 类表示通用唯一标识符（UUID），也称为全局唯一标识符（GUID）。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Uuid&lt;/code&gt; 是一个 128 位的值，用于唯一标识某个实体，而无需依赖集中分配 ID 的系统。这让 UUID 在分布式应用、数据库、客户端生成的记录或 &lt;a href="https://kotlinlang.org/docs/multiplatform/get-started.html"&gt;Kotlin Multiplatform&lt;/a&gt; 应用中非常有用。&lt;/p&gt;</description></item></channel></rss>

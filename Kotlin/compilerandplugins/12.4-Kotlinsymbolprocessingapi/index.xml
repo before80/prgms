@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>12.4 Kotlin 符号处理 API on 编程那些事儿</title><link>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/</link><description>Recent content in 12.4 Kotlin 符号处理 API on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 13 Sep 2026 18:20:56 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/index.xml" rel="self" type="application/rss+xml"/><item><title>12.4.1 Kotlin Symbol Processing API</title><link>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.1-KspOverview/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.1-KspOverview/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/ksp-overview.html"&gt;https://kotlinlang.org/docs/ksp-overview.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="1241-kotlin-symbol-processing-api"&gt;12.4.1 Kotlin Symbol Processing API&lt;/h1&gt;
+&lt;p&gt;Kotlin Symbol Processing（KSP）是一个针对 Kotlin 的源码生成框架。借助 KSP API，你可以创建处理器，根据源码中的&lt;a href="../../../languageguide/5.1-Basicsyntax/5.1.4-Annotations/"&gt;注解&lt;/a&gt;生成代码。&lt;/p&gt;
+&lt;p&gt;KSP 的目标是简化轻量级编译器插件的创建。它定义良好的 API 隐藏了编译器的变化，因此你无需花太多精力维护处理器。不过，这种方式也有取舍。例如，基于 KSP 的处理器无法检查表达式或语句，也无法修改源代码。&lt;/p&gt;</description></item><item><title>12.4.2 KSP 快速入门</title><link>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.2-KspQuickstart/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.2-KspQuickstart/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/ksp-quickstart.html"&gt;https://kotlinlang.org/docs/ksp-quickstart.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="1242-ksp-快速入门"&gt;12.4.2 KSP 快速入门&lt;/h1&gt;
+&lt;p&gt;在本指南中，你将学到：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;如何把基于 KSP 的注解处理器添加到项目中。&lt;/li&gt;
+&lt;li&gt;如何使用 KSP API 创建你自己的注解处理器。&lt;/li&gt;
+&lt;li&gt;在哪里找到处理器生成的代码。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="add-a-ksp-based-processor-to-your-project"&gt;在项目中接入基于 KSP 的处理器&lt;/h2&gt;
+&lt;p&gt;要在项目中使用外部处理器，请在你的 &lt;code&gt;build.gradle(.kts)&lt;/code&gt; 文件的 &lt;a href="https://docs.gradle.org/current/userguide/plugins.html#sec:plugins_block"&gt;&lt;code&gt;plugins {}&lt;/code&gt; 块&lt;/a&gt;中添加 KSP。如果该处理器只在某个特定模块中需要，请把它添加到该模块的 &lt;code&gt;build.gradle(.kts)&lt;/code&gt; 文件中：&lt;/p&gt;</description></item><item><title>12.4.3 从 kapt 迁移到 KSP</title><link>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.3-KspKaptMigration/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.3-KspKaptMigration/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/ksp-kapt-migration.html"&gt;https://kotlinlang.org/docs/ksp-kapt-migration.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="1243-从-kapt-迁移到-ksp"&gt;12.4.3 从 kapt 迁移到 KSP&lt;/h1&gt;
+&lt;p&gt;在本指南中，你将学习如何把注解处理器从 &lt;a href="../../12.2-Kotlincompilerplugins/12.2.3-Kapt/"&gt;kapt&lt;/a&gt; 迁移到 &lt;a href="../12.4.1-KspOverview/"&gt;KSP&lt;/a&gt;，从而让项目充分利用 Kotlin 特性并提升构建性能。&lt;/p&gt;
+&lt;p&gt;&lt;a href="../../12.2-Kotlincompilerplugins/12.2.3-Kapt/"&gt;kapt&lt;/a&gt;（Kotlin 注解处理工具）是一个有用的工具，让你可以在 Kotlin 中使用 Java 注解处理器。它的工作方式是把 Kotlin 源代码翻译成 Java &amp;ldquo;桩文件&amp;rdquo;，然后在这些桩文件上运行注解处理器。不过，这个过程开销很大，会显著增加构建时间，并且在翻译过程中会丢失一些 Kotlin 特有的特性。&lt;/p&gt;</description></item><item><title>12.4.4 KSP 示例</title><link>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.4-KspExamples/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.4-KspExamples/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/ksp-examples.html"&gt;https://kotlinlang.org/docs/ksp-examples.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="1244-ksp-示例"&gt;12.4.4 KSP 示例&lt;/h1&gt;
+&lt;h2 id="get-all-member-functions"&gt;获取所有成员函数&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-kotlin" data-lang="kotlin"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fun&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;KSClassDeclaration&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;getDeclaredFunctions&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;():&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Sequence&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;KSFunctionDeclaration&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;declarations&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;filterIsInstance&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;KSFunctionDeclaration&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;&amp;gt;()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="check-whether-a-class-or-function-is-local"&gt;检查类或函数是否为局部声明&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-kotlin" data-lang="kotlin"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fun&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;KSDeclaration&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;isLocal&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;():&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Boolean&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;parentDeclaration&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;!=&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;null&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;parentDeclaration&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;!is&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;KSClassDeclaration&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="find-the-actual-class-or-interface-declaration-that-the-type-alias-points-to"&gt;查找类型别名所指向的实际类或接口声明&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-kotlin" data-lang="kotlin"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fun&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;KSTypeAlias&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;findActualType&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;():&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;KSClassDeclaration&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;val&lt;/span&gt; &lt;span style="color:#cebc3a"&gt;resolvedType&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;this&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;type&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;resolve&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;().&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;declaration&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;return&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;if&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;resolvedType&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;is&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;KSTypeAlias&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;resolvedType&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;findActualType&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;else&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;resolvedType&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;as&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;KSClassDeclaration&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="collect-suppressed-names-in-a-file-annotation"&gt;收集文件注解中被抑制的名称&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-kotlin" data-lang="kotlin"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// @file:kotlin.Suppress(&amp;#34;Example1&amp;#34;, &amp;#34;Example2&amp;#34;)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fun&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;KSFile&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;suppressedNames&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;():&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Sequence&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;String&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;annotations&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;filter&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;it&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;shortName&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;asString&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;==&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;Suppress&amp;#34;&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;&amp;amp;&amp;amp;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;it&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;annotationType&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;resolve&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;().&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;declaration&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;qualifiedName&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;?.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;asString&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;==&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;kotlin.Suppress&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;flatMap&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;it&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;arguments&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;flatMap&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#76a9f9"&gt;it&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#76a9f9"&gt;value&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;as&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Array&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;String&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;&amp;gt;).&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;toList&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>12.4.5 KSP 如何为 Kotlin 代码建模</title><link>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.5-KspAdditionalDetails/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.5-KspAdditionalDetails/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/ksp-additional-details.html"&gt;https://kotlinlang.org/docs/ksp-additional-details.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="1245-ksp-如何为-kotlin-代码建模"&gt;12.4.5 KSP 如何为 Kotlin 代码建模&lt;/h1&gt;
+&lt;p&gt;你可以在 &lt;a href="https://github.com/google/ksp/tree/main/api/src/main/kotlin/com/google/devtools/ksp"&gt;KSP GitHub 仓库&lt;/a&gt;中找到 API 定义。下图概览了 Kotlin 在 KSP 中的&lt;a href="https://github.com/google/ksp/tree/main/api/src/main/kotlin/com/google/devtools/ksp/symbol/"&gt;建模&lt;/a&gt;方式：&lt;/p&gt;
+&lt;p&gt;
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ &lt;img src="https://before80.github.io/prgms/go_docs/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/prgms/images/ksp-class-diagram.svg"
+ alt="类图" data-cur-dir="Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi" data-rg="/prgms/images/ksp-class-diagram.svg" data-rg1="prgms/images/ksp-class-diagram.svg" data-rel="/prgms/images/ksp-class-diagram.svg" data-c4my="/go_docs"
+ 
+ /&gt;
+ 
+ 
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意：&lt;/strong&gt;&lt;a href="https://kotlinlang.org/docs/images/ksp-class-diagram.svg"&gt;查看全尺寸图&lt;/a&gt;。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="type-and-resolution"&gt;类型与解析&lt;/h2&gt;
+&lt;p&gt;解析占用了底层 API 实现的大部分开销。因此类型引用被设计为需要由处理器显式解析（有少数例外）。当引用一个&lt;em&gt;类型&lt;/em&gt;（例如 &lt;code&gt;KSFunctionDeclaration.returnType&lt;/code&gt; 或 &lt;code&gt;KSAnnotation.annotationType&lt;/code&gt;）时，它始终是一个 &lt;code&gt;KSTypeReference&lt;/code&gt;，即带有注解和修饰符的 &lt;code&gt;KSReferenceElement&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>12.4.6 Java 注解处理到 KSP 参考</title><link>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.6-KspReference/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.6-KspReference/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/ksp-reference.html"&gt;https://kotlinlang.org/docs/ksp-reference.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="1246-java-注解处理到-ksp-参考"&gt;12.4.6 Java 注解处理到 KSP 参考&lt;/h1&gt;
+&lt;h2 id="program-elements"&gt;程序元素&lt;/h2&gt;
+&lt;p&gt;| &lt;strong&gt;Java&lt;/strong&gt; | &lt;strong&gt;KSP 中最接近的设施&lt;/strong&gt; | &lt;strong&gt;说明&lt;/strong&gt; |&lt;/p&gt;
+&lt;p&gt;| &lt;code&gt;AnnotationMirror&lt;/code&gt; | &lt;code&gt;KSAnnotation&lt;/code&gt; | |
+| &lt;code&gt;AnnotationValue&lt;/code&gt; | &lt;code&gt;KSValueArguments&lt;/code&gt; | |
+| &lt;code&gt;Element&lt;/code&gt; | &lt;code&gt;KSDeclaration&lt;/code&gt; / &lt;code&gt;KSDeclarationContainer&lt;/code&gt; | |
+| &lt;code&gt;ExecutableElement&lt;/code&gt; | &lt;code&gt;KSFunctionDeclaration&lt;/code&gt; | |
+| &lt;code&gt;PackageElement&lt;/code&gt; | &lt;code&gt;KSFile&lt;/code&gt; | KSP 不把包建模为程序元素 |
+| &lt;code&gt;Parameterizable&lt;/code&gt; | &lt;code&gt;KSDeclaration&lt;/code&gt; | |
+| &lt;code&gt;QualifiedNameable&lt;/code&gt; | &lt;code&gt;KSDeclaration&lt;/code&gt; | |
+| &lt;code&gt;TypeElement&lt;/code&gt; | &lt;code&gt;KSClassDeclaration&lt;/code&gt; | |
+| &lt;code&gt;TypeParameterElement&lt;/code&gt; | &lt;code&gt;KSTypeParameter&lt;/code&gt; | |
+| &lt;code&gt;VariableElement&lt;/code&gt; | &lt;code&gt;KSValueParameter&lt;/code&gt; / &lt;code&gt;KSPropertyDeclaration&lt;/code&gt; | |&lt;/p&gt;</description></item><item><title>12.4.7 增量处理</title><link>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.7-KspIncremental/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.7-KspIncremental/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/ksp-incremental.html"&gt;https://kotlinlang.org/docs/ksp-incremental.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="1247-增量处理"&gt;12.4.7 增量处理&lt;/h1&gt;
+&lt;p&gt;KSP 支持增量处理：只有当某个文件的一个或多个依赖发生变化时，KSP 才会重新处理该文件。这避免了不必要的重新处理，从而缩短编译时间。&lt;/p&gt;</description></item><item><title>12.4.8 多轮处理</title><link>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.8-KspMultiRound/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.8-KspMultiRound/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/ksp-multi-round.html"&gt;https://kotlinlang.org/docs/ksp-multi-round.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="1248-多轮处理"&gt;12.4.8 多轮处理&lt;/h1&gt;
+&lt;p&gt;KSP 支持多轮处理，也就是在多轮中处理文件。每轮处理的输出会作为后续各轮的额外输入。&lt;/p&gt;
+&lt;p&gt;要使用多轮处理，请让 &lt;code&gt;SymbolProcessor.process()&lt;/code&gt; 以 &lt;code&gt;List&amp;lt;KSAnnotated&amp;gt;&lt;/code&gt; 的形式返回被推迟的符号。KSP 会在下一轮处理这些符号。&lt;/p&gt;</description></item><item><title>12.4.9 在 Kotlin Multiplatform 中使用 KSP</title><link>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.9-KspMultiplatform/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.9-KspMultiplatform/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/ksp-multiplatform.html"&gt;https://kotlinlang.org/docs/ksp-multiplatform.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="1249-在-kotlin-multiplatform-中使用-ksp"&gt;12.4.9 在 Kotlin Multiplatform 中使用 KSP&lt;/h1&gt;
+&lt;p&gt;这里你将了解如何在 Kotlin Multiplatform 项目中使用 Kotlin Symbol Processing（KSP）。关于快速上手，请查看&lt;a href="https://github.com/google/ksp/tree/main/examples/multiplatform"&gt;源代码仓库&lt;/a&gt;中一个包含多个目标并使用 KSP 的多平台项目示例。该示例中的处理器会生成项目所使用的 &lt;code&gt;Foo&lt;/code&gt; 类。&lt;/p&gt;</description></item><item><title>12.4.10 从命令行运行 KSP</title><link>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.10-KspCommandLine/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.10-KspCommandLine/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/ksp-command-line.html"&gt;https://kotlinlang.org/docs/ksp-command-line.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="12410-从命令行运行-ksp"&gt;12.4.10 从命令行运行 KSP&lt;/h1&gt;
+&lt;p&gt;大多数项目通过 Gradle 插件使用 KSP，它会在编译期间自动运行 KSP。你也可以从命令行使用 KSP，但通常只在与其他构建系统集成、开发处理器、测试或调试时才会这么做。&lt;/p&gt;</description></item><item><title>12.4.11 KSP 常见问题</title><link>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.11-KspFaq/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/compilerandplugins/12.4-Kotlinsymbolprocessingapi/12.4.11-KspFaq/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/ksp-faq.html"&gt;https://kotlinlang.org/docs/ksp-faq.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="12411-ksp-常见问题"&gt;12.4.11 KSP 常见问题&lt;/h1&gt;
+&lt;h3 id="why-ksp"&gt;为什么选择 KSP？&lt;/h3&gt;
+&lt;p&gt;与 &lt;a href="../../12.2-Kotlincompilerplugins/12.2.3-Kapt/"&gt;kapt&lt;/a&gt; 相比，KSP 有几个优势：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;它更快。&lt;/li&gt;
+&lt;li&gt;对 Kotlin 用户来说 API 更流畅。&lt;/li&gt;
+&lt;li&gt;它支持对生成的 Kotlin 源码进行&lt;a href="../12.4.8-KspMultiRound/"&gt;多轮处理&lt;/a&gt;。&lt;/li&gt;
+&lt;li&gt;它在设计时就考虑了多平台兼容性。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="why-is-ksp-faster-than-kapt"&gt;为什么 KSP 比 kapt 更快？&lt;/h3&gt;
+&lt;p&gt;kapt 必须解析并解析每一个类型引用才能生成 Java 桩文件，而 KSP 按需解析引用。委托给 javac 也会消耗时间。&lt;/p&gt;</description></item></channel></rss>

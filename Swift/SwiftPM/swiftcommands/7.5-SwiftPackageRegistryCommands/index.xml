@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>7.5 swift package-registry on 编程那些事儿</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.5-SwiftPackageRegistryCommands/</link><description>Recent content in 7.5 swift package-registry on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 13 Sep 2026 18:20:56 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.5-SwiftPackageRegistryCommands/index.xml" rel="self" type="application/rss+xml"/><item><title>7.5.1 swift package-registry set</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.5-SwiftPackageRegistryCommands/7.5.1-PackageRegistrySet/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.5-SwiftPackageRegistryCommands/7.5.1-PackageRegistrySet/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageregistryset/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageregistryset/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="751-swift-package-registry-set"&gt;7.5.1 swift package-registry set&lt;/h1&gt;
+&lt;p&gt;设置自定义注册表。&lt;/p&gt;
+&lt;h2 id="Overview"&gt;概述&lt;/h2&gt;
+&lt;p&gt;用这个子命令在项目级或用户级分配注册表。&lt;/p&gt;
+&lt;h3 id="Project-level"&gt;项目级&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ swift package-registry &lt;span style="color:#e5c07b"&gt;set&lt;/span&gt; https://packages.example.com 
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;在项目级，包管理器会为项目内的包使用该注册表，注册表设置保存在 &lt;code&gt;.swiftpm/configuration/registries.json&lt;/code&gt; 中。&lt;/p&gt;</description></item><item><title>7.5.2 swift package-registry unset</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.5-SwiftPackageRegistryCommands/7.5.2-PackageRegistryUnset/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.5-SwiftPackageRegistryCommands/7.5.2-PackageRegistryUnset/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageregistryunset/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageregistryunset/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="752-swift-package-registry-unset"&gt;7.5.2 swift package-registry unset&lt;/h1&gt;
+&lt;p&gt;移除已配置的注册表。&lt;/p&gt;
+&lt;h3 id="Usage"&gt;用法&lt;/h3&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package-registry unset [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--global] [--scope=&amp;lt;scope&amp;gt;]
+ [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.5.3 swift package-registry login</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.5-SwiftPackageRegistryCommands/7.5.3-PackageRegistryLogin/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.5-SwiftPackageRegistryCommands/7.5.3-PackageRegistryLogin/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageregistrylogin/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageregistrylogin/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="753-swift-package-registry-login"&gt;7.5.3 swift package-registry login&lt;/h1&gt;
+&lt;p&gt;登录注册表。&lt;/p&gt;
+&lt;h2 id="Overview"&gt;概述&lt;/h2&gt;
+&lt;p&gt;包管理器使用注册表服务的登录 API 验证凭据。如果返回成功响应，凭据会被保存到操作系统的凭据存储（例如 macOS 的钥匙串）。在非 macOS 平台上，或者提供了 &lt;code&gt;--netrc&lt;/code&gt; 标志时，凭据会被保存到用户级 .netrc（默认位于 &lt;code&gt;~/.netrc&lt;/code&gt;）。位于 ~/.swiftpm/configuration/registries.json 的用户级配置文件也会被更新。&lt;/p&gt;</description></item><item><title>7.5.4 swift package-registry publish</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.5-SwiftPackageRegistryCommands/7.5.4-PackageRegistryPublish/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.5-SwiftPackageRegistryCommands/7.5.4-PackageRegistryPublish/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageregistrypublish/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageregistrypublish/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="754-swift-package-registry-publish"&gt;7.5.4 swift package-registry publish&lt;/h1&gt;
+&lt;p&gt;发布到注册表。&lt;/p&gt;
+&lt;h2 id="Overview"&gt;概述&lt;/h2&gt;
+&lt;p&gt;这个命令会为包发布创建源代码归档，可选择对它签名，最后把&lt;a href="../../../design/8.1-RegistryServerSpecification/#4.6.-Create-a-package-release"&gt;包发布发布&lt;/a&gt;到注册表。&lt;/p&gt;
+&lt;p&gt;如果包发布需要认证，包作者应当在运行 &lt;code&gt;publish&lt;/code&gt; 之前&lt;a href="../../../dependencies/3.2-UsingSwiftPackageRegistry/#Registry-authentication"&gt;配置注册表登录&lt;/a&gt;。&lt;/p&gt;
+&lt;h3 id="Publisher-TOFU"&gt;发布者 TOFU&lt;/h3&gt;
+&lt;p&gt;有些证书允许包管理器提取关于签名身份的额外信息。对于用这些证书签名的包，包管理器会执行发布者 TOFU（首次使用即信任），以确保该包的所有版本签名者保持一致。&lt;/p&gt;</description></item><item><title>7.5.5 swift package-registry logout</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.5-SwiftPackageRegistryCommands/7.5.5-PackageRegistryLogout/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.5-SwiftPackageRegistryCommands/7.5.5-PackageRegistryLogout/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageregistrylogout/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageregistrylogout/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="755-swift-package-registry-logout"&gt;7.5.5 swift package-registry logout&lt;/h1&gt;
+&lt;p&gt;从注册表登出。&lt;/p&gt;
+&lt;h2 id="Overview"&gt;概述&lt;/h2&gt;
+&lt;p&gt;如果支持，包管理器会从操作系统的凭据存储中移除凭据，并更新用户级配置文件（&lt;code&gt;registries.json&lt;/code&gt;）。&lt;/p&gt;
+&lt;p&gt;为避免意外移除敏感数据，&lt;code&gt;netrc&lt;/code&gt; 文件需要由用户手动更新。&lt;/p&gt;</description></item></channel></rss>

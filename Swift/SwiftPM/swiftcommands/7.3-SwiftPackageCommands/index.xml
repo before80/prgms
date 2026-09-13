@@ -1,0 +1,1781 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>7.3 swift package on 编程那些事儿</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/</link><description>Recent content in 7.3 swift package on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 13 Sep 2026 18:20:56 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/index.xml" rel="self" type="application/rss+xml"/><item><title>7.3.1 swift package init</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.1-PackageInit/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.1-PackageInit/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageinit/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageinit/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="731-swift-package-init"&gt;7.3.1 swift package init&lt;/h1&gt;
+&lt;p&gt;初始化一个新包。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package init [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--type=&amp;lt;type&amp;gt;] [--enable-xctest]
+ [--disable-xctest] [--enable-swift-testing]
+ [--disable-swift-testing] [--name=&amp;lt;name&amp;gt;] [--version]
+ [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.2 swift package update</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.2-PackageUpdate/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.2-PackageUpdate/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageupdate/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageupdate/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="732-swift-package-update"&gt;7.3.2 swift package update&lt;/h1&gt;
+&lt;p&gt;更新包依赖。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package update [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--dry-run] [&amp;lt;packages&amp;gt;...]
+ [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.3 swift package resolve</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.3-PackageResolve/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.3-PackageResolve/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageresolve/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageresolve/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="733-swift-package-resolve"&gt;7.3.3 swift package resolve&lt;/h1&gt;
+&lt;p&gt;解析包依赖。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package resolve [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] --version=&amp;lt;version&amp;gt;
+ [--branch=&amp;lt;branch&amp;gt;] [--revision=&amp;lt;revision&amp;gt;]
+ [&amp;lt;package-name&amp;gt;] [--traits=&amp;lt;traits&amp;gt;] [--enable-all-traits]
+ [--disable-default-traits] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.4 swift package add-dependency</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.4-PackageAddDependency/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.4-PackageAddDependency/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageadddependency/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageadddependency/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="734-swift-package-add-dependency"&gt;7.3.4 swift package add-dependency&lt;/h1&gt;
+&lt;p&gt;向清单中添加一个包依赖。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package add-dependency &amp;lt;dependency&amp;gt;
+ [--package-path=&amp;lt;package-path&amp;gt;] [--cache-path=&amp;lt;cache-path&amp;gt;]
+ [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--exact=&amp;lt;exact&amp;gt;]
+ [--revision=&amp;lt;revision&amp;gt;] [--branch=&amp;lt;branch&amp;gt;] [--from=&amp;lt;from&amp;gt;]
+ [--up-to-next-minor-from=&amp;lt;up-to-next-minor-from&amp;gt;]
+ [--to=&amp;lt;to&amp;gt;] [--type=&amp;lt;type&amp;gt;] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;dependency&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;要添加的包的 URL 或目录。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.5 swift package add-product</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.5-PackageAddProduct/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.5-PackageAddProduct/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageaddproduct/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageaddproduct/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="735-swift-package-add-product"&gt;7.3.5 swift package add-product&lt;/h1&gt;
+&lt;p&gt;向清单中添加一个新产品。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package add-product [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] &amp;lt;name&amp;gt; [--type=&amp;lt;type&amp;gt;]
+ [--targets=&amp;lt;targets&amp;gt;...] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.6 swift package add-target</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.6-PackageAddTarget/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.6-PackageAddTarget/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageaddtarget/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageaddtarget/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="736-swift-package-add-target"&gt;7.3.6 swift package add-target&lt;/h1&gt;
+&lt;p&gt;向清单中添加一个新目标。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package add-target [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] &amp;lt;name&amp;gt; [--type=&amp;lt;type&amp;gt;]
+ [--dependencies=&amp;lt;dependencies&amp;gt;...] [--url=&amp;lt;url&amp;gt;]
+ [--path=&amp;lt;path&amp;gt;] [--checksum=&amp;lt;checksum&amp;gt;]
+ [--testing-library=&amp;lt;testing-library&amp;gt;] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.7 swift package add-target-dependency</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.7-PackageAddTargetDependency/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.7-PackageAddTargetDependency/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageaddtargetdependency/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageaddtargetdependency/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="737-swift-package-add-target-dependency"&gt;7.3.7 swift package add-target-dependency&lt;/h1&gt;
+&lt;p&gt;向清单中添加一个新的目标依赖。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package add-target-dependency [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] &amp;lt;dependency-name&amp;gt; &amp;lt;target-name&amp;gt;
+ [--package=&amp;lt;package&amp;gt;] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.8 swift package add-setting</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.8-PackageAddSetting/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.8-PackageAddSetting/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageaddsetting/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageaddsetting/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="738-swift-package-add-setting"&gt;7.3.8 swift package add-setting&lt;/h1&gt;
+&lt;p&gt;向清单中添加一个新设置。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package add-setting [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] --target=&amp;lt;target&amp;gt;
+ --swift=&amp;lt;swift&amp;gt;... [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.9 swift package edit</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.9-PackageEdit/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.9-PackageEdit/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageedit/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageedit/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="739-swift-package-edit"&gt;7.3.9 swift package edit&lt;/h1&gt;
+&lt;p&gt;让包进入可编辑模式。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package edit [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--revision=&amp;lt;revision&amp;gt;]
+ [--branch=&amp;lt;branch&amp;gt;] [--path=&amp;lt;path&amp;gt;] &amp;lt;package-identity&amp;gt;
+ [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.10 swift package unedit</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.10-PackageUnedit/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.10-PackageUnedit/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageunedit/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageunedit/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7310-swift-package-unedit"&gt;7.3.10 swift package unedit&lt;/h1&gt;
+&lt;p&gt;让包退出可编辑模式。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package unedit [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--force] &amp;lt;package-identity&amp;gt;
+ [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.11 swift package migrate</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.11-PackageMigrate/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.11-PackageMigrate/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagemigrate/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagemigrate/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7311-swift-package-migrate"&gt;7.3.11 swift package migrate&lt;/h1&gt;
+&lt;p&gt;把包或其各个目标迁移到使用给定的特性集合。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package migrate [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--target=&amp;lt;target&amp;gt;]
+ --to-feature=&amp;lt;to-feature&amp;gt; [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.12 swift package plugin</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.12-PackagePlugin/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.12-PackagePlugin/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageplugin/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageplugin/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7312-swift-package-plugin"&gt;7.3.12 swift package plugin&lt;/h1&gt;
+&lt;p&gt;调用命令插件，或者对命令插件执行其他操作。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package plugin [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--list]
+ [--allow-writing-to-package-directory]
+ [--allow-writing-to-directory=&amp;lt;allow-writing-to-directory&amp;gt;...]
+ [--allow-network-connections=&amp;lt;allow-network-connections&amp;gt;]
+ [--package=&amp;lt;package&amp;gt;] [&amp;lt;command&amp;gt;] [&amp;lt;arguments&amp;gt;...]
+ [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.13 swift package diagnose-api-breaking-changes</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.13-PackageDiagnoseAPIBreakingChange/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.13-PackageDiagnoseAPIBreakingChange/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagediagnoseapibreakingchange/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagediagnoseapibreakingchange/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7313-swift-package-diagnose-api-breaking-changes"&gt;7.3.13 swift package diagnose-api-breaking-changes&lt;/h1&gt;
+&lt;p&gt;诊断包中各 Swift 模块的破坏性 API 变更。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package diagnose-api-breaking-changes
+ [--package-path=&amp;lt;package-path&amp;gt;] [--cache-path=&amp;lt;cache-path&amp;gt;]
+ [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath]
+ [--breakage-allowlist-path=&amp;lt;breakage-allowlist-path&amp;gt;]
+ &amp;lt;treeish&amp;gt; [--products=&amp;lt;products&amp;gt;...]
+ [--targets=&amp;lt;targets&amp;gt;...] [--traits=&amp;lt;traits&amp;gt;]
+ [--enable-all-traits] [--disable-default-traits]
+ [--baseline-dir=&amp;lt;baseline-dir&amp;gt;] [--regenerate-baseline]
+ [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;diagnose-api-breaking-changes 命令可以把包的 Swift API 与某个基准修订版本进行比较，诊断出其中引入的任何破坏性变更。默认情况下，它会比较基准修订版本中属于某个库产品的每一个 Swift 模块。对于目标很多的包，这种行为可能并不理想，因为比较可能很慢。可以用 &lt;code&gt;--products&lt;/code&gt; 和 &lt;code&gt;--targets&lt;/code&gt; 选项来限制比较范围。&lt;/p&gt;</description></item><item><title>7.3.14 swift package describe</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.14-PackageDescribe/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.14-PackageDescribe/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagedescribe/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagedescribe/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7314-swift-package-describe"&gt;7.3.14 swift package describe&lt;/h1&gt;
+&lt;p&gt;描述当前包。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package describe [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--type=&amp;lt;type&amp;gt;] [--version]
+ [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.15 swift package show-dependencies</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.15-PackageShowDependencies/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.15-PackageShowDependencies/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageshowdependencies/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageshowdependencies/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7315-swift-package-show-dependencies"&gt;7.3.15 swift package show-dependencies&lt;/h1&gt;
+&lt;p&gt;打印已解析的依赖图。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package show-dependencies [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--format=&amp;lt;format&amp;gt;]
+ [--output-path=&amp;lt;output-path&amp;gt;] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.16 swift package show-executables</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.16-PackageShowExecutables/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.16-PackageShowExecutables/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageshowexecutables/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageshowexecutables/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7316-swift-package-show-executables"&gt;7.3.16 swift package show-executables&lt;/h1&gt;
+&lt;p&gt;列出该包中可用的可执行文件。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package show-executables [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--format=&amp;lt;format&amp;gt;] [--version]
+ [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.17 swift package show-traits</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.17-PackageShowTraits/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.17-PackageShowTraits/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageshowtraits/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageshowtraits/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7317-swift-package-show-traits"&gt;7.3.17 swift package show-traits&lt;/h1&gt;
+&lt;p&gt;列出某个包可用的特性。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package show-traits [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--format=&amp;lt;format&amp;gt;] [--package-id=&amp;lt;packageId&amp;gt;] [--version]
+ [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.18 swift package tools-version</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.18-PackageToolsVersion/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.18-PackageToolsVersion/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagetoolsversion/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagetoolsversion/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7318-swift-package-tools-version"&gt;7.3.18 swift package tools-version&lt;/h1&gt;
+&lt;p&gt;操作当前包的工具版本。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package tools-version [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--set-current] [--set=&amp;lt;set&amp;gt;]
+ [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.19 swift package dump-package</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.19-PackageDumpPackage/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.19-PackageDumpPackage/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagedumppackage/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagedumppackage/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7319-swift-package-dump-package"&gt;7.3.19 swift package dump-package&lt;/h1&gt;
+&lt;p&gt;把解析后的 Package.swift 以 JSON 打印出来。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package dump-package [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.20 swift package dump-symbol-graph</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.20-PackageDumpSymbolGraph/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.20-PackageDumpSymbolGraph/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagedumpsymbolgraph/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagedumpsymbolgraph/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7320-swift-package-dump-symbol-graph"&gt;7.3.20 swift package dump-symbol-graph&lt;/h1&gt;
+&lt;p&gt;导出符号图。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package dump-symbol-graph [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--pretty-print]
+ [--skip-synthesized-members]
+ [--minimum-access-level=&amp;lt;minimum-access-level&amp;gt;]
+ [--skip-inherited-docs] [--include-spi-symbols]
+ [--emit-extension-block-symbols]
+ [--omit-extension-block-symbols] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.21 swift package clean</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.21-PackageClean/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.21-PackageClean/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageclean/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageclean/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7321-swift-package-clean"&gt;7.3.21 swift package clean&lt;/h1&gt;
+&lt;p&gt;删除构建产物。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package clean [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.22 swift package reset</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.22-PackageReset/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.22-PackageReset/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagereset/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagereset/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7322-swift-package-reset"&gt;7.3.22 swift package reset&lt;/h1&gt;
+&lt;p&gt;重置整个缓存/构建目录。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package reset [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.23 swift package purge-cache</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.23-PackagePurgeCache/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.23-PackagePurgeCache/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagepurgecache/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagepurgecache/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7323-swift-package-purge-cache"&gt;7.3.23 swift package purge-cache&lt;/h1&gt;
+&lt;p&gt;清空全局仓库缓存。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package purge-cache [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.24 swift package archive-source</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.24-PackageArchiveSource/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.24-PackageArchiveSource/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagearchivesource/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagearchivesource/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7324-swift-package-archive-source"&gt;7.3.24 swift package archive-source&lt;/h1&gt;
+&lt;p&gt;为包创建源代码归档。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package archive-source [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--output=&amp;lt;output&amp;gt;] [--version]
+ [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.25 swift package compute-checksum</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.25-PackageComputeChecksum/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.25-PackageComputeChecksum/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagecomputechecksum/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagecomputechecksum/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7325-swift-package-compute-checksum"&gt;7.3.25 swift package compute-checksum&lt;/h1&gt;
+&lt;p&gt;计算二进制产物的校验和。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package compute-checksum [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] &amp;lt;path&amp;gt; [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.26 swift package completion-tool</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.26-PackageCompletionTool/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.26-PackageCompletionTool/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagecompletiontool/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagecompletiontool/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7326-swift-package-completion-tool"&gt;7.3.26 swift package completion-tool&lt;/h1&gt;
+&lt;p&gt;用于生成 shell 补全脚本的命令。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package completion-tool [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] &amp;lt;mode&amp;gt; [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.27 swift package config set-mirror</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.27-PackageConfigSetMirror/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.27-PackageConfigSetMirror/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageconfigsetmirror/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageconfigsetmirror/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7327-swift-package-config-set-mirror"&gt;7.3.27 swift package config set-mirror&lt;/h1&gt;
+&lt;p&gt;为某个依赖设置镜像。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package config set-mirror [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--original=&amp;lt;original&amp;gt;]
+ [--mirror=&amp;lt;mirror&amp;gt;] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.28 swift package config unset-mirror</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.28-PackageConfigUnsetMirror/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.28-PackageConfigUnsetMirror/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageconfigunsetmirror/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageconfigunsetmirror/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7328-swift-package-config-unset-mirror"&gt;7.3.28 swift package config unset-mirror&lt;/h1&gt;
+&lt;p&gt;移除已有的镜像。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package config unset-mirror [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--original=&amp;lt;original&amp;gt;]
+ [--mirror=&amp;lt;mirror&amp;gt;] [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.29 swift package config get-mirror</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.29-PackageConfigGetMirror/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.29-PackageConfigGetMirror/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageconfiggetmirror/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageconfiggetmirror/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7329-swift-package-config-get-mirror"&gt;7.3.29 swift package config get-mirror&lt;/h1&gt;
+&lt;p&gt;打印给定包依赖的镜像配置。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package config get-mirror [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--original=&amp;lt;original&amp;gt;] [--version]
+ [--help]```
+
+- term **--package-path=\&amp;lt;package-path\&amp;gt;**:
+
+*Specify the package path to operate on (default current directory). This changes the working directory before any other operation.*
+
+- term **--cache-path=\&amp;lt;cache-path\&amp;gt;**:
+
+*Specify the shared cache directory path.*
+
+- term **--config-path=\&amp;lt;config-path\&amp;gt;**:
+
+*Specify the shared configuration directory path.*
+
+- term **--security-path=\&amp;lt;security-path\&amp;gt;**:
+
+*Specify the shared security directory path.*
+
+- term **--scratch-path=\&amp;lt;scratch-path\&amp;gt;**:
+
+*Specify a custom scratch directory path. (default .build)*
+
+- term **--swift-sdks-path=\&amp;lt;swift-sdks-path\&amp;gt;**:
+
+*Path to the directory containing installed Swift SDKs.*
+
+- term **--toolset=\&amp;lt;toolset\&amp;gt;**:
+
+*Specify a toolset JSON file to use when building for the target platform. Use the option multiple times to specify more than one toolset. Toolsets will be merged in the order they&amp;#39;re specified into a single final toolset for the current build.*
+
+- term **--pkg-config-path=\&amp;lt;pkg-config-path\&amp;gt;**:
+
+*Specify alternative path to search for pkg-config `.pc` files. Use the option multiple times to
+specify more than one path.*
+
+- term **--enable-dependency-cache|disable-dependency-cache**:
+
+*Use a shared cache when fetching dependencies.*
+
+- term **--enable-build-manifest-caching|disable-build-manifest-caching**:
+
+- term **--manifest-cache=\&amp;lt;manifest-cache\&amp;gt;**:
+
+*Caching mode of Package.swift manifests. Valid values are: (shared: shared cache, local: package&amp;#39;s build directory, none: disabled)*
+
+- term **--enable-experimental-prebuilts|disable-experimental-prebuilts**:
+
+*Whether to use prebuilt swift-syntax libraries for macros.*
+
+- term **--verbose**:
+
+*Increase verbosity to include informational output.*
+
+- term **--very-verbose|vv**:
+
+*Increase verbosity to include debug output.*
+
+- term **--quiet**:
+
+*Decrease verbosity to only include error output.*
+
+- term **--color-diagnostics|no-color-diagnostics**:
+
+*Enables or disables color diagnostics when printing to a TTY. 
+By default, color diagnostics are enabled when connected to a TTY and disabled otherwise.*
+
+- term **--disable-sandbox**:
+
+*Disable using the sandbox when executing subprocesses.*
+
+- term **--netrc**:
+
+*Use netrc file even in cases where other credential stores are preferred.*
+
+- term **--enable-netrc|disable-netrc**:
+
+*Load credentials from a netrc file.*
+
+- term **--netrc-file=\&amp;lt;netrc-file\&amp;gt;**:
+
+*Specify the netrc file path.*
+
+- term **--enable-keychain|disable-keychain**:
+
+*Search credentials in macOS keychain.*
+
+- term **--resolver-fingerprint-checking=\&amp;lt;resolver-fingerprint-checking\&amp;gt;**:
+
+- term **--resolver-signing-entity-checking=\&amp;lt;resolver-signing-entity-checking\&amp;gt;**:
+
+- term **--enable-signature-validation|disable-signature-validation**:
+
+*Validate signature of a signed package release downloaded from registry.*
+
+- term **--enable-prefetching|disable-prefetching**:
+
+- term **--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file**:
+
+*Only use versions from the Package.resolved file and fail resolution if it is out-of-date.*
+
+- term **--skip-update**:
+
+*Skip updating dependencies from their remote during a resolution.*
+
+- term **--disable-scm-to-registry-transformation**:
+
+*Disable source control to registry transformation.*
+
+- term **--use-registry-identity-for-scm**:
+
+*Look up source control dependencies in the registry and use their registry identity when possible to help deduplicate across the two origins.*
+
+- term **--replace-scm-with-registry**:
+
+*Look up source control dependencies in the registry and use the registry to retrieve them instead of source control when possible.*
+
+- term **--default-registry-url=\&amp;lt;default-registry-url\&amp;gt;**:
+
+*Default registry URL to use, instead of the registries.json configuration file.*
+
+- term **--configuration=\&amp;lt;configuration\&amp;gt;**:
+
+*Build with configuration*
+
+- term **--=\&amp;lt;Xcc\&amp;gt;**:
+
+*Pass flag through to all C compiler invocations.*
+
+- term **--=\&amp;lt;Xswiftc\&amp;gt;**:
+
+*Pass flag through to all Swift compiler invocations.*
+
+- term **--=\&amp;lt;Xlinker\&amp;gt;**:
+
+*Pass flag through to all linker invocations.*
+
+- term **--=\&amp;lt;Xcxx\&amp;gt;**:
+
+*Pass flag through to all C++ compiler invocations.*
+
+- term **--triple=\&amp;lt;triple\&amp;gt;**:
+
+- term **--sdk=\&amp;lt;sdk\&amp;gt;**:
+
+- term **--toolchain=\&amp;lt;toolchain\&amp;gt;**:
+
+- term **--swift-sdk=\&amp;lt;swift-sdk\&amp;gt;**:
+
+*Filter for selecting a specific Swift SDK to build with.*
+
+- term **--sanitize=\&amp;lt;sanitize\&amp;gt;**:
+
+*Turn on runtime checks for erroneous behavior, possible values: address, thread, undefined, scudo.*
+
+- term **--auto-index-store|enable-index-store|disable-index-store**:
+
+*Enable or disable indexing-while-building feature.*
+
+- term **--enable-parseable-module-interfaces**:
+
+- term **--jobs=\&amp;lt;jobs\&amp;gt;**:
+
+*The number of jobs to spawn in parallel during the build process.*
+
+- term **--use-integrated-swift-driver**:
+
+- term **--explicit-target-dependency-import-check=\&amp;lt;explicit-target-dependency-import-check\&amp;gt;**:
+
+*A flag that indicates this build should check whether targets only import their explicitly-declared dependencies.*
+
+- term **--build-system=\&amp;lt;build-system\&amp;gt;**:
+
+- term **--=\&amp;lt;debug-info-format\&amp;gt;**:
+
+*The Debug Information Format to use.*
+
+- term **--enable-dead-strip|disable-dead-strip**:
+
+*Disable/enable dead code stripping by the linker.*
+
+- term **--disable-local-rpath**:
+
+*Disable adding $ORIGIN/@loader_path to the rpath by default.*
+
+- term **--original=\&amp;lt;original\&amp;gt;**:
+
+*The original url or identity.*
+
+- term **--version**:
+
+*Show the version.*
+
+- term **--help**:
+
+*Show help information.*
+&lt;/code&gt;&lt;/pre&gt;</description></item><item><title>7.3.30 swift.package.generate-sbom</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.30-PackageGenerateSBOM/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.30-PackageGenerateSBOM/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagegeneratesbom/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagegeneratesbom/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7330-swiftpackagegenerate-sbom"&gt;7.3.30 swift.package.generate-sbom&lt;/h1&gt;
+&lt;p&gt;生成软件物料清单（SBOM）。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package generate-sbom [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching] [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts] [--disable-experimental-prebuilts]
+ [--verbose] [--very-verbose|vv] [--quiet] [--color-diagnostics] [--no-color-diagnostics]
+ [--disable-sandbox]
+ [--netrc] [--enable-netrc] [--disable-netrc] [--netrc-file=&amp;lt;netrc-file&amp;gt;]
+ [--enable-keychain] [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation] [--disable-signature-validation]
+ [--enable-prefetching] [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update]
+ [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;]
+ [--=&amp;lt;Xcc&amp;gt;...] [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;]
+ [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;]
+ [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store] [--disable-index-store]
+ [--enable-parseable-module-interfaces]
+ [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;]
+ [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath]
+ [--traits=&amp;lt;traits&amp;gt;] [--enable-all-traits] [--disable-default-traits]
+ [--product=&amp;lt;product&amp;gt;]
+ [--sbom-spec=&amp;lt;sbom-spec&amp;gt;...]
+ [--sbom-output-dir=&amp;lt;sbom-output-dir&amp;gt;]
+ [--sbom-filter=&amp;lt;sbom-filter&amp;gt;]
+ [--sbom-warning-only]
+ [--version]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.31 swift package experimental-install</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.31-PackageExperimentalInstall/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.31-PackageExperimentalInstall/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageexperimentalinstall/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageexperimentalinstall/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7331-swift-package-experimental-install"&gt;7.3.31 swift package experimental-install&lt;/h1&gt;
+&lt;p&gt;提供安装当前包的可执行产品的能力。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package experimental-install [--package-path=&amp;lt;package-path&amp;gt;]
+ [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] [--product=&amp;lt;product&amp;gt;] [--version]
+ [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.32 swift package experimental-uninstall</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.32-PackageExperimentalUninstall/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.32-PackageExperimentalUninstall/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageexperimentaluninstall/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageexperimentaluninstall/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="7332-swift-package-experimental-uninstall"&gt;7.3.32 swift package experimental-uninstall&lt;/h1&gt;
+&lt;p&gt;提供卸载此前由 &lt;code&gt;swift package experimental-install&lt;/code&gt; 安装的可执行产品的能力。&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;package experimental-uninstall
+ [--package-path=&amp;lt;package-path&amp;gt;] [--cache-path=&amp;lt;cache-path&amp;gt;]
+ [--config-path=&amp;lt;config-path&amp;gt;]
+ [--security-path=&amp;lt;security-path&amp;gt;]
+ [--scratch-path=&amp;lt;scratch-path&amp;gt;]
+ [--swift-sdks-path=&amp;lt;swift-sdks-path&amp;gt;]
+ [--toolset=&amp;lt;toolset&amp;gt;...]
+ [--pkg-config-path=&amp;lt;pkg-config-path&amp;gt;...]
+ [--enable-dependency-cache] [--disable-dependency-cache]
+ [--enable-build-manifest-caching]
+ [--disable-build-manifest-caching]
+ [--manifest-cache=&amp;lt;manifest-cache&amp;gt;]
+ [--enable-experimental-prebuilts]
+ [--disable-experimental-prebuilts] [--verbose]
+ [--very-verbose|vv] [--quiet] [--color-diagnostics]
+ [--no-color-diagnostics] [--disable-sandbox] [--netrc]
+ [--enable-netrc] [--disable-netrc]
+ [--netrc-file=&amp;lt;netrc-file&amp;gt;] [--enable-keychain]
+ [--disable-keychain]
+ [--resolver-fingerprint-checking=&amp;lt;resolver-fingerprint-checking&amp;gt;]
+ [--resolver-signing-entity-checking=&amp;lt;resolver-signing-entity-checking&amp;gt;]
+ [--enable-signature-validation]
+ [--disable-signature-validation] [--enable-prefetching]
+ [--disable-prefetching]
+ [--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file]
+ [--skip-update] [--disable-scm-to-registry-transformation]
+ [--use-registry-identity-for-scm]
+ [--replace-scm-with-registry]
+ [--default-registry-url=&amp;lt;default-registry-url&amp;gt;]
+ [--configuration=&amp;lt;configuration&amp;gt;] [--=&amp;lt;Xcc&amp;gt;...]
+ [--=&amp;lt;Xswiftc&amp;gt;...] [--=&amp;lt;Xlinker&amp;gt;...] [--=&amp;lt;Xcxx&amp;gt;...]
+ [--triple=&amp;lt;triple&amp;gt;] [--sdk=&amp;lt;sdk&amp;gt;] [--toolchain=&amp;lt;toolchain&amp;gt;]
+ [--swift-sdk=&amp;lt;swift-sdk&amp;gt;] [--sanitize=&amp;lt;sanitize&amp;gt;...]
+ [--auto-index-store] [--enable-index-store]
+ [--disable-index-store]
+ [--enable-parseable-module-interfaces] [--jobs=&amp;lt;jobs&amp;gt;]
+ [--use-integrated-swift-driver]
+ [--explicit-target-dependency-import-check=&amp;lt;explicit-target-dependency-import-check&amp;gt;]
+ [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
+ [--enable-dead-strip] [--disable-dead-strip]
+ [--disable-local-rpath] &amp;lt;name&amp;gt; [--version] [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item></channel></rss>

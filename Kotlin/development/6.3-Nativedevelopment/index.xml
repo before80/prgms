@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>6.3 Native 开发 on 编程那些事儿</title><link>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/</link><description>Recent content in 6.3 Native 开发 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 13 Sep 2026 18:20:56 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/index.xml" rel="self" type="application/rss+xml"/><item><title>6.3.1 Kotlin/Native</title><link>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.1-NativeOverview/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.1-NativeOverview/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/native-overview.html"&gt;https://kotlinlang.org/docs/native-overview.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="631-kotlinnative"&gt;6.3.1 Kotlin/Native&lt;/h1&gt;
+&lt;p&gt;Kotlin/Native 是一种把 Kotlin 代码编译为无需虚拟机即可运行的原生二进制的技术。Kotlin/Native 包含基于 &lt;a href="https://llvm.org/"&gt;LLVM&lt;/a&gt; 的 Kotlin 编译器后端，以及 Kotlin 标准库的原生实现。&lt;/p&gt;</description></item><item><title>6.3.2 Kotlin/Native 入门</title><link>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.2-NativeGetStarted/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.2-NativeGetStarted/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/native-get-started.html"&gt;https://kotlinlang.org/docs/native-get-started.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="632-kotlinnative-入门"&gt;6.3.2 Kotlin/Native 入门&lt;/h1&gt;
+&lt;p&gt;在本教程中，你将学习如何创建 Kotlin/Native 应用。请选择最适合你的工具，并通过以下方式创建应用：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="#in-ide"&gt;IDE&lt;/a&gt;&lt;/strong&gt;。在这里，你可以从版本控制系统克隆项目模板并在 IntelliJ IDEA 中使用它。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="#using-gradle"&gt;Gradle 构建系统&lt;/a&gt;&lt;/strong&gt;。为更好地理解底层工作原理，你可以手动为项目创建构建文件。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href="#using-the-command-line-compiler"&gt;命令行工具&lt;/a&gt;&lt;/strong&gt;。你可以使用随标准 Kotlin 发行版一起提供的 Kotlin/Native 编译器，直接在命令行工具中创建应用。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;控制台编译看起来简单直接，但对于包含数百个文件和库的较大项目，它的扩展性不好。对于这类项目，我们建议使用 IDE 或构建系统。&lt;/p&gt;</description></item><item><title>6.3.3 Kotlin/Native 库</title><link>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.3-NativeLibraries/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.3-NativeLibraries/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/native-libraries.html"&gt;https://kotlinlang.org/docs/native-libraries.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="633-kotlinnative-库"&gt;6.3.3 Kotlin/Native 库&lt;/h1&gt;
+&lt;h2 id="library-compilation"&gt;库的编译&lt;/h2&gt;
+&lt;p&gt;你可以使用项目的构建文件或 Kotlin/Native 编译器为你的库生成 &lt;code&gt;*.klib&lt;/code&gt; 产物。&lt;/p&gt;
+&lt;h3 id="using-gradle-build-file"&gt;使用 Gradle 构建文件&lt;/h3&gt;
+&lt;p&gt;你可以在 Gradle 构建文件中指定一个 &lt;a href="../6.3.8-NativeTargetSupport/"&gt;Kotlin/Native 目标&lt;/a&gt;来编译 &lt;code&gt;*.klib&lt;/code&gt; 库产物：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;在你的 &lt;code&gt;build.gradle(.kts)&lt;/code&gt; 文件中声明至少一个 Kotlin/Native 目标。例如：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-kotlin" data-lang="kotlin"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// build.gradle.kts
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;plugins&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;kotlin&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;multiplatform&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;version&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;2.4.20&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;kotlin&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;macosArm64&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 在 macOS 上
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// linuxArm64() // 在 Linux 上
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// mingwX64() // 在 Windows 上
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;ol start="2"&gt;
+&lt;li&gt;运行 &lt;code&gt;&amp;lt;target&amp;gt;Klib&lt;/code&gt; 任务。例如：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; ./gradlew macosArm64Klib
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;Gradle 会自动为该目标编译源文件，并在项目的 &lt;code&gt;build/libs&lt;/code&gt; 目录中生成 &lt;code&gt;.klib&lt;/code&gt; 产物。&lt;/p&gt;</description></item><item><title>6.3.4 平台库</title><link>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.4-NativePlatformLibs/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.4-NativePlatformLibs/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/native-platform-libs.html"&gt;https://kotlinlang.org/docs/native-platform-libs.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="634-平台库"&gt;6.3.4 平台库&lt;/h1&gt;
+&lt;p&gt;为提供对操作系统原生服务的访问，Kotlin/Native 发行版包含一组针对每个目标的预构建库。它们被称为&lt;em&gt;平台库&lt;/em&gt;。&lt;/p&gt;
+&lt;p&gt;平台库中的包默认可用。你不需要为使用它们指定额外的链接选项。Kotlin/Native 编译器会自动检测访问了哪些平台库，并链接必要的库。&lt;/p&gt;</description></item><item><title>6.3.6 Kotlin/Native 二进制选项</title><link>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.6-NativeBinaryOptions/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.6-NativeBinaryOptions/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/native-binary-options.html"&gt;https://kotlinlang.org/docs/native-binary-options.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="636-kotlinnative-二进制选项"&gt;6.3.6 Kotlin/Native 二进制选项&lt;/h1&gt;
+&lt;p&gt;本页列出有用的 Kotlin/Native 二进制选项，你可以用它们配置 Kotlin/Native &lt;a href="https://kotlinlang.org/docs/multiplatform/multiplatform-build-native-binaries.html"&gt;最终二进制文件&lt;/a&gt;，以及在项目中设置二进制选项的方式。&lt;/p&gt;
+&lt;h2 id="how-to-enable"&gt;如何启用&lt;/h2&gt;
+&lt;p&gt;你可以在 &lt;code&gt;gradle.properties&lt;/code&gt; 文件、构建文件中启用二进制选项，也可以把它们作为编译器参数传入。&lt;/p&gt;</description></item><item><title>6.3.7 调试 Kotlin/Native</title><link>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.7-NativeDebugging/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.7-NativeDebugging/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/native-debugging.html"&gt;https://kotlinlang.org/docs/native-debugging.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="637-调试-kotlinnative"&gt;6.3.7 调试 Kotlin/Native&lt;/h1&gt;
+&lt;p&gt;Kotlin/Native 编译器可以生成带调试信息的二进制文件，也可以创建用于&lt;a href="#debug-ios-applications"&gt;符号化崩溃报告&lt;/a&gt;的调试符号文件。&lt;/p&gt;
+&lt;p&gt;调试信息与 &lt;a href="https://dwarfstd.org/download.html"&gt;DWARF 2&lt;/a&gt; 规范兼容，因此 LLDB 和 GDB 等现代调试器工具可以：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#set-breakpoints"&gt;设置断点&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#use-stepping"&gt;使用单步执行&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="#inspect-variables"&gt;检查变量和类型信息&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意：&lt;/strong&gt; 支持 DWARF 2 规范意味着调试器工具会把 Kotlin 识别为 C89，因为在 DWARF 5 规范之前，规范中还没有用于 Kotlin 语言类型的标识符。&lt;/p&gt;</description></item><item><title>6.3.8 Kotlin/Native 支持的目标平台和宿主</title><link>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.8-NativeTargetSupport/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.8-NativeTargetSupport/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/native-target-support.html"&gt;https://kotlinlang.org/docs/native-target-support.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="638-kotlinnative-支持的目标平台和宿主"&gt;6.3.8 Kotlin/Native 支持的目标平台和宿主&lt;/h1&gt;
+&lt;p&gt;本文介绍 Kotlin/Native 编译器支持哪些目标平台和宿主。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;提示：&lt;/strong&gt; 我们会根据需要调整受支持目标平台和宿主的列表、层级数量及其特性。&lt;/p&gt;</description></item><item><title>6.3.9 缩短编译时间的技巧</title><link>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.9-NativeImprovingCompilationTime/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.9-NativeImprovingCompilationTime/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/native-improving-compilation-time.html"&gt;https://kotlinlang.org/docs/native-improving-compilation-time.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="639-缩短编译时间的技巧"&gt;6.3.9 缩短编译时间的技巧&lt;/h1&gt;
+&lt;p&gt;Kotlin/Native 编译器不断获得改进其性能的更新。使用最新的 Kotlin/Native 编译器并正确配置构建环境，你可以显著缩短带有 Kotlin/Native 目标的项目的编译时间。&lt;/p&gt;</description></item><item><title>6.3.10 自定义 LLVM 后端的技巧</title><link>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.10-NativeLlvmPasses/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.10-NativeLlvmPasses/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/native-llvm-passes.html"&gt;https://kotlinlang.org/docs/native-llvm-passes.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="6310-自定义-llvm-后端的技巧"&gt;6.3.10 自定义 LLVM 后端的技巧&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;高级&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Kotlin/Native 编译器使用 &lt;a href="https://llvm.org/"&gt;LLVM&lt;/a&gt; 为不同目标平台优化并生成二进制可执行文件。编译时间中相当可观的一部分也花在 LLVM 上，对于大型应用，这可能最终耗时长得无法接受。&lt;/p&gt;</description></item><item><title>6.3.11 Kotlin/Native 二进制文件的许可证文件</title><link>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.11-NativeBinaryLicenses/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.11-NativeBinaryLicenses/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/native-binary-licenses.html"&gt;https://kotlinlang.org/docs/native-binary-licenses.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="6311-kotlinnative-二进制文件的许可证文件"&gt;6.3.11 Kotlin/Native 二进制文件的许可证文件&lt;/h1&gt;
+&lt;p&gt;与许多其他开源项目一样，Kotlin 依赖第三方代码，也就是说 Kotlin 项目包含一些并非由 JetBrains 或 Kotlin 编程语言贡献者开发的代码。有时它是衍生作品，例如从 C++ 改写成 Kotlin 的代码。&lt;/p&gt;</description></item><item><title>6.3.12 Kotlin/Native 常见问题</title><link>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.12-NativeFaq/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/development/6.3-Nativedevelopment/6.3.12-NativeFaq/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/native-faq.html"&gt;https://kotlinlang.org/docs/native-faq.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="6312-kotlinnative-常见问题"&gt;6.3.12 Kotlin/Native 常见问题&lt;/h1&gt;
+&lt;h2 id="how-do-i-run-my-program"&gt;如何运行我的程序？&lt;/h2&gt;
+&lt;p&gt;定义一个顶层函数 &lt;code&gt;fun main(args: Array&amp;lt;String&amp;gt;)&lt;/code&gt;；如果你不关心传入的实参，也可以只写 &lt;code&gt;fun main()&lt;/code&gt;，请确保它不在任何包中。此外，还可以使用编译器开关 &lt;code&gt;-entry&lt;/code&gt;，把任何接收 &lt;code&gt;Array&amp;lt;String&amp;gt;&lt;/code&gt; 或不接收参数、返回 &lt;code&gt;Unit&lt;/code&gt; 的函数设为入口点。&lt;/p&gt;</description></item></channel></rss>

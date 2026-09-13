@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>5.7 函数 on 编程那些事儿</title><link>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/</link><description>Recent content in 5.7 函数 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 13 Sep 2026 18:20:56 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/index.xml" rel="self" type="application/rss+xml"/><item><title>5.7.1 函数</title><link>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/5.7.1-Functions/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/5.7.1-Functions/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/functions.html"&gt;https://kotlinlang.org/docs/functions.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="571-函数"&gt;5.7.1 函数&lt;/h1&gt;
+&lt;p&gt;在 Kotlin 中声明函数时：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;使用 &lt;code&gt;fun&lt;/code&gt; 关键字。&lt;/li&gt;
+&lt;li&gt;在圆括号 &lt;code&gt;()&lt;/code&gt; 中指定参数。&lt;/li&gt;
+&lt;li&gt;如有需要，包含&lt;a href="#return-types"&gt;返回类型&lt;/a&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-kotlin" data-lang="kotlin"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// &amp;#39;double&amp;#39; 是函数名
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// &amp;#39;x&amp;#39; 是一个 Int 类型的参数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 期望的返回值也是 Int 类型
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fun&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;double&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;x&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Int&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;):&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Int&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;return&lt;/span&gt; &lt;span style="color:#d19a66"&gt;2&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;*&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;x&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fun&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;main&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;println&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;double&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#d19a66"&gt;5&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 10
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="function-usage"&gt;函数的使用&lt;/h2&gt;
+&lt;p&gt;函数的调用方式与其他语言一致：&lt;/p&gt;</description></item><item><title>5.7.2 高阶函数与 lambda</title><link>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/5.7.2-Lambdas/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/5.7.2-Lambdas/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/lambdas.html"&gt;https://kotlinlang.org/docs/lambdas.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="572-高阶函数与-lambda"&gt;5.7.2 高阶函数与 lambda&lt;/h1&gt;
+&lt;p&gt;Kotlin 函数是&lt;a href="https://en.wikipedia.org/wiki/First-class_function"&gt;一等公民&lt;/a&gt;，也就是说它们可以存储在变量和数据结构中，也可以作为实参传给其他&lt;a href="#higher-order-functions"&gt;高阶函数&lt;/a&gt;，或由它们返回。凡是能对其他非函数值进行的操作，都能对函数进行。&lt;/p&gt;
+&lt;p&gt;为了实现这一点，作为静态类型编程语言的 Kotlin 使用一组&lt;a href="#function-types"&gt;函数类型&lt;/a&gt;来表示函数，并提供了一整套专门的语言结构，例如 &lt;a href="#lambda-expressions-and-anonymous-functions"&gt;lambda 表达式&lt;/a&gt;。&lt;/p&gt;
+&lt;h2 id="higher-order-functions"&gt;高阶函数&lt;/h2&gt;
+&lt;p&gt;高阶函数是指接收函数作为参数，或返回函数的函数。&lt;/p&gt;</description></item><item><title>5.7.4 上下文参数</title><link>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/5.7.4-ContextParameters/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/5.7.4-ContextParameters/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/context-parameters.html"&gt;https://kotlinlang.org/docs/context-parameters.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="574-上下文参数"&gt;5.7.4 上下文参数&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;提示：&lt;/strong&gt; 上下文参数取代了此前称为&lt;a href="../../../kotlinevolutionandroadmap/13.6-Earlierkotlinreleases/13.6.8-Kotlin16x/13.6.8.1-Whatsnew1620/#prototype-of-context-receivers-for-kotlin-jvm"&gt;上下文接收者&lt;/a&gt;的实验性特性。它们的主要区别见&lt;a href="https://kotlinlang.org/docs/https://github.com/Kotlin/KEEP/blob/master/proposals/context-parameters.html#summary-of-changes-from-the-previous-proposal"&gt;上下文参数的设计文档&lt;/a&gt;。要从上下文接收者迁移到上下文参数，可以使用 IntelliJ IDEA 中的辅助支持，详见相关&lt;a href="https://blog.jetbrains.com/kotlin/2025/04/update-on-context-parameters/"&gt;博客文章&lt;/a&gt;。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;上下文参数允许函数和属性声明那些在周围上下文中隐式可用的依赖项。&lt;/p&gt;</description></item><item><title>5.7.5 内联函数</title><link>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/5.7.5-InlineFunctions/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/5.7.5-InlineFunctions/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/inline-functions.html"&gt;https://kotlinlang.org/docs/inline-functions.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="575-内联函数"&gt;5.7.5 内联函数&lt;/h1&gt;
+&lt;p&gt;使用&lt;a href="../5.7.2-Lambdas/"&gt;高阶函数&lt;/a&gt;会带来一定的运行时开销：每个函数都是一个对象，并且会捕获闭包。闭包是可以在函数体中被访问的变量作用域。内存分配（函数对象和类的分配）以及虚调用都会带来运行时开销。&lt;/p&gt;
+&lt;p&gt;但事实证明，在很多情况下这种开销可以通过内联 lambda 表达式来消除。下面这些函数就是这种情况的典型例子。&lt;code&gt;lock()&lt;/code&gt; 函数很容易在调用处内联。请看下面的情况：&lt;/p&gt;</description></item><item><title>5.7.6 运算符重载</title><link>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/5.7.6-OperatorOverloading/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/5.7.6-OperatorOverloading/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/operator-overloading.html"&gt;https://kotlinlang.org/docs/operator-overloading.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="576-运算符重载"&gt;5.7.6 运算符重载&lt;/h1&gt;
+&lt;p&gt;Kotlin 允许你为类型上预定义的一组运算符提供自定义实现。这些运算符有预定义的符号表示（例如 &lt;code&gt;+&lt;/code&gt; 或 &lt;code&gt;*&lt;/code&gt;）和优先级。要实现某个运算符，请为相应类型提供一个具有特定名称的&lt;a href="../5.7.1-Functions/#member-functions"&gt;成员函数&lt;/a&gt;或&lt;a href="../../5.8-Classesandinterfaces/5.8.3-Extensions/"&gt;扩展函数&lt;/a&gt;。该类型会成为二元运算的左侧类型，以及一元运算的参数类型。&lt;/p&gt;</description></item><item><title>5.7.7 未使用的返回值检查器</title><link>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/5.7.7-UnusedReturnValueChecker/</link><pubDate>Sun, 13 Sep 2026 08:50:47 +0800</pubDate><guid>https://before80.github.io/prgms/Kotlin/languageguide/5.7-Functions/5.7.7-UnusedReturnValueChecker/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://kotlinlang.org/docs/unused-return-value-checker.html"&gt;https://kotlinlang.org/docs/unused-return-value-checker.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="577-未使用的返回值检查器"&gt;5.7.7 未使用的返回值检查器&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;实验性-通用&lt;/strong&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意：&lt;/strong&gt; 此特性计划在未来的 Kotlin 版本中稳定并改进。欢迎你在我们的问题跟踪器 &lt;a href="https://youtrack.jetbrains.com/issue/KT-12719"&gt;YouTrack&lt;/a&gt; 中提供反馈。更多信息请参阅相关的 &lt;a href="https://kotlinlang.org/docs/https://github.com/Kotlin/KEEP/blob/main/proposals/KEEP-0412-unused-return-value-checker.html"&gt;KEEP 提案&lt;/a&gt;。&lt;/p&gt;</description></item></channel></rss>
