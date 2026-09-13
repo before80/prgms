@@ -25,8 +25,7 @@ Bun 的目标是 100% 兼容 Node.js，但"仍在进行中"这句话翻译一下
 - npm 生态：大部分常用 npm 包能直接在 Bun 里跑起来，不用改一行代码
 
 **仍有问题的**部分（踩坑预警 🚨）：
-- Node.js 原生模块（`.node` 文件）——**不支持**，这是大坑，后文细说
-- 部分 C++ 编写的原生 addon——编译好的二进制扩展，基本没戏
+- 部分 Node-API 原生模块——Bun 已实现 Node-API，大部分 `.node` 模块可以直接 `require()`，但少数依赖 V8 私有 API、特殊构建选项或平台特性的模块仍可能失败
 - 一些深度依赖 Node.js 内部实现的包——比如某些用了 `vm` 模块黑科技的
 
 ### 检测兼容性的方法
@@ -44,9 +43,9 @@ bun test  # 跑测试，看有没有报错
 
 ## 6.2 原生模块（Native Addons）
 
-这是 Bun 和 Node.js 之间**最大的坑**，没有之一。
+这是 Bun 和 Node.js 之间需要重点验证的兼容区域。
 
-> 💡 **一个形象的比喻**：把 Bun 想象成一家新开的网红餐厅，菜品新鲜上菜快，但它不卖酒——因为它没有酒牌。`.node` 文件就是酒，而 Bun 还没拿到那张牌。
+> 💡 **一句话说明**：Bun 实现了 Node-API，大部分按 Node-API 编写的 `.node` 模块可以直接在 Bun 里加载；真正容易出问题的是绕开 Node-API、直接依赖 V8 内部结构的模块。
 
 ### 什么是 Native Addons？
 
@@ -56,11 +55,21 @@ Native Addons 是用 C/C++ 编写、编译成 `.node` 文件的 Node.js 扩展�
 - 数据库驱动：某些数据库的官方 Node.js 驱动
 - 加密计算：`node-forge` 等用了原生加密库的
 
-### Bun 不支持 .node 文件
+### Bun 对 .node 文件的支持
 
-**Bun 目前无法加载 `.node` 文件。**
+Bun 官方文档明确说明：Bun 从零实现了 Node-API，**大多数现有 Node-API 扩展可以直接在 Bun 中工作**，也可以像 Node.js 一样直接 `require()` `.node` 文件：
 
-这意味着如果你项目里用到了 `sharp` 这种 Native Addons 库，直接用 Bun 运行会爆炸。
+```javascript
+const napi = require("./my-node-module.node");
+```
+
+因此，“Bun 不支持任何 `.node` 文件”是过时且错误的说法。实际迁移时，真正需要逐个验证的是：
+
+- 模块是否使用 Node-API（N-API），而不是直接绑定 V8 私有 API
+- 模块是否使用了 Bun 尚未完整实现的 Node.js 内部行为
+- 模块是否依赖特定平台的编译产物或安装脚本
+
+如果遇到加载失败，先查看 Bun 的 Node-API 兼容说明和具体包的 issue，再决定是升级包、寻找替代方案，还是继续使用 Node.js。
 
 ### 解决方案
 
@@ -120,7 +129,7 @@ console.log(`SQLite 版本：${sqlite3_libversion()}`);
 
 ### 常见问题类型
 
-1. **依赖 .node 文件的包**：上文提到的坑，绕不过去
+1. **依赖非 Node-API 原生扩展的包**：大多数 `.node` 模块可直接使用；只有绕开 Node-API、直接依赖 V8 私有接口或特殊构建流程的包才需要重点验证
 2. **依赖特定 Node.js 内部 API 的包**：某些包用了 Node.js 内部实现，比如 `node:internal` 下面的黑科技
 3. **Bun 和 Node.js 行为细微差异**：比如 `Buffer` vs `Uint8Array` 的处理差异、某些边界情况的行为不一致
 
@@ -292,9 +301,9 @@ bun doctor
 
 本章介绍了 Bun 使用过程中需要注意的几个关键问题。
 
-**Node.js 兼容性**：Bun 目标是 100% 兼容，目前大部分 API 和 npm 包兼容良好，但 `.node` 原生模块不支持。**Native Addons**：这是 Bun 和 Node.js 之间最大的坑——涉及 `.node` 文件的包需要找替代品（`bun:sqlite` 内置了 SQLite 支持）或暂时用 Node.js。**npm 包兼容性**：大部分正常，少数依赖 Node.js 内部实现的包可能有问题。**生产环境成熟度**：Bun 已经足够成熟，部分公司已有生产使用案例（具体以官方披露为准），但如果是核心业务建议先试点。**Windows 平台**：v1.x 相对稳定，最低要求 Windows 10 版本 1809，注意路径和行尾符差异。**调试**：VS Code + Bun 扩展、`bun --inspect`、`bun doctor` 是主要调试工具。
+**Node.js 兼容性**：Bun 的目标是接近 100% 兼容，当前大部分 API 和 npm 包兼容良好。**Native Addons**：Bun 实现了 Node-API，大多数 `.node` 模块可以直接 `require()`；只有依赖 V8 私有 API、特殊构建流程或尚未实现行为的模块需要重点测试。**npm 包兼容性**：大部分正常，少数依赖 Node.js 内部实现的包可能有问题。**生产环境成熟度**：Bun 已经足够成熟，部分公司已有生产使用案例（具体以官方披露为准），但如果是核心业务建议先试点。**Windows 平台**：v1.x 相对稳定，最低要求 Windows 10 版本 1809，注意路径和行尾符差异。**调试**：VS Code + Bun 扩展、`bun --inspect`、`bun doctor` 是主要调试工具。
 
-总的来说，Bun 的局限主要集中在 **Native Addons** 这一点上，其他方面的兼容性已经相当不错。了解这些局限，能帮助你在迁移项目时做出更明智的决策——而不是在凌晨两点发现 `sharp` 跑不起来之后，对着屏幕发出灵魂拷问。
+总的来说，Bun 对 Node-API 原生模块的支持已经比早期版本好很多，实际迁移时仍应重点验证 **Native Addons 与依赖 Node.js 内部实现的包**。了解这些局限，能帮助你在迁移项目时做出更明智的决策。
 
 ---
 

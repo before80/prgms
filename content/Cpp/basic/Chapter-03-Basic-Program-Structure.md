@@ -55,6 +55,9 @@ int main(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
     // argv[0] 是程序名，argv[1] 开始是实际参数
+    // 运行时记得自己传参数，比如：
+    //   ./program arg1 arg2
+    // 如果直接 ./program（不带参数），循环只会打印 argv[0] 一行。
     for (int i = 0; i < argc; ++i) {
         std::cout << "argv[" << i << "] = " << argv[i] << std::endl;
         // 输出: argv[0] = ./program
@@ -115,6 +118,8 @@ int permission_denied() {
 int main(int argc, char* argv[]) {
     // argc: argument count，参数的个数
     // argv: argument vector，参数的"向量"（其实就是数组）
+    // 记得带参数运行，比如：./program arg1 arg2
+    // （不带参数时 argc-1 会是 0）
     
     // 打印收到了多少个参数（不包括程序名本身）
     std::cout << "Received " << argc - 1 << " arguments:" << std::endl;
@@ -242,6 +247,7 @@ void introduce(const Robot& r) {
 int main() {
     Robot r;
     r.name_ = "R2-D2";
+    r.greet();     // 输出: Beep boop! I am R2-D2!
     introduce(r);  // 输出: Meet R2-D2!
     return 0;
 }
@@ -703,6 +709,8 @@ C++的`iostream`库提供了四个标准的"通讯频道"：
 // ============================================
 // 标准输入输出详解：程序的"五官"
 // ============================================
+// 运行提示：程序会停下来等你输入姓名和年龄，
+//          可以依次输入 Alice 和 25，就能看到下面注释里的输出。
 int main() {
     // cout: 标准输出（Console OUT）
     //       - 用于正常的信息输出
@@ -1085,9 +1093,8 @@ struct AlignedStruct {
 };
 
 // [[gnu::packed]] - 紧凑布局，不对齐
-// GCC/Clang 扩展写法：把属性放在前面（C++标准中要到 C++23 才原生支持 [[packed]]）
-[[gnu::packed]]
-struct PackedStruct {
+// 注意属性要写在 struct 关键字之后，而不是整个声明的最前面
+struct [[gnu::packed]] PackedStruct {
     char a;
     int b;
     char c;

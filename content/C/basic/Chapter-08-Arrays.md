@@ -152,7 +152,10 @@ arr[4] = 500
 - `arr[1]` 等价于 `*(arr + 1)` — 偏移 1 个位置
 - `arr[2]` 等价于 `*(arr + 2)` — 偏移 2 个位置
 
-![数组下标与指针偏移示意](data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 200'%3E%3Crect x='10' y='60' width='80' height='60' fill='%233498db' stroke='%231a1a1a' stroke-width='2'/%3E%3Ctext x='50' y='95' text-anchor='middle' fill='white' font-family='Arial' font-size='14'%3Earr[0]%3C/text%3E%3Ctext x='50' y='140' text-anchor='middle' fill='%23555555' font-family='Arial' font-size='11'%3E地址: 0x100%3C/text%3E%3Crect x='110' y='60' width='80' height='60' fill='%233498db' stroke='%231a1a1a' stroke-width='2'/%3E%3Ctext x='150' y='95' text-anchor='middle' fill='white' font-family='Arial' font-size='14'%3Earr[1]%3C/text%3E%3Ctext x='150' y='140' text-anchor='middle' fill='%23555555' font-family='Arial' font-size='11'%3E地址: 0x104%3C/text%3E%3Crect x='210' y='60' width='80' height='60' fill='%233498db' stroke='%231a1a1a' stroke-width='2'/%3E%3Ctext x='250' y='95' text-anchor='middle' fill='white' font-family='Arial' font-size='14'%3Earr[2]%3C/text%3E%3Ctext x='250' y='140' text-anchor='middle' fill='%23555555' font-family='Arial' font-size='11'%3E地址: 0x108%3C/text%3E%3Crect x='310' y='60' width='80' height='60' fill='%233498db' stroke='%231a1a1a' stroke-width='2'/%3E%3Ctext x='350' y='95' text-anchor='middle' fill='white' font-family='Arial' font-size='14'%3Earr[3]%3C/text%3E%3Ctext x='350' y='140' text-anchor='middle' fill='%23555555' font-family='Arial' font-size='11'%3E地址: 0x10C%3C/text%3E%3Crect x='410' y='60' width='80' height='60' fill='%233498db' stroke='%231a1a1a' stroke-width='2'/%3E%3Ctext x='450' y='95' text-anchor='middle' fill='white' font-family='Arial' font-size='14'%3Earr[4]%3C/text%3E%3Ctext x='450' y='140' text-anchor='middle' fill='%23555555' font-family='Arial' font-size='11'%3E地址: 0x110%3C/text%3E%3Cpath d='M 50 40 L 450 40' stroke='%231a1a1a' stroke-width='1' marker-end='url(%23arrow)'/%3E%3Ctext x='250' y='35' text-anchor='middle' fill='%23333333' font-family='Arial' font-size='12'%3E偏移量: 0    1    2    3    4%3C/text%3E%3C/svg%3E)
+```mermaid
+flowchart LR
+    A0["arr[0]<br/>地址 0x100<br/>偏移 0"] --- A1["arr[1]<br/>地址 0x104<br/>偏移 1"] --- A2["arr[2]<br/>地址 0x108<br/>偏移 2"] --- A3["arr[3]<br/>地址 0x10C<br/>偏移 3"] --- A4["arr[4]<br/>地址 0x110<br/>偏移 4"]
+```
 
 > 想象一下，数组是一排连续的停车位，`arr` 是第一辆车停的那个位置的门牌号。`arr[0]` 就是这个位置本身，`arr[1]` 是往右一个位置，`arr[2]` 是往右两个位置。如果从 1 开始编号，那每次访问 `arr[i]` 都要做 `arr[i-1]` 的转换——多麻烦！计算机最讨厌多做一步运算，所以干脆从 0 开始！
 
@@ -385,13 +388,27 @@ int main() {
 
 > 这就像你去快递站取包裹，包裹数量是到了才知道的（运行时确定），然后你临时要了对应数量的箱子来装。VLA 就是这样一个"临时工"——数组大小在程序运行时才决定。
 
-### C23 中 VLA 成为可选特性
+### VLA 是"可选特性"（C11 起）
 
-不过要注意，**C23 标准将 VLA 标记为可选特性（Optional Feature）**，也就是说：
-- 在 C99、C11、C17 中，VLA 是标准特性
-- 在 C23 及以后，编译器可以选择不支持 VLA
+不过在依赖 VLA 之前，有几个坑必须知道：
 
-> 所以，如果你在面试中被问到 VLA，记得补充一句："虽然 VLA 很方便，但因为性能和调试问题，C23 已经把它变成可选项了。实际工作中，如果需要动态大小的数组，更推荐使用 `malloc` 动态分配内存。"
+- **C99** 中 VLA 是**必须支持**的标准特性；
+- 从 **C11 起**，VLA 变成了**条件特性（conditional feature）**——编译器可以选择不支持，此时它会定义宏 `__STDC_NO_VLA__` 为 `1`。C23 延续了这一安排（N3096 明确写着"VLA 是实现不必支持的条件特性"）。
+
+所以在写可移植代码时，可以用这个宏来"探测"：
+
+```c
+#if defined(__STDC_NO_VLA__)
+#error "这个编译器不支持变长数组，请改用 malloc"
+#endif
+```
+
+另外两个现实问题：
+
+1. **栈空间有限**：VLA 分配在栈上（自动存储期），如果 `n` 很大（比如用户输入 1000000），栈会直接溢出崩溃。
+2. **`sizeof` 变成运行时求值**，调试器和某些优化也会变得更复杂。
+
+> 如果你在面试中被问到 VLA，可以这样答："VLA 从 C11 起就是可选特性，编译器可以用 `__STDC_NO_VLA__` 声明不支持；而且它分配在栈上、大小不可控，实际工程里需要动态大小数组时更推荐用 `malloc`。"
 
 ---
 
@@ -671,7 +688,7 @@ arr = brr;  // 编译错误！数组名不是可修改的左值
 arr++;      // 编译错误！数组名不能自增
 ```
 
-> 数组名 `arr` 在表达式中会**退化（Decay）**为指向首元素的指针，但这个指针是**常量指针**——你不能改变它的指向，也不能把它赋值给另一个指针变量（虽然指针本身的值可以赋给另一个指针）。就像一个房间的门牌号，你能用它找到房间，但你不能把门牌号改成另一个地址。
+> 数组名 `arr` 在表达式中会**退化（Decay）**为指向首元素的指针（`int *`）。但这里的 `arr` **不是一个可以修改的指针变量**，而是一个"指向固定位置的符号"：你不能 `arr = brr`（不能让它改指向别处），也不能 `arr++`。换言之，**你可以读出 `arr` 的值赋给别的指针变量**（比如 `int *p = arr;`），但**不能给 `arr` 本身赋值**。就像一个房间的门牌号：你能照着它找到房间，也能把号码抄到别处，但不能把门牌号改成另一个地址。
 
 正确做法——用 `memcpy` 或循环复制：
 
@@ -708,28 +725,47 @@ arr[4] = 50
 ```c
 #include <stdio.h>
 
-void print_array(int arr[]) {
-    // ⚠️ 错误：想用 sizeof 计算元素个数
-    int count = sizeof(arr) / sizeof(arr[0]);  // 错误！
+/* ⚠️ 错误示例：在函数内部用 sizeof 数元素个数 */
+void print_array_wrong(int arr[]) {
+    /* 此时 arr 已经退化成 int*，sizeof(arr) 只是指针大小（8 字节）！
+       sizeof(arr[0]) 是 4，所以算出来是 8/4 = 2，完全错误。 */
+    size_t count = sizeof(arr) / sizeof(arr[0]);
+    printf("函数里算出的“元素个数”: %zu（错的！）\n", count);
+}
 
-    // 正确做法：额外传入数组长度
-    // print_array(arr, 5);
+/* ✅ 正确做法：把长度一起传进来 */
+void print_array(int arr[], size_t n) {
+    printf("真正的元素个数: %zu\n", n);
+    for (size_t i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
 }
 
 int main() {
     int arr[5] = {1, 2, 3, 4, 5};
 
-    // 正确：在 main 中使用 sizeof
-    int count = sizeof(arr) / sizeof(arr[0]);
-    printf("元素个数: %d\n", count);  // 输出 5，正确！
+    // 在定义数组的同一个作用域里，sizeof(arr) 才是整个数组的字节数
+    size_t count = sizeof(arr) / sizeof(arr[0]);
+    printf("main 里算出的元素个数: %zu（正确）\n", count);
 
-    print_array(arr);
+    print_array_wrong(arr);   // 看一下错误的结果
+    print_array(arr, count);  // 正确做法
 
     return 0;
 }
 ```
 
-> 函数参数中的 `arr[]` 实际上是一个指针！当数组作为函数参数传递时，它会退化为指针，丢失了数组的长度信息。所以 `sizeof(arr)` 在函数内部只能得到指针的大小（8 字节），而不是整个数组的大小。这就是为什么 C 数组传给函数时，必须额外传递一个长度参数的原因。
+在某台 64 位机器上会看到：
+
+```
+main 里算出的元素个数: 5（正确）
+函数里算出的“元素个数”: 2（错的！）
+真正的元素个数: 5
+1 2 3 4 5
+```
+
+> 函数参数中的 `arr[]` 实际上就是一个指针！当数组作为函数参数传递时，它会退化为指针，丢失了数组的长度信息。所以 `sizeof(arr)` 在函数内部只能得到指针的大小（8 字节），而不是整个数组的大小。这就是为什么 C 数组传给函数时，必须额外传递一个长度参数的原因。
 
 ---
 
@@ -743,7 +779,7 @@ int main() {
 
 4. **数组名在表达式中退化为指针**，但 `sizeof(arr)` 保留数组完整大小。
 
-5. **变长数组（VLA）**在 C99 引入，C23 中成为可选特性。
+5. **变长数组（VLA）**在 C99 引入；从 C11 起它是"条件特性"（编译器可以定义 `__STDC_NO_VLA__` 表示不支持），C23 延续了这一安排。
 
 6. **二维数组按行优先存储**，多维数组作为函数参数时，除了第一维可以省略，其他维度必须指定大小。
 

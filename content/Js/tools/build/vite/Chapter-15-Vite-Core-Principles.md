@@ -11,17 +11,18 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-15-Vite-Core-Principles
 
 # 第15章：Vite 核心原理
 
 > 你已经会用 Vite 了——创建项目、配置插件、写代码、构建部署，一条龙服务。但你有没有想过：Vite 背后到底是怎么工作的？
 >
-> 为什么开发时启动这么快？为什么 HMR 能做到毫秒级更新？为什么生产构建用的是 Rollup 而不是 Vite 自己？
+> 为什么开发时启动这么快？为什么 HMR 能做到毫秒级更新？为什么 Vite 1–7 的生产构建用 Rollup，而 Vite 8 又转向了 Rolldown？
 >
 > 这一章，我们就来揭开 Vite 的"神秘面纱"，深入理解它的核心原理。学完这章，你对 Vite 的理解会从"会用"升级到"懂它"。
 >
 > 准备好了吗？让我们一起探索 Vite 的"内心世界"！🔍
+
+> 📌 **版本提示（2026-09 核对）**：Vite 8 已使用 **Rolldown** 统一开发与生产构建；下面关于 “生产构建用 Rollup” 的内容适用于 Vite 1–7，并作为理解打包原理的历史背景。学习插件钩子和 Tree Shaking 原理仍然有价值，但不要把旧分工当作 Vite 8 的现状。
 
 ---
 
@@ -741,8 +742,8 @@ export default defineConfig({
 |------|------|----------|
 | CJS/ESM 混用报错 | 包导出格式混乱 | 在 `optimizeDeps.include` 中显式包含 |
 | Node.js 原生模块报错 | 浏览器不支持 | 在 `ssr.noExternal` 中处理 |
-| 大型库构建超时 | esbuild 处理过慢 | 使用 `esbuildOptions.maxWorkers` |
-| 循环依赖 | 包内部循环依赖 | 使用 `esbuildOptions.ignoreDependencies` |
+| 大型库构建超时 | 预构建或解析开销过大 | 精确配置 `optimizeDeps.include` / `exclude`，Vite 8 可改用 `rolldownOptions` 调整打包器行为 |
+| 循环依赖 | 包内部循环依赖 | 使用 `resolve.dedupe`，并检查依赖是否需要升级；不要依赖不存在的 `ignoreDependencies` 选项 |
 
 **调试预构建**：
 
@@ -753,8 +754,8 @@ export default defineConfig({
     // 输出预构建日志
     logLevel: 'debug',
     
-    // esbuild 选项
-    esbuildOptions: {
+    // Vite 8：rolldownOptions；旧版：esbuildOptions
+    rolldownOptions: {
       // 忽略某些警告
       logOverride: { 'this-is-undefined-in-esm': 'silent' },
     },
@@ -795,11 +796,11 @@ node_modules/.vite/deps/
 
 ## 15.4 生产构建原理
 
-### 15.4.1 Rollup 打包流程
+### 15.4.1 Rolldown / Rollup 打包流程
 
-与开发时使用 esbuild 不同，Vite 的生产构建使用 **Rollup**。
+在 Vite 1–7 中，开发阶段主要使用 esbuild，生产构建使用 **Rollup**；从 Vite 8 开始，开发与生产统一使用 **Rolldown**。Rolldown 兼容 Rollup 插件 API，因此理解 Rollup 的打包流程仍然是学习 Vite 插件开发的良好基础。
 
-**为什么生产用 Rollup 而不是 esbuild？**
+**Rollup 与 esbuild 的经典分工对比（Vite 1–7）**：
 
 | 特性 | esbuild | Rollup |
 |------|---------|--------|
@@ -917,7 +918,7 @@ dist/
 
 3. **依赖预构建**：CommonJS → ESM 转换、减少 HTTP 请求、esbuild 预构建过程、缓存策略、手动触发预构建、失败处理与调试
 
-4. **生产构建原理**：Rollup vs esbuild、Tree Shaking 原理、资源处理流程、产物格式化输出
+4. **生产构建原理**：Rolldown / Rollup vs esbuild、Tree Shaking 原理、资源处理流程、产物格式化输出
 
 ### 📝 本章练习
 

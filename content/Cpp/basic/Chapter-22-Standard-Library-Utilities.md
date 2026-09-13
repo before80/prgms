@@ -121,11 +121,12 @@ struct Point3D {
     double x, y, z;  // 这三个字母胜过千言万语
 };
 
+// tuple适合快速返回多个值——就像点外卖不需要知道厨房怎么运作
+std::tuple<int, int, int> getRGB() {
+    return {255, 128, 64};  // 橙色的RGB值
+}
+
 int main() {
-    // tuple适合快速返回多个值——就像点外卖不需要知道厨房怎么运作
-    std::tuple<int, int, int> getRGB() {
-        return {255, 128, 64};  // 橙色的RGB值
-    }
 
     auto [r, g, b] = getRGB();  // 结构化绑定直接拆包
     std::cout << "RGB: " << r << "," << g << "," << b << std::endl;
@@ -190,7 +191,8 @@ int main() {
     // 找不存在的字符
     auto notFound = findIndex("hello", 'z');
     std::cout << "Not found value_or: " << notFound.value_or(-1) << std::endl;
-    // 输出: -1（因为没找到，所以用默认值-1）
+    // 输出: Not found value_or: -1
+    // （没找到，所以 value_or 给出了默认值 -1）
 
     // 方法3：直接当bool用——这是最简洁的写法
     if (auto idx = findIndex("world", 'o')) {  // 'o'在索引1
@@ -578,7 +580,8 @@ int main() {
 
     // 位运算——和整数位运算一样，但结果是bitset
     std::cout << "bits << 2: " << (bits << 2) << std::endl;  // 输出: 11001100
-    std::cout << "bits | 0b00001111: " << (bits | 0b00001111) << std::endl;
+      // 注意：bitset 的位运算符只接受另一个 bitset，不能直接和整数混用
+      std::cout << "bits | 0b00001111: " << (bits | std::bitset<8>(0b00001111)) << std::endl;
     // 输出: 10111111
 
     // 测试和设置位

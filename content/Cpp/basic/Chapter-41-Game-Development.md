@@ -28,7 +28,7 @@ C++之所以成为游戏开发的首选语言，靠的就是以下几点：
 
 在正式进入代码之前，让我们先看看一个游戏的技术架构大概是什么样子：
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                      游戏应用层                              │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
@@ -112,6 +112,9 @@ public:
                   << (secretNumber % 2 == 0 ? "偶数" : "奇数")
                   << "。" << std::endl;
     }
+
+    // 游戏结束时才揭晓答案（secretNumber 是私有成员，外部读不到）
+    int answer() const { return secretNumber; }
 };
 
 int main() {
@@ -148,7 +151,7 @@ int main() {
         // 当剩余机会只有1次时，给点提示
         if (game.isGameOver()) {
             game.showHint();  // 显示提示（奇偶性）
-            std::cout << "\n😢 游戏结束！正确答案是: " << secretNumber << std::endl;
+            std::cout << "\n😢 游戏结束！正确答案是: " << game.answer() << std::endl;
         }
     }
 
@@ -158,7 +161,7 @@ int main() {
 ```
 
 运行结果示例：
-```
+```text
 ========================================
       欢迎来到猜数字游戏！ v1.0
 ========================================
@@ -1029,7 +1032,7 @@ int main() {
 ```
 
 运行结果（部分）：
-```
+```text
 ========================================
       ECS 架构演示 v1.0
 ========================================
@@ -1527,7 +1530,7 @@ int main() {
 
 状态机描述了一个对象在不同"状态"之间的切换。比如一个敌人的状态机可能是这样：
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                                                             │
 │    ┌──────────┐    发现玩家     ┌──────────┐               │
@@ -1754,6 +1757,25 @@ public:
 // 敌人状态定义
 // ============================================================
 
+// ⚠️ 这五个状态类会互相创建对方（比如"巡逻"发现玩家后要切到"追击"），
+//    形成循环引用。而 C++ 里 new 一个类要求它已经"完整定义"，
+//    所以不能直接在一个类里 new 另一个还没定义的类。
+//    解决办法：先把创建动作集中到下面这组工厂函数里，
+//    等所有状态类都定义完，再把工厂函数的实现补齐。
+class EnemyPatrolState;
+class EnemyChaseState;
+class EnemyAttackState;
+class EnemyHurtState;
+class EnemyDeadState;
+
+namespace enemy_states {
+    State* patrol(GameCharacter& e, const Vector2D& center, float radius);
+    State* chase(GameCharacter& e, const Vector2D& playerPos);
+    State* attack(GameCharacter& e);
+    State* hurt(GameCharacter& e, const Vector2D& knockback);
+    State* dead(GameCharacter& e);
+}
+
 class EnemyPatrolState : public State {
 private:
     GameCharacter& enemy;
@@ -1804,7 +1826,7 @@ public:
     void handleEvent(const std::string& event) override {
         if (event == "PlayerSpotted") {
             // 玩家位置需要从游戏世界获取，这里简化为一个固定位置
-            enemy.getFSM().setState(new EnemyChaseState(enemy, Vector2D(15.0f, 15.0f)));
+            enemy.getFSM().setState(enemy_states::chase(enemy, Vector2D(15.0f, 15.0f)));
         }
     }
 
@@ -1837,18 +1859,18 @@ public:
         // 超时，返回巡逻
         if (chaseTimer > 5.0f) {
             std::cout << "  ⏰ 追击超时，放弃追踪" << std::endl;
-            enemy.getFSM().setState(new EnemyPatrolState(enemy, Vector2D(0, 0), 10));
+            enemy.getFSM().setState(enemy_states::patrol(enemy, Vector2D(0, 0), 10));
         }
     }
 
     void handleEvent(const std::string& event) override {
         if (event == "PlayerEscaped") {
             std::cout << "  😤 玩家逃走了！" << std::endl;
-            enemy.getFSM().setState(new EnemyPatrolState(enemy, Vector2D(0, 0), 10));
+            enemy.getFSM().setState(enemy_states::patrol(enemy, Vector2D(0, 0), 10));
         } else if (event == "InAttackRange") {
-            enemy.getFSM().setState(new EnemyAttackState(enemy));
+            enemy.getFSM().setState(enemy_states::attack(enemy));
         } else if (event == "TakeDamage") {
-            enemy.getFSM().setState(new EnemyHurtState(enemy, lastKnownPlayerPos));
+            enemy.getFSM().setState(enemy_states::hurt(enemy, lastKnownPlayerPos));
         }
     }
 
@@ -1884,9 +1906,9 @@ public:
 
     void handleEvent(const std::string& event) override {
         if (event == "PlayerEscaped") {
-            enemy.getFSM().setState(new EnemyPatrolState(enemy, Vector2D(0, 0), 10));
+            enemy.getFSM().setState(enemy_states::patrol(enemy, Vector2D(0, 0), 10));
         } else if (event == "TakeDamage") {
-            enemy.getFSM().setState(new EnemyHurtState(enemy, enemy.getPosition()));
+            enemy.getFSM().setState(enemy_states::hurt(enemy, enemy.getPosition()));
         }
     }
 
@@ -1919,9 +1941,9 @@ public:
         if (hurtTimer >= hurtDuration) {
             // 受伤结束，检查是否死亡
             if (!enemy.isAlive()) {
-                enemy.getFSM().setState(new EnemyDeadState(enemy));
+                enemy.getFSM().setState(enemy_states::dead(enemy));
             } else {
-                enemy.getFSM().setState(new EnemyChaseState(enemy, enemy.getPosition()));
+                enemy.getFSM().setState(enemy_states::chase(enemy, enemy.getPosition()));
             }
         }
     }
@@ -1953,12 +1975,35 @@ public:
             // 复活（重置生命值）
             std::cout << "  ✨ 敌人复活！" << std::endl;
             // 实际游戏中会重置位置和状态
-            enemy.getFSM().setState(new EnemyPatrolState(enemy, Vector2D(0, 0), 10));
+            enemy.getFSM().setState(enemy_states::patrol(enemy, Vector2D(0, 0), 10));
         }
     }
 
     std::string getName() const override { return "死亡"; }
 };
+
+// ============================================================
+// 工厂函数实现
+// 所有状态类都已定义完整，这里把前面声明的工厂函数补齐，
+// 这样状态之间就可以安全地互相创建了。
+// ============================================================
+namespace enemy_states {
+    State* patrol(GameCharacter& e, const Vector2D& center, float radius) {
+        return new EnemyPatrolState(e, center, radius);
+    }
+    State* chase(GameCharacter& e, const Vector2D& playerPos) {
+        return new EnemyChaseState(e, playerPos);
+    }
+    State* attack(GameCharacter& e) {
+        return new EnemyAttackState(e);
+    }
+    State* hurt(GameCharacter& e, const Vector2D& knockback) {
+        return new EnemyHurtState(e, knockback);
+    }
+    State* dead(GameCharacter& e) {
+        return new EnemyDeadState(e);
+    }
+}
 
 // ============================================================
 // 演示
@@ -2081,6 +2126,7 @@ enum class KeyCode {
     KEY_W, KEY_A, KEY_S, KEY_D,
     KEY_SPACE, KEY_SHIFT, KEY_CTRL, KEY_ENTER, KEY_ESCAPE,
     KEY_1, KEY_2, KEY_3, KEY_4, KEY_Q, KEY_E, KEY_R, KEY_T,
+    KEY_J, KEY_TAB,   // 攻击备用键 / 菜单键
 
     // 鼠标
     MOUSE_LEFT, MOUSE_RIGHT, MOUSE_MIDDLE,
@@ -2552,6 +2598,7 @@ struct AudioSource {
     std::string soundName;
     bool isPlaying;
     bool isPaused;
+    bool loop;          // 是否循环播放（背景音乐/环境音常用）
     float volume;
     float pan;          // 左右声道 [-1, 1]
     float currentTime;
@@ -2559,7 +2606,7 @@ struct AudioSource {
 
     AudioSource(const std::string& name, float dur)
         : soundID(0), soundName(name), isPlaying(false),
-          isPaused(false), volume(1.0f), pan(0.0f),
+          isPaused(false), loop(false), volume(1.0f), pan(0.0f),
           currentTime(0.0f), duration(dur) {}
 };
 
@@ -3045,7 +3092,7 @@ int main() {
 
 ### 🎮 游戏开发技术栈
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                      游戏应用层                               │
 │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐│

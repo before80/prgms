@@ -1,6 +1,8 @@
 ﻿
 
 +++
+
+# 第4章 esbuild 用在哪里
 title = "第4章 esbuild用在哪里"
 weight = 40
 date = "2026-03-28T11:54:00+08:00"
@@ -249,13 +251,13 @@ chmod +x dist/cli   # 添加执行权限
 
 ## 4.4 集成于其他工具链
 
-### 4.4.1 Vite（开发时 esbuild 负责转译，生产时 Rollup 打包 + esbuild 转译/压缩）
+### 4.4.1 Vite（Vite 1–7 的经典集成；Vite 8 已改用 Rolldown/Oxc）
 
-Vite 可以说是 esbuild 最重量级的"用户"了——没有之一。
+Vite 1–7 可以说是 esbuild 最重量级的"用户"之一。
 
-Vite 的开发服务器之所以能"秒开"，全靠 esbuild 在背后做转译。当你运行 `vite` 的时候，esbuild 会立即把你的 TypeScript、JSX、TSX 代码转成 JavaScript，整个过程只需要几百毫秒——比 Webpack 的"热身"快了几十倍。
+Vite 1–7 的开发服务器之所以能"秒开"，很大程度上靠 esbuild 在背后做转译。运行 `vite` 时，esbuild 会把 TypeScript、JSX、TSX 代码转成 JavaScript。Vite 8 已把这条路径切换到 Rolldown/Oxc。
 
-Vite 还会对第三方的大依赖包（比如 `lodash`、`date-fns`）进行**依赖预构建**（pre-bundling），将大量内部模块打包成一个文件，减少浏览器的请求次数。这解决了 ESM 下 600+ 个请求的问题。这一预构建过程始终由 esbuild 完成，速度非常快（Vite 不同版本实现可能略有差异，但核心始终是 esbuild）。预构建主要在开发模式下进行（SSR 等特殊场景也会触发）。
+Vite 还会对第三方大依赖进行**依赖预构建**（pre-bundling），将大量内部模块合并成更少的文件，减少浏览器请求。Vite 1–7 的预构建由 esbuild 完成；Vite 8 已改为 Rolldown。
 
 ```mermaid
 graph TD
@@ -274,23 +276,23 @@ graph TD
     style H fill:#f9d71c,color:#000
 ```
 
-在生产模式下，Vite 使用 Rollup 作为打包器，而 **Rollup 内部通过 `@rollup/plugin-esbuild` 插件调用 esbuild** 来完成代码转译（TypeScript / JSX → JavaScript）和代码压缩——这两者都是 esbuild 最擅长的场景。
+在生产模式下，Vite 1–7 使用 Rollup 作为打包器，esbuild 负责部分 TS/JSX 转换和压缩；Vite 8 则统一使用 Rolldown/Oxc。`@rollup/plugin-esbuild` 不是 Vite 生产构建的默认机制。
 
-### 4.4.2 Rollup（通过 @rollup/plugin-esbuild 使用 esbuild 作为转译器和压缩器）
+### 4.4.2 Rollup（通过 rollup-plugin-esbuild 使用 esbuild 作为转译器和压缩器）
 
 Rollup 是一个专注于"打包类库"的工具，它输出的代码非常干净，特别适合做 npm 包——简直是为类库而生的"处女座"打包工具。
 
 但 Rollup 本身不支持 TypeScript 和 JSX，需要借助插件。传统方案是 `@rollup/plugin-typescript`（用 tsc 转译）或 `@rollup/plugin-babel`（用 Babel 转译）。
 
-而 `@rollup/plugin-esbuild` 就是用 esbuild 来替代这两者——转译速度比 tsc 和 Babel 快很多：
+而 `rollup-plugin-esbuild` 就是用 esbuild 来替代这两者——转译速度比 tsc 和 Babel 快很多：
 
 ```bash
-npm install --save-dev @rollup/plugin-esbuild esbuild
+npm install --save-dev rollup-plugin-esbuild esbuild
 ```
 
 ```javascript
 // rollup.config.js
-import esbuild from '@rollup/plugin-esbuild';
+import esbuild from 'rollup-plugin-esbuild';
 
 export default {
   input: 'src/index.ts',
@@ -420,7 +422,7 @@ esbuild 在以下场景下是绝佳选择：
 
 **Node.js 项目构建**：打包后端代码、打包命令行工具，esbuild 都能搞定，而且输出干净。
 
-**集成到其他工具链**：Vite、Rollup、webpack、Gulp 等主流工具都可以和 esbuild 配合。Vite 把 esbuild 当作开发服务器的引擎，Rollup 用 esbuild 做转译，webpack 用 esbuild-loader 提速。
+**集成到其他工具链**：Rollup、webpack、Gulp 等主流工具都可以和 esbuild 配合。Vite 1–7 把 esbuild 当作开发阶段引擎；Vite 8 已改用 Rolldown/Oxc。
 
 **适用场景总结**：中小型项目、极速构建、类库开发这些场景是 esbuild 的主场；超大型复杂项目、深度自定义打包策略可能需要 Rollup 或 Webpack。
 

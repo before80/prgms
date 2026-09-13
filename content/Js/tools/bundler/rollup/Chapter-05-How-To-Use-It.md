@@ -9,6 +9,8 @@ draft = false
 +++
 # 第 5 章　怎么用
 
+> 📌 **版本提示（2026-09 核对）**：Rollup 4 要求 Node.js 18+。以下示例以 Rollup 4.x 为基准；如果你在 Vite 8 项目中使用 Rollup 插件，应通过 `rolldownOptions` 或兼容层接入。
+
 ---
 
 ## 5.1 环境准备
@@ -732,7 +734,7 @@ export default defineConfig({
 ### 5.8.3 执行 `vite build` 调用 Rollup
 
 ```bash
-# 执行 Vite 的生产构建（底层跑 Rollup）
+# 执行 Vite 1–7 的生产构建（底层跑 Rollup；Vite 8 已改为 Rolldown）
 npx vite build
 
 # 输出类似：

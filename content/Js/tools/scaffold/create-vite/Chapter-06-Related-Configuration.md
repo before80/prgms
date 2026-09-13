@@ -287,7 +287,7 @@ export default defineConfig({
 
 ### 6.3.1 构建配置是什么？
 
-当你执行 `npm run build` 时，Vite 会用 **Rollup** 打包工具把你的源代码编译成最优化的静态文件。`build` 节点就是用来控制这个过程的。
+当你执行 `npm run build` 时，Vite 会调用打包器把源代码编译成最优化的静态文件。Vite 1–7 使用 **Rollup**，Vite 8 起使用 **Rolldown**；`build` 节点用来控制这个过程，`build.rollupOptions` 仍作为兼容 Rollup 插件 API 的配置入口保留。
 
 ### 6.3.2 输出目录（outDir）
 

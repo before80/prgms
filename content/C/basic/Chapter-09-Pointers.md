@@ -84,7 +84,7 @@ graph LR
         A1["0x7ffd5a3c4b34<br>grade ('A')"]
         A2["0x7ffd5a3c4b38<br>salary (12345.67)"]
         A3["0x7ffd5a3c4b3c<br>age (25)"]
-        A4["...")
+        A4["..."]
     end
     style A1 fill:#e1f5ff
     style A2 fill:#e1f5ff
@@ -560,11 +560,11 @@ graph LR
     C -->|指向| c
     D -->|指向| d
     E -->|指向| e
-    style arr[0] fill:#d1ecf1
-    style arr[1] fill:#d1ecf1
-    style arr[2] fill:#d1ecf1
-    style arr[3] fill:#d1ecf1
-    style arr[4] fill:#d1ecf1
+    style A fill:#d1ecf1
+    style B fill:#d1ecf1
+    style C fill:#d1ecf1
+    style D fill:#d1ecf1
+    style E fill:#d1ecf1
 ```
 
 ### 数组指针：`int (*arr)[5]`
@@ -725,8 +725,10 @@ int main(void) {
     double a = 10.0, b = 3.0;
     char op = '/';
 
-    if (op >= 0 && op < 256 && operations[(unsigned char)op] != NULL) {
-        printf("%.2f %c %.2f = %.2f\n", a, op, b, operations[op](a, b));
+    // 注意：char 在有些平台是"有符号"的，负数字符直接当数组下标会越界到数组前面去。
+    // 所以先转成 unsigned char，保证下标落在 0~255。
+    if (operations[(unsigned char)op] != NULL) {
+        printf("%.2f %c %.2f = %.2f\n", a, op, b, operations[(unsigned char)op](a, b));
     } else {
         printf("不支持的操作符：%c\n", op);
     }
@@ -857,11 +859,11 @@ graph LR
     subgraph "allocate_array 函数"
         B["int **pp<br>值：&arr"]
     end
-    B -->|解引用 *pp| A
+    B -->|"解引用 *pp"| A
     subgraph "堆内存"
         C["malloc 分配的内存<br>0 10 20 30 40"]
     end
-    A -->|allocate_array 中<br>*pp = malloc(...) 后| C
+    A -->|"allocate_array 中 malloc 赋值后"| C
     style B fill:#f8d7da
     style A fill:#d1ecf1
 ```

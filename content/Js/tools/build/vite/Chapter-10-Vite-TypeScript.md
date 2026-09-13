@@ -10,7 +10,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-10-Vite-TypeScript
 
 # 第10章：Vite + TypeScript
 
@@ -363,7 +362,7 @@ pnpm create vite@latest my-vanilla-ts -- --template vanilla-ts
     "module": "ESNext",
     
     // 模块解析策略
-    // 'bundler'：Vite/Rollup 使用的解析策略
+    // 'bundler'：Vite/Rolldown/Rollup 生态使用的打包器解析策略
     // 'node'：Node.js 原生的解析策略
     // 'node16'：Node.js 16+ 的解析策略
     "moduleResolution": "bundler",

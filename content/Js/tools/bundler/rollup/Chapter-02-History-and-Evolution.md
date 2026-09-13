@@ -13,9 +13,9 @@ draft = false
 
 ## 2.1 诞生背景
 
-2008 年，Chrome V8 引擎的诞生让 JavaScript 第一次有了"快"的可能；2015 年，ES6（ES2015）正式落地，JavaScript 有了官方的模块系统。就在这样的时代背景下，一个叫 **Rich Harris** 的英国小哥，正在为自己的另一个作品——**Svelte**（2016年正式发布）——寻找一个合适的打包工具。
+2008 年，Chrome V8 引擎的诞生让 JavaScript 第一次有了"快"的可能；2015 年，ES6（ES2015）正式落地，JavaScript 有了官方的模块系统。就在这样的时代背景下，一个叫 **Rich Harris** 的开发者开始尝试一种新的打包方式，并于 2015 年创建了 **Rollup**。
 
-当时的打包工具市场，要么是笨重的 Webpack，要么是面向 Node.js 的 Browserify，没有一个能让他满意。他想要的很简单：**把 Svelte 编译器输出的那些 ES Module 代码，打包成一个干净、小巧的文件，而且要把没用的代码全部剔除掉**。
+当时的打包工具市场，要么是笨重的 Webpack，要么是面向 Node.js 的 Browserify。Rich Harris 想要更直接地利用 ES Module 的静态结构，生成干净、小巧的 bundle，并尽可能剔除未使用的代码。这个思路后来成为 Rollup 的核心卖点，也让 Rollup 成为 Svelte 生态的重要基础设施。
 
 于是他一不做二不休，自己动手写了一个。2015 年，Rollup 诞生了。
 
@@ -29,11 +29,11 @@ Rollup 的第一个版本发布在 GitHub 上，虽然粗糙，但核心思想�
 
 GitHub 上那个最早的提交信息写的是：*"first commit"*- 是的，就是这么朴实无华且枯燥。但正是这个"first commit"，埋下了后世最优雅打包工具的种子。
 
-### 2.1.2 初衷：解决 Svelte 编译器产物打包问题
+### 2.1.2 初衷：更好地打包 ES Module
 
-Svelte 编译器的工作是把 `.svelte` 文件编译成普通的 JavaScript 代码。这些代码本身就是 ES Module 格式的，用传统的打包工具去打，反而要先把 ES Module 转成 CommonJS，绕了一大圈。Rich Harris 需要的是一个"直接吃 ES Module、直接吐 ES Module"的打包工具。
+Rollup 的目标是直接以 ES Module 为输入和输出，充分利用静态 import/export 信息做 Tree Shaking。Svelte 在 2016 年发布后，也采用了 Rollup 作为推荐的打包工具，因此很多人会把 Rollup 与 Svelte 联系在一起；但 Rollup 并不是专门为 Svelte 而生的。
 
-Rollup 就是为解决这个特定问题而生的——**Svelte 是它的催生婆，Tree-Shaking 是它的灵魂**。
+Rollup 的定位可以概括为：**以 ES Module 为核心输入，把 Tree Shaking 做到极致**。
 
 ### 2.1.3 灵感来源：Google Closure Compiler 的死代码消除思想
 
@@ -65,13 +65,13 @@ Rollup 的 0.x 时代就像一颗刚发芽的种子——充满潜力，但还�
 
 2017 年，Rollup 发布了 1.0 版本，这是 Rollup 历史上的重要转折点。值得注意的是，1.0 是一次"壮士断腕"式的升级——大量 0.x 时代的 API 在 1.0 中不再兼容，从 0.x 升级上来的用户不得不重写配置。不过这次 break 也换来了更干净的插件架构，为后来插件生态的蓬勃发展打下了基础。
 
-### 2.3.1 build / renderBundle（后更名 generateBundle）两阶段插件钩子系统确立
+### 2.3.1 build / generateBundle 两阶段插件钩子系统确立
 
 这是 Rollup 历史上最重大的架构升级之一。Rollup 团队定义了插件的两大执行阶段：
 
 > **build 阶段**（也叫 buildStart、resolve、load、transform）：在这个阶段，Rollup 读取源码、解析依赖、转换代码。插件可以拦截这个过程中的任何一步，比如把 TypeScript 转成 JavaScript，把 SCSS 转成 CSS——只要你愿意，甚至可以把图片转成 Base64 塞进代码里（虽然我们不太推荐这么做）。
 
-> **renderBundle 阶段**（后来在 4.x 版本更名为 generateBundle）：在所有模块都被处理完毕，准备生成最终打包文件时触发。在这个阶段插件可以做最后一轮的修改，比如压缩代码、生成 Source Map。
+> **generateBundle 阶段**：在所有模块都被处理完毕、准备生成最终打包文件时触发。插件可以在这个阶段生成或修改 chunk、asset、Source Map 等最终输出。Rollup 1.0 还废弃了更早的 `ongenerate`、`onwrite` 等旧钩子，插件 API 从此逐渐稳定下来。
 
 这种两阶段设计让插件可以精确地控制打包过程中的每一个环节——你可以把 Rollup 的插件系统想象成一个**流水线**，每一步都有检查点，插件想在哪儿插队就在哪儿插队，想改什么就改什么，相当自由。这也是后来 Rollup 插件生态蓬勃发展的技术基础。
 
@@ -147,9 +147,9 @@ Vue 生态是第一个大规模采用 Rollup 的阵营。Vue 3 的源码从一�
 
 `package.json` 中的 `exports` 字段是 Node.js 12+ 支持的一种**条件导出**机制，它允许你根据不同的条件（是 `import` 还是 `require`？是浏览器还是 Node？）提供不同的入口文件。比如你写了一个库，可以做到：**浏览器环境用 ESM 版本（体积小、支持 Tree-Shaking），Node.js 环境用 CJS 版本（直接 require 就行）**，不用自己手动维护两套包。3.x 版本对这个机制的支持让 Rollup 能更准确地解析 npm 包的导出路径。
 
-### 2.5.4 与 Vite 深度绑定（Vite 各版本均默认采用 Rollup 做生产构建）
+### 2.5.4 与 Vite 深度绑定（Vite 1–7 使用 Rollup 做生产构建）
 
-这里要特别提一下 **Vite**。Vite 是 2020 年出现的构建工具，它的特点是开发时用 esbuild（极快），生产时用 Rollup（产物质量高）。Vite 自 1.0 起就默认使用 Rollup 做生产构建，Vite 1/2/3/4/5 一脉相承——这让 Rollup 的用户群一下子扩大了 N 倍，因为**所有用 Vite 的开发者，其实都在使用 Rollup**。Vite 把 Rollup 的易用性和 Tree-Shaking 能力包装起来，让数以百万计的前端开发者不知不觉就成了 Rollup 的用户。
+这里要特别提一下 **Vite**。Vite 是 2020 年出现的构建工具，Vite 1–7 的经典架构是开发时用 esbuild（极快）、生产时用 Rollup（产物质量高）。这大幅扩大了 Rollup 的用户群，因为大量 Vite 开发者在生产构建阶段实际上都在使用 Rollup。到 **Vite 8（2026 年 3 月）**，生产与开发构建统一改为 **Rolldown**，因此“所有 Vite 项目都在用 Rollup”只适用于 Vite 7 及之前。
 
 ---
 
@@ -159,7 +159,7 @@ Vue 生态是第一个大规模采用 Rollup 的阵营。Vue 3 的源码从一�
 
 ### 2.6.1 更快的解析与打包速度
 
-4.x 版本使用了一个全新的 JavaScript 解析器（基于 [oxc 项目](https://oxc-project.github.io/)），解析速度相比 3.x 有质的飞跃。在某些测试场景中，4.x 的构建速度是 3.x 的两倍以上——这对动辄几十秒的巨型项目来说，省下的时间可不是一杯咖啡的功夫，而是能去泡杯茶再回来。
+Rollup 4 使用 **SWC** 作为解析器（不再使用 Acorn），解析速度相比 3.x 有明显提升。与此同时，Rollup 4 开始通过可选的原生依赖提供 Rust 实现，并移除了 `acorn`、`acornInjectPlugins` 等旧配置入口。对大型项目来说，这些改动能实实在在减少构建时间。
 
 ### 2.6.2 改进的 TypeScript 支持
 
@@ -169,9 +169,9 @@ Vue 生态是第一个大规模采用 Rollup 的阵营。Vue 3 的源码从一�
 
 4.x 版本的 Source Map 生成更加精确，调试体验更好。
 
-### 2.6.4 新增 generatedCode 选项（控制输出 JS 语法特性）
+### 2.6.4 output.generatedCode 选项（控制 Rollup 自己生成的辅助代码语法）
 
-`generatedCode` 选项允许你指定输出代码的目标 JavaScript 特性级别。比如设置成 `es2015`，Rollup 在输出时就会自动回避 ES2015 之后才有的语法特性（如可选链 `?.`、空值合并 `??`、BigInt 等），确保产物在目标环境（比如还在用 IE11 的上古浏览器）里能正常运行。这个选项对**开发面向老旧浏览器兼容库的开发者**特别有用——再也不用担心用了新语法导致目标用户打不开网页了，妈妈再也不用担心了。
+`output.generatedCode` 允许你指定 Rollup 在生成包装代码、helper 等**自己产生的代码**时可以使用哪些 JavaScript 特性。例如设置成 `es2015`，Rollup 会在自己的辅助代码中放心使用 ES2015 语法。注意它**不会转译你的业务代码**，只影响 Rollup 生成的胶水代码。
 
 ```js
 export default {
@@ -186,14 +186,13 @@ export default {
 };
 ```
 
-### 2.6.5 新增 compiletime 选项（构建耗时测量）
+### 2.6.5 使用 perf 选项查看构建耗时
 
-`compiletime` 选项开启后，Rollup 会在构建结束时输出各个阶段的耗时，帮助你分析打包性能的瓶颈在哪里。开启方式也很简单：
+Rollup 没有名为 `compiletime` 的配置项；官方提供的性能分析开关是 `perf`。开启后，Rollup 会在构建结束时输出各阶段耗时，帮助你定位瓶颈：
 
 ```js
 export default {
-  // ...
-  compiletime: true
+  perf: true
 };
 ```
 
@@ -208,35 +207,35 @@ generate chunks 23.45ms
 
 哪个阶段最慢，就重点优化哪个阶段。有种"性能分析报告"的感觉，妈妈再也不用担心我不知道时间去哪儿了。
 
-### 2.6.6 renderBundle 正式更名为 generateBundle（与 Vite 生态对齐）
+### 2.6.6 generateBundle 是稳定的输出阶段钩子
 
-在 4.x 版本中，Rollup 团队将 `renderBundle` 这个插件钩子更名为 `generateBundle`，以更准确地反映它的实际作用——毕竟它是在"生成最终 bundle"阶段触发的，叫 `generateBundle` 语义更直接。这个改名也是为了与 Vite 生态中的命名惯例保持一致——毕竟 Vite 的插件体系里用的就是 `generateBundle`，名字对不上会让很多插件作者困惑。
+`generateBundle` 用于在打包文件写入磁盘前修改或生成最终输出。它在 Rollup 1.0 时代就已经成为稳定的核心钩子；Rollup 1.0 同时废弃了更早的 `ongenerate`、`onwrite` 等旧写法。它并不是在 4.x 才从 `renderBundle` 改名的。
 
-### 2.6.7 output.inlineDynamicImports 移入 output 配置块
+### 2.6.7 output.inlineDynamicImports 是输出选项
 
-在 4.x 之前，`inlineDynamicImports` 是一个顶层配置项；从 4.x 开始，它被移入了 `output` 配置块，和其他输出相关的配置放在一起，结构更合理。这也体现了 Rollup 配置 API 演进的一个趋势：**越来越语义化、越来越有层次感**，顶层配置干顶层的事，输出配置归输出配置，别混在一起。
+`inlineDynamicImports` 一直是**输出选项**，应写在 `output` 中，用于把动态导入内联到单个 bundle。它并不是 Rollup 4.x 才从顶层移入 `output` 的。它要求只有一个入口，并且会改变动态导入模块的执行时机。
 
 ---
 
-## 2.7 Rolldown：未来演进方向
+## 2.7 Rolldown：Vite 生态的新打包器
 
-Rollup 的未来是一个叫 **Rolldown** 的项目——用 Rust 重写的 Rollup。
+Rollup 生态的下一个重要项目是 **Rolldown**——由 VoidZero 团队用 Rust 开发的打包器。
 
 ### 2.7.1 Rust 重写，预计带来数量级性能提升
 
-Rolldown 是用 Rust 语言重写的 Rollup。为什么要用 Rust？因为 Rust 是一门内存安全、并发友好的系统级语言，用它写的程序能直接编译成机器码，理论上性能比 JavaScript 高出几个数量级。
+Rolldown 用 Rust 语言实现了兼容 Rollup 的插件 API，并基于 Oxc 等 Rust 工具链进行解析、转换和打包。Rust 带来的并行能力和原生执行效率，使它在大型项目中有机会显著缩短构建时间。
 
-按照 Rolldown 团队的预期，当它成熟之后，Rollup 的打包速度将会有质的飞跃——理想情况下能实现从秒级到毫秒级的跨越。这个提升如果实现，将是数量级的。
+按照 Vite 8 官方公布的数据，Rolldown 路径在部分真实项目中带来了 10–30 倍的构建速度提升；具体收益取决于项目规模、依赖结构和插件复杂度。
 
-> 💡 **背景补充**：Rich Harris 本人已于 2023 年正式加入 Vercel（Vite 的赞助商），全职负责 Rolldown 的开发。这意味着 Rolldown 不是什么野路子项目，而是有官方主力在推进的正经工程。
+> 💡 **背景补充**：Rolldown 由 Evan You 创立的 VoidZero 团队推进，目标是为 Vite 生态提供统一、快速、兼容 Rollup 插件 API 的底层打包器。
 
 ### 2.7.2 与 Vite 的深度整合计划
 
-Rolldown 是 **Rollup 团队**在 **Vercel** 的资助下用 Rust 重写的项目（Rich Harris 本人已于 2023 年加入 Vercel，Vite 团队也为其提供战略支持）。它的目标是**成为下一代 Vite 的默认 bundler**，届时 Vite 在开发阶段和生产阶段将使用同一个底层引擎（Rolldown），开发体验和生产构建的一致性将大幅提升。这也意味着 Vite 自身的代码也会因为 Rolldown 的成熟而受益——毕竟 Vite 的 dev server 一直在用 esbuild，生产构建用 Rollup，两套工具两套逻辑，维护起来也是负担。
+Rolldown 的目标是**成为 Vite 的默认打包器**。Vite 7 通过 `rolldown-vite` 提供了技术预览；Vite 8 已正式把 Rolldown 作为默认且统一的打包器，开发和生产不再需要维护 esbuild、Rollup 两套独立管线。
 
 ### 2.7.3 Rolldown 的现状与展望
 
-Rolldown 目前已经发布了正式版，并已集成进 Vite 5（2024 年底）作为**实验性**选项，生产构建默认仍使用 Rollup——但这个状态正在快速改变，Vite 6 极有可能正式切换。Rolldown 在 API 层面与 Rollup 高度兼容，大量插件可以相对平滑地迁移——当然，由于底层运行时不同（JavaScript vs Rust），部分插件仍需要针对性调整，但这比从头重写要轻松得多。
+Rolldown 已在 **Vite 8（2026 年 3 月）** 中成为默认且统一的打包器。它与 Rollup 插件 API 高度兼容，大量插件可以相对平滑地迁移；但底层运行时不同（JavaScript vs Rust），依赖 Rollup 内部实现或特殊行为的插件仍需要验证。Vite 8 提供配置兼容层，复杂项目应参考官方迁移指南逐步升级。
 
 对于 Rollup 用户来说，Rolldown 的到来既是挑战也是机遇——Rolldown 会继承 Rollup 所有的优秀特性，同时带来性能上的质变。**Rollup.js 本身仍会持续维护，不会突然消失**，它仍然是学习 bundler 原理的最佳范本，毕竟底层原理不会因为语言改变而改变。
 
@@ -248,7 +247,7 @@ Rolldown 目前已经发布了正式版，并已集成进 Vite 5（2024 年底�
 
 这一章我们回顾了 Rollup 从诞生到现在的完整历程：
 
-1. **诞生背景**：2015 年 Rich Harris（Svelte 作者）为解决 Svelte 编译器产物打包问题而创造，灵感来源于 Google Closure Compiler 的死代码消除技术。
+1. **诞生背景**：2015 年由 Rich Harris 创建，核心目标是直接利用 ES Module 的静态结构做 Tree Shaking；后来 Svelte 等框架采用了 Rollup，但 Rollup 并非专为 Svelte 而生。
 
 2. **0.x 时代**：概念验证期，功能简陋，插件生态为零，但已有原始的 JavaScript API。
 
@@ -258,6 +257,6 @@ Rolldown 目前已经发布了正式版，并已集成进 Vite 5（2024 年底�
 
 5. **3.x 时代**：功能完善期，代码分割增强，import.meta 完整支持，export conditions 支持，与 Vite 深度绑定。
 
-6. **4.x 时代**：性能持续提升，TypeScript 支持改进，generatedCode 和 compiletime 等新选项加入，renderBundle 更名为 generateBundle，inlineDynamicImports 移入 output 配置块。
+6. **4.x 时代**：性能持续提升，改用 SWC 解析器并引入原生依赖；`output.generatedCode` 控制 Rollup 辅助代码语法，`perf` 用于分析构建耗时。
 
-7. **未来**：Rolldown（Rust 版 Rollup）将是下一个重大演进，将成为下一代 Vite 的默认 bundler。
+7. **未来**：Rolldown 由 VoidZero 团队开发，并在 Vite 8 中成为默认的统一打包器；Rollup 本身仍会继续维护。

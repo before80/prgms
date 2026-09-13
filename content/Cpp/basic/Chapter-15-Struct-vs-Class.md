@@ -283,9 +283,9 @@ int main() {
 ```mermaid
 flowchart LR
     A["外部代码<br/>想改余额?"] --> B{"class BankAccount"}
-    B -->|直接改?| C["编译错误 🚫"]
-    B -->|deposit()| D["校验金额 ✅"]
-    B -->|withdraw()| E["检查余额 ✅"]
+    B -->|"直接改? 不行"| C["编译错误 🚫"]
+    B -->|"deposit()"| D["校验金额 ✅"]
+    B -->|"withdraw()"| E["检查余额 ✅"]
     D --> F["更新余额和交易"]
     E --> F
     F --> G["余额保护好了！"]
@@ -545,9 +545,18 @@ POD类型就像是C语言里的struct，可以安全地用`memcpy`进行复制�
 - 所有非静态成员的访问权限一致（要么都是public，要么都是private）
 - 没有虚基类
 
+> 📝 **补充说明**（上面是简化版，完整规则还包括）：
+> 不能有引用类型的非静态数据成员；不能有与第一个非静态数据成员类型相同的基类；
+> 基类的非静态数据成员不能和派生类的非静态数据成员"打架"（不能有相同类型的成员导致布局歧义）。
+> 想确认某个类型到底符不符合，直接问编译器：`static_assert(std::is_standard_layout_v<T>)`。
+
 ### 如何使用？
 
 C++11引入了`std::is_trivial`和`std::is_pod`等类型特征（type traits），让你可以在编译时检查类型是否具有某种属性。
+
+> ⚠️ **注意**：`std::is_pod` 在 **C++20 已被弃用（deprecated）**，标准建议改用
+> `std::is_standard_layout` + `std::is_trivial` 的组合来判断。
+> 所以新代码里应该优先用 `is_trivial` / `is_standard_layout`，而不是 `is_pod`。
 
 ```cpp
 #include <iostream>

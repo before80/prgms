@@ -10,7 +10,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-07-Assets-And-Optimization
 
 # 第7章：静态资源与构建优化
 
@@ -161,7 +160,7 @@ Vite 在构建时会给资源文件加上 hash，让浏览器在文件内容变�
 // vite.config.js
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: { // Vite 8+；旧版为 rollupOptions
       output: {
         // 资源文件名模板
         // [ext]: 文件扩展名
@@ -431,6 +430,8 @@ const routes = [
 
 ### 7.3.2 自动代码分割（manualChunks）
 
+> ⚠️ Vite 8 使用 Rolldown 后，对象形式的 `output.manualChunks` 已不再支持，函数形式也已弃用；下面的 `manualChunks` 示例主要用于 Vite 1–7，或用于理解分包思路。Vite 8 请改用 `rolldownOptions` / `codeSplitting`。
+
 Vite/Rollup 会自动分析依赖关系进行代码分割，但你也可以手动控制：
 
 ```javascript
@@ -536,7 +537,7 @@ export default defineConfig({
 })
 ```
 
-### 7.3.4 Rollup 手动分块
+### 7.3.4 手动分块（Rolldown / Rollup）
 
 更细粒度的代码分割控制：
 
@@ -544,7 +545,7 @@ export default defineConfig({
 // vite.config.js
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: { // Vite 8+；旧版为 rollupOptions
       output: {
         // 手动分块
         manualChunks(id) {
@@ -621,7 +622,7 @@ assets/
 
 ### 7.4.1 依赖预构建优化
 
-Vite 在首次启动时会用 esbuild 对 `node_modules` 中的依赖进行预构建。这个过程可以优化：
+Vite 在首次启动时会进行依赖预构建。Vite 8 使用 **Rolldown**，Vite 1–7 使用 **esbuild**。这个过程可以优化：
 
 ```javascript
 // vite.config.js
@@ -643,8 +644,8 @@ export default defineConfig({
       // 'some-problematic-package',
     ],
     
-    // esbuild 配置
-    esbuildOptions: {
+    // Vite 8：rolldownOptions；旧版：esbuildOptions
+    rolldownOptions: {
       // 定义全局变量
       define: {
         global: 'globalThis',

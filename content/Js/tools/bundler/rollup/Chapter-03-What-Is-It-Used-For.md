@@ -10,6 +10,8 @@ draft = false
 
 # 第 3 章　有什么用
 
+> 📌 **版本提示（2026-09 核对）**：Rollup 当前稳定主线为 4.x。Vite 1–7 使用 Rollup 做生产构建；Vite 8 已改用 Rolldown，因此“Vite 项目都在用 Rollup”只适用于 Vite 7 及之前。
+
 ## 3.1 打包 JavaScript 库 / npm 包
 
 这是 Rollup 最核心的使用场景，也是它的拿手好戏。如果你写了一个工具函数库、一个 UI 组件库，或者任何一个你想发布到 npm 上让其他开发者使用的项目，Rollup 几乎是你能找到的最佳打包方案。为什么这么说？

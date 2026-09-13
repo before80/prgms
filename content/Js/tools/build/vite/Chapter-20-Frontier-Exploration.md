@@ -11,7 +11,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-20-Frontier-Exploration
 
 # 第20章：前沿探索与展望
 
@@ -146,34 +145,27 @@ export default function handler(req: Request) {
 # - 重构代码
 ```
 
-### 20.1.4 Vite 6 新特性
+### 20.1.4 Vite 7 / Vite 8 新特性
 
-**Vite 6 的主要更新**：
+**Vite 7 的主要变化（2025 年 6 月）**：
 
-```typescript
-// Vite 6 新特性预览
+- Node.js 要求提升到 `^20.19.0 || >=22.12.0`
+- 默认浏览器目标改为 Baseline Widely Available
+- 提供 `rolldown-vite` 预览包，提前体验 Rolldown
 
-// 1. 环境变量类型增强
-// vite-env.d.ts
-/// <reference types="vite/client" />
+**Vite 8 的主要变化（2026 年 3 月）**：
 
-interface ImportMetaEnv {
-  readonly VITE_API_URL: string
-  readonly VITE_APP_VERSION: string
-}
+- Rolldown 成为默认且统一的打包器
+- 官方基准显示构建速度相比 Rollup 路径最高提升 10–30 倍
+- 内置 Vite Devtools、`resolve.tsconfigPaths`、`emitDecoratorMetadata` 支持
+- 浏览器控制台日志可以转发到终端
+- 通过兼容层自动转换大量 esbuild / Rollup 配置
 
-// 2. 更好的依赖预构建
-export default defineConfig({
-  optimizeDeps: {
-    // 更智能的预构建
-    include: ['vue', 'vue-router'],
-    exclude: [],
-  },
-})
-
-// 3. Rollup 4 升级
-// 更好的 Tree Shaking
-// 更高效的代码分割
+```mermaid
+flowchart LR
+    A["Vite 1–7<br/>esbuild + Rollup"] --> B["Vite 8<br/>Rolldown + Oxc"]
+    B --> C["统一插件 API<br/>兼容 Rollup 生态"]
+    C --> D["更快的开发与生产构建"]
 ```
 
 ---
@@ -225,7 +217,7 @@ export default defineConfig({
 |------|----------|
 | **Turborepo** | 任务依赖图 + 多核并行 |
 | **Nx** | 计算缓存 + 任务并行 |
-| **Rollup** | 多线程打包 |
+| **Rolldown** | Rust 原生并行，Vite 8+ 默认打包器 |
 
 ### 20.2.4 WASM 在构建中的应用
 
@@ -244,9 +236,9 @@ export default defineConfig({
 
 | 方面 | Vite | Turbopack |
 |------|------|-----------|
-| 语言 | TypeScript + Go (esbuild) | Rust |
+| 语言 | TypeScript + Rust（Vite 8：Rolldown/Oxc） | Rust |
 | 开发速度 | 快 | 极快 |
-| 生产构建 | Rollup | Rust |
+| 生产构建 | Rolldown（Vite 8+；旧版为 Rollup） | Turbopack |
 | 生态 | 成熟 | 新兴 |
 | 兼容性 | 广 | 有限 |
 
@@ -256,7 +248,7 @@ export default defineConfig({
 
 ### 20.2.6 Rolldown（Rollup 的 Rust 实现）
 
-**Rolldown** 是 Rollup 的 Rust 实现，目标是用 Rust 重新实现 Rollup 的核心功能。
+**Rolldown** 是 VoidZero 团队开发的 Rust 打包器，目标是兼容 Rollup 插件 API，同时提供接近原生的构建速度。它已经在 Vite 8 中成为默认打包器。
 
 ```mermaid
 flowchart LR
@@ -381,7 +373,8 @@ flowchart TD
 2022 Vite Conf - 首次大会
 2023 Vite Conf - Vite 5 发布
 2024 Vite Conf - Vite 6 发布
-2025 Vite Conf - 更多新特性
+2025 Vite Conf - Vite 7 与 Rolldown 进展
+2026 - Vite 8 发布，Rolldown 成为默认打包器
 ```
 
 ---

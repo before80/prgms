@@ -1,0 +1,923 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift open source project
+//
+// Copyright (c) 2023-2025 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See http://swift.org/LICENSE.txt for license information
+// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
+import Basics
+@_spi(SwiftPMInternal)
+@testable import PackageModel
+import _InternalTestSupport
+import XCTest
+
+import struct TSCBasic.ByteString
+import protocol TSCBasic.FileSystem
+import class Workspace.Workspace
+
+private let testArtifactID = "test-artifact"
+
+private let targetTriple = try! Triple("aarch64-unknown-linux")
+
+private let jsonEncoder = JSONEncoder()
+
+private func generateBundleFiles(bundle: MockBundle) throws -> [(String, ByteString)] {
+    return try [
+        (
+            "\(bundle.path)/info.json",
+            ByteString(json: """
+            {
+                "artifacts" : {
+                    \(bundle.artifacts.map {
+                            let path = if let metadataPath = $0.metadataPath {
+                                metadataPath.pathString
+                            } else {
+                                "\($0.id)/\(targetTriple.triple)"
+                            }
+
+                            return """
+                            "\($0.id)" : {
+                                "type" : "swiftSDK",
+                                "version" : "0.0.1",
+                                "variants" : [
+                                    {
+                                        "path" : "\(path)",
+                                        "supportedTriples" : \($0.supportedTriples.map(\.tripleString))
+                                    }
+                                ]
+                            }
+                            """
+                        }.joined(separator: ",\n")
+                    )
+                },
+                "schemaVersion" : "1.0"
+            }
+            """)
+        ),
+
+    ] + bundle.artifacts.map {
+        let path = if let metadataPath = $0.metadataPath {
+            "\(bundle.path)/\(metadataPath.pathString)"
+        } else {
+            "\(bundle.path)/\($0.id)/\(targetTriple.triple)/swift-sdk.json"
+        }
+
+        return (
+            path,
+            ByteString(json: try generateSwiftSDKMetadata(jsonEncoder, createToolset: $0.toolsetRootPath != nil))
+        )
+    } + bundle.artifacts.compactMap { artifact in
+        let toolsetPath = if artifact.metadataPath != nil {
+            "\(bundle.path)/toolset.json"
+        } else {
+            "\(bundle.path)/\(artifact.id)/\(targetTriple.triple)/toolset.json"
+        }
+        return artifact.toolsetRootPath.map { path in
+            (
+                "\(toolsetPath)",
+                ByteString(json: """
+                {
+                    "schemaVersion": "1.0",
+                    "rootPath": "\(path)"
+                }
+                """)
+            )
+        }
+    }
+}
+
+private func generateSwiftSDKMetadata(_ encoder: JSONEncoder, createToolset: Bool) throws -> SerializedJSON {
+    try """
+    {
+        "schemaVersion": "4.0",
+        "targetTriples": \(
+            String(
+                bytes: encoder.encode([
+                    targetTriple.tripleString: SwiftSDKMetadataV4.TripleProperties(sdkRootPath: "sdk", toolsetPaths: createToolset ? [
+                        "toolset.json"
+                    ] : nil)
+                ]),
+                encoding: .utf8
+            )!
+        )
+    }
+    """
+}
+
+private struct MockBundle {
+    let name: String
+    let path: String
+    let artifacts: [MockArtifact]
+}
+
+private struct MockArtifact {
+    let id: String
+    let supportedTriples: [Triple]
+    var metadataPath: RelativePath?
+    var toolsetRootPath: AbsolutePath?
+}
+
+private func generateTestFileSystem(
+    bundleArtifacts: [MockArtifact]
+) throws -> (some FileSystem, [MockBundle], AbsolutePath) {
+    let bundles = bundleArtifacts.enumerated().map { (i, artifacts) in
+        let bundleName = "test\(i).\(artifactBundleExtension)"
+        return MockBundle(name: "test\(i).\(artifactBundleExtension)", path: "/\(bundleName)", artifacts: [artifacts])
+    }
+
+    let fileSystem = try InMemoryFileSystem(
+        files: Dictionary(
+            uniqueKeysWithValues: bundles.flatMap {
+                try generateBundleFiles(bundle: $0)
+            }
+        )
+    )
+
+    let swiftSDKsDirectory = try AbsolutePath(validating: "/sdks")
+    try fileSystem.createDirectory(fileSystem.tempDirectory)
+    try fileSystem.createDirectory(swiftSDKsDirectory)
+
+    return (fileSystem, bundles, swiftSDKsDirectory)
+}
+
+private let arm64Triple = try! Triple("arm64-apple-macosx13.0")
+private let i686Triple = try! Triple("i686-apple-macosx13.0")
+
+private let fixtureSDKsPath = try! AbsolutePath(validating: #file)
+    .parentDirectory
+    .parentDirectory
+    .parentDirectory
+    .appending(components: ["Fixtures", "SwiftSDKs"])
+
+final class SwiftSDKBundleTests: XCTestCase {
+    func testInstallRemote() async throws {
+        #if canImport(Darwin) && !os(macOS)
+        try XCTSkipIf(true, "skipping test because process launching is not available")
+        #endif
+
+        let system = ObservabilitySystem.makeForTesting()
+        let observabilityScope = system.topScope
+        let cancellator = Cancellator(observabilityScope: observabilityScope)
+        let archiver = UniversalArchiver(localFileSystem, cancellator)
+
+        let fixtureAndURLs: [(url: String, fixture: String, checksum: String)] = [
+            ("https://localhost/archive?test=foo", "test-sdk.artifactbundle.tar.gz", "724b5abf125287517dbc5be9add055d4755dfca679e163b249ea1045f5800c6e"),
+            ("https://localhost/archive.tar.gz", "test-sdk.artifactbundle.tar.gz", "724b5abf125287517dbc5be9add055d4755dfca679e163b249ea1045f5800c6e"),
+            ("https://localhost/archive.zip", "test-sdk.artifactbundle.zip", "74f6df5aa91c582c12e3a6670ff95973e463dd3266aabbc52ad13c3cd27e2793"),
+        ]
+
+        for (bundleURLString, fixture, checksum) in fixtureAndURLs {
+            let httpClient = HTTPClient { request, _ in
+                guard case let .download(_, downloadPath) = request.kind else {
+                    XCTFail("Unexpected HTTPClient.Request.Kind")
+                    return .init(statusCode: 400)
+                }
+                let fixturePath = fixtureSDKsPath.appending(component: fixture)
+                try localFileSystem.copy(from: fixturePath, to: downloadPath)
+                return .init(statusCode: 200)
+            }
+
+            try await withTemporaryDirectory(fileSystem: localFileSystem, removeTreeOnDeinit: true) { tmpDir in
+                var output = [SwiftSDKBundleStore.Output]()
+                let store = SwiftSDKBundleStore(
+                    swiftSDKsDirectory: tmpDir,
+                    hostToolchainBinDir: tmpDir,
+                    fileSystem: localFileSystem,
+                    observabilityScope: observabilityScope,
+                    outputHandler: {
+                        output.append($0)
+                    }
+                )
+                try await store.install(bundlePathOrURL: bundleURLString, checksum: checksum, archiver, httpClient) {
+                    try Workspace.BinaryArtifactsManager.checksum(forBinaryArtifactAt: $0, fileSystem: localFileSystem)
+                }
+
+                let bundleURL = URL(string: bundleURLString)!
+                XCTAssertEqual(output, [
+                    .downloadStarted(bundleURL),
+                    .downloadFinishedSuccessfully(bundleURL),
+                    .verifyingChecksum,
+                    .checksumValid,
+                    .unpackingArchive(bundlePathOrURL: bundleURLString),
+                    .installationSuccessful(
+                        bundlePathOrURL: bundleURLString,
+                        bundleName: "test-sdk.artifactbundle"
+                    ),
+                ])
+            }.value
+        }
+    }
+
+    func testInstall() async throws {
+        let system = ObservabilitySystem.makeForTesting()
+
+        let (fileSystem, bundles, swiftSDKsDirectory) = try generateTestFileSystem(
+            bundleArtifacts: [
+                .init(id: testArtifactID, supportedTriples: [arm64Triple]),
+                .init(id: testArtifactID, supportedTriples: [arm64Triple])
+            ]
+        )
+
+        let archiver = MockArchiver()
+
+        var output = [SwiftSDKBundleStore.Output]()
+        let store = SwiftSDKBundleStore(
+            swiftSDKsDirectory: swiftSDKsDirectory,
+            hostToolchainBinDir: "/tmp",
+            fileSystem: fileSystem,
+            observabilityScope: system.topScope,
+            outputHandler: {
+                output.append($0)
+            }
+        )
+
+        // Expected to be successful:
+        try await store.install(bundlePathOrURL: bundles[0].path, archiver)
+
+        // Expected to fail:
+        let invalidPath = "foobar"
+        do {
+            try await store.install(bundlePathOrURL: invalidPath, archiver)
+
+            XCTFail("Function expected to throw")
+        } catch {
+            guard let error = error as? SwiftSDKError else {
+                XCTFail("Unexpected error type")
+                return
+            }
+
+            switch error {
+            case let .invalidBundleArchive(archivePath):
+                XCTAssertEqual(archivePath, AbsolutePath.root.appending(invalidPath))
+            default:
+                XCTFail("Unexpected error value")
+            }
+        }
+
+        do {
+            try await store.install(bundlePathOrURL: bundles[0].path, archiver)
+
+            XCTFail("Function expected to throw")
+        } catch {
+            guard let error = error as? SwiftSDKError else {
+                XCTFail("Unexpected error type")
+                return
+            }
+
+            switch error {
+            case let .swiftSDKArtifactAlreadyInstalled(installedBundleName, newBundleName, artifactID):
+                XCTAssertEqual(bundles[0].name, installedBundleName)
+                XCTAssertEqual(newBundleName, "test0.\(artifactBundleExtension)")
+                XCTAssertEqual(artifactID, testArtifactID)
+            default:
+                XCTFail("Unexpected error value")
+            }
+        }
+
+        do {
+            try await store.install(bundlePathOrURL: bundles[1].path, archiver)
+
+             XCTFail("Function expected to throw")
+         } catch {
+            guard let error = error as? SwiftSDKError else {
+                XCTFail("Unexpected error type")
+                return
+            }
+
+            switch error {
+            case .swiftSDKArtifactAlreadyInstalled(let installedBundleName, let newBundleName, let artifactID):
+                XCTAssertEqual(bundles[0].name, installedBundleName)
+                XCTAssertEqual(bundles[1].name, newBundleName)
+                XCTAssertEqual(artifactID, testArtifactID)
+            default:
+                XCTFail("Unexpected error value")
+            }
+        }
+
+        XCTAssertEqual(output, [
+            .installationSuccessful(
+                bundlePathOrURL: bundles[0].path,
+                bundleName: AbsolutePath(bundles[0].path).components.last!
+            ),
+            .unpackingArchive(bundlePathOrURL: invalidPath),
+        ])
+    }
+
+    func testList() async throws {
+        let (fileSystem, bundles, swiftSDKsDirectory) = try generateTestFileSystem(
+            bundleArtifacts: [
+                .init(id: "\(testArtifactID)2", supportedTriples: [i686Triple]),
+                .init(id: "\(testArtifactID)1", supportedTriples: [arm64Triple]),
+            ]
+        )
+        let system = ObservabilitySystem.makeForTesting()
+        let archiver = MockArchiver()
+
+        var output = [SwiftSDKBundleStore.Output]()
+        let store = SwiftSDKBundleStore(
+            swiftSDKsDirectory: swiftSDKsDirectory,
+            hostToolchainBinDir: "/tmp",
+            fileSystem: fileSystem,
+            observabilityScope: system.topScope,
+            outputHandler: {
+                output.append($0)
+            }
+        )
+
+        for bundle in bundles {
+            try await store.install(bundlePathOrURL: bundle.path, archiver)
+        }
+
+        let validBundles = try store.allValidBundles
+
+        XCTAssertEqual(validBundles.count, bundles.count)
+
+        XCTAssertEqual(validBundles.sortedArtifactIDs, ["\(testArtifactID)1", "\(testArtifactID)2"])
+        XCTAssertEqual(output, [
+            .installationSuccessful(
+                bundlePathOrURL: bundles[0].path,
+                bundleName: AbsolutePath(bundles[0].path).components.last!
+            ),
+            .installationSuccessful(
+                bundlePathOrURL: bundles[1].path,
+                bundleName: AbsolutePath(bundles[1].path).components.last!
+            ),
+        ])
+    }
+
+    func testBundleSelection() async throws {
+        let (fileSystem, bundles, swiftSDKsDirectory) = try generateTestFileSystem(
+            bundleArtifacts: [
+                .init(id: "\(testArtifactID)1", supportedTriples: [arm64Triple]),
+                .init(id: "\(testArtifactID)2", supportedTriples: [i686Triple])
+            ]
+        )
+        let system = ObservabilitySystem.makeForTesting()
+
+        var output = [SwiftSDKBundleStore.Output]()
+        let store = SwiftSDKBundleStore(
+            swiftSDKsDirectory: swiftSDKsDirectory,
+            hostToolchainBinDir: "/tmp",
+            fileSystem: fileSystem,
+            observabilityScope: system.topScope,
+            outputHandler: {
+                output.append($0)
+            }
+        )
+
+        let archiver = MockArchiver()
+        for bundle in bundles {
+            try await store.install(bundlePathOrURL: bundle.path, archiver)
+        }
+
+        let (id, sdk) = try store.selectBundle(
+            matching: "\(testArtifactID)1",
+            hostTriple: Triple("arm64-apple-macosx14.0")
+        )
+
+        XCTAssertEqual(sdk.targetTriple, targetTriple)
+        XCTAssertEqual(id, "\(testArtifactID)1")
+        XCTAssertEqual(output, [
+            .installationSuccessful(
+                bundlePathOrURL: bundles[0].path,
+                bundleName: AbsolutePath(bundles[0].path).components.last!
+            ),
+            .installationSuccessful(
+                bundlePathOrURL: bundles[1].path,
+                bundleName: AbsolutePath(bundles[1].path).components.last!
+            ),
+        ])
+
+        let (name, tripleSDK) = try store.selectBundle(
+            matching: "\(testArtifactID)1",
+            hostTriple: Triple("arm64-apple-macosx14.0"),
+            targetTriple: targetTriple
+        )
+
+        XCTAssertEqual(tripleSDK.targetTriple, targetTriple)
+        XCTAssertEqual(name, "\(testArtifactID)1")
+
+        let (match, matchSDK) = try store.selectBundle(
+            matching: "\(targetTriple.tripleString)",
+            hostTriple: Triple("i686-apple-macosx14.0")
+        )
+
+        XCTAssertEqual(matchSDK.targetTriple, targetTriple)
+        XCTAssertEqual(match, "\(testArtifactID)2")
+    }
+
+    func testBundleSelectionByTripleAndErrors() async throws {
+        let (fileSystem, bundles, swiftSDKsDirectory) = try generateTestFileSystem(
+            bundleArtifacts: [
+                .init(id: "\(testArtifactID)1", supportedTriples: [arm64Triple]),
+                .init(id: "\(testArtifactID)2", supportedTriples: [arm64Triple]),
+                .init(id: "\(targetTriple.tripleString)", supportedTriples: [i686Triple])
+            ]
+        )
+        let system = ObservabilitySystem.makeForTesting()
+
+        var output = [SwiftSDKBundleStore.Output]()
+        let store = SwiftSDKBundleStore(
+            swiftSDKsDirectory: swiftSDKsDirectory,
+            hostToolchainBinDir: "/tmp",
+            fileSystem: fileSystem,
+            observabilityScope: system.topScope,
+            outputHandler: {
+                output.append($0)
+            }
+        )
+
+        let archiver = MockArchiver()
+        for bundle in bundles {
+            try await store.install(bundlePathOrURL: bundle.path, archiver)
+        }
+
+        XCTAssertThrowsError(try store.selectBundle(
+            matching: "\(testArtifactID)3",
+            hostTriple: Triple("arm64-apple-macosx14.0"),
+            targetTriple: targetTriple
+        )) { error in
+            XCTAssertEqual(
+                "\(error)",
+                """
+                No Swift SDK found matching query `\(testArtifactID)3`, target triple \
+                `\(targetTriple.tripleString)`, and host triple `arm64-apple-macosx14.0`. \
+                Use the `swift sdk list` command to see available Swift SDKs.
+                """
+            )
+        }
+
+        XCTAssertThrowsError(try store.selectBundle(
+            matching: targetTriple.tripleString,
+            hostTriple: Triple("arm64-apple-macosx14.0")
+        )) { error in
+            XCTAssertEqual(
+                "\(error)",
+                """
+                The query for `\(targetTriple.tripleString)` and host triple `arm64-apple-macosx14.0` \
+                matched multiple SDKs: \(testArtifactID)1, \(testArtifactID)2. Use the \
+                `swift sdk list` command to see available Swift SDKs and try a different \
+                query like `--swift-sdk \(testArtifactID)1 --triple \(targetTriple.tripleString)` or remove an SDK.
+                """
+            )
+        }
+
+        XCTAssertThrowsError(try store.selectBundle(
+            matching: "\(targetTriple.tripleString)",
+            hostTriple: Triple("i686-apple-macosx14.0")
+        )) { error in
+            XCTAssertEqual(
+                "\(error)",
+                """
+                The query for `\(targetTriple.tripleString)` and host triple `i686-apple-macosx14.0` \
+                matched both an SDK and a target triple. Use the `swift sdk list` command \
+                to see available Swift SDKs and remove one of them.
+                """
+            )
+        }
+
+        XCTAssertThrowsError(try store.selectBundle(
+            matching: "armv7-unknown-linux",
+            hostTriple: Triple("arm64-apple-macosx14.0")
+        )) { error in
+            XCTAssertEqual(
+                "\(error)",
+                """
+                No Swift SDK found matching query `armv7-unknown-linux` and host triple \
+                `arm64-apple-macosx14.0`. Use the `swift sdk list` command to see \
+                available Swift SDKs.
+                """
+            )
+        }
+    }
+
+    /// Regression test for SR-Android-SDK-resource-dir / swiftlang/swift-package-manager#7973:
+    /// when `--swift-sdk <id>` and `--triple <triple>` are both supplied and the bundle's single
+    /// artifact ID maps to many target triples (the Android SDK's 3-arch × N-API-level shape),
+    /// `selectBundle` must filter by the supplied target triple and return the SwiftSDK whose
+    /// `swiftResourcesPath` matches that arch — not an arbitrary entry from the dictionary's
+    /// hash-randomized iteration order.
+    func testBundleSelectionByMultiTripleArtifact() async throws {
+        let bundlePath = "/android-sdk.artifactbundle"
+        let artifactID = "swift-android-sdk"
+        let variantPath = "swift-android"
+        let archs = ["aarch64", "x86_64", "armv7"]
+        let apiLevels = [30, 33]
+
+        var swiftSDKJSON = #"{ "schemaVersion": "4.0", "targetTriples": {"#
+        var first = true
+        for arch in archs {
+            for api in apiLevels {
+                let env = arch == "armv7" ? "androideabi" : "android"
+                let triple = "\(arch)-unknown-linux-\(env)\(api)"
+                if !first { swiftSDKJSON += "," }
+                first = false
+                swiftSDKJSON += """
+
+                    "\(triple)": {
+                        "sdkRootPath": "ndk-sysroot",
+                        "swiftResourcesPath": "swift-resources/usr/lib/swift-\(arch)",
+                        "swiftStaticResourcesPath": "swift-resources/usr/lib/swift_static-\(arch)"
+                    }
+                """
+            }
+        }
+        swiftSDKJSON += "} }"
+
+        let infoJSON = """
+        {
+            "schemaVersion": "1.0",
+            "artifacts": {
+                "\(artifactID)": {
+                    "type": "swiftSDK",
+                    "version": "0.0.1",
+                    "variants": [
+                        {
+                            "path": "\(variantPath)",
+                            "supportedTriples": ["arm64-apple-macosx13.0"]
+                        }
+                    ]
+                }
+            }
+        }
+        """
+
+        let fileSystem = try InMemoryFileSystem(files: [
+            "\(bundlePath)/info.json": ByteString(json: SerializedJSON(stringLiteral: infoJSON)),
+            "\(bundlePath)/\(variantPath)/swift-sdk.json": ByteString(json: SerializedJSON(stringLiteral: swiftSDKJSON)),
+        ])
+
+        let swiftSDKsDirectory = try AbsolutePath(validating: "/sdks")
+        try fileSystem.createDirectory(fileSystem.tempDirectory)
+        try fileSystem.createDirectory(swiftSDKsDirectory)
+
+        let system = ObservabilitySystem.makeForTesting()
+        let store = SwiftSDKBundleStore(
+            swiftSDKsDirectory: swiftSDKsDirectory,
+            hostToolchainBinDir: AbsolutePath("/tmp"),
+            fileSystem: fileSystem,
+            observabilityScope: system.topScope,
+            outputHandler: { _ in }
+        )
+
+        let archiver = MockArchiver()
+        try await store.install(bundlePathOrURL: bundlePath, archiver)
+
+        let hostTriple = try Triple("arm64-apple-macosx14.0")
+        let hostSwiftSDK = try SwiftSDK.hostSwiftSDK(environment: [:])
+
+        for arch in archs {
+            for api in apiLevels {
+                let env = arch == "armv7" ? "androideabi" : "android"
+                let triple = try Triple("\(arch)-unknown-linux-\(env)\(api)")
+                let expectedSwiftResources = swiftSDKsDirectory.appending(components: "android-sdk.artifactbundle", "\(variantPath)", "swift-resources", "usr", "lib", "swift-\(arch)").pathString
+                let expectedSwiftStaticResources = swiftSDKsDirectory.appending(components: "android-sdk.artifactbundle", "\(variantPath)", "swift-resources", "usr", "lib", "swift_static-\(arch)").pathString
+
+                let (id, sdk) = try store.selectBundle(
+                    matching: artifactID,
+                    hostTriple: hostTriple,
+                    targetTriple: triple
+                )
+
+                XCTAssertEqual(id, artifactID)
+                XCTAssertEqual(sdk.targetTriple?.tripleString, triple.tripleString)
+                XCTAssertEqual(
+                    sdk.pathsConfiguration.swiftResourcesPath?.pathString,
+                    expectedSwiftResources,
+                    "selectBundle returned wrong swiftResourcesPath for target \(triple.tripleString)"
+                )
+                XCTAssertEqual(
+                    sdk.pathsConfiguration.swiftStaticResourcesPath?.pathString,
+                    expectedSwiftStaticResources,
+                    "selectBundle returned wrong swiftStaticResourcesPath for target \(triple.tripleString)"
+                )
+
+                // End-to-end check via the same code path `swift build --swift-sdk X --triple Y` takes.
+                let derived = try SwiftSDK.deriveTargetSwiftSDK(
+                    hostSwiftSDK: hostSwiftSDK,
+                    hostTriple: hostTriple,
+                    customCompileTriple: triple,
+                    swiftSDKSelector: artifactID,
+                    store: store,
+                    observabilityScope: system.topScope,
+                    fileSystem: fileSystem
+                )
+
+                XCTAssertEqual(derived.targetTriple?.tripleString, triple.tripleString)
+                XCTAssertEqual(
+                    derived.pathsConfiguration.swiftResourcesPath?.pathString,
+                    expectedSwiftResources,
+                    "deriveTargetSwiftSDK returned wrong swiftResourcesPath for target \(triple.tripleString)"
+                )
+            }
+        }
+
+        XCTAssertThrowsError(try store.selectBundle(
+            matching: artifactID,
+            hostTriple: hostTriple
+        )) { error in
+            XCTAssertEqual(
+                "\(error)",
+                """
+                The query for `\(artifactID)` and host triple `\(hostTriple.tripleString)` \
+                has multiple target triples. Use the `--triple` flag to specify a triple.
+                """
+            )
+        }
+    }
+
+    func testTargetSDKDerivation() async throws {
+        let toolsetRootPath = AbsolutePath("/path/to/toolpath")
+        let (fileSystem, bundles, swiftSDKsDirectory) = try generateTestFileSystem(
+            bundleArtifacts: [
+                .init(id: "\(testArtifactID)1", supportedTriples: [arm64Triple]),
+                .init(id: "\(testArtifactID)2", supportedTriples: [arm64Triple], toolsetRootPath: toolsetRootPath),
+            ]
+        )
+        let system = ObservabilitySystem.makeForTesting()
+        let hostSwiftSDK = try SwiftSDK.hostSwiftSDK(environment: [:])
+        let hostTriple = try! Triple("arm64-apple-macosx14.0")
+        let hostToolchainBinDir = AbsolutePath("/tmp")
+        let archiver = MockArchiver()
+        let store = SwiftSDKBundleStore(
+            swiftSDKsDirectory: swiftSDKsDirectory,
+            hostToolchainBinDir: hostToolchainBinDir,
+            fileSystem: fileSystem,
+            observabilityScope: system.topScope,
+            outputHandler: { _ in }
+        )
+        
+        for bundle in bundles {
+            try await store.install(bundlePathOrURL: bundle.path, archiver)
+        }
+
+        do {
+            let targetSwiftSDK = try SwiftSDK.deriveTargetSwiftSDK(
+                hostSwiftSDK: hostSwiftSDK,
+                hostTriple: hostTriple,
+                store: store,
+                observabilityScope: system.topScope,
+                fileSystem: fileSystem
+            )
+            // By default, the target SDK is the same as the host SDK.
+            XCTAssertEqual(targetSwiftSDK, hostSwiftSDK)
+        }
+
+        do {
+            let targetSwiftSDK = try SwiftSDK.deriveTargetSwiftSDK(
+                hostSwiftSDK: hostSwiftSDK,
+                hostTriple: hostTriple,
+                customCompileTriple: .arm64Linux,
+                store: store,
+                observabilityScope: system.topScope,
+                fileSystem: fileSystem
+            )
+
+            // With a custom target triple, toolset extra CLI options should be empty
+            XCTAssertEqual(targetSwiftSDK.toolset.rootPaths, hostSwiftSDK.toolset.rootPaths)
+            for tool in targetSwiftSDK.toolset.knownTools.values {
+                XCTAssertEqual(tool.extraCLIOptions, [])
+            }
+        }
+
+        do {
+            let targetSwiftSDK = try SwiftSDK.deriveTargetSwiftSDK(
+                hostSwiftSDK: hostSwiftSDK,
+                hostTriple: hostTriple,
+                swiftSDKSelector: "\(testArtifactID)1",
+                store: store,
+                observabilityScope: system.topScope,
+                fileSystem: fileSystem
+            )
+            // With a target SDK selector, SDK should be chosen from the store.
+            XCTAssertEqual(targetSwiftSDK.targetTriple, targetTriple)
+            // No toolset in the SDK, so it should be the same as the host SDK.
+            XCTAssertEqual(targetSwiftSDK.toolset.rootPaths, hostSwiftSDK.toolset.rootPaths)
+        }
+
+        do {
+            let targetSwiftSDK = try SwiftSDK.deriveTargetSwiftSDK(
+                hostSwiftSDK: hostSwiftSDK,
+                hostTriple: hostTriple,
+                swiftSDKSelector: "\(testArtifactID)2",
+                store: store,
+                observabilityScope: system.topScope,
+                fileSystem: fileSystem
+            )
+            // With toolset in the target SDK, it should contain the host toolset roots at the end.
+            XCTAssertEqual(targetSwiftSDK.toolset.rootPaths, [toolsetRootPath] + hostSwiftSDK.toolset.rootPaths)
+        }
+
+        do {
+            // Check explicit overriding options.
+            let customCompileSDK = AbsolutePath("/path/to/sdk")
+            let archs = ["x86_64-apple-macosx10.15"]
+            let customCompileToolchain = AbsolutePath("/path/to/toolchain")
+            try fileSystem.createDirectory(customCompileToolchain, recursive: true)
+
+            let targetSwiftSDK = try SwiftSDK.deriveTargetSwiftSDK(
+                hostSwiftSDK: hostSwiftSDK,
+                hostTriple: hostTriple,
+                customCompileToolchain: customCompileToolchain,
+                customCompileSDK: customCompileSDK,
+                architectures: archs,
+                store: store,
+                observabilityScope: system.topScope,
+                fileSystem: fileSystem
+            )
+            XCTAssertEqual(targetSwiftSDK.architectures, archs)
+            XCTAssertEqual(targetSwiftSDK.pathsConfiguration.sdkRootPath, customCompileSDK)
+            XCTAssertEqual(
+                targetSwiftSDK.toolset.rootPaths,
+                [customCompileToolchain.appending(components: ["usr", "bin"])] + hostSwiftSDK.toolset.rootPaths
+            )
+        }
+    }
+
+    func testMetadataJSONPaths() async throws {
+        let toolsetRootPath = AbsolutePath("/path/to/toolpath")
+        let (fileSystem, bundles, swiftSDKsDirectory) = try generateTestFileSystem(
+            bundleArtifacts: [
+                .init(
+                    id: "\(testArtifactID)1",
+                    supportedTriples: [arm64Triple],
+                    metadataPath: "metadata1.json"
+                ),
+                .init(
+                    id: "\(testArtifactID)2",
+                    supportedTriples: [i686Triple],
+                    metadataPath: "metadata2.json",
+                    toolsetRootPath: toolsetRootPath
+                ),
+            ]
+        )
+        let system = ObservabilitySystem.makeForTesting()
+        let archiver = MockArchiver()
+        
+        var output = [SwiftSDKBundleStore.Output]()
+        let store = SwiftSDKBundleStore(
+            swiftSDKsDirectory: swiftSDKsDirectory,
+            hostToolchainBinDir: "/tmp",
+            fileSystem: fileSystem,
+            observabilityScope: system.topScope,
+            outputHandler: { output.append($0) }
+        )
+
+        for bundle in bundles {
+            try await store.install(bundlePathOrURL: bundle.path, archiver)
+        }
+
+        let validBundles = try store.allValidBundles
+
+        XCTAssertEqual(validBundles.count, bundles.count)
+
+        XCTAssertEqual(validBundles.sortedArtifactIDs, ["\(testArtifactID)1", "\(testArtifactID)2"])
+        XCTAssertEqual(output.count, 2)
+        XCTAssertEqual(output, [
+            .installationSuccessful(
+                bundlePathOrURL: bundles[0].path,
+                bundleName: AbsolutePath(bundles[0].path).components.last!
+            ),
+            .installationSuccessful(
+                bundlePathOrURL: bundles[1].path,
+                bundleName: AbsolutePath(bundles[1].path).components.last!
+            ),
+        ])
+    }
+
+    func testConfigureSDKRootPath() async throws {
+        func createConfigurationStore() async throws -> (SwiftSDKBundleStore, SwiftSDKConfigurationStore, FileSystem, TestingObservability) {
+            let (fileSystem, bundles, swiftSDKsDirectory) = try generateTestFileSystem(
+                bundleArtifacts: [
+                    .init(id: testArtifactID, supportedTriples: [arm64Triple, i686Triple]),
+                ]
+            )
+            let system = ObservabilitySystem.makeForTesting()
+
+            var output = [SwiftSDKBundleStore.Output]()
+            let store = SwiftSDKBundleStore(
+                swiftSDKsDirectory: swiftSDKsDirectory,
+                hostToolchainBinDir: "/tmp",
+                fileSystem: fileSystem,
+                observabilityScope: system.topScope,
+                outputHandler: {
+                    output.append($0)
+                }
+            )
+
+            let archiver = MockArchiver()
+            for bundle in bundles {
+                try await store.install(bundlePathOrURL: bundle.path, archiver)
+            }
+
+            let hostTriple = try Triple("arm64-apple-macosx14.0")
+            let (id, sdk) = try store.selectBundle(
+                matching: testArtifactID,
+                hostTriple: hostTriple
+            )
+
+            XCTAssertEqual(sdk.targetTriple, targetTriple)
+            XCTAssertEqual(id, testArtifactID)
+            XCTAssertEqual(output, [
+                .installationSuccessful(
+                    bundlePathOrURL: bundles[0].path,
+                    bundleName: AbsolutePath(bundles[0].path).components.last!
+                )
+            ])
+
+            let config = try SwiftSDKConfigurationStore(
+                hostTimeTriple: hostTriple,
+                swiftSDKBundleStore: store
+            )
+
+            return (store, config, fileSystem, system)
+        }
+
+        do {
+            let (_, config, _, _) = try await createConfigurationStore()
+            let args = SwiftSDK.PathsConfiguration<String>()
+            let configSuccess = try config.configure(
+                sdkID: testArtifactID,
+                targetTriple: nil,
+                showConfiguration: false,
+                resetConfiguration: false,
+                config: args
+            )
+            XCTAssertEqual(configSuccess, false, "Expected failure for SwiftSDKConfigurationStore.configure with no updated properties")
+        }
+
+        let targetTripleConfigPath = AbsolutePath("/sdks/configuration/\(testArtifactID)_\(targetTriple.tripleString).json")
+
+        #if os(Windows)
+        let sdkRootPath = "C:\\some\\sdk\\root\\path"
+        #else
+        let sdkRootPath = "/some/sdk/root/path"
+        #endif
+
+        do {
+            let (bundleStore, config, fileSystem, observeSystem) = try await createConfigurationStore()
+            var args = SwiftSDK.PathsConfiguration<String>()
+            args.sdkRootPath = sdkRootPath
+            // an empty targetTriple will configure all triples
+            let configSuccess = try config.configure(
+                sdkID: testArtifactID,
+                targetTriple: nil,
+                showConfiguration: false,
+                resetConfiguration: false,
+                config: args
+            )
+            XCTAssertTrue(configSuccess)
+            XCTAssertTrue(fileSystem.isFile(targetTripleConfigPath))
+
+            let validBundles = try bundleStore.allValidBundles
+            let hostTriple = try! Triple("arm64-apple-macosx14.0")
+            var swiftSDK = validBundles.selectSwiftSDK(id: testArtifactID,
+                                                       hostTriple: hostTriple,
+                                                       targetTriple: targetTriple)!
+            try config.readConfiguration(sdkID: testArtifactID, sdk: &swiftSDK)
+            XCTAssertEqual(swiftSDK.pathsConfiguration.sdkRootPath?.pathString, args.sdkRootPath)
+
+            let hostSwiftSDK = try SwiftSDK.hostSwiftSDK(environment: [:])
+            let targetSwiftSDK = try SwiftSDK.deriveTargetSwiftSDK(
+                hostSwiftSDK: hostSwiftSDK,
+                hostTriple: hostTriple,
+                swiftSDKSelector: testArtifactID,
+                store: bundleStore,
+                observabilityScope: observeSystem.topScope,
+                fileSystem: fileSystem
+            )
+            XCTAssertEqual(targetSwiftSDK.pathsConfiguration.sdkRootPath?.pathString, args.sdkRootPath)
+        }
+
+        do {
+            let (_, config, fileSystem, _) = try await createConfigurationStore()
+            var args = SwiftSDK.PathsConfiguration<String>()
+            args.sdkRootPath = sdkRootPath
+            XCTAssertFalse(fileSystem.isFile(targetTripleConfigPath))
+            let configSuccess = try config.configure(
+                sdkID: testArtifactID,
+                targetTriple: targetTriple.tripleString,
+                showConfiguration: false,
+                resetConfiguration: false,
+                config: args
+            )
+            XCTAssertTrue(configSuccess)
+            XCTAssertTrue(fileSystem.isFile(targetTripleConfigPath))
+
+            let resetSuccess = try config.configure(
+                sdkID: testArtifactID,
+                targetTriple: nil,
+                showConfiguration: false,
+                resetConfiguration: true,
+                config: args
+            )
+            XCTAssertTrue(resetSuccess, "Reset configuration should succeed")
+            XCTAssertFalse(fileSystem.isFile(targetTripleConfigPath), "Reset configuration should clear configuration folder")
+        }
+    }
+}

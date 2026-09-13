@@ -176,43 +176,46 @@ int main() {
 
 ```cpp
 #include <iostream>
-#include <new>  // 必须包含placement new
+#include <new>       // 必须包含 placement new
+#include <cstddef>   // size_t
+
+// 2. 预分配的内存池（注意要保证最大对齐，否则定位 new 可能产生未对齐访问）
+alignas(std::max_align_t) static char memoryPool[1024];
+static size_t offset = 0;
+
+struct Tracer {
+    int value;
+    Tracer(int v) : value(v) { std::cout << "Tracer(" << value << ") constructed" << std::endl; }
+    ~Tracer() { std::cout << "Tracer(" << value << ") destroyed" << std::endl; }
+};
+
+// 函数模板不能定义在函数内部，所以放到 main 外面
+template<typename T>
+T* allocate() {
+    T* ptr = new(memoryPool + offset) T();
+    offset += sizeof(T);
+    return ptr;
+}
 
 int main() {
     // 定位new：在指定内存地址构造对象
     // 不分配内存，只调用构造函数
-    
+
     // 1. 在栈上
-    struct Tracer {
-        int value;
-        Tracer(int v) : value(v) { std::cout << "Tracer(" << value << ") constructed" << std::endl; }
-        ~Tracer() { std::cout << "Tracer(" << value << ") destroyed" << std::endl; }
-    };
-    
     alignas(Tracer) char buffer[sizeof(Tracer)];
     Tracer* p = new(buffer) Tracer(42);  // 在buffer地址构造Tracer
     std::cout << "p->value = " << p->value << std::endl;  // 输出: p->value = 42
     p->~Tracer();  // 手动调用析构函数（placement new不自动调用）
-    
-    // 2. 预分配的内存池
-    static char memoryPool[1024];
-    static size_t offset = 0;
-    
-    template<typename T>
-    T* allocate() {
-        T* ptr = new(memoryPool + offset) T();
-        offset += sizeof(T);
-        return ptr;
-    }
-    
-    // 使用示例
-    // int* a = allocate<int>();
-    // double* b = allocate<double>();
-    
+
+    // 2. 使用内存池
+    int* a = allocate<int>();
+    double* b = allocate<double>();
+    *a = 7; *b = 3.14;
+    std::cout << *a << " " << *b << std::endl;  // 输出: 7 3.14
+
     // 定位new用于内存池、嵌入式系统、性能关键代码
-    
     std::cout << "Placement new demo complete" << std::endl;
-    
+
     return 0;
 }
 ```
@@ -312,6 +315,11 @@ unique_ptr是"霸道总裁"型指针——一旦拥有，绝对独占。不允�
 #include <iostream>
 #include <memory>
 
+// unique_ptr作为函数参数
+void process(std::unique_ptr<int> p) {
+    std::cout << "Processing: " << *p << std::endl;
+}
+
 int main() {
     // unique_ptr: 独占所有权，同一时间只能有一个指针拥有对象
     // 不能拷贝，只能移动
@@ -324,10 +332,6 @@ int main() {
     // std::cout << "*p1 = " << *p1 << std::endl;  // 危险！p1已经为空
     std::cout << "*p2 = " << *p2 << std::endl;  // 输出: *p2 = 42
     
-    // unique_ptr作为函数参数
-    void process(std::unique_ptr<int> p) {
-        std::cout << "Processing: " << *p << std::endl;
-    }
     
     auto up = std::make_unique<int>(100);
     // process(up);  // 错误！不能拷贝unique_ptr
@@ -380,8 +384,9 @@ int main() {
     std::cout << "arr[3] = " << arr[3] << std::endl;  // 输出: arr[3] = 30
     // 自动调用delete[]
     
-    // C++17: std::unique_ptr<T[]>
-    // C++20: std::unique_ptr<std::byte[]> 用于裸内存
+    // C++17: std::byte 提供了"这是一块裸内存，不是字符"的语义
+    // 常与数组版智能指针搭配：std::unique_ptr<std::byte[]> buffer(new std::byte[1024]);
+    // （std::byte 本身是 C++17 的；unique_ptr<T[]> 从 C++11 就有）
     
     return 0;
 }

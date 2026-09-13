@@ -11,7 +11,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-19-SSR-And-SSG
 
 # 第19章：SSR 与 SSG
 

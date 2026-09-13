@@ -1,0 +1,173 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift open source project
+//
+// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See http://swift.org/LICENSE.txt for license information
+// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
+import Basics
+import Foundation
+import struct TSCBasic.StringError
+import struct TSCUtility.Version
+
+public let artifactBundleExtension = "artifactbundle"
+
+public struct ArtifactsArchiveMetadata: Equatable {
+    public let schemaVersion: String
+    public let artifacts: [String: Artifact]
+
+    public init(schemaVersion: String, artifacts: [String: Artifact]) {
+        self.schemaVersion = schemaVersion
+        self.artifacts = artifacts
+    }
+
+    public struct Artifact: Equatable {
+        public let type: ArtifactType
+        public let version: String
+        public let variants: [Variant]
+
+        public init(type: ArtifactsArchiveMetadata.ArtifactType, version: String, variants: [Variant]) {
+            self.type = type
+            self.version = version
+            self.variants = variants
+        }
+    }
+
+    // In the future we are likely to extend the ArtifactsArchive file format to carry other types of artifacts beyond
+    // executables, static libraries, and Swift SDKs. Additional fields may be required to support these new artifact
+    // types e.g. swift interface files for Swift libraries. This can also support resource-only artifacts as well. For example,
+    // 3D models along with associated textures, or fonts, etc.
+    public enum ArtifactType: String, RawRepresentable, Decodable {
+        case executable
+        case staticLibrary
+        case swiftSDK
+        // Experimental support for Windows DLLs
+        case experimentalWindowsDLL
+
+        // Can't be marked as formally deprecated as we still need to use this value for warning users.
+        case crossCompilationDestination
+    }
+
+    public struct Variant: Equatable {
+        public let path: RelativePath
+        public let supportedTriples: [Triple]?
+        public let staticLibraryMetadata: StaticLibraryMetadata?
+
+        public init(path: RelativePath, supportedTriples: [Triple]?, staticLibraryMetadata: StaticLibraryMetadata? = nil) {
+            self.path = path
+            self.supportedTriples = supportedTriples
+            self.staticLibraryMetadata = staticLibraryMetadata
+        }
+    }
+
+    public struct StaticLibraryMetadata: Equatable, Decodable {
+        public let headerPaths: [RelativePath]
+        public let moduleMapPath: RelativePath?
+    }
+}
+
+extension ArtifactsArchiveMetadata {
+    public static func parse(fileSystem: FileSystem, rootPath: AbsolutePath) throws -> ArtifactsArchiveMetadata {
+        let path = rootPath.appending("info.json")
+        guard fileSystem.exists(path) else {
+            throw StringError("ArtifactsArchive info.json not found at '\(rootPath)'")
+        }
+
+        do {
+            let data: Data = try fileSystem.readFileContents(path)
+            let decoder = JSONDecoder.makeWithDefaults()
+            let decodedMetadata = try decoder.decode(ArtifactsArchiveMetadata.self, from: data)
+            let version = try Version(
+                versionString: decodedMetadata.schemaVersion,
+                usesLenientParsing: true
+            )
+
+            switch (version.major, version.minor) {
+            case (1, 2), (1, 1), (1, 0):
+                return decodedMetadata
+            default:
+                throw StringError(
+                    "invalid `schemaVersion` of bundle manifest at `\(path)`: \(decodedMetadata.schemaVersion)"
+                )
+            }
+        } catch let error as DecodingError {
+          switch error {
+              case .typeMismatch(let type, let context):
+                let keyPath = context.codingPath.map { $0.stringValue }.joined(separator: ".")
+                throw StringError(
+                  "Type mismatch in ArtifactsArchive info.json at '\(path)'. Key '\(keyPath)' expected type '\(type)'."
+                )
+
+              case .keyNotFound(let key, let context):
+                let keyPath = context.codingPath.map { $0.stringValue }.joined(separator: ".")
+                let location = keyPath.isEmpty ? "root" : "'\(keyPath)'"
+                throw StringError(
+                  "Missing required key '\(key.stringValue)' in ArtifactsArchive info.json at '\(path)' in \(location)."
+                )
+
+              case .valueNotFound(let type, let context):
+                let keyPath = context.codingPath.map { $0.stringValue }.joined(separator: ".")
+                throw StringError(
+                  "Expected non-null value of type '\(type)' in ArtifactsArchive info.json at '\(path)'. Key '\(keyPath)' is null."
+                )
+
+              case .dataCorrupted(let context):
+                throw StringError(
+                  "Invalid JSON in ArtifactsArchive info.json at '\(path)': \(context.debugDescription)")
+
+              @unknown default:
+                throw StringError(
+                  "failed parsing ArtifactsArchive info.json at '\(path)': \(error.localizedDescription)")
+              }
+        } catch {
+            throw StringError(
+                "failed parsing ArtifactsArchive info.json at '\(path)': \(error.interpolationDescription)"
+            )
+        }
+    }
+}
+
+extension ArtifactsArchiveMetadata: Decodable {
+    enum CodingKeys: String, CodingKey {
+        case schemaVersion
+        case artifacts
+    }
+}
+
+extension ArtifactsArchiveMetadata.Artifact: Decodable {
+    enum CodingKeys: String, CodingKey {
+        case type
+        case version
+        case variants
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.type = try container.decode(ArtifactsArchiveMetadata.ArtifactType.self, forKey: .type)
+        self.version = try container.decode(String.self, forKey: .version)
+        self.variants = try container.decode([ArtifactsArchiveMetadata.Variant].self, forKey: .variants)
+    }
+}
+
+extension ArtifactsArchiveMetadata.Variant: Decodable {
+    enum CodingKeys: String, CodingKey {
+        case path
+        case supportedTriples
+        case staticLibraryMetadata
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.supportedTriples = try container.decodeIfPresent([String].self, forKey: .supportedTriples)?.map { try Triple($0) }
+        self.path = try RelativePath(validating: container.decode(String.self, forKey: .path))
+        self.staticLibraryMetadata = try container.decodeIfPresent(
+            ArtifactsArchiveMetadata.StaticLibraryMetadata.self,
+            forKey: .staticLibraryMetadata
+        )
+    }
+}

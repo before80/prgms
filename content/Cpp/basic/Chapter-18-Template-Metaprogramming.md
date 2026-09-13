@@ -114,6 +114,7 @@ flowchart TB
 ```cpp
 #include <iostream>
 #include <type_traits>
+#include <cstddef>
 #include <vector>
 
 // 类型traits：在编译期查询和转换类型
@@ -283,15 +284,20 @@ struct TypeList {
 // IndexOf<T, Args...> 返回 T 在 Args... 中的索引
 // 如果找不到，返回 static_cast<size_t>(-1)（即最大size_t值，表示未找到）
 
-// 主模板：提供默认实现（基例）
-// 如果所有特化都不匹配，就会使用这个主模板
-// 注意：实际使用时，类型应该在列表中，否则会触发这个基例
-template<typename T, typename U = T, typename... Args>
-struct IndexOf {
-    static constexpr size_t value = static_cast<size_t>(-1);  // 未找到，返回最大值
+// 主模板：只声明，不定义。
+// 注意：不要给主模板加 `typename U = T` 这类默认参数，
+// 否则后面的偏特化有可能"什么都没特化"，编译器会报
+// "partial specialization does not specialize any template argument"。
+template<typename T, typename... Args>
+struct IndexOf;
+
+// 基例：列表已经空了，说明没找到
+template<typename T>
+struct IndexOf<T> {
+    static constexpr size_t value = static_cast<size_t>(-1);  // 返回最大值表示未找到
 };
 
-// 特化：第一个类型（U）就是要找的 T，命中！返回索引 0
+// 特化：列表第一个类型就是要找的 T，命中！返回索引 0
 template<typename T, typename... Args>
 struct IndexOf<T, T, Args...> {
     // 找到了！位置是 0
@@ -385,6 +391,7 @@ flowchart TD
 ```cpp
 #include <iostream>
 #include <vector>
+#include <cstddef>   // size_t
 
 // 表达式模板：延迟求值，避免临时对象
 // 这是一个简化示例，展示表达式模板的核心原理
@@ -409,14 +416,14 @@ public:
 };
 
 // VecExpr：表达式模板包装器
-// 它不存储数据，而是存储一个"表达式"的引用
+// 它不存储数据，而是存储一个"表达式"对象（按值保存！）
 // 当你访问它的下标时，它会委托给内部的表达式去计算
 template<typename Expr>
 class VecExpr {
-    const Expr& expr_;  // 存储表达式的引用
+    Expr expr_;  // 按值保存表达式对象，不是引用！
     
 public:
-    VecExpr(const Expr& e) : expr_(e) {}
+    explicit VecExpr(Expr e) : expr_(e) {}
     
     // 下标访问：返回表达式在该位置的结果
     const auto operator[](size_t i) const { return expr_[i]; }
@@ -450,13 +457,18 @@ int main() {
     
     // 当我们真正需要值的时候（通过下标访问），
     // 表达式模板才会计算出具体的数值
-    std::cout << "result[0] = " << result[0] << std::endl;  // 实际计算时才求值
-    std::cout << "result[1] = " << result[1] << std::endl;  // 输出: 22
-    std::cout << "result[2] = " << result[2] << std::endl;  // 输出: 33
+    std::cout << "result[0] = " << result[0] << std::endl;  // 输出: 11（1 + 10）
+    std::cout << "result[1] = " << result[1] << std::endl;  // 输出: 22（2 + 20）
+    std::cout << "result[2] = " << result[2] << std::endl;  // 输出: 33（3 + 30）
     
     return 0;
 }
 ```
+
+> ⚠️ **这里的生命周期问题非常关键**：`VecExpr` 必须**按值**保存表达式对象。
+> 如果写成 `const Expr& expr_;`（保存引用），`operator+` 里那个临时的 `VecSum<T>{a, b}` 在函数返回时就销毁了，
+> `result[0]` 读到的就是一块已经失效的内存——能编译通过，但结果是随机的垃圾值。
+> 表达式模板的"省拷贝"指的是**不拷贝数据**（`VecSum` 内部只持有 `Vec` 的引用），而不是"连表达式对象本身都不拷贝"。
 
 ### 表达式模板 vs 普通求值
 
@@ -796,8 +808,8 @@ C++14 开始，标准库提供了大量 `_v` 变量模板来简化代码：
 ```cpp
 #include <iostream>
 
-// C++26（草案）: 折叠表达式改进
-// 包括约束排序等
+// 提示：折叠表达式本身是 C++17 的特性，这里顺带复习一下；
+//       它至今没有在 C++20/23/26 里发生语法层面的变化。
 
 // 可变参数模板 sum 函数
 // 使用一元左折叠：(... + args) 展开为 ((args1 + args2) + args3) ...
@@ -815,12 +827,11 @@ auto sum_with_initial(T init, Args... args) {
     return (init + ... + args);
 }
 
-// C++26（草案）: 折叠表达式与 variadic auto
-// C++26 允许在泛型 lambda 和模板参数中使用 variadic auto
-// 以下示例展示使用 variadic auto（非类型模板参数包）的折叠表达式
+// 下面用到的 template<auto... values> 是 C++17 就有的
+// "auto 非类型模板参数"（C++17 起，非类型模板参数可以是任意类型的字面量），
+// 并不是 C++26 的新特性——注意别被网上"variadic auto 是 C++26"的说法误导。
 template<auto... values>
 constexpr auto make_sum() {
-    // C++26 支持 auto... 作为非类型模板参数包
     // 使用折叠表达式对所有参数求和
     return (... + values);
 }

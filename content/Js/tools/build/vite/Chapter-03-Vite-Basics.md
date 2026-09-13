@@ -10,7 +10,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-03-Vite-Basics
 
 # 第3章：Vite 基础使用
 
@@ -414,7 +413,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',       // 输出目录
     sourcemap: false,     // 是否生成 sourcemap
-    minify: 'esbuild',   // 压缩器：'esbuild' | 'terser'
+    minify: 'oxc',       // Vite 8 默认；旧版默认 'esbuild'，也可选 'terser'
   },
   
   // resolve：路径解析配置
@@ -588,7 +587,7 @@ flowchart TD
     
     subgraph 生产阶段["🚀 生产阶段 (pnpm build)"]
         A2[源代码] --> B2[Vite Build]
-        B2 --> C2[Rollup 打包优化]
+        B2 --> C2[Rolldown 打包优化<br/>（Vite 8+；旧版为 Rollup）]
         C2 --> D2[dist 目录]
         D2 --> E2[静态文件服务器]
         E2 --> F2[用户访问]

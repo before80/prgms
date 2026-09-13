@@ -104,16 +104,16 @@ draft = false
 
 补码让计算机的 ALU（算术逻辑单元）只需要**一套加法电路**就能完成加减法：
 
-```c
+```text
 // 在补码世界里，减法就是加法！
-a - b  ===  a + (-b)
-// 而 -b 就是 b 的补码
+a - b  等价于  a + (-b)
+// 而 -b 就是 b 的补码（取反加一）
 
 // 例如：5 - 3 = 5 + (-3)
 //
 //   5       = 00000101
 //  -3 的补码 = 11111101
-//   相加：00000101 + 11111101 = 00000010 (溢出最高位) = 2 ✓
+//   相加：00000101 + 11111101 = 00000010（最高位溢出丢弃）= 2 ✓
 ```
 
 这就是为什么所有现代计算机都使用**补码**来表示有符号整数。它让硬件设计简单到极致——加法器就是一切！
@@ -131,22 +131,22 @@ void print_binary_uint8(uint8_t value) {
     }
 }
 
-/* 原码：直接用最高位作符号位 */
-int8_t sign_magnitude(int8_t value) {
-    if (value >= 0) return value;
-    int8_t mag = -value;
-    return (1 << 7) | mag; // 最高位设 1
+/* 原码：最高位当符号位，低 7 位存绝对值 */
+uint8_t sign_magnitude(int value) {
+    if (value >= 0) return (uint8_t)(value & 0x7F);
+    return (uint8_t)(0x80u | ((-value) & 0x7F));
 }
 
-/* 反码：正数不变，负数逐位取反 */
-int8_t ones_complement(int8_t value) {
-    if (value >= 0) return value;
-    return ~(-value) | (1 << 7); // 符号位不变，其他位取反
+/* 反码：正数不变；负数符号位保持 1，其余位取反 */
+uint8_t ones_complement(int value) {
+    if (value >= 0) return (uint8_t)(value & 0x7F);
+    return (uint8_t)(0x80u | ((~(-value)) & 0x7F));
 }
 
-/* 补码：标准做法，C 语言直接用这个 */
-int8_t twos_complement(int8_t value) {
-    return value; // C 语言的 int8_t 本身就是补码表示
+/* 补码：标准做法，C 语言直接用这个；
+   把负数转成同宽的 uint8_t，得到的正是它的补码位模式 */
+uint8_t twos_complement(int value) {
+    return (uint8_t)value;
 }
 
 int main(void) {
@@ -293,7 +293,7 @@ int extract_bit(uint8_t value, int n) {
 }
 
 int main(void) {
-    uint8_t flags = 0b00110010; // 二进制字面量（C99）
+    uint8_t flags = 0b00010010; // 二进制字面量（C99）：第 1 位和第 4 位为 1（= 18）
 
     printf("原始值: "); print_binary(flags); printf(" (十进制: %u)\n\n", flags);
 
@@ -309,21 +309,21 @@ int main(void) {
     flags = toggle_bit(flags, 4);
     printf("翻转第4位后: "); print_binary(flags); printf("\n");
 
-    // 提取第 6 位
-    int bit6 = extract_bit(flags, 6);
-    printf("第6位的值: %d\n", bit6);
+    // 提取第 5 位
+    int bit5 = extract_bit(flags, 5);
+    printf("第5位的值: %d\n", bit5);
 
     return 0;
 }
 ```
 
 ```
-原始值: 00110010 (十进制: 50)
+原始值: 00010010 (十进制: 18)
 
-设置第5位后: 01110010
-清除第1位后: 01110000
-翻转第4位后: 01100000
-第6位的值: 1
+设置第5位后: 00110010
+清除第1位后: 00110000
+翻转第4位后: 00100000
+第5位的值: 1
 ```
 
 > 小技巧：C99 开始支持**二进制字面量**，写 `0b00110010` 编译器会直接帮你转换成对应的整数，代码可读性飙升！
@@ -469,14 +469,14 @@ uint8_t player_state = ENTITY_ALIVE | ENTITY_VISIBLE;
 
 高手用位运算替代乘除法，性能直接起飞！让我们来揭开这个秘密。
 
-### 18.4.1 左移 >> 乘 2 的幂，右移 >> 除 2 的幂
+### 18.4.1 左移 `<<` 乘 2 的幂，右移 `>>` 除 2 的幂
 
 ```c
 value << n   // 等价于 value * (2^n)
 value >> n   // 等价于 value / (2^n)，对于无符号数是逻辑右移
 ```
 
-但注意：**有符号数的右移是算术右移**（保留符号位），结果向零取整（对于正数向下取整，但负数行为取决于实现）。所以做除法时**优先使用无符号类型**！
+但注意：**有符号数的右移在 C 标准里是"实现定义"（implementation-defined）的**——虽然绝大多数编译器对负数是做"算术右移"（保留符号位、向下取整），但标准并不保证。所以做除法时**优先使用无符号类型**！
 
 ```c
 #include <stdio.h>
@@ -538,8 +538,8 @@ int main(void) {
     printf("=== 快速取模：x %% n 当 n = 2^k ===\n\n");
     printf("x = %u\n\n", x);
 
-    printf("%-10s %10s %10s %s\n", "n", "x%%n", "x&(n-1)", "相等?");
-    printf("%-10s %10s %10s %s\n", "----", "-----", "--------", "----");
+    printf("%-10s %10s %10s %s\n", "n", "x mod n", "x&(n-1)", "相等?");
+    printf("%-10s %10s %10s %s\n", "----", "-------", "--------", "----");
 
     for (int k = 0; k <= 8; k++) {
         uint32_t n = 1U << k; // n = 2^k
@@ -557,8 +557,8 @@ int main(void) {
 
 x = 12345
 
-n          x%%n    x&(n-1) 相等?
-----          -----    -------- ----
+n           x mod n   x&(n-1) 相等?
+----        -------   -------- ----
 1              0         0 ✓
 2              1         1 ✓
 4              1         1 ✓
@@ -878,9 +878,11 @@ int main(void) {
 ```
 
 ```
-sizeof(struct IPHeader)  = 8 字节
-sizeof(struct TCPHeader) = 20 字节
+sizeof(struct IPHeader)  = 4 字节
+sizeof(struct TCPHeader) = 16 字节
 ```
+
+> **⚠️ 注意：** 位域的具体排布和最终大小是**实现定义**的，换编译器 / 换平台可能得到不同结果（上面的数字是 64 位 x86/ARM 上 Clang、GCC 的典型值）。真正的网络报文解析**不要**直接用位域去套结构体——标准没有规定位域的填充顺序、字节序和跨存储单元的分配方式，各编译器可以自由发挥。要解析协议，请按字节手动移位、或用现成的库。
 
 ### 18.7.3 典型应用：压缩数据结构
 
@@ -888,28 +890,28 @@ sizeof(struct TCPHeader) = 20 字节
 
 ```c
 #include <stdio.h>
+#include <stdint.h>   /* uint8_t 定义在这里 */
 
-/* 没有位域的朴素版 —— 浪费很多空间 */
+/* 没有位域的朴素版 —— 每个字段都占一个完整的 int，很浪费 */
 struct PlayerNaive {
-    uint8_t level;        // 0-255: 1 字节
-    uint8_t health;       // 0-100: 1 字节
-    uint8_t mana;         // 0-100: 1 字节
-    uint8_t experience;   // 0-255: 1 字节
-    uint8_t is_alive;     // 0-1:   1 字节
-    uint8_t is_invincible;// 0-1:   1 字节
-    uint8_t is_stunned;   // 0-1:   1 字节
-    uint8_t : 0;          // padding 对齐
+    int level;         // 0-255
+    int health;        // 0-100
+    int mana;          // 0-100
+    int experience;    // 0-255
+    int is_alive;      // 0-1
+    int is_invincible; // 0-1
+    int is_stunned;    // 0-1
 };
 
-/* 用位域的压缩版 —— 只需要 3 字节！*/
+/* 用位域的压缩版 —— 只需要 4 字节！*/
 struct PlayerCompact {
     uint8_t level      : 8;  // 0-255
-    uint8_t health     : 7;  // 0-100，7 位够了（最大值 127 > 100）
-    uint8_t mana       : 7;  // 0-100，7 位
+    uint8_t health     : 7;  // 0-100，7 位够用（最大值 127 > 100）
+    uint8_t mana       : 7;  // 0-100，7 位够用
     uint8_t is_alive   : 1;
     uint8_t is_invincible : 1;
     uint8_t is_stunned : 1;
-    uint8_t experience : 5;  // 0-31 就不够用了，这里仅为演示
+    uint8_t experience : 5;  // 只有 5 位，0-31——真要存 0-255 得换类型
 };
 
 int main(void) {
@@ -932,11 +934,13 @@ int main(void) {
 ```
 
 ```
-朴素版 Player 大小: 8 字节
-压缩版 Player 大小: 5 字节
+朴素版 Player 大小: 28 字节
+压缩版 Player 大小: 4 字节
 
 英雄状态: Lv.99, HP=85, MP=60, 存活=1
 ```
+
+> **⚠️ 同样要注意：** 位域结构体的最终大小取决于编译器的分配策略（存储单元宽度、是否允许跨边界），上面的数字只是常见实现的结果，不代表标准规定。而且**位域成员不能取地址**，也无法参与需要普通对象地址的操作。
 
 ### 18.7.4 位域的注意事项
 
@@ -997,26 +1001,30 @@ int main(void) {
 
 C23 引入了 `<stdbit.h>` 头文件，提供了一套标准化的位操作函数，终于不用自己手写那些常见的位操作了！
 
+> **⚠️ 可用性提示：** `<stdbit.h>` 需要 **glibc 2.39+ 搭配 GCC 14+ / Clang 18+**；**macOS 的 Apple Clang 和 MSVC 目前都没有这个头文件**（报 `'stdbit.h' file not found`）。在 macOS 上想在本机练习，可以先用 GCC/Clang 的 `__builtin_clz` / `__builtin_ctz` / `__builtin_popcount` 等内置函数代替（它们是编译器扩展，不是标准库）。
+>
+> **⚠️ 别被函数名骗了：** 这套 API 的函数名**统一以 `stdc_` 开头**，而且**没有** `stdc_popcount`、`stdc_clz`、`stdc_rotl` 这类名字——网上很多资料（包括 AI 生成的）会写错。真实名字见下表。
+
 ### 18.9.1 核心函数一览
 
 | 函数 | 作用 |
 |------|------|
-| `stdc_count_leading_zeros_*` | 统计前导零的数量（从最高位开始数有多少个连续的 0）|
-| `stdc_count_trailing_zeros_*` | 统计尾随零的数量（从最低位开始数有多少个连续的 0）|
-| `stdc_has_single_bit` | 检查是否只有一个位被设置（判断是否是 2 的幂）|
-| `stdc_bit_width` | 返回表示该值所需的最小位数 |
-| `stdc_leading_zeros` | 返回前导零的数量（返回值本身）|
-| `stdc_trailing_zeros` | 返回尾随零的数量 |
-| `stdc_rotl` / `stdc_rotr` | 循环移位（左/右）|
+| `stdc_count_ones(x)` / `stdc_count_zeros(x)` | 数出二进制里 1 的个数 / 0 的个数（即 popcount）|
+| `stdc_leading_zeros(x)` / `stdc_leading_ones(x)` | 从最高位起连续的 0 / 1 的个数 |
+| `stdc_trailing_zeros(x)` / `stdc_trailing_ones(x)` | 从最低位起连续的 0 / 1 的个数 |
+| `stdc_first_leading_zero(x)` / `stdc_first_leading_one(x)` | 从最高位起第一个 0 / 1 的位置 |
+| `stdc_first_trailing_zero(x)` / `stdc_first_trailing_one(x)` | 从最低位起第一个 0 / 1 的位置 |
+| `stdc_has_single_bit(x)` | 是否只有一个位被设置（即是否为 2 的幂）|
+| `stdc_bit_width(x)` | 表示 x 所需的最小位数 |
+| `stdc_bit_floor(x)` / `stdc_bit_ceil(x)` | ≤ x 的最大 2 的幂 / ≥ x 的最小 2 的幂 |
 
-> `*` 后缀表示不同宽度：`uc` = unsigned char, `us` = unsigned short, `ui` = unsigned int, `ul` = unsigned long, `ull` = unsigned long long。
+> 上表是**类型泛型宏**（type-generic macro），会自动根据实参类型选择实现。标准同时也提供了带宽度后缀的**具体函数**，后缀含义为：`uc` = unsigned char、`us` = unsigned short、`ui` = unsigned int、`ul` = unsigned long、`ull` = unsigned long long。例如 `stdc_leading_zeros_ui(0x1u)` 就是对 `unsigned int` 的版本。
 
-### 18.9.2 `stdc_count_leading_zeros`：前导零计数
+### 18.9.2 `stdc_leading_zeros`：前导零计数
 
 这个函数可以帮你快速算出对数（向下取整）：
 
 ```c
-#define __STDC_VERSION_STDBIT_H__ 202311L
 #include <stdio.h>
 #include <stdbit.h>
 #include <stdint.h>
@@ -1034,7 +1042,7 @@ int main(void) {
 
     for (int i = 0; i < n; i++) {
         uint32_t v = values[i];
-        unsigned int leading = stdc_count_leading_zeros_ui(v);
+        unsigned int leading = stdc_leading_zeros(v);
         unsigned int width = stdc_bit_width(v);
         int is_power = stdc_has_single_bit(v);
 
@@ -1113,18 +1121,21 @@ int main(void) {
 
 C23 的 `<stdckdint.h>` 提供了**检查过的整数运算（Checked Integer Arithmetic）**。这简直是 C 程序员的福音——终于有标准的方式来安全地做加减乘除了！
 
+> **⚠️ 可用性提示：** `<stdckdint.h>` 同样是 C23 新头文件，需要 **glibc 2.40+ 搭配 GCC 14+ / Clang 18+**；**macOS 的 Apple Clang 和较旧的 MSVC 都没有**，在 macOS 上会报 `'stdckdint.h' file not found`。
+
 ### 18.10.1 核心函数
 
 | 函数 | 作用 | 返回值 |
 |------|------|--------|
-| `ckd_add` | 安全加法 | 返回结果，溢出则设置溢出标志 |
-| `ckd_sub` | 安全减法 | 返回结果，溢出则设置溢出标志 |
-| `ckd_mul` | 安全乘法 | 返回结果，溢出则设置溢出标志 |
+| `ckd_add(&r, a, b)` | 计算 `a + b` 存入 `r` | `bool`：**无溢出返回 `false`，溢出返回 `true`** |
+| `ckd_sub(&r, a, b)` | 计算 `a - b` 存入 `r` | 同上 |
+| `ckd_mul(&r, a, b)` | 计算 `a * b` 存入 `r` | 同上 |
+
+> **关键点：** 无论是否溢出，运算结果**都会被写入 `*result`**。一旦溢出，写入的是"把数学结果回绕（wraparound）到 `*result` 宽度"后的值——所以溢出时那个结果值是不可信的，要看返回值来判断。
 
 ### 18.10.2 溢出检测告别 UB
 
 ```c
-#define __STDC_VERSION_STDCKDINT_H__ 202311L
 #include <stdio.h>
 #include <stdint.h>
 #include <stdckdint.h>
@@ -1143,10 +1154,10 @@ int main(void) {
         printf("  溢出=%s, 结果=%d\n", overflow ? "true" : "false", result);
     }
 
-    // 测试减法溢出
+    // 测试减法溢出：INT32_MIN - 100 已经小于 INT32_MIN
     {
         int a = INT32_MIN;
-        int b = -100;
+        int b = 100;
         int result;
         bool overflow = ckd_sub(&result, a, b);
 
@@ -1186,11 +1197,11 @@ int main(void) {
 ckd_add(2147483647, 100):
   溢出=true, 结果=-2147483549
 
-ckd_sub(-2147483648, -100):
+ckd_sub(-2147483648, 100):
   溢出=true, 结果=2147483548
 
 ckd_mul(100000, 100000):
-  溢出=true, 结果=-1530494976
+  溢出=true, 结果=1410065408
 
 ckd_add(50, 60):
   溢出=false, 结果=110
@@ -1237,8 +1248,8 @@ if (ckd_add(&result, a, b)) {
 
 8. **字节序转换**：`htons`/`ntohs`/`htonl`/`ntohl` 在主机序和网络序之间搭桥，确保跨平台网络通信的正确性。
 
-9. **C23 `<stdbit.h>`**：新增了前导零计数、单bit检测、位宽计算等标准函数，`stdc_count_leading_zeros`、`stdc_has_single_bit`、`stdc_bit_width` 等让代码更可读、更便携。
+9. **C23 `<stdbit.h>`**：新增了前导零计数、单 bit 检测、位宽计算等标准函数，`stdc_leading_zeros`、`stdc_has_single_bit`、`stdc_bit_width` 等让代码更可读、更便携（注意这套函数都以 `stdc_` 开头，且主要靠 glibc 提供）。
 
-10. **C23 `<stdckdint.h>`**：`ckd_add`/`ckd_sub`/`ckd_mul` 终于给 C 语言带来了安全整数运算——返回结果和溢出标志，终于可以和 UB 说拜拜了。
+10. **C23 `<stdckdint.h>`**：`ckd_add`/`ckd_sub`/`ckd_mul` 终于给 C 语言带来了安全整数运算——返回一个 `bool` 表示是否溢出，结果始终写入 `*result`（溢出时为回绕值），终于可以和 UB 说拜拜了。
 
 > 位操作是 C 语言的"超能力"，它让你直接跟硬件对话。在系统编程、嵌入式开发、网络协议、游戏开发等追求极致性能和精确控制的领域，位操作是必备技能。希望这一章让你不仅"会用"，更能"用得妙"！

@@ -44,7 +44,7 @@ draft = false
 
 火车的每节车厢就是一个 `char`，装着一个字符。最后一节车厢是一个特殊的"终止车厢"（`'\0'`，ASCII 码是 0），它大声喊："到此为止！别再往前开了！"
 
-### 定义字符串的两种方式
+### 定义字符串的三种方式
 
 ```c
 #include <stdio.h>
@@ -210,7 +210,8 @@ void safe_print(const char *s) {
 #include <stdio.h>
 
 int main() {
-    // 这个看起来像数组，其实是常量指针！
+    // s1 是一个"指向字符串字面量的指针"——字面量本身是只读的，
+    // 通过 s1 去修改它是未定义行为（通常直接崩溃）。
     char *s1 = "hello";  // ⚠️ 危险写法，不推荐
 
     // 推荐写法
@@ -299,6 +300,8 @@ Segmentation fault (core dumped)
 ```
 
 > 段错误就像你试图在租来的房子里砸墙，物业直接把你赶出去了——连个道歉都没有。
+>
+> ⚠️ **严格来说**，"修改字符串字面量"是**未定义行为**：标准并不保证程序一定会崩溃。在把字面量放进可写内存的实现上，它可能"看起来改成功了"，然后在别处埋下更难查的 bug。所以**千万不要试探**。
 
 ### 正确做法
 
@@ -637,7 +640,9 @@ int main() {
     char dest[5];
     strncpy(dest, "Hello", sizeof(dest));
 
-    printf("dest = %s\n", dest);  // 可能输出乱码！没有 \0
+    // ⚠️ dest 里根本没有 '\0'，下面这行 printf 会越界读取——
+    //    这不只是"可能乱码"，而是货真价实的未定义行为（UB）。
+    printf("dest = %s\n", dest);
 
     // 正确做法：手动保证 \0
     strncpy(dest, "Hello", sizeof(dest) - 1);
@@ -725,7 +730,9 @@ banana vs apple: 1
 > - `< 0`：第一个字符串小于第二个
 > - `> 0`：第一个字符串大于第二个
 >
-> "小于"的意思是按字典顺序比较，比如 'a' < 'b'，所以 "apple" < "banana"。
+> "小于"的意思是按字典顺序比较（按 `unsigned char` 的编码值逐字符比较），比如 'a' < 'b'，所以 "apple" < "banana"。
+>
+> ⚠️ **注意：** 上面输出里的 `-1` / `1` 只是**某一种实现**的具体数值。C 标准只保证**符号**（负 / 0 / 正），**不保证**具体等于多少——换个标准库可能是 `-98`、`1` 或其他值。所以写代码时请只判断 `> 0`、`< 0`、`== 0`，**绝不要**写 `if (strcmp(a, b) == -1)`。
 
 **`strncmp` — 比较前 n 个字符**
 
@@ -858,7 +865,7 @@ int main() {
     printf("查找字符集: [%s]\n", delimiters);
     printf("找到的分隔符位置:\n");
 
-    char *p = str;
+    const char *p = str;   /* str 是 const char*，p 也必须是 const char* */
     while ((p = strpbrk(p, delimiters)) != NULL) {
         printf("  找到 '%c' 在位置 %td\n", *p, p - str);
         p++;  // 从下一个位置继续找
@@ -977,34 +984,11 @@ int main() {
 > 1. **不是线程安全的**：它使用内部静态变量存储状态，多线程环境下会出问题
 > 2. **会修改原字符串**：把分隔符替换成 `\0`，原字符串被破坏了
 > 3. **不能处理连续的分隔符**：比如 `"a,,b"` 会被当成 `"a"` 和 `"b"`，中间的空白被忽略了
-> 4. **C11 安全版本是 `strtok_s`**，POSIX 平台是 `strtok_r`
+> 4. **有可重入的安全版本**：POSIX 的 `strtok_r`，或 Microsoft 扩展的 `strtok_s`
 
-**`strtok_s` (C11) — 安全版本**
+**`strtok_r` (POSIX) — 推荐的安全版本**
 
-```c
-#define __STDC_WANT_LIB_EXT1__ 1
-#include <stdio.h>
-#include <string.h>
-
-int main() {
-    char sentence[] = "The quick brown fox jumps over the lazy dog";
-    const char *delimiters = " ,!";
-    char *context = NULL;  // 存储分割状态
-
-    printf("原句: %s\n\n", sentence);
-
-    char *token = strtok_s(sentence, delimiters, &context);
-
-    while (token != NULL) {
-        printf("单词: %s\n", token);
-        token = strtok_s(NULL, delimiters, &context);
-    }
-
-    return 0;
-}
-```
-
-**`strtok_r` (POSIX) — 另一个安全版本**
+`strtok_r` 由 POSIX 定义（同样声明在 `<string.h>` 里），后缀 `_r` 表示"可重入"（reentrant）——它把分割状态交给你自己维护，因此是线程安全的：
 
 ```c
 #include <stdio.h>
@@ -1013,7 +997,7 @@ int main() {
 int main() {
     char sentence[] = "The quick brown fox jumps over the lazy dog";
     const char *delimiters = " ,!";
-    char *saveptr = NULL;  // 状态指针
+    char *saveptr = NULL;  // 状态指针（由调用者维护，因此线程安全）
 
     printf("原句: %s\n\n", sentence);
 
@@ -1022,6 +1006,41 @@ int main() {
     while (token != NULL) {
         printf("单词: %s\n", token);
         token = strtok_r(NULL, delimiters, &saveptr);
+    }
+
+    return 0;
+}
+```
+
+**`strtok_s` (Annex K / MSVC) — 微软的"安全"版本**
+
+> **⚠️ 平台差异提示（很重要）：**
+>
+> `strtok_s` 并不是随手可用的通用 C 标准库函数，别把它当成 `strtok` 的通用替代品：
+>
+> - 它来自 C11 的 **Annex K（边界检查接口）**，标准签名是 **4 个参数**：`char *strtok_s(char *restrict s1, rsize_t *restrict s1max, const char *restrict s2, char **restrict ptr)`。
+> - Annex K 是**可选**的，**glibc、macOS 的 libc、Clang 都不提供**，目前基本只有 **MSVC** 实现——而且 **MSVC 的签名是 3 个参数**，与 Annex K 的标准签名并不一致。
+> - 所以在 macOS / Linux 上写 `strtok_s` 会直接报 `use of undeclared identifier 'strtok_s'`。
+>
+> 下面是 MSVC 风格的 3 参数版本（仅用于演示，需在 Windows 上编译）：
+
+```c
+#define __STDC_WANT_LIB_EXT1__ 1
+#include <stdio.h>
+#include <string.h>
+
+int main(void) {
+    char sentence[] = "The quick brown fox jumps over the lazy dog";
+    const char *delimiters = " ,!";
+    char *context = NULL;  // 存储分割状态
+
+    printf("原句: %s\n\n", sentence);
+
+    char *token = strtok_s(sentence, delimiters, &context);  // MSVC 的 3 参数版本
+
+    while (token != NULL) {
+        printf("单词: %s\n", token);
+        token = strtok_s(NULL, delimiters, &context);
     }
 
     return 0;
@@ -1127,7 +1146,7 @@ int main() {
     // 将前 5 个字符向后移动 3 位，有重叠
     memmove(buffer + 3, buffer, 5);
 
-    printf("移动后: %s\n", buffer);  // 输出: 0120123456789
+    printf("移动后: %s\n", buffer);  // 输出: 0120123489
 
     return 0;
 }
@@ -1268,6 +1287,7 @@ atoi(溢出) = -1                // ⚠️ 未定义行为
 ```c
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>   /* errno、ERANGE 定义在这里 */
 
 int main() {
     const char *str = "123abc";
@@ -1418,13 +1438,12 @@ int main() {
 }
 ```
 
-### 10.6.5 C23：`strfromd` / `strfromf` / `strfroml` — 数字转字符串
+### 10.6.5 C11：`strfromd` / `strfromf` / `strfroml` — 数字转字符串
 
-这是 C23 新增的函数，提供了数字到字符串的安全转换（之前只能靠 `sprintf`）：
+这是 **C11** 就加入 `<stdio.h>` 的函数（不是 C23 的新东西），提供了"浮点数 → 字符串"的安全转换，可以指定目标缓冲区大小，避免 `sprintf` 的溢出风险：
 
 ```c
 #include <stdio.h>
-#include <string.h>
 
 int main() {
     char buffer[100];
@@ -1446,7 +1465,7 @@ int main() {
 }
 ```
 
-> 在 C23 之前，把数字转成字符串只能用 `sprintf`/`snprintf`，这对于初学者来说既复杂又不安全。
+> **⚠️ 可用性提示：** `strfromd` / `strfromf` / `strfroml` 虽然是 C11 标准函数，但目前主要由 **glibc**（Linux）实现；**macOS 的 Apple libc 和 MSVC 都没有提供**。在 macOS 上编译会报 `use of undeclared identifier 'strfromd'`。跨平台代码建议直接用 `snprintf` 代替。
 
 ### 转换函数一览表
 
@@ -1456,7 +1475,7 @@ int main() {
 | `strtol/strtoul/strtod` | 字符串 → 数值（安全） | C89 | ✅ 带错误检测 |
 | `strtof/strtold` | 字符串 → float/long double | C99 | ✅ 安全 |
 | `strtoimax/strtoumax` | 字符串 → 最大整数 | C11 | ✅ 安全 |
-| `strfromd/strfromf/strfroml` | 数值 → 字符串 | C23 | ✅ 安全 |
+| `strfromd/strfromf/strfroml` | 数值 → 字符串 | C11 | ✅ 安全（主要 glibc 提供） |
 
 ---
 
@@ -1503,7 +1522,7 @@ int main() {
     printf("char 大小: %zu 字节\n", sizeof(char));
     printf("wchar_t 大小: %zu 字节\n", sizeof(wchar_t));
 
-    printf("L'hello' 字符串大小: %zu 字节\n", sizeof(L"hello"));
+    printf("L\"hello\" 字符串大小: %zu 字节\n", sizeof(L"hello"));
 
     return 0;
 }
@@ -1513,17 +1532,17 @@ int main() {
 ```
 char 大小: 1 字节
 wchar_t 大小: 4 字节
-L'hello' 字符串大小: 20 字节 (5 * 4)
+L"hello" 字符串大小: 24 字节 (6 * 4，含结尾的 L'\0')
 ```
 
 在 Windows (MSVC) 上：
 ```
 char 大小: 1 字节
 wchar_t 大小: 2 字节
-L'hello' 字符串大小: 12 字节 (5 * 2 + 2)
+L"hello" 字符串大小: 12 字节 (6 * 2，含结尾的 L'\0')
 ```
 
-> 宽字符的大小取决于平台！这也是为什么处理 Unicode 这么麻烦...
+> 宽字符的大小取决于平台（Linux/macOS 是 4 字节，Windows 是 2 字节）！这也是为什么处理 Unicode 这么麻烦——同一个 `L"hello"`，在不同平台上的字节数完全不同。
 
 ### 宽字符串的基本操作
 
@@ -1540,7 +1559,7 @@ int main() {
     wchar_t wstr[] = L"Hello, 世界!";
 
     // 宽字符串长度（字符数，不是字节数）
-    printf("字符数: %zu\n", wcslen(wstr));  // 11 (不含 \0)
+    printf("字符数: %zu\n", wcslen(wstr));  // 10 (不含 \0)
 
     // 宽字符串占用字节数
     printf("字节数: %zu\n", sizeof(wstr));
@@ -1635,6 +1654,8 @@ graph TD
 
 > ⚠️ 注意：这些是 **C11** 引入的，不是 C95！
 
+> **⚠️ 可用性提示：** `char16_t` / `char32_t` 以及下面的多字节转换函数都声明在 `<uchar.h>` 里。**macOS 的 Apple Clang 默认不提供这个头文件**（报 `'uchar.h' file not found`），MSVC 也不完整支持；在 Linux 的 GCC / Clang 上通常可用。
+
 ```c
 #include <stdio.h>
 #include <uchar.h>
@@ -1645,9 +1666,12 @@ int main() {
     // char32_t: UTF-32 字符
     const char32_t *u32_str = U"Hello, 世界!";
 
-    // 字符字面量
+    // 字符字面量（'中' 是 U+4E2D，能放进一个 UTF-16 / UTF-32 码元）
     char16_t u16_char = u'中';
     char32_t u32_char = U'中';
+
+    printf("u16_char: 0x%04X\n", (unsigned)u16_char);
+    printf("u32_char: 0x%08X\n", (unsigned)u32_char);
 
     printf("char16_t 大小: %zu\n", sizeof(char16_t));
     printf("char32_t 大小: %zu\n", sizeof(char32_t));
@@ -1663,7 +1687,7 @@ char32_t 大小: 4
 
 ### C23 新增：`char8_t` (UTF-8 专用类型)
 
-C23 引入了专用于 UTF-8 的 `char8_t` 类型和 `u8` 前缀：
+C23 引入了专用于 UTF-8 的 `char8_t` 类型，并把 `u8"..."` 字符串的类型从 `char` 改成了 `char8_t`：
 
 ```c
 #include <stdio.h>
@@ -1673,15 +1697,14 @@ int main() {
     // UTF-8 字符串字面量 (C23)
     const char8_t *u8_str = u8"Hello, 世界!";
 
-    // UTF-8 字符字面量 (C23)
-    char8_t u8_char = u8'中';
-
     // 注意：char8_t 打印需要用 %s 和 (char*) 转换
     printf("UTF-8 字符串: %s\n", (const char*)u8_str);
 
     return 0;
 }
 ```
+
+> **⚠️ 关于 `u8'...'`：** C11 起有 `u8'x'` 字符字面量（C23 起类型为 `char8_t`），但它**只能表示一个 UTF-8 码元**，因此只能写 ASCII 范围内的字符，例如 `u8'A'`、`u8'\n'`。像 `u8'中'` 这种多字节字符是**不合法的**（会报 `character constant too long for its type`），只能用 `u8"中"` 字符串形式。
 
 ### `<uchar.h>` 中的转换函数
 
@@ -1691,8 +1714,8 @@ C11 在 `<uchar.h>` 中提供了一些多字节和 Unicode 之间的转换函数
 
 ```c
 #include <stdio.h>
+#include <stdlib.h>   /* MB_CUR_MAX */
 #include <uchar.h>
-#include <string.h>
 
 int main() {
     char mbstr[] = "你好";  // UTF-8 编码的中文
@@ -1717,11 +1740,11 @@ int main() {
 
 ```c
 #include <stdio.h>
+#include <stdlib.h>   /* MB_CUR_MAX */
 #include <uchar.h>
-#include <string.h>
 
 int main() {
-    char16_t u16str[] = L"你好";  // UTF-16 编码
+    char16_t u16str[] = u"你好";  // 注意是 u"" 不是 L""——L"" 是 wchar_t
     char mbstr[10];
     mbstate_t state = {0};
 
@@ -1739,6 +1762,7 @@ int main() {
 ```c
 // C23 新增
 #include <stdio.h>
+#include <stdlib.h>   /* MB_CUR_MAX */
 #include <uchar.h>
 
 int main() {
@@ -1957,9 +1981,9 @@ int main() {
 
 1. **字符串本质**：C 语言的字符串就是 `char` 数组 + 结尾的 `'\0'`（空字符）。这个空字符是字符串函数的"导航信标"，告诉它们在哪里停下。
 
-2. **数组 vs 指针**：`char s[]` 是在栈上分配的可写内存，`char *s = "..."` 是指向只读数据区的指针。前者可以修改，后者修改会崩溃。
+2. **数组 vs 指针**：`char s[]` 是在栈上分配的可写内存，`char *s = "..."` 是指向只读数据区的指针。前者可以修改，后者修改是**未定义行为**（通常直接崩溃）。
 
-3. **字符串字面量**存储在只读数据段（`.rodata`），修改它会导致段错误（Segmentation Fault）。
+3. **字符串字面量**通常存放在只读数据段（`.rodata`），修改它一般会导致段错误（Segmentation Fault）——但这是**未定义行为**，标准并不保证"一定崩溃"，所以千万别抱着"反正会崩，试一下也没关系"的心态。
 
 ### 字符串输入输出
 
@@ -1975,14 +1999,14 @@ int main() {
 - `strcmp()`/`strncmp()`：字典序比较，返回 0/负数/正数
 - `strchr()`/`strrchr()`：查找字符（第一个/最后一个）
 - `strstr()`：查找子串
-- `strtok()`：分割字符串，但**不是线程安全的**，用 `strtok_s`（C11）或 `strtok_r`（POSIX）
+- `strtok()`：分割字符串，但**不是线程安全的**，可重入版本用 `strtok_r`（POSIX）或 `strtok_s`（Annex K / MSVC）
 - `memset()`/`memcpy()`/`memmove()`：内存操作，`memcpy` 不处理重叠区域
 
 ### 字符串与数字转换
 
 - **不推荐**：`atoi()`/`atof()`/`atol()`，无法检测错误
 - **推荐**：`strtol()`/`strtod()` 系列，有完整的错误检测机制
-- **C23 新增**：`strfromd()`/`strfromf()`/`strfroml()`，数字转字符串
+- **C11 新增**：`strfromd()`/`strfromf()`/`strfroml()`，数字转字符串（主要 glibc 提供）
 
 ### 宽字符与 Unicode
 

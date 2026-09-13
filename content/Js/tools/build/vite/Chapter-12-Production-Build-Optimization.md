@@ -11,13 +11,12 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-12-Production-Build-Optimization
 
 # 第12章：生产构建优化
 
 > 开发时飞快，那叫一个爽。但代码最终是要部署上线的，上线之后能不能"飞起来"，就全靠生产构建优化了。
 >
-> 这一章我们要聊的话题直接决定了你的网站"快不快"：Rollup 怎么配置？代码怎么压缩？Tree Shaking 怎么做？产物怎么分析？兼容怎么处理？CDN 怎么接？
+> 这一章我们要聊的话题直接决定了你的网站"快不快"：打包器怎么配置？代码怎么压缩？Tree Shaking 怎么做？产物怎么分析？兼容怎么处理？CDN 怎么接？
 >
 > 学完这章，你的网站加载速度能快到让用户"wow"一声！🚀
 
@@ -25,9 +24,9 @@ draft = false
 
 ## 12.1 构建配置深入
 
-### 12.1.1 Rollup 选项配置
+### 12.1.1 打包器选项配置（Vite 8：rolldownOptions；旧版：rollupOptions）
 
-Vite 在生产构建时使用的是 **Rollup** 作为打包器。Rollup 是一个专注于 ES Module 的打包工具，擅长 Tree Shaking 和代码分割。
+Vite 1–7 的生产构建使用 **Rollup**；Vite 8 起默认改为 **Rolldown**。Rolldown 兼容 Rollup 插件 API，所以 `build.rollupOptions` 仍然是 Vite 配置中重要的兼容入口。理解 Rollup 的 Tree Shaking 和代码分割机制，对迁移到 Vite 8 依然很有帮助。
 
 **Rollup 是什么？**
 
@@ -47,7 +46,7 @@ flowchart LR
     
     subgraph 生产阶段
         A2[源代码] --> B2[Vite Build]
-        B2 --> C2[Rollup 打包]
+        B2 --> C2[Rolldown 打包<br/>（Vite 8+；旧版为 Rollup）]
         C2 --> D2[优化输出]
         D2 --> E2[dist/ 目录]
     end
@@ -63,7 +62,7 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   build: {
     // Rollup 选项
-    rollupOptions: {
+    rolldownOptions: { // Vite 8+；旧版为 rollupOptions
       // 输入配置
       input: {
         main: path.resolve(__dirname, 'index.html'),
@@ -453,17 +452,17 @@ export default defineConfig({
 
 ### 12.2.1 代码压缩与混淆
 
-代码压缩是减小产物体积的最直接手段。Vite 默认使用 esbuild 进行压缩，比传统 terser 快 20-40 倍。
+代码压缩是减小产物体积的最直接手段。Vite 8 默认使用 **Oxc Minifier**，Vite 7 及之前默认使用 esbuild；两者都比传统 terser 快得多。
 
-**esbuild 压缩（默认）**：
+**Oxc 压缩（Vite 8 默认）**：
 
 ```javascript
 // vite.config.js
 export default defineConfig({
   build: {
-    // 默认：'esbuild'
+    // Vite 8 默认：'oxc'
     // 压缩速度快，但压缩率不是最优
-    minify: 'esbuild',
+    minify: 'oxc',
     
     // 关闭压缩（调试用）
     // minify: false,
@@ -575,7 +574,7 @@ terserOptions: {
 
 ### 12.2.2 Tree Shaking 优化
 
-Tree Shaking 是一种"死代码消除"技术——把你没用的代码从最终产物中删除。Vite 使用 Rollup 进行 Tree Shaking，效果非常好。
+Tree Shaking 是一种"死代码消除"技术——把你没用的代码从最终产物中删除。Vite 8 由 Rolldown 负责 Tree Shaking，Vite 1–7 由 Rollup 负责，效果都非常好。
 
 **Tree Shaking 的原理**：
 
@@ -583,7 +582,7 @@ Tree Shaking 基于 ES Module 的静态分析。ES Module 的 `import` 和 `expo
 
 ```mermaid
 flowchart LR
-    A["import { a, b } from 'module'"] --> B["Rollup 分析"]
+    A["import { a, b } from 'module'"] --> B["Rolldown / Rollup 分析"]
     B --> C["只用到了 a"]
     C --> D["b 被移除"]
     D --> E["产物更小"]
@@ -684,6 +683,8 @@ export default defineConfig({
 ### 12.2.4 分包策略优化
 
 合理的分包策略可以优化缓存命中率和加载性能。
+
+> ⚠️ **Vite 8 迁移提示**：Vite 8 中 `build.rollupOptions` 改名为 `build.rolldownOptions`，对象形式的 `output.manualChunks` 已不再支持，函数形式也已弃用，Rolldown 推荐使用更灵活的 `codeSplitting` 配置。下面示例保留了 Vite 1–7 的经典 `manualChunks` 写法，用于理解分包思路；Vite 8 项目请查阅最新迁移文档，并优先使用 `rolldownOptions` / `codeSplitting`。
 
 **manualChunks 配置**：
 

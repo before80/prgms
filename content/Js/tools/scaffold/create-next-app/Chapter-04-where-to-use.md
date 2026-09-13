@@ -12,6 +12,8 @@ draft = false
 
 想象一下，你站在一片荒芜的代码沙漠中，眼前什么都没有，只有一个光秃秃的文件夹图标孤零零地躺在那里，旁边还有一个闪烁的光标，仿佛在嘲笑你："来吧，从零开始构建一个世界吧！" 这时候，`create-next-app` 就是你的创世神器，它能凭空变出一个完整的 Next.js 项目结构，让你不用手忙脚乱地敲 `mkdir`、`touch`、`npm init` 一通乱操作。本章我们就来聊聊，这把"瑞士军刀"到底适合在哪些场景下挥舞，又应该在哪些情况下乖乖收进刀鞘。
 
+> 📌 **版本提示（2026-09 核对）**：Next.js 16 是当前稳定版，要求 Node.js 20.9+；`create-next-app` 的默认模板、依赖和 Turbopack 行为都以 16.x 为准。本章保留 14/15 的例子用于兼容旧项目。
+
 ## 4.1 适合使用的场景
 
 `create-next-app` 并非万能钥匙，但它绝对是打开新世界大门的首选钥匙。下面这些场景，就是它大显神通的时刻。
@@ -370,7 +372,7 @@ graph TD
 
 **避坑指数：** ⭐⭐⭐⭐⭐（create-next-app 只管出生，不管成长）
 
-这是一个非常重要但经常被误解的点：`create-next-app` 的职责是"创建新项目"，而不是"升级已有项目"。这句话看起来是废话，但很多人真的搞不清楚这个界限。想象一下这个场景：你的项目用的是 Next.js 12，现在官方已经发布 Next.js 14 了，你听说新版本有很多性能优化和酷炫新功能，于是你想升级。你跑去找 `create-next-app`："来，帮我把项目升级到最新版！"然后 `create-next-app` 会礼貌地拒绝你，因为它只负责创建新项目，不负责升级。
+这是一个非常重要但经常被误解的点：`create-next-app` 的职责是"创建新项目"，而不是"升级已有项目"。这句话看起来是废话，但很多人真的搞不清楚这个界限。想象一下这个场景：你的项目用的是 Next.js 12，现在官方已经发布 Next.js 16 了，你听说新版本有很多性能优化和酷炫新功能，于是你想升级。你跑去找 `create-next-app`："来，帮我把项目升级到最新版！"然后 `create-next-app` 会礼貌地拒绝你，因为它只负责创建新项目，不负责升级。
 
 升级已有项目是一个复杂的过程，涉及多个步骤：更新 `package.json` 中的 Next.js 版本号、修改配置文件以适应新版本的 API 变化、更新依赖包的版本、测试现有功能是否正常、以及处理可能出现的 breaking changes（破坏性变更，指的是新版本不兼容旧版本 API 的变更）。这些步骤需要你手动去操作，或者借助一些专门的升级工具，而不是 `create-next-app`。
 
@@ -427,7 +429,7 @@ git merge upgrade-to-nextjs-14
 
 - **不需要使用 `create-next-app` 的场景包括**：在已有项目中新增页面或组件（你应该遵循项目的既有规范）、只想体验某个具体功能（用官方 Sandbox 更快捷）、以及升级已有项目（`create-next-app` 不负责升级，你需要用官方升级指南）。
 
-- **`create-next-app` 能帮你生成的项目结构包括**：`package.json`、`tsconfig.json`、`next.config.js`、`.eslintrc.json`、以及 `app/` 目录下的各种文件。它默认使用 App Router、TypeScript、以及 Tailwind CSS。
+- **`create-next-app` 能帮你生成的项目结构包括**：`package.json`、`tsconfig.json`、`next.config.ts`、ESLint 配置、以及 `app/` 目录下的各种文件。它默认使用 App Router、TypeScript 和 Tailwind CSS；Next.js 16 的新模板会按当前推荐方式生成配置。
 
 - **服务端组件和客户端组件的区别**：服务端组件在服务器端执行，可以直接访问数据库等后端资源，但不能使用 `useState`、`useEffect` 等客户端 hooks；客户端组件在浏览器端执行，通过 `"use client"` 指令来标识，可以完全使用 React 的客户端功能。
 
@@ -436,4 +438,3 @@ git merge upgrade-to-nextjs-14
 - **升级已有项目不是 `create-next-app` 的职责**：如果你想把项目从 Next.js 13 升级到 14，你需要阅读官方升级指南，手动更新依赖，并测试兼容性。
 
 最后，送大家一句话：`create-next-app` 是你进入 Next.js 世界的敲门砖，但进了门之后怎么走，还是要靠你自己。多写代码、多踩坑、多总结，你迟早会成为 Next.js 大神的！下一章我们将聊聊 `create-next-app` 的高级配置选项，敬请期待！
-

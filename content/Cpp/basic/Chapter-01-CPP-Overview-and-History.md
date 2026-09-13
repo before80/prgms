@@ -476,7 +476,9 @@ int main() {
 
 int main() {
     // unique_ptr：独占所有权，离开作用域自动释放
-    auto sp1 = std::make_unique<int>(42);
+    // 小提醒：C++11 只有 std::unique_ptr 本体，
+    //         std::make_unique 是 C++14 才补上的（见第 24 章）
+    std::unique_ptr<int> sp1(new int(42));
     std::cout << "unique_ptr值: " << *sp1 << std::endl;  // 输出: unique_ptr值: 42
     // 出了作用域，自动delete，不用手动free
     
@@ -551,19 +553,23 @@ int main() {
 
 ```cpp
 #include <iostream>
+#include <cstddef>
 
-void func(int* p) {
-    std::cout << "int* 版本被调用" << std::endl;
+void func(int) {
+    std::cout << "func(int) —— 实参被当成整数" << std::endl;
 }
 
-void func(double* p) {
-    std::cout << "double* 版本被调用" << std::endl;
+void func(char*) {
+    std::cout << "func(char*) —— 实参被当成空指针" << std::endl;
 }
 
 int main() {
-    // NULL的历史遗留问题：它其实是0，不是真正的空指针！
-    func(nullptr);  // 调用int*版本，nullptr类型是std::nullptr_t
-    // 输出: int* 版本被调用
+    func(0);        // 输出: func(int) —— 0 是整数
+    func(nullptr);  // 输出: func(char*) —— nullptr 是真正的空指针类型
+
+    // func(NULL);  // ❌ 编译错误：call to 'func' is ambiguous
+    // NULL 既可以被当成整数 0，又可以被当成空指针，编译器选不出来！
+    // 这正是 C++11 要引入 nullptr 的原因。
 }
 ```
 
@@ -622,6 +628,7 @@ int main() {
 
 ```cpp
 #include <iostream>
+#include <string>
 
 int main() {
     // C++11的Lambda：参数必须是具体类型
@@ -634,8 +641,10 @@ int main() {
     // 输出: add2(1, 2) = 3
     std::cout << "add2(3.0, 4.5) = " << add2(3.0, 4.5) << std::endl;  // double
     // 输出: add2(3.0, 4.5) = 7.5
-    std::cout << "add2(\"Hello, \", \"World!\") = " << add2("Hello, ", "World!") << std::endl;  // const char*
-    // 输出: add2("Hello, ", "World!") = Hello, World!
+    // 注意：两个字符串字面量（const char*）不能直接相加
+    std::cout << "add2(std::string, std::string) = "
+              << add2(std::string("Hello, "), std::string("World!")) << std::endl;  // std::string
+    // 输出: add2(std::string, std::string) = Hello, World!
 }
 ```
 
@@ -952,8 +961,8 @@ int main() {
     // 协程自动清理
     // 输出:
     // 协程开始执行...
-    // main继续执行...
     // 协程恢复执行...
+    // main继续执行...
 }
 ```
 
@@ -1008,6 +1017,8 @@ int main() {
 
 **模块（Modules）**：头文件的"终结者"！
 
+> 📦 **运行说明**：模块需要**两个文件**（接口单元 + 使用它的翻译单元），并且要求编译器和构建系统显式开启模块支持。下面这段只是示意图，不能当成单个文件直接编译。
+
 ```cpp
 // module.ixx (模块接口文件)
 export module my_module;  // 导出这个模块
@@ -1021,10 +1032,12 @@ int multiply(int a, int b) {
 }
 
 // main.cpp
-// import my_module;  // 导入模块，不再需要#include
+import my_module;  // 导入模块，不再需要#include
 
 int main() {
-    // std::cout << "3 + 4 = " << add(3, 4) << std::endl;  // 输出: 3 + 4 = 7
+    // std::cout << "3 + 4 = " << add(3, 4) << std::endl;
+    // 输出: 3 + 4 = 7
+    // multiply(3, 4) 不可见：它没有 export
 }
 ```
 
@@ -1073,6 +1086,8 @@ int main() {
 
 **std::generator**：协程式的生成器！
 
+> 📎 **可用性说明**：`<generator>` 由 MSVC 19.38+ 和 GCC 14+ 提供。**Apple clang 自带的 libc++ 到 21 版还没有 `<generator>` 头文件**，这段代码在 macOS 上无法直接编译，保留标准写法供理解 API 之用。
+
 ```cpp
 #include <iostream>
 #include <generator>
@@ -1109,7 +1124,7 @@ constexpr int fibonacci(int n) {
     return fibonacci(n - 1) + fibonacci(n - 2);
 }
 
-// C++23：constexpr变量模板
+// C++14：变量模板（variable template）——配合 constexpr 就能"按类型/数值取常量"
 template<size_t N>
 constexpr auto fib = fibonacci(N);
 
@@ -1143,27 +1158,36 @@ int main() {
 
 ```cpp
 #include <iostream>
+#include <string>
 
 struct Point {
     int x, y;
-    
-    // C++23显式对象参数：用this作为第一个参数
-    void print(this const Point& self) const {
-        std::cout << "(" << self.x << ", " << self.y << ")" << std::endl;
+
+    // C++23显式对象参数：第一个参数就是"调用对象本身"
+    // 注意：此时不能再在参数列表后面写 const，const 要写在参数类型里
+    void print(this const Point& self) {
+        std::cout << "(左值) (" << self.x << ", " << self.y << ")" << std::endl;
     }
-    
-    // 显式对象参数也可以重载
-    void format(this const Point& self, std::string& out) const {
+
+    // 因为对象成了普通参数，所以可以按值类别重载
+    void print(this Point&& self) {
+        std::cout << "(右值) (" << self.x << ", " << self.y << ")" << std::endl;
+    }
+
+    void format(this const Point& self, std::string& out) {
         out = "(" + std::to_string(self.x) + ", " + std::to_string(self.y) + ")";
     }
 };
 
 int main() {
     Point p{3, 4};
-    
-    // 两种调用方式都可以
-    p.print();        // 输出: (3, 4) —— this被隐式传递
-    Point::print(p);  // 像静态方法一样调用 —— 显式传递this
+
+    p.print();          // 输出: (左值) (3, 4) —— 调用对象被隐式传给 self
+    Point{5, 6}.print();// 输出: (右值) (5, 6) —— 实参类型是 Point&&
+
+    std::string s;
+    p.format(s);
+    std::cout << s << std::endl;  // 输出: (3, 4)
 }
 ```
 
@@ -1899,25 +1923,26 @@ int main() {
 #include <iostream>
 
 // 模板元编程：编译期计算阶乘
-template<int N>
+// 用 unsigned long long 才能装下 20!（int 到 12! 就溢出了）
+template<unsigned N>
 struct Factorial {
-    static const int value = N * Factorial<N - 1>::value;
+    static const unsigned long long value = N * Factorial<N - 1>::value;
 };
 
 // 特化版本：递归终止条件
 template<>
 struct Factorial<0> {
-    static const int value = 1;
+    static const unsigned long long value = 1;
 };
 
 int main() {
     // 编译期就算好了！
-    std::cout << "5! = " << Factorial<5>::value << std::endl;  // 输出: 5! = 120
+    std::cout << "5! = " << Factorial<5>::value << std::endl;    // 输出: 5! = 120
     std::cout << "10! = " << Factorial<10>::value << std::endl;  // 输出: 10! = 3628800
     std::cout << "20! = " << Factorial<20>::value << std::endl;  // 输出: 20! = 2432902008176640000
-    
+
     // 这是编译期计算的结果，运行时代码只是一条打印语句
-    // 如果你改成 Factorial<30>::value，编译器会报错（溢出）！
+    // 如果你改成 Factorial<21>::value，编译器会报错（unsigned long long 也装不下 21!）
 }
 ```
 

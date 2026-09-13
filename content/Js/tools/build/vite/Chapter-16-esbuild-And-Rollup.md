@@ -11,7 +11,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-16-esbuild-And-Rollup
 
 # 第16章：esbuild 与 Rollup
 
@@ -24,6 +23,8 @@ draft = false
 > 这一章，我们就来好好聊聊这两个工具：它们是什么？怎么工作的？在 Vite 中是怎么分工合作的？
 
 ---
+
+> 📌 **版本提示（2026-09 核对）**：Vite 1–7 使用“开发时 esbuild + 生产时 Rollup”的双打包器架构；从 **Vite 8** 开始，开发与生产统一改用 Rust 编写的 **Rolldown**。Rolldown 兼容 Rollup 插件 API，因此本章关于 Rollup 插件与打包原理的内容仍有学习价值，但不能再把图中的双引擎架构当成 Vite 8 的现状。
 
 ## 16.1 esbuild 详解
 
@@ -162,7 +163,7 @@ esbuild 虽然快，但也有一些限制：
 | **不支持自定义模块解析** | 不如 Rollup 灵活 |
 | **CSS Modules 支持有限** | 需要额外配置 |
 
-**Vite 选择 esbuild 的原因**：
+**Vite 1–7 选择 esbuild 的原因**：
 - 开发时速度优先，esbuild 完全够用
 - 生产时用 Rollup 做优化
 - 两者互补，各司其职
@@ -357,9 +358,11 @@ var MyLib = (function() {
 
 ---
 
-## 16.3 Vite 中的协作
+## 16.3 Vite 中的协作：历史架构与 Vite 8+
 
-### 16.3.1 开发时使用 esbuild
+> ⚠️ 下面 16.3.1–16.3.3 描述的是 **Vite 1–7** 的经典架构。Vite 8 已切换为 Rolldown 统一打包器，请把这一节当作历史演进和工具原理来理解；当前项目的配置应以 Vite 8 迁移文档为准。
+
+### 16.3.1 开发时使用 esbuild（Vite 1–7）
 
 **Vite 开发阶段的 esbuild 使用场景**：
 
@@ -400,7 +403,7 @@ export default defineConfig({
 })
 ```
 
-### 16.3.2 生产时使用 Rollup
+### 16.3.2 生产时使用 Rollup（Vite 1–7）
 
 **Vite 生产阶段的 Rollup 使用场景**：
 
@@ -438,14 +441,14 @@ export default defineConfig({
 
 ### 16.3.3 两者的优势互补
 
-**Vite 的"双引擎"架构**：
+**Vite 1–7 的"双引擎"架构（历史）**：
 
 ```mermaid
 flowchart TD
     subgraph 开发阶段["⚡ 开发阶段（esbuild）"]
-        A1[极速冷启动<br/>预构建 < 1s]
+        A1["极速冷启动<br/>预构建 &lt; 1s"]
         A2[TypeScript 转译<br/>毫秒级]
-        A3[即时热更新<br/>< 50ms]
+        A3["即时热更新<br/>&lt; 50ms"]
     end
     
     subgraph 生产阶段["🚀 生产阶段（Rollup）"]
@@ -462,7 +465,7 @@ flowchart TD
     style B3 fill:#FFD700
 ```
 
-**为什么 Vite 选择 esbuild + Rollup？**
+**为什么 Vite 1–7 曾选择 esbuild + Rollup？**
 
 | 方面 | esbuild | Rollup |
 |------|---------|--------|
@@ -472,33 +475,36 @@ flowchart TD
 | 插件生态 | ⭐⭐ | ⭐⭐⭐⭐⭐ |
 | 产物优化 | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 
-Vite 的策略是：
+Vite 1–7 的策略是：
 - **开发时**：牺牲部分优化能力，换取极致速度（esbuild）
 - **生产时**：牺牲一点速度，换取最优产物质量（Rollup）
 
-### 16.3.4 Vite 6 的新变化
+### 16.3.4 Vite 7 与 Vite 8 的变化
 
-> ⚠️ **注意**：以下内容基于 Vite 6 的公开 roadmap 整理，具体配置项请以 Vite 官方 release notes 为准。
+**Vite 7（2025 年 6 月）**：
 
-**Vite 6 对 esbuild 和 Rollup 的可能改进**：
+- Node.js 要求提升到 `^20.19.0 || >=22.12.0`
+- 默认浏览器目标改为 Baseline Widely Available
+- 提供 `rolldown-vite` 预览包，可以提前体验 Rolldown
+
+**Vite 8（2026 年 3 月）**：
+
+- Rolldown 成为默认且统一的打包器，开发与生产使用同一套 Rust 工具链
+- 官方基准中构建速度相比 Rollup 路径最高提升 10–30 倍
+- 通过兼容层自动转换大量 `esbuild` 和 `rollupOptions` 配置，复杂项目仍建议按迁移指南逐步升级
+- 新增内置 Vite Devtools、`resolve.tsconfigPaths`、`emitDecoratorMetadata` 支持、浏览器控制台转发等能力
+- Node.js 要求与 Vite 7 相同
 
 ```javascript
-// Vite 6 的配置选项（请以官方文档为准）
+// Vite 8 的打包器配置入口是 rolldownOptions
 export default defineConfig({
-  // 更好的预构建缓存
-  optimizeDeps: {
-    // 预构建时的 build info（具体 API 待确认）
-    buildInfo: true,
-  },
-  
-  // Rollup 升级带来的改进
   build: {
-    // 更精确的 Tree Shaking（具体配置待确认）
-    treeShaking: true,
-    
-    // 更好的代码分割
-    modulePreload: {
-      polyfill: false,  // 减少 polyfill 体积
+    // Rolldown 兼容 Rollup 插件 API；旧版 Vite 使用 build.rollupOptions
+    rolldownOptions: {
+      output: {
+        entryFileNames: 'js/[name]-[hash].js',
+        chunkFileNames: 'js/[name]-[hash].js',
+      },
     },
   },
 })
@@ -516,7 +522,7 @@ export default defineConfig({
 
 2. **Rollup 详解**：Rollup 的设计理念（专注于 ESM）、Tree Shaking 原理（静态分析）、插件系统详解、代码分割实现、输出格式解析（ES/CJS/UMD/IIFE）
 
-3. **Vite 中的协作**：开发时用 esbuild（预构建、TS 编译）、生产时用 Rollup（Tree Shaking、代码分割）、两者优势互补（速度 vs 质量）、Vite 6 的新变化
+3. **Vite 中的协作**：Vite 1–7 时代由 esbuild 负责开发预构建/转译、Rollup 负责生产打包；Vite 8 起统一使用 Rolldown，同时保留 Rollup 插件 API 兼容层
 
 ### 📝 本章练习
 

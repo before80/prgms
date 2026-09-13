@@ -823,10 +823,10 @@ int main() {
 
 ```mermaid
 graph LR
-    A[C++23之前] --> B[this隐式存在<br/>不可见]
-    C[C++23] --> D[this显式声明<br/>self参数]
-    B --> E[increment() {...}]
-    D --> F[increment(this auto& self) {...}]
+    A["C++23 之前"] --> B["this 隐式存在<br/>看不见、写不出来"]
+    C["C++23 起（显式对象参数）"] --> D["this 显式声明<br/>作为第一个参数"]
+    B --> E["increment() { ... }"]
+    D --> F["increment(this auto& self) { ... }"]
 ```
 
 ## 本章小结

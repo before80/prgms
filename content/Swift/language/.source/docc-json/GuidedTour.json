@@ -1,0 +1,5669 @@
+{
+  "abstract" : [
+    {
+      "text" : "Explore the features and syntax of Swift.",
+      "type" : "text"
+    }
+  ],
+  "hierarchy" : {
+    "paths" : [
+      [
+        "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language"
+      ]
+    ]
+  },
+  "identifier" : {
+    "interfaceLanguage" : "swift",
+    "url" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language\/GuidedTour"
+  },
+  "kind" : "article",
+  "metadata" : {
+    "role" : "article",
+    "title" : "A Swift Tour"
+  },
+  "primaryContentSections" : [
+    {
+      "content" : [
+        {
+          "inlineContent" : [
+            {
+              "text" : "Tradition suggests that the first program in a new language",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "should print the words “Hello, world!” on the screen.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "In Swift, this can be done in a single line:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "print(\"Hello, world!\")",
+            "\/\/ Prints \"Hello, world!\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "This syntax should look familiar if you know another language —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "in Swift, this line of code is a complete program.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You don’t need to import a separate library for functionality like",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "outputting text or handling strings.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Code written at global scope is used",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as the entry point for the program,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "so you don’t need a ",
+              "type" : "text"
+            },
+            {
+              "code" : "main()",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " function.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You also don’t need to write semicolons",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "at the end of every statement.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "This tour gives you enough information",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to start writing code in Swift",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "by showing you how to accomplish a variety of programming tasks.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Don’t worry if you don’t understand something —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "everything introduced in this tour",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "is explained in detail in the rest of this book.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "anchor" : "Simple-Values",
+          "level" : 2,
+          "text" : "Simple Values",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "let",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to make a constant and ",
+              "type" : "text"
+            },
+            {
+              "code" : "var",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to make a variable.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The value of a constant",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "doesn’t need to be known at compile time,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "but you must assign it a value exactly once.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "This means you can use constants to name a value",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that you determine once but use in many places.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var myVariable = 42",
+            "myVariable = 50",
+            "let myConstant = 42"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "A constant or variable must have the same type",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as the value you want to assign to it.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "However, you don’t always have to write the type explicitly.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Providing a value when you create a constant or variable",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "lets the compiler infer its type.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "In the example above,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the compiler infers that ",
+              "type" : "text"
+            },
+            {
+              "code" : "myVariable",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is an integer",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "because its initial value is an integer.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "If the initial value doesn’t provide enough information",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "(or if there isn’t an initial value),",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "specify the type by writing it after the variable,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "separated by a colon.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let implicitInteger = 70",
+            "let implicitDouble = 70.0",
+            "let explicitDouble: Double = 70"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Create a constant with",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "an explicit type of ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Float",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " and a value of ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "4",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : ".",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Values are never implicitly converted to another type.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "If you need to convert a value to a different type,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "explicitly make an instance of the desired type.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let label = \"The width is \"",
+            "let width = 94",
+            "let widthLabel = label + String(width)"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Try removing the conversion to ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "String",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " from the last line.",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "What error do you get?",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "There’s an even simpler way to include values in strings:",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Write the value in parentheses,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and write a backslash (",
+              "type" : "text"
+            },
+            {
+              "code" : "\\",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ") before the parentheses.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "For example:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let apples = 3",
+            "let oranges = 5",
+            "let appleSummary = \"I have \\(apples) apples.\"",
+            "let fruitSummary = \"I have \\(apples + oranges) pieces of fruit.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Use ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "\\()",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " to",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "include a floating-point calculation in a string",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "and to include someone’s name in a greeting.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use three double quotation marks (",
+              "type" : "text"
+            },
+            {
+              "code" : "\"\"\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ") for strings",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that take up multiple lines.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Indentation at the start of each quoted line is removed,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as long as it matches the indentation of the closing quotation marks.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "For example:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let quotation = \"\"\"",
+            "        Even though there's whitespace to the left,",
+            "        the actual lines aren't indented.",
+            "            Except for this line.",
+            "        Double quotes (\") can appear without being escaped.",
+            "",
+            "        I still have \\(apples + oranges) pieces of fruit.",
+            "        \"\"\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Create arrays and dictionaries using brackets (",
+              "type" : "text"
+            },
+            {
+              "code" : "[]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "),",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and access their elements by writing",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the index or key in brackets.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "A comma is allowed after the last element.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var fruits = [\"strawberries\", \"limes\", \"tangerines\"]",
+            "fruits[1] = \"grapes\"",
+            "",
+            "var occupations = [",
+            "    \"Malcolm\": \"Captain\",",
+            "    \"Kaylee\": \"Mechanic\",",
+            " ]",
+            "occupations[\"Jayne\"] = \"Public Relations\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Arrays automatically grow as you add elements.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "fruits.append(\"blueberries\")",
+            "print(fruits)",
+            "\/\/ Prints \"[\"strawberries\", \"grapes\", \"tangerines\", \"blueberries\"]\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You also use brackets to write an empty array or dictionary.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "For an array, write ",
+              "type" : "text"
+            },
+            {
+              "code" : "[]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and for a dictionary, write ",
+              "type" : "text"
+            },
+            {
+              "code" : "[:]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "fruits = []",
+            "occupations = [:]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "If you’re assigning an empty array or dictionary to a new variable,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or another place where there isn’t any type information,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you need to specify the type.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let emptyArray: [String] = []",
+            "let emptyDictionary: [String: Float] = [:]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Control-Flow",
+          "level" : 2,
+          "text" : "Control Flow",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "if",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " and ",
+              "type" : "text"
+            },
+            {
+              "code" : "switch",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to make conditionals,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and use ",
+              "type" : "text"
+            },
+            {
+              "code" : "for",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "-",
+              "type" : "text"
+            },
+            {
+              "code" : "in",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ", ",
+              "type" : "text"
+            },
+            {
+              "code" : "while",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ", and ",
+              "type" : "text"
+            },
+            {
+              "code" : "repeat",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "-",
+              "type" : "text"
+            },
+            {
+              "code" : "while",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to make loops.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Parentheses around the condition or loop variable are optional.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Braces around the body are required.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let individualScores = [75, 43, 103, 87, 12]",
+            "var teamScore = 0",
+            "for score in individualScores {",
+            "    if score > 50 {",
+            "        teamScore += 3",
+            "    } else {",
+            "        teamScore += 1",
+            "    }",
+            "}",
+            "print(teamScore)",
+            "\/\/ Prints \"11\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "In an ",
+              "type" : "text"
+            },
+            {
+              "code" : "if",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " statement,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the conditional must be a Boolean expression —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "this means that code such as ",
+              "type" : "text"
+            },
+            {
+              "code" : "if score { ... }",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is an error,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "not an implicit comparison to zero.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can write ",
+              "type" : "text"
+            },
+            {
+              "code" : "if",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " or ",
+              "type" : "text"
+            },
+            {
+              "code" : "switch",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "after the equal sign (",
+              "type" : "text"
+            },
+            {
+              "code" : "=",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ") of an assignment",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or after ",
+              "type" : "text"
+            },
+            {
+              "code" : "return",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to choose a value based on the condition.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let scoreDecoration = if teamScore > 10 {",
+            "    \"🎉\"",
+            "} else {",
+            "    \"\"",
+            "}",
+            "print(\"Score:\", teamScore, scoreDecoration)",
+            "\/\/ Prints \"Score: 11 🎉\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can use ",
+              "type" : "text"
+            },
+            {
+              "code" : "if",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " and ",
+              "type" : "text"
+            },
+            {
+              "code" : "let",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " together",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to work with values that might be missing.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "These values are represented as optionals.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "An optional value either contains a value",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or contains ",
+              "type" : "text"
+            },
+            {
+              "code" : "nil",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to indicate that a value is missing.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Write a question mark (",
+              "type" : "text"
+            },
+            {
+              "code" : "?",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ") after the type of a value",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to mark the value as optional.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var optionalString: String? = \"Hello\"",
+            "print(optionalString == nil)",
+            "\/\/ Prints \"false\".",
+            "",
+            "var optionalName: String? = \"John Appleseed\"",
+            "var greeting = \"Hello!\"",
+            "if let name = optionalName {",
+            "    greeting = \"Hello, \\(name)\"",
+            "}",
+            "print(greeting)"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Change ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "optionalName",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " to ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "nil",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : ".",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "What greeting do you get?",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "Add an ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "else",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " clause that sets a different greeting",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "if ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "optionalName",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " is ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "nil",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : ".",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "If the optional value is ",
+              "type" : "text"
+            },
+            {
+              "code" : "nil",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the conditional is ",
+              "type" : "text"
+            },
+            {
+              "code" : "false",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " and the code in braces is skipped.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Otherwise, the optional value is unwrapped and assigned",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to the constant after ",
+              "type" : "text"
+            },
+            {
+              "code" : "let",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "which makes the unwrapped value available",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "inside the block of code.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Another way to handle optional values",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "is to provide a default value using the ",
+              "type" : "text"
+            },
+            {
+              "code" : "??",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " operator.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "If the optional value is missing,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the default value is used instead.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let nickname: String? = nil",
+            "let fullName: String = \"John Appleseed\"",
+            "let informalGreeting = \"Hi \\(nickname ?? fullName)\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can use a shorter spelling to unwrap a value,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "using the same name for that unwrapped value.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "if let nickname {",
+            "    print(\"Hey, \\(nickname)\")",
+            "}",
+            "\/\/ Doesn't print anything, because nickname is nil."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Switches support any kind of data",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and a wide variety of comparison operations —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "they aren’t limited to integers",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and tests for equality.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let vegetable = \"red pepper\"",
+            "switch vegetable {",
+            "case \"celery\":",
+            "    print(\"Add some raisins and make ants on a log.\")",
+            "case \"cucumber\", \"watercress\":",
+            "    print(\"That would make a good tea sandwich.\")",
+            "case let x where x.hasSuffix(\"pepper\"):",
+            "    print(\"Is it a spicy \\(x)?\")",
+            "default:",
+            "    print(\"Everything tastes good in soup.\")",
+            "}",
+            "\/\/ Prints \"Is it a spicy red pepper?\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Try removing the default case.",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "What error do you get?",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Notice how ",
+              "type" : "text"
+            },
+            {
+              "code" : "let",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " can be used in a pattern",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to assign the value that matched the pattern",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to a constant.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "After executing the code inside the switch case that matched,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the program exits from the switch statement.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Execution doesn’t continue to the next case,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "so you don’t need to explicitly break out of the switch",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "at the end of each case’s code.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You use ",
+              "type" : "text"
+            },
+            {
+              "code" : "for",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "-",
+              "type" : "text"
+            },
+            {
+              "code" : "in",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to iterate over items in a dictionary",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "by providing a pair of names to use",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "for each key-value pair.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Dictionaries are an unordered collection,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "so their keys and values are iterated over",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "in an arbitrary order.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let interestingNumbers = [",
+            "    \"Prime\": [2, 3, 5, 7, 11, 13],",
+            "    \"Fibonacci\": [1, 1, 2, 3, 5, 8],",
+            "    \"Square\": [1, 4, 9, 16, 25],",
+            "]",
+            "var largest = 0",
+            "for (_, numbers) in interestingNumbers {",
+            "    for number in numbers {",
+            "        if number > largest {",
+            "            largest = number",
+            "        }",
+            "    }",
+            "}",
+            "print(largest)",
+            "\/\/ Prints \"25\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Replace the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "_",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " with a variable name,",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "and keep track of which kind of number was the largest.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "while",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to repeat a block of code until a condition changes.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The condition of a loop can be at the end instead,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "ensuring that the loop is run at least once.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var n = 2",
+            "while n < 100 {",
+            "    n *= 2",
+            "}",
+            "print(n)",
+            "\/\/ Prints \"128\".",
+            "",
+            "var m = 2",
+            "repeat {",
+            "    m *= 2",
+            "} while m < 100",
+            "print(m)",
+            "\/\/ Prints \"128\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "Change the condition from ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "m < 100",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " to ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "m < 0",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "to see how ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "while",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " and ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "repeat",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : "-",
+                  "type" : "text"
+                },
+                {
+                  "code" : "while",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " behave differently",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "when the loop condition is already false.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can keep an index in a loop",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "by using ",
+              "type" : "text"
+            },
+            {
+              "code" : "..<",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to make a range of indexes.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var total = 0",
+            "for i in 0..<4 {",
+            "    total += i",
+            "}",
+            "print(total)",
+            "\/\/ Prints \"6\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "..<",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to make a range that omits its upper value,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and use ",
+              "type" : "text"
+            },
+            {
+              "code" : "...",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to make a range that includes both values.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "anchor" : "Functions-and-Closures",
+          "level" : 2,
+          "text" : "Functions and Closures",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "func",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to declare a function.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Call a function by following its name",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "with a list of arguments in parentheses.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "->",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to separate the parameter names and types",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "from the function’s return type.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "func greet(person: String, day: String) -> String {",
+            "    return \"Hello \\(person), today is \\(day).\"",
+            "}",
+            "greet(person: \"Bob\", day: \"Tuesday\")"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Remove the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "day",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " parameter.",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "Add a parameter to include today’s lunch special in the greeting.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "By default,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "functions use their parameter names",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as labels for their arguments.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Write a custom argument label before the parameter name,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or write ",
+              "type" : "text"
+            },
+            {
+              "code" : "_",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to use no argument label.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "func greet(_ person: String, on day: String) -> String {",
+            "    return \"Hello \\(person), today is \\(day).\"",
+            "}",
+            "greet(\"John\", on: \"Wednesday\")"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use a tuple to make a compound value —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "for example, to return multiple values from a function.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The elements of a tuple can be referred to",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "either by name or by number.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "func calculateStatistics(scores: [Int]) -> (min: Int, max: Int, sum: Int) {",
+            "    var min = scores[0]",
+            "    var max = scores[0]",
+            "    var sum = 0",
+            "",
+            "    for score in scores {",
+            "        if score > max {",
+            "            max = score",
+            "        } else if score < min {",
+            "            min = score",
+            "        }",
+            "        sum += score",
+            "    }",
+            "",
+            "    return (min, max, sum)",
+            "}",
+            "let statistics = calculateStatistics(scores: [5, 3, 100, 3, 9])",
+            "print(statistics.sum)",
+            "\/\/ Prints \"120\".",
+            "print(statistics.2)",
+            "\/\/ Prints \"120\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Functions can be nested.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Nested functions have access to variables",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that were declared in the outer function.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You can use nested functions",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to organize the code in a function",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that’s long or complex.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "func returnFifteen() -> Int {",
+            "    var y = 10",
+            "    func add() {",
+            "        y += 5",
+            "    }",
+            "    add()",
+            "    return y",
+            "}",
+            "returnFifteen()"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Functions are a first-class type.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "This means that a function can return another function as its value.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "func makeIncrementer() -> ((Int) -> Int) {",
+            "    func addOne(number: Int) -> Int {",
+            "        return 1 + number",
+            "    }",
+            "    return addOne",
+            "}",
+            "var increment = makeIncrementer()",
+            "increment(7)"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "A function can take another function as one of its arguments.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "func hasAnyMatches(list: [Int], condition: (Int) -> Bool) -> Bool {",
+            "    for item in list {",
+            "        if condition(item) {",
+            "            return true",
+            "        }",
+            "    }",
+            "    return false",
+            "}",
+            "func lessThanTen(number: Int) -> Bool {",
+            "    return number < 10",
+            "}",
+            "var numbers = [20, 19, 7, 12]",
+            "hasAnyMatches(list: numbers, condition: lessThanTen)"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Functions are actually a special case of closures:",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "blocks of code that can be called later.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The code in a closure has access to things like variables and functions",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that were available in the scope where the closure was created,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "even if the closure is in a different scope when it’s executed —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you saw an example of this already with nested functions.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You can write a closure without a name",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "by surrounding code with braces (",
+              "type" : "text"
+            },
+            {
+              "code" : "{}",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ").",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "in",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to separate the arguments and return type from the body.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "numbers.map({ (number: Int) -> Int in",
+            "    let result = 3 * number",
+            "    return result",
+            "})"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Rewrite the closure to return zero for all odd numbers.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You have several options for writing closures more concisely.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "When a closure’s type is already known,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "such as the callback for a delegate,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you can omit the type of its parameters,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "its return type, or both.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Single statement closures implicitly return the value",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "of their only statement.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let mappedNumbers = numbers.map({ number in 3 * number })",
+            "print(mappedNumbers)",
+            "\/\/ Prints \"[60, 57, 21, 36]\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can refer to parameters by number instead of by name —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "this approach is especially useful in very short closures.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "A closure passed as the last argument to a function",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "can appear immediately after the parentheses.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "When a closure is the only argument to a function,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you can omit the parentheses entirely.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let sortedNumbers = numbers.sorted { $0 > $1 }",
+            "print(sortedNumbers)",
+            "\/\/ Prints \"[20, 19, 12, 7]\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Objects-and-Classes",
+          "level" : 2,
+          "text" : "Objects and Classes",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "class",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " followed by the class’s name to create a class.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "A property declaration in a class is written the same way",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as a constant or variable declaration,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "except that it’s in the context of a class.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Likewise, method and function declarations are written the same way.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "class Shape {",
+            "    var numberOfSides = 0",
+            "    func simpleDescription() -> String {",
+            "        return \"A shape with \\(numberOfSides) sides.\"",
+            "    }",
+            "}"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Add a constant property with ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "let",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : ",",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "and add another method that takes an argument.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Create an instance of a class",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "by putting parentheses after the class name.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Use dot syntax to access",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the properties and methods of the instance.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var shape = Shape()",
+            "shape.numberOfSides = 7",
+            "var shapeDescription = shape.simpleDescription()"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "This version of the ",
+              "type" : "text"
+            },
+            {
+              "code" : "Shape",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " class is missing something important:",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "an initializer to set up the class when an instance is created.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "init",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to create one.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "class NamedShape {",
+            "    var numberOfSides: Int = 0",
+            "    var name: String",
+            "",
+            "    init(name: String) {",
+            "       self.name = name",
+            "    }",
+            "",
+            "    func simpleDescription() -> String {",
+            "       return \"A shape with \\(numberOfSides) sides.\"",
+            "    }",
+            "}"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Notice how ",
+              "type" : "text"
+            },
+            {
+              "code" : "self",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is used to distinguish the ",
+              "type" : "text"
+            },
+            {
+              "code" : "name",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "from the ",
+              "type" : "text"
+            },
+            {
+              "code" : "name",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " argument to the initializer.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The arguments to the initializer are passed like a function call",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "when you create an instance of the class.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Every property needs a value assigned —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "either in its declaration (as with ",
+              "type" : "text"
+            },
+            {
+              "code" : "numberOfSides",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ")",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or in the initializer (as with ",
+              "type" : "text"
+            },
+            {
+              "code" : "name",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ").",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "deinit",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to create a deinitializer",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "if you need to perform some cleanup",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "before the object is deallocated.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Subclasses include their superclass name",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "after their class name,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "separated by a colon.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "There’s no requirement for classes to subclass any standard root class,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "so you can include or omit a superclass as needed.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Methods on a subclass that override the superclass’s implementation",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "are marked with ",
+              "type" : "text"
+            },
+            {
+              "code" : "override",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "overriding a method by accident, without ",
+              "type" : "text"
+            },
+            {
+              "code" : "override",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "is detected by the compiler as an error.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The compiler also detects methods with ",
+              "type" : "text"
+            },
+            {
+              "code" : "override",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that don’t actually override any method in the superclass.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "class Square: NamedShape {",
+            "    var sideLength: Double",
+            "",
+            "    init(sideLength: Double, name: String) {",
+            "        self.sideLength = sideLength",
+            "        super.init(name: name)",
+            "        numberOfSides = 4",
+            "    }",
+            "",
+            "    func area() -> Double {",
+            "        return sideLength * sideLength",
+            "    }",
+            "",
+            "    override func simpleDescription() -> String {",
+            "        return \"A square with sides of length \\(sideLength).\"",
+            "    }",
+            "}",
+            "let test = Square(sideLength: 5.2, name: \"my test square\")",
+            "test.area()",
+            "test.simpleDescription()"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Make another subclass of ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "NamedShape",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "called ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Circle",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "that takes a radius and a name",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "as arguments to its initializer.",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "Implement an ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "area()",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " and a ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "simpleDescription()",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " method",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "on the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Circle",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " class.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "In addition to simple properties that are stored,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "properties can have a getter and a setter.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "class EquilateralTriangle: NamedShape {",
+            "    var sideLength: Double = 0.0",
+            "",
+            "    init(sideLength: Double, name: String) {",
+            "        self.sideLength = sideLength",
+            "        super.init(name: name)",
+            "        numberOfSides = 3",
+            "    }",
+            "",
+            "    var perimeter: Double {",
+            "        get {",
+            "             return 3.0 * sideLength",
+            "        }",
+            "        set {",
+            "            sideLength = newValue \/ 3.0",
+            "        }",
+            "    }",
+            "",
+            "    override func simpleDescription() -> String {",
+            "        return \"An equilateral triangle with sides of length \\(sideLength).\"",
+            "    }",
+            "}",
+            "var triangle = EquilateralTriangle(sideLength: 3.1, name: \"a triangle\")",
+            "print(triangle.perimeter)",
+            "\/\/ Prints \"9.3\".",
+            "triangle.perimeter = 9.9",
+            "print(triangle.sideLength)",
+            "\/\/ Prints \"3.3000000000000003\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "In the setter for ",
+              "type" : "text"
+            },
+            {
+              "code" : "perimeter",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the new value has the implicit name ",
+              "type" : "text"
+            },
+            {
+              "code" : "newValue",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You can provide an explicit name in parentheses after ",
+              "type" : "text"
+            },
+            {
+              "code" : "set",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Notice that the initializer for the ",
+              "type" : "text"
+            },
+            {
+              "code" : "EquilateralTriangle",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " class",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "has three different steps:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "items" : [
+            {
+              "content" : [
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "Setting the value of properties that the subclass declares.",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "paragraph"
+                }
+              ]
+            },
+            {
+              "content" : [
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "Calling the superclass’s initializer.",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "paragraph"
+                }
+              ]
+            },
+            {
+              "content" : [
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "Changing the value of properties defined by the superclass.",
+                      "type" : "text"
+                    },
+                    {
+                      "text" : " ",
+                      "type" : "text"
+                    },
+                    {
+                      "text" : "Any additional setup work that uses methods, getters, or setters",
+                      "type" : "text"
+                    },
+                    {
+                      "text" : " ",
+                      "type" : "text"
+                    },
+                    {
+                      "text" : "can also be done at this point.",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "paragraph"
+                }
+              ]
+            }
+          ],
+          "type" : "orderedList"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "If you don’t need to compute the property",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "but still need to provide code that’s run before and after setting a new value,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "use ",
+              "type" : "text"
+            },
+            {
+              "code" : "willSet",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " and ",
+              "type" : "text"
+            },
+            {
+              "code" : "didSet",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The code you provide is run any time the value changes outside of an initializer.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "For example, the class below ensures",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that the side length of its triangle",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "is always the same as the side length of its square.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "class TriangleAndSquare {",
+            "    var triangle: EquilateralTriangle {",
+            "        willSet {",
+            "            square.sideLength = newValue.sideLength",
+            "        }",
+            "    }",
+            "    var square: Square {",
+            "        willSet {",
+            "            triangle.sideLength = newValue.sideLength",
+            "        }",
+            "    }",
+            "    init(size: Double, name: String) {",
+            "        square = Square(sideLength: size, name: name)",
+            "        triangle = EquilateralTriangle(sideLength: size, name: name)",
+            "    }",
+            "}",
+            "var triangleAndSquare = TriangleAndSquare(size: 10, name: \"another test shape\")",
+            "print(triangleAndSquare.square.sideLength)",
+            "\/\/ Prints \"10.0\".",
+            "print(triangleAndSquare.triangle.sideLength)",
+            "\/\/ Prints \"10.0\".",
+            "triangleAndSquare.square = Square(sideLength: 50, name: \"larger square\")",
+            "print(triangleAndSquare.triangle.sideLength)",
+            "\/\/ Prints \"50.0\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "When working with optional values,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you can write ",
+              "type" : "text"
+            },
+            {
+              "code" : "?",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " before operations like methods, properties, and subscripting.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "If the value before the ",
+              "type" : "text"
+            },
+            {
+              "code" : "?",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is ",
+              "type" : "text"
+            },
+            {
+              "code" : "nil",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "everything after the ",
+              "type" : "text"
+            },
+            {
+              "code" : "?",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is ignored",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and the value of the whole expression is ",
+              "type" : "text"
+            },
+            {
+              "code" : "nil",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Otherwise, the optional value is unwrapped,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and everything after the ",
+              "type" : "text"
+            },
+            {
+              "code" : "?",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " acts on the unwrapped value.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "In both cases,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the value of the whole expression is an optional value.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let optionalSquare: Square? = Square(sideLength: 2.5, name: \"optional square\")",
+            "let sideLength = optionalSquare?.sideLength"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Enumerations-and-Structures",
+          "level" : 2,
+          "text" : "Enumerations and Structures",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "enum",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to create an enumeration.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Like classes and all other named types,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "enumerations can have methods associated with them.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "enum Rank: Int {",
+            "    case ace = 1",
+            "    case two, three, four, five, six, seven, eight, nine, ten",
+            "    case jack, queen, king",
+            "",
+            "    func simpleDescription() -> String {",
+            "        switch self {",
+            "        case .ace:",
+            "            return \"ace\"",
+            "        case .jack:",
+            "            return \"jack\"",
+            "        case .queen:",
+            "            return \"queen\"",
+            "        case .king:",
+            "            return \"king\"",
+            "        default:",
+            "            return String(self.rawValue)",
+            "        }",
+            "    }",
+            "}",
+            "let ace = Rank.ace",
+            "let aceRawValue = ace.rawValue"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Write a function that compares two ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Rank",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " values",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "by comparing their raw values.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "By default, Swift assigns the raw values starting at zero",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and incrementing by one each time,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "but you can change this behavior by explicitly specifying values.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "In the example above, ",
+              "type" : "text"
+            },
+            {
+              "code" : "Ace",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is explicitly given a raw value of ",
+              "type" : "text"
+            },
+            {
+              "code" : "1",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and the rest of the raw values are assigned in order.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You can also use strings or floating-point numbers",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as the raw type of an enumeration.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Use the ",
+              "type" : "text"
+            },
+            {
+              "code" : "rawValue",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property to access the raw value of an enumeration case.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use the ",
+              "type" : "text"
+            },
+            {
+              "code" : "init?(rawValue:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " initializer",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to make an instance of an enumeration from a raw value.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "It returns either the enumeration case matching the raw value",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or ",
+              "type" : "text"
+            },
+            {
+              "code" : "nil",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " if there’s no matching ",
+              "type" : "text"
+            },
+            {
+              "code" : "Rank",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "if let convertedRank = Rank(rawValue: 3) {",
+            "    let threeDescription = convertedRank.simpleDescription()",
+            "}"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The case values of an enumeration are actual values,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "not just another way of writing their raw values.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "In fact,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "in cases where there isn’t a meaningful raw value,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you don’t have to provide one.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "enum Suit {",
+            "    case spades, hearts, diamonds, clubs",
+            "",
+            "    func simpleDescription() -> String {",
+            "        switch self {",
+            "        case .spades:",
+            "            return \"spades\"",
+            "        case .hearts:",
+            "            return \"hearts\"",
+            "        case .diamonds:",
+            "            return \"diamonds\"",
+            "        case .clubs:",
+            "            return \"clubs\"",
+            "        }",
+            "    }",
+            "}",
+            "let hearts = Suit.hearts",
+            "let heartsDescription = hearts.simpleDescription()"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Add a ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "color()",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " method to ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Suit",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " that returns “black”",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "for spades and clubs, and returns “red” for hearts and diamonds.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Notice the two ways that the ",
+              "type" : "text"
+            },
+            {
+              "code" : "hearts",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " case of the enumeration",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "is referred to above:",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "When assigning a value to the ",
+              "type" : "text"
+            },
+            {
+              "code" : "hearts",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " constant,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the enumeration case ",
+              "type" : "text"
+            },
+            {
+              "code" : "Suit.hearts",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is referred to by its full name",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "because the constant doesn’t have an explicit type specified.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Inside the switch,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the enumeration case is referred to by the abbreviated form ",
+              "type" : "text"
+            },
+            {
+              "code" : ".hearts",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "because the value of ",
+              "type" : "text"
+            },
+            {
+              "code" : "self",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is already known to be a suit.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You can use the abbreviated form",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "anytime the value’s type is already known.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "If an enumeration has raw values,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "those values are determined as part of the declaration,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "which means every instance of a particular enumeration case",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "always has the same raw value.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Another choice for enumeration cases",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "is to have values associated with the case —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "these values are determined when you make the instance,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and they can be different for each instance of an enumeration case.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You can think of the associated values",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as behaving like stored properties of the enumeration case instance.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "For example,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "consider the case of requesting",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the sunrise and sunset times from a server.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The server either responds with the requested information,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or it responds with a description of what went wrong.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "enum ServerResponse {",
+            "    case result(String, String)",
+            "    case failure(String)",
+            "}",
+            "",
+            "let success = ServerResponse.result(\"6:00 am\", \"8:09 pm\")",
+            "let failure = ServerResponse.failure(\"Out of cheese.\")",
+            "",
+            "switch success {",
+            "case let .result(sunrise, sunset):",
+            "    print(\"Sunrise is at \\(sunrise) and sunset is at \\(sunset).\")",
+            "case let .failure(message):",
+            "    print(\"Failure...  \\(message)\")",
+            "}",
+            "\/\/ Prints \"Sunrise is at 6:00 am and sunset is at 8:09 pm.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Add a third case to ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "ServerResponse",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " and to the switch.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Notice how the sunrise and sunset times",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "are extracted from the ",
+              "type" : "text"
+            },
+            {
+              "code" : "ServerResponse",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " value",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as part of matching the value against the switch cases.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "struct",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to create a structure.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Structures support many of the same behaviors as classes,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "including methods and initializers.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "One of the most important differences",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "between structures and classes is that",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "structures are always copied when they’re passed around in your code,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "but classes are passed by reference.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "struct Card {",
+            "    var rank: Rank",
+            "    var suit: Suit",
+            "    func simpleDescription() -> String {",
+            "        return \"The \\(rank.simpleDescription()) of \\(suit.simpleDescription())\"",
+            "    }",
+            "}",
+            "let threeOfSpades = Card(rank: .three, suit: .spades)",
+            "let threeOfSpadesDescription = threeOfSpades.simpleDescription()"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Write a function that returns an array containing",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "a full deck of cards,",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "with one card of each combination of rank and suit.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "anchor" : "Concurrency",
+          "level" : 2,
+          "text" : "Concurrency",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "async",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to mark a function that runs asynchronously.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "func fetchUserID(from server: String) async -> Int {",
+            "    if server == \"primary\" {",
+            "        return 97",
+            "    }",
+            "    return 501",
+            "}"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You mark a call to an asynchronous function by writing ",
+              "type" : "text"
+            },
+            {
+              "code" : "await",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " in front of it.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "func fetchUsername(from server: String) async -> String {",
+            "    let userID = await fetchUserID(from: server)",
+            "    if userID == 501 {",
+            "        return \"John Appleseed\"",
+            "    }",
+            "    return \"Guest\"",
+            "}"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "async let",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to call an asynchronous function,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "letting it run in parallel with other asynchronous code.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "When you use the value it returns, write ",
+              "type" : "text"
+            },
+            {
+              "code" : "await",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "func connectUser(to server: String) async {",
+            "    async let userID = fetchUserID(from: server)",
+            "    async let username = fetchUsername(from: server)",
+            "    let greeting = await \"Hello \\(username), user ID \\(userID)\"",
+            "    print(greeting)",
+            "}"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "Task",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to call asynchronous functions from synchronous code,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "without waiting for them to return.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "Task {",
+            "    await connectUser(to: \"primary\")",
+            "}",
+            "\/\/ Prints \"Hello Guest, user ID 97\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use task groups to structure concurrent code.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let userIDs = await withTaskGroup(of: Int.self) { group in",
+            "    for server in [\"primary\", \"secondary\", \"development\"] {",
+            "        group.addTask {",
+            "            return await fetchUserID(from: server)",
+            "        }",
+            "    }",
+            "",
+            "    var results: [Int] = []",
+            "    for await result in group {",
+            "        results.append(result)",
+            "    }",
+            "    return results",
+            "}"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Actors are similar to classes,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "except they ensure that different asynchronous functions",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "can safely interact with an instance of the same actor at the same time.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "actor ServerConnection {",
+            "    var server: String = \"primary\"",
+            "    private var activeUsers: [Int] = []",
+            "    func connect() async -> Int {",
+            "        let userID = await fetchUserID(from: server)",
+            "        \/\/ ... communicate with server ...",
+            "        activeUsers.append(userID)",
+            "        return userID",
+            "    }",
+            "}"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "When you call a method on an actor or access one of its properties,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you mark that code with ",
+              "type" : "text"
+            },
+            {
+              "code" : "await",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to indicate that it might have to wait for other code",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that’s already running on the actor to finish.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let server = ServerConnection()",
+            "let userID = await server.connect()"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Protocols-and-Extensions",
+          "level" : 2,
+          "text" : "Protocols and Extensions",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "protocol",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to declare a protocol.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "protocol ExampleProtocol {",
+            "     var simpleDescription: String { get }",
+            "     mutating func adjust()",
+            "}"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Classes, enumerations, and structures can all adopt protocols.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "class SimpleClass: ExampleProtocol {",
+            "     var simpleDescription: String = \"A very simple class.\"",
+            "     var anotherProperty: Int = 69105",
+            "     func adjust() {",
+            "          simpleDescription += \"  Now 100% adjusted.\"",
+            "     }",
+            "}",
+            "var a = SimpleClass()",
+            "a.adjust()",
+            "let aDescription = a.simpleDescription",
+            "",
+            "struct SimpleStructure: ExampleProtocol {",
+            "     var simpleDescription: String = \"A simple structure\"",
+            "     mutating func adjust() {",
+            "          simpleDescription += \" (adjusted)\"",
+            "     }",
+            "}",
+            "var b = SimpleStructure()",
+            "b.adjust()",
+            "let bDescription = b.simpleDescription"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Add another requirement to ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "ExampleProtocol",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : ".",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "What changes do you need to make",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "to ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "SimpleClass",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " and ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "SimpleStructure",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "so that they still conform to the protocol?",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Notice the use of the ",
+              "type" : "text"
+            },
+            {
+              "code" : "mutating",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " keyword",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "in the declaration of ",
+              "type" : "text"
+            },
+            {
+              "code" : "SimpleStructure",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to mark a method that modifies the structure.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The declaration of ",
+              "type" : "text"
+            },
+            {
+              "code" : "SimpleClass",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " doesn’t need",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "any of its methods marked as mutating",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "because methods on a class can always modify the class.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "extension",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to add functionality to an existing type,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "such as new methods and computed properties.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You can use an extension to add protocol conformance",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to a type that’s declared elsewhere,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or even to a type that you imported from a library or framework.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "extension Int: ExampleProtocol {",
+            "    var simpleDescription: String {",
+            "        return \"The number \\(self)\"",
+            "    }",
+            "    mutating func adjust() {",
+            "        self += 42",
+            "    }",
+            " }",
+            "print(7.simpleDescription)",
+            "\/\/ Prints \"The number 7\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Write an extension for the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Double",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " type",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "that adds an ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "absoluteValue",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " property.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can use a protocol name just like any other named type —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "for example, to create a collection of objects",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that have different types",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "but that all conform to a single protocol.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "When you work with values whose type is a boxed protocol type,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "methods outside the protocol definition aren’t available.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let protocolValue: any ExampleProtocol = a",
+            "print(protocolValue.simpleDescription)",
+            "\/\/ Prints \"A very simple class.  Now 100% adjusted.\"",
+            "\/\/ print(protocolValue.anotherProperty)  \/\/ Uncomment to see the error"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Even though the variable ",
+              "type" : "text"
+            },
+            {
+              "code" : "protocolValue",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "has a runtime type of ",
+              "type" : "text"
+            },
+            {
+              "code" : "SimpleClass",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the compiler treats it as the given type of ",
+              "type" : "text"
+            },
+            {
+              "code" : "ExampleProtocol",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "This means that you can’t accidentally access",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "methods or properties that the class implements",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "in addition to its protocol conformance.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "anchor" : "Error-Handling",
+          "level" : 2,
+          "text" : "Error Handling",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You represent errors using any type that adopts the ",
+              "type" : "text"
+            },
+            {
+              "code" : "Error",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " protocol.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "enum PrinterError: Error {",
+            "    case outOfPaper",
+            "    case noToner",
+            "    case onFire",
+            "}"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "throw",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to throw an error",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and ",
+              "type" : "text"
+            },
+            {
+              "code" : "throws",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to mark a function that can throw an error.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "If you throw an error in a function,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the function returns immediately and the code that called the function",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "handles the error.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "func send(job: Int, toPrinter printerName: String) throws -> String {",
+            "    if printerName == \"Never Has Toner\" {",
+            "        throw PrinterError.noToner",
+            "    }",
+            "    return \"Job sent\"",
+            "}"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "There are several ways to handle errors.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "One way is to use ",
+              "type" : "text"
+            },
+            {
+              "code" : "do",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "-",
+              "type" : "text"
+            },
+            {
+              "code" : "catch",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Inside the ",
+              "type" : "text"
+            },
+            {
+              "code" : "do",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " block,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you mark code that can throw an error by writing ",
+              "type" : "text"
+            },
+            {
+              "code" : "try",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " in front of it.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Inside the ",
+              "type" : "text"
+            },
+            {
+              "code" : "catch",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " block,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the error is automatically given the name ",
+              "type" : "text"
+            },
+            {
+              "code" : "error",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "unless you give it a different name.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "do {",
+            "    let printerResponse = try send(job: 1040, toPrinter: \"Bi Sheng\")",
+            "    print(printerResponse)",
+            "} catch {",
+            "    print(error)",
+            "}",
+            "\/\/ Prints \"Job sent\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Change the printer name to ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "\"Never Has Toner\"",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : ",",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "so that the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "send(job:toPrinter:)",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " function throws an error.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can provide multiple ",
+              "type" : "text"
+            },
+            {
+              "code" : "catch",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " blocks",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that handle specific errors.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You write a pattern after ",
+              "type" : "text"
+            },
+            {
+              "code" : "catch",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " just as you do",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "after ",
+              "type" : "text"
+            },
+            {
+              "code" : "case",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " in a switch.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "do {",
+            "    let printerResponse = try send(job: 1440, toPrinter: \"Gutenberg\")",
+            "    print(printerResponse)",
+            "} catch PrinterError.onFire {",
+            "    print(\"I'll just put this over here, with the rest of the fire.\")",
+            "} catch let printerError as PrinterError {",
+            "    print(\"Printer error: \\(printerError).\")",
+            "} catch {",
+            "    print(error)",
+            "}",
+            "\/\/ Prints \"Job sent\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Add code to throw an error inside the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "do",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " block.",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "What kind of error do you need to throw",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "so that the error is handled by the first ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "catch",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " block?",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "What about the second and third blocks?",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Another way to handle errors",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "is to use ",
+              "type" : "text"
+            },
+            {
+              "code" : "try?",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to convert the result to an optional.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "If the function throws an error,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the specific error is discarded and the result is ",
+              "type" : "text"
+            },
+            {
+              "code" : "nil",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Otherwise, the result is an optional containing",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the value that the function returned.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let printerSuccess = try? send(job: 1884, toPrinter: \"Mergenthaler\")",
+            "let printerFailure = try? send(job: 1885, toPrinter: \"Never Has Toner\")"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "defer",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to write a block of code",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that’s executed after all other code in the function,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "just before the function returns.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The code is executed regardless of whether the function throws an error.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You can use ",
+              "type" : "text"
+            },
+            {
+              "code" : "defer",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to write setup and cleanup code next to each other,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "even though they need to be executed at different times.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var fridgeIsOpen = false",
+            "let fridgeContent = [\"milk\", \"eggs\", \"leftovers\"]",
+            "",
+            "func fridgeContains(_ food: String) -> Bool {",
+            "    fridgeIsOpen = true",
+            "    defer {",
+            "        fridgeIsOpen = false",
+            "    }",
+            "",
+            "    let result = fridgeContent.contains(food)",
+            "    return result",
+            "}",
+            "if fridgeContains(\"banana\") {",
+            "    print(\"Found a banana\")",
+            "}",
+            "print(fridgeIsOpen)",
+            "\/\/ Prints \"false\"."
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Generics",
+          "level" : 2,
+          "text" : "Generics",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Write a name inside angle brackets",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to make a generic function or type.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "func makeArray<Item>(repeating item: Item, numberOfTimes: Int) -> [Item] {",
+            "    var result: [Item] = []",
+            "    for _ in 0..<numberOfTimes {",
+            "         result.append(item)",
+            "    }",
+            "    return result",
+            "}",
+            "makeArray(repeating: \"knock\", numberOfTimes: 4)"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can make generic forms of functions and methods,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as well as classes, enumerations, and structures.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "\/\/ Reimplement the Swift standard library's optional type",
+            "enum OptionalValue<Wrapped> {",
+            "    case none",
+            "    case some(Wrapped)",
+            "}",
+            "var possibleInteger: OptionalValue<Int> = .none",
+            "possibleInteger = .some(100)"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use ",
+              "type" : "text"
+            },
+            {
+              "code" : "where",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " right before the body",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to specify a list of requirements —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "for example,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to require the type to implement a protocol,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to require two types to be the same,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or to require a class to have a particular superclass.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "func anyCommonElements<T: Sequence, U: Sequence>(_ lhs: T, _ rhs: U) -> Bool",
+            "    where T.Element: Equatable, T.Element == U.Element",
+            "{",
+            "    for lhsItem in lhs {",
+            "        for rhsItem in rhs {",
+            "            if lhsItem == rhsItem {",
+            "                return true",
+            "            }",
+            "        }",
+            "    }",
+            "   return false",
+            "}",
+            "anyCommonElements([1, 2, 3], [3])"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Modify the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "anyCommonElements(_:_:)",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " function",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "to make a function that returns an array",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "of the elements that any two sequences have in common.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Experiment",
+          "style" : "experiment",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Writing ",
+              "type" : "text"
+            },
+            {
+              "code" : "<T: Equatable>",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "is the same as writing ",
+              "type" : "text"
+            },
+            {
+              "code" : "<T> ... where T: Equatable",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        }
+      ],
+      "kind" : "content"
+    }
+  ],
+  "schemaVersion" : {
+    "major" : 0,
+    "minor" : 3,
+    "patch" : 0
+  },
+  "sections" : [
+
+  ]
+, 
+"references": {
+"doc://org.swift.tspl/documentation/The-Swift-Programming-Language": {
+  "abstract" : [
+    {
+      "text" : "Write safe, fast, expressive code with a modern, general-purpose language.",
+      "type" : "text"
+    }
+  ],
+  "identifier" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language",
+  "kind" : "article",
+  "role" : "collection",
+  "title" : "The Swift Programming Language (6.4 beta)",
+  "type" : "topic",
+  "url" : "\/documentation\/the-swift-programming-language"
+}
+}
+}

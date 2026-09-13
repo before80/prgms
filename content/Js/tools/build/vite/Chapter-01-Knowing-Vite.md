@@ -8,7 +8,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-01-Knowing-Vite
 
 # 第1章：认识 Vite
 
@@ -19,6 +18,8 @@ draft = false
 > 本章我们将搞清楚：Vite 是什么？它从哪来？要往哪去？以及——为什么你应该在2026年把它学透？
 
 ---
+
+> 📌 **版本提示（2026-09 核对）**：当前 Vite 最新稳定版为 **Vite 8.3.x**，要求 Node.js `^20.19.0 || >=22.12.0`。Vite 8 已用 **Rolldown** 统一开发与生产构建；此前 Vite 1–7 长期采用“开发用 esbuild 预构建、生产用 Rollup”的双打包器架构。本章正文中涉及旧架构的部分会按历史版本说明，不再把它当作 Vite 8 的现状。
 
 ## 1.1 什么是 Vite
 
@@ -56,8 +57,12 @@ timeline
          : Node.js 18+ 要求
          : 更好的性能
     2024 : Vite 6.0 发布
-         : 新的 Browserlist 解析
-         : 改进的 TypeScript 支持
+         : 实验性 Environment API
+    2025 : Vite 7.0 发布
+         : Node.js 20.19+ / 22.12+
+         : Rolldown 预览（rolldown-vite）
+    2026 : Vite 8.0 发布
+         : Rolldown 成为默认统一打包器
 ```
 
 ### 1.1.2 Vite 的设计理念
@@ -96,7 +101,7 @@ Vite 的开发服务器就像一个超级智能的快递员：
 - 有些包导出的是 CommonJS 格式（`module.exports`），浏览器不认识
 - 有些包有非常多的内部文件（比如 `lodash`），如果浏览器一个一个去请求，会产生**成百上千个 HTTP 请求**，性能反而更差
 
-所以 Vite 使用 **esbuild**（一个由 Go 语言编写的高性能打包工具）在**项目启动时**对依赖进行一次预构建。`esbuild` 快到什么程度？官方说它的打包速度是 Webpack 的 **100倍以上**！预构建的结果会被缓存起来，下次启动直接用。
+所以 Vite 会在**项目启动时**对依赖进行一次预构建。Vite 8 使用 **Rolldown / Oxc** 这条 Rust 工具链完成依赖预构建与转换；Vite 1–7 则主要使用 **esbuild**（Go 编写的高性能打包器）。预构建结果会被缓存起来，下次启动直接复用。不同版本的具体实现不同，但目标都是把大量散碎的依赖请求合并、转换成浏览器可直接加载的模块。
 
 预构建完成后，开发流程变成这样：
 
@@ -104,21 +109,21 @@ Vite 的开发服务器就像一个超级智能的快递员：
 浏览器请求 → Vite 服务器拦截 → 按需转换 → 发送给浏览器
 ```
 
-#### 🏭 生产模式：Rollup 打包
+#### 🏭 生产模式：Rolldown 打包
 
 到了生产环境，情况就不同了。浏览器原生 ESM 虽然好，但存在以下问题：
 - 过多的 HTTP 请求会导致网络开销变大（每个文件一个请求）
 - 源码直接暴露在网络上（安全性问题）
 - 浏览器的 ESM 兼容性还是有差异
 
-所以在生产构建时，Vite 会调用 **Rollup**（另一个超快的打包工具）把代码打包成最优化的静态资源。Rollup 擅长"Tree Shaking"——它会分析代码，把没用到的部分毫不留情地删掉，让最终的包体积尽可能小。
+所以在生产构建时，Vite 8 会调用 **Rolldown** 把代码打包成最优化的静态资源。Rolldown 兼容 Rollup 插件 API，同时由 Rust 驱动，速度比 Rollup 更快。Vite 1–7 的生产构建则使用 **Rollup**；Vite 8 开始把这条路径统一到 Rolldown。
 
 **生产构建流程：**
 
 ```mermaid
 flowchart TD
     A["你的源代码<br/>(.ts/.vue/.jsx)"] --> B["Vite 开发服务器<br/>按需编译 + ESM"]
-    A --> C["Vite Build<br/>使用 Rollup"]
+    A --> C["Vite Build<br/>使用 Rolldown（Vite 8+；旧版为 Rollup）"]
     C --> D["优化后的静态资源<br/>.js / .css / 图片"]
     D --> E["部署到服务器/CDN"]
     
@@ -130,8 +135,8 @@ flowchart TD
 
 | 阶段 | 工具 | 特点 |
 |------|------|------|
-| 开发 | Vite Dev Server + esbuild | 启动极快，按需编译，原生 ESM |
-| 生产 | Rollup | 代码分割，Tree Shaking，最优输出 |
+| 开发 | Vite Dev Server + Rolldown/Oxc（Vite 8+） | 启动极快，按需编译，原生 ESM |
+| 生产 | Rolldown（Vite 8+；旧版为 Rollup） | 代码分割，Tree Shaking，最优输出 |
 
 ### 1.1.3 Vite 与 Webpack、Parcel 的对比
 
@@ -221,7 +226,7 @@ Parcel 诞生于 2017 年，由 Toast（Devon Govett）开发。它的 slogan �
 - **真正的按需编译**：只编译当前访问的页面需要的代码
 - **极快的 HMR**：热更新在50毫秒内完成，不管项目有多大
 - **配置简洁**：核心配置非常直观，学习成本低
-- **Rollup 生产构建**：生产构建质量高，Tree Shaking 效果出色
+- **成熟的打包能力**：Vite 1–7 使用 Rollup，Vite 8 使用 Rolldown；Tree Shaking 和产物优化都很出色
 - **框架无关**：Vue、React、Svelte、Preact 都能用
 - **esbuild 预构建**：依赖解析速度极快
 
@@ -245,14 +250,14 @@ Parcel 诞生于 2017 年，由 Toast（Devon Govett）开发。它的 slogan �
 用一张图来总结就是：
 
 ```mermaid
-bar chart
-    title 前端构建工具速度对比 (示意图)
-    "Webpack 冷启动": 35
-    "Parcel 冷启动": 4
-    "Vite 冷启动": 1
-    "Webpack HMR": 5
-    "Parcel HMR": 2
-    "Vite HMR": 0.05
+flowchart LR
+    subgraph 冷启动["冷启动耗时（示意）"]
+        W1["Webpack：约 35"] --> P1["Parcel：约 4"] --> V1["Vite：约 1"]
+    end
+
+    subgraph HMR["HMR 更新耗时（示意）"]
+        W2["Webpack：约 5"] --> P2["Parcel：约 2"] --> V2["Vite：约 0.05"]
+    end
 ```
 
 > 💡 小提示：上图数字只是示意，真实速度取决于项目规模、硬件配置等因素。但趋势是明确的：**Vite 在开发体验上具有碾压性的速度优势。**
@@ -261,12 +266,11 @@ bar chart
 
 Vite 从 2020 年发布至今，已经经历了多个重大版本的迭代。让我们来回顾一下每个版本的亮点：
 
-#### Vite 1.x (2020年2月)
+#### Vite 1.x (2020年)
 
-- 作为 Vue 3 的官方构建工具发布
-- 奠定了"极速开发体验"的基础
-- 但功能还比较基础，插件系统也比较简单
-- 这个版本很多人可能都没用过就已经过去了 😅
+- 作为 Vue 3 的官方构建工具起步，2020 年主要处于 beta / RC 阶段
+- 奠定了"极速开发体验"的基础，但 API 和插件系统还不够稳定
+- 真正面向大众的稳定版本是 2021 年 2 月发布的 Vite 2.0
 
 #### Vite 2.0 (2021年2月) ⭐ 里程碑版本
 
@@ -301,11 +305,24 @@ Vite 从 2020 年发布至今，已经经历了多个重大版本的迭代。让
 
 #### Vite 6.0 (2024年)
 
-- **改进的 Browserlist 解析**：更智能的目标浏览器检测
-- **更好的 TypeScript 5.x 支持**：利用 TypeScript 最新特性的优势
-- **环境变量改进**：`loadEnv` 函数更加健壮
-- **更好的 Wasm 支持**：WebAssembly 模块的处理更加完善
-- **生态系统继续壮大**：更多官方和社区插件支持 Vite 6
+- **实验性 Environment API**：让框架作者可以更精确地描述客户端、SSR、边缘运行时等不同环境
+- **继续支持 Node.js 18/20/22**：Vite 6 仍兼容 Node.js 18，但 Node.js 18 在 2025 年 4 月 EOL
+- **多个默认值与 CSS 处理调整**：例如 Sass 默认使用 modern API、支持自定义 CSS 输出文件名
+
+#### Vite 7.0 (2025年6月)
+
+- **Node.js 要求提升**：要求 Node.js 20.19+ 或 22.12+，不再支持 Node.js 18
+- **默认浏览器目标改为 Baseline Widely Available**：默认支持 Chrome 107+、Edge 107+、Firefox 104+、Safari 16+
+- **Rolldown 预览**：可通过 `rolldown-vite` 包提前体验 Rust 打包器
+- **移除旧特性**：Sass legacy API、`splitVendorChunkPlugin` 等被移除
+
+#### Vite 8.0 (2026年3月)
+
+- **Rolldown 成为默认且统一的打包器**：开发与生产构建不再分别依赖 esbuild 和 Rollup
+- **构建速度显著提升**：官方给出的数据是相比 Rollup 路径最多快 10–30 倍
+- **插件兼容层**：大多数现有 Vite/Rollup 插件可继续工作，复杂项目可按迁移指南逐步升级
+- **新增能力**：内置 Vite Devtools、`resolve.tsconfigPaths`、`emitDecoratorMetadata` 支持、浏览器控制台转发等
+- **Node.js 要求与 Vite 7 相同**：`^20.19.0 || >=22.12.0`
 
 ```mermaid
 gitGraph
@@ -314,10 +331,12 @@ gitGraph
     commit id: "v3.0" tag: "CLI 重新设计"
     commit id: "v4.0" tag: "Rollup 3"
     commit id: "v5.0" tag: "Node 18+"
-    commit id: "v6.0" tag: "最新稳定版"
+    commit id: "v6.0" tag: "Environment API"
+    commit id: "v7.0" tag: "Node 20.19+"
+    commit id: "v8.0" tag: "Rolldown"
 ```
 
-> 📌 **版本选择建议**：如果是新项目，直接使用 Vite 6.x 就对了。如果是维护老项目，可以根据 Node.js 版本来决定——如果 Node.js 是 16，则需要使用 Vite 4.x 或 5.x。
+> 📌 **版本选择建议**：截至 2026 年 9 月，新项目直接用 **Vite 8.x**，并确保 Node.js 为 20.19+ 或 22.12+。如果必须留在旧 Node.js 上，再根据 Node 版本选择 Vite 6/7 或更早版本；不要为了旧版本而误以为 Vite 8 仍使用 Rollup 作为生产打包器。
 
 ---
 
@@ -345,7 +364,7 @@ Vite 在构建速度上的提升，来自于它聪明的"按需"策略。
 
 传统的 Webpack 构建，本质上是"先全部打包，再运行"。不管你改了一个字符还是一个文件，它都要重新分析整个世界。
 
-Vite 的构建策略则是"需要什么，打包什么"。在开发时，每个模块按需转换；在生产时，Rollup 只打包真正被使用的代码。
+Vite 的构建策略则是"需要什么，打包什么"。开发时每个模块按需转换；生产时由 Rolldown（Vite 8+）或 Rollup（Vite 1–7）打包真正被使用的代码。
 
 实际数据对比（来自 Vite 官方基准测试，大型 Vue 3 项目）：
 
@@ -610,11 +629,11 @@ export default defineConfig({
 
 1. **Vite 的身世**：由 Vue 之父 Evan You 于 2020 年创建，基于浏览器原生 ESM 的极速构建工具
 
-2. **核心设计理念**：开发时按需编译（No Bundle），生产时 Rollup 打包，既享受极速开发体验，又有高质量的生产产物
+2. **核心设计理念**：开发时按需编译（No Bundle），生产时打包优化；Vite 8 使用 Rolldown 统一两条链路，Vite 1–7 则分别使用 esbuild 和 Rollup
 
 3. **速度对比**：相比 Webpack 30秒~3分钟的冷启动，Vite 可以做到 <2秒；HMR 从 1~5秒缩短到 <50毫秒
 
-4. **版本演进**：从 2020 年的 v1.0 到如今的 v6.0，Vite 持续进化，生态日益完善
+4. **版本演进**：从 2020 年的 v1.0 到 2026 年的 v8.0，Vite 逐步从双打包器架构演进为 Rolldown 统一工具链
 
 5. **为什么学 Vite**：开发效率革命性提升 + 框架官方推荐 + 社区生态繁荣 + 配置简单
 

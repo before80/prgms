@@ -45,7 +45,9 @@ int main() {
     // long就像一个善变的家伙，在不同操作系统上身材不一样
     long long_num = 2147483647L;
     std::cout << "long: " << sizeof(long) << " bytes" << std::endl;
-    // 输出: long: 4 bytes (Windows) 或 8 bytes (Linux)
+    // 输出（本机 macOS arm64）: long: 8 bytes
+    // 注意：这个数字是平台相关的——Windows 上 long 是 4 字节，
+    //       Linux / macOS 64 位上是 8 字节。别把它当成固定值！
     
     // long long: 至少64位，存储大数字
     // 当int不够用时，long long就是你的超级英雄！
@@ -125,7 +127,10 @@ int main() {
     long double golden = 1.6180339887498948482L;  // L后缀
     std::cout << std::setprecision(18);
     std::cout << "long double golden = " << golden << std::endl;
-    // 输出: long double golden = 1.61803398874989485
+    // 输出（本机 macOS arm64）: long double golden = 1.618033988749894903
+    // 注意：在 x86 的 Linux 上 long double 是 80 位扩展精度，
+    //       能多给出几位有效数字；而 Windows / macOS arm64 上
+    //       long double 和 double 一样是 64 位。
     
     return 0;
 }
@@ -319,7 +324,8 @@ int main() {
     
     // long double 浮点
     std::cout << "long double: " << sizeof(long double) << " bytes" << std::endl;
-    // 输出: long double: 16 bytes (通常)
+    // 输出（本机 macOS arm64）: long double: 8 bytes
+    // 注意：x86 Linux 上通常是 16 字节，Windows 上是 8 字节，平台相关。
     
     return 0;
 }
@@ -636,16 +642,23 @@ int main() {
 
 ### 数字分隔符（C++14）
 
-见上方示例，数字分隔符单引号让长数字更易读。
+单引号 `'` 只能放在**两个数字之间**，用来给长数字"断句"。它不影响数值，只是给人看的。
+
+> ⚠️ **三个容易踩的坑**（详见第 24 章）：
+> - 不能连着写：`1''000` ❌、`1'000'` ❌（分隔符前后必须都是数字）
+> - 不能贴着前缀或后缀：`0x'FF` ❌、`10'u` ❌
+> - **分隔符不会改变类型宽度**：`int card = 1234'5678'9012'3456;` 看着清楚，值却照样溢出（32 位 `int` 装不下 16 位十进制数）
 
 ```cpp
 #include <iostream>
+#include <cstdint>   // std::int64_t
 
 int main() {
     // 数字分隔符让大数字一目了然
     // 以前：int card = 1234567890123456;  // 多少位？鬼知道
     // 现在：
-    int card = 1234'5678'9012'3456;  // 一眼看出是16位！
+    // 注意：16 位十进制数超出 32 位 int 的范围，必须用 64 位类型！
+    std::int64_t card = 1234'5678'9012'3456LL;  // 一眼看出是16位！
     
     // IP地址也很清晰
     int ip = 192'168'1'1;  // 192.168.1.1
@@ -654,7 +667,7 @@ int main() {
     int mask = 0b1111'1111'1111'1111;  // 16位掩码
     
     std::cout << "card = " << card << std::endl;  // 输出: card = 1234567890123456
-    std::cout << "ip = " << ip << std::endl;      // 输出: ip = 19216811
+    std::cout << "ip   = " << ip << std::endl;    // 输出: ip   = 19216811
     std::cout << "mask = " << std::hex << mask << std::dec << std::endl;  // 输出: mask = ffff
     
     return 0;
@@ -760,10 +773,15 @@ int main() {
     // C++11/14：auto x{10} → std::initializer_list<int>（！你没看错，是列表！）
     // C++17起：auto x{10} → int（终于修复了这个别扭的行为）
     // ⚠️ 而 auto x = {10} 在所有标准中都是 initializer_list<int>，从未变过！
-    auto x1{10};       // C++17起是int，C++11/14是 initializer_list<int>
-    auto x2 = {10};    // 始终是 initializer_list<int>，所有标准都一样
-    auto x3{10, 20};   // 多元素：始终是 initializer_list<int>（所有标准，{10,20}）
-    std::cout << "x1=" << x1 << ", x2=" << x2 << ", x3 size=" << x3.size() << std::endl;
+      auto x1{10};       // C++17起是int，C++11/14是 initializer_list<int>
+      auto x2 = {10};    // 始终是 initializer_list<int>，所有标准都一样
+      auto x3 = {10, 20};// 带 = 号才是 initializer_list<int>，size 为 2
+      // auto x4{10, 20}; // ❌ 编译错误：auto 无法从多元素列表推导类型
+        // 注意：initializer_list 不能直接用 << 输出，需要取元素或大小
+        std::cout << "x1=" << x1
+                  << ", x2.size()=" << x2.size()
+                  << ", *x2.begin()=" << *x2.begin()
+                  << ", x3.size()=" << x3.size() << std::endl;
     
     // 陷阱3：auto不能用于多个变量的类型推导
     // 除非它们类型一致

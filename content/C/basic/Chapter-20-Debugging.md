@@ -10,7 +10,16 @@ draft = false
 
 # 第 20 章：调试技术——与 Bug 的斗智斗勇
 
-![调试流程图](data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 400'%3E%3Crect width='800' height='400' fill='%23f0f4f8'/%3E%3Crect x='50' y='50' width='150' height='60' rx='10' fill='%23e74c3c' stroke='%232c3e50' stroke-width='2'/%3E%3Ctext x='125' y='85' text-anchor='middle' fill='white' font-size='14' font-family='Arial'%3E发现Bug%3C/text%3E%3Crect x='325' y='50' width='150' height='60' rx='10' fill='%23f39c12' stroke='%232c3e50' stroke-width='2'/%3E%3Ctext x='400' y='85' text-anchor='middle' fill='white' font-size='14' font-family='Arial'%3E定位问题%3C/text%3E%3Crect x='600' y='50' width='150' height='60' rx='10' fill='%2327ae60' stroke='%232c3e50' stroke-width='2'/%3E%3Ctext x='675' y='85' text-anchor='middle' fill='white' font-size='14' font-family='Arial'%3E修复Bug%3C/text%3E%3Cpath d='M200 80 L325 80' stroke='%232c3e50' stroke-width='3' marker-end='url(%23arrow)'/%3E%3Cpath d='M475 80 L600 80' stroke='%232c3e50' stroke-width='3' marker-end='url(%23arrow)'/%3E%3Crect x='200' y='180' width='400' height='150' rx='15' fill='%233498db' stroke='%232c3e50' stroke-width='2' opacity='0.2'/%3E%3Ctext x='400' y='220' text-anchor='middle' fill='%232c3e50' font-size='16' font-family='Arial' font-weight='bold'%3E调试工具箱%3C/text%3E%3Ctext x='400' y='250' text-anchor='middle' fill='%232c3e50' font-size='13' font-family='Arial'%3EGDB / LLDB / Valgrind / ASan / UBSan / printf%3C/text%3E%3Ctext x='400' y='280' text-anchor='middle' fill='%232c3e50' font-size='13' font-family='Arial'%3E核心转储 / 远程调试 / 日志分析%3C/text%3E%3Cdefs%3E%3Cmarker id='arrow' markerWidth='10' markerHeight='10' refX='9' refY='3' orient='auto'%3E%3Cpath d='M0,0 L0,6 L9,3 z' fill='%232c3e50'/%3E%3C/marker%3E%3C/defs%3E%3C/svg%3E)
+```mermaid
+flowchart LR
+    A["发现 Bug"] --> B["定位问题"] --> C["修复 Bug"]
+    subgraph box["调试工具箱"]
+        D["GDB / LLDB / Valgrind<br/>ASan / UBSan / printf"]
+        E["核心转储 / 远程调试 / 日志分析"]
+    end
+    B -.-> box
+```
+
 
 各位亲爱的 C 语言战士们，欢迎来到第 20 章！
 
@@ -254,7 +263,7 @@ r9             0x0    0
 
 #### `backtrace`（简写 `bt`）——查看调用栈
 
-```c
+```text
 (gdb) bt
 #0  add (a=10, b=20) at debug_demo.c:3
 #1  0x00000000004005a6 in main () at debug_demo.c:11
@@ -266,7 +275,7 @@ r9             0x0    0
 
 #### `frame`（简写 `f`）——切换栈帧
 
-```c
+```text
 (gdb) frame 1    // 切换到第 1 层（main 函数）
 #1  0x00000000004005a6 in main () at debug_demo.c:11
 11        sum = add(x, y);
@@ -713,6 +722,8 @@ gcc -g -fsanitize=address out_of_bounds.c -o out_of_bounds
 > - 开发阶段、快速迭代：用 ASan，速度快
 > - 找不到问题、需要更详细信息：用 Valgrind，慢慢来但查得全
 > - 两者结合用也不失为一种策略
+>
+> **⚠️ macOS 用户请注意：** Valgrind 官方只支持 Linux（及部分 BSD/Solaris）等平台，**在近年的 macOS 上基本无法使用**（Homebrew 也已移除该 formula）。所以本章的 Valgrind 内容请在 Linux 上练习；在 macOS 上请优先使用 **AddressSanitizer / UndefinedBehaviorSanitizer**（Apple Clang 自带），以及系统自带的 `leaks` 工具或 Instruments 里的 Leaks 模板来做内存泄漏检测。
 
 ---
 
@@ -949,7 +960,7 @@ gdb ./crash_demo /tmp/core-crash_demo-12345-1234567890
 
 进入 GDB 后：
 
-```c
+```text
 (gdb) bt         // 查看崩溃时的调用栈
 #0  0x00000000004005a7 in main () at crash_demo.c:5
 (gdb) print ptr
@@ -1024,6 +1035,8 @@ int main(void) {
 #### 1. 宏定义调试开关
 
 ```c
+#include <stdio.h>   // printf
+
 #ifdef DEBUG
     #define D printf
 #else
@@ -1105,6 +1118,8 @@ gcc -g -O0 -fno-omit-frame-pointer myprogram.c -o myprogram
 如果说核心转储是飞机的黑匣子（记录"发生了什么"），那日志就是程序的日记本（记录"每一步在想什么"）。
 
 #### 设计好的日志系统
+
+> **📁 这是一个多文件示例。** 下面三个代码块依次是 `logger.h`、`logger.c`、`main.c` 三个**独立文件**，请分别存盘后再编译（编译命令见后面）。其中用了 `##__VA_ARGS__` 这个 GNU 扩展来支持可变参数宏——它在 GCC/Clang 上可用；如果你要写严格可移植的 C23 代码，可以改用标准的 `__VA_OPT__`（详见第 27 章）。
 
 ```c
 // logger.h

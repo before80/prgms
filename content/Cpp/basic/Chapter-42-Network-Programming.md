@@ -27,7 +27,7 @@ draft = false
 
 **客户端**：是主动出击的那一方。它知道服务端的地址（IP和端口），然后主动去连接。就像顾客，主动走到店里消费。
 
-```
+```text
   客户端                                    服务端
     |                                        |
     |  ── connect() ──▶  请求连接           |
@@ -159,6 +159,12 @@ int main() {
 
 为了让代码看起来整洁，我们先写一个跨平台的封装层。这就像翻译员，把不同语言翻译成统一的一种。
 
+> 📦 **重要：请先把这个头文件保存到本地！**
+> 下面这段代码请保存为 **`platform_socket.h`**，和后续的示例放在**同一个目录**下。
+> 本章 42.3 之后的例子都会写 `#include "platform_socket.h"`，
+> 如果你只把 `.cpp` 复制走，编译时会报 `'platform_socket.h' file not found`。
+> 在 macOS / Linux 上编译时，记得加 `-std=c++17`（示例用到 `<filesystem>` 等）。
+
 ```cpp
 /*
  * platform_socket.h
@@ -253,6 +259,9 @@ inline void close_socket(SOCKET sock) {
 ```
 
 这个封装层统一了Windows和Linux的socket API，后续代码就可以直接使用了。程序员偷懒是进步的动力！
+
+> 📦 **本节起的所有示例都依赖上面的 `platform_socket.h`**（以及标准库的网络头文件）。
+> 这些示例需要**两个文件**才能编译：`platform_socket.h` + 当前示例的 `.cpp`。
 
 ---
 
@@ -1814,6 +1823,10 @@ Boost.Asio支持：
 - 异步I/O：高性能，事件驱动
 - 协程支持（C++20）：用同步的方式写异步代码
 
+> 📦 **依赖**：Boost.Asio 是**第三方库**，需要先安装 Boost（macOS：`brew install boost`）。
+> 在 macOS 上通常编译命令是 `clang++ -std=c++17 asio_echo_server.cpp -lboost_system -lpthread`。
+> 没有安装 Boost 时，会报 `'boost/asio.hpp' file not found`。
+
 ```cpp
 /*
  * asio_echo_server.cpp
@@ -1986,6 +1999,9 @@ if (!is_valid_filename(filename)) {
 ### 42.10.4 加密传输
 
 明文传输的密码和敏感数据可以被中间人窃取。生产环境务必使用HTTPS（TLS/SSL）。
+
+> 📦 **依赖**：OpenSSL 是**第三方库**，需要先安装开发包（macOS 自带 LibreSSL，也可以用 `brew install openssl`）。
+> 未安装时编译会报 `'openssl/ssl.h' file not found`。
 
 ```cpp
 /*

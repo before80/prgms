@@ -233,7 +233,7 @@ export default {
 };
 ```
 
-> **Rollup 原生不支持 TypeScript、JSX、CSS 和资源文件（图片、字体等）！** 这是新手最常踩的坑。Rollup 本身只处理 JavaScript 文件，任何 TypeScript、JSX、CSS 的转换都需要相应的插件（推荐 `@rollup/plugin-typescript`、`@rollup/plugin-babel` 处理 JSX、`rollup-plugin-postcss` 处理 CSS）。另外，从 **Rollup 3.0** 开始，内置的 CommonJS 支持被移除了，如果你要打包包含 `require()` 语法的 CJS 模块，必须使用 `@rollup/plugin-commonjs`。好消息是，Vite 在开发阶段帮你把这一切都配置好了，所以用 Vue/React+Svelte 开发时你感受不到这些繁琐的插件配置。
+> **Rollup 原生不支持 TypeScript、JSX、CSS 和资源文件（图片、字体等）！** 这是新手最常踩的坑。Rollup 本身主要处理 ES Module 风格的 JavaScript，任何 TypeScript、JSX、CSS 的转换都需要相应的插件（推荐 `@rollup/plugin-typescript`、`@rollup/plugin-babel` 处理 JSX、`rollup-plugin-postcss` 处理 CSS）。另外，CommonJS 转换也不是 Rollup 内置能力，如果要打包包含 `require()` 语法的 CJS 模块，需要使用 `@rollup/plugin-commonjs`。好消息是，Vite 在开发阶段帮你把这一切都配置好了，所以用 Vue/React/Svelte 开发时你通常感受不到这些繁琐的插件配置。
 
 ### 1.3.5 Source Map 生成 — 快速定位线上问题
 
@@ -367,7 +367,7 @@ rollup --config
 
 > 这里要打破一个常见的误解：大型应用只能用 Webpack，不能用 Rollup。
 
-实际上，有一个你可能每天都在用的工具——**Vite**——它的生产构建就是用 Rollup 打包的。Vite 的开发服务器用的是 esbuild（另一个超快的打包工具），快是快，但压缩和 Tree-Shaking 效果不如 Rollup 精细。所以当你执行 `vite build` 的时候，它底层跑的就是 Rollup，为的就是产出更优质的生产代码。所以当你用 Vue3、React、SvelteKit 这些现代框架开发大型应用时，你其实已经在用 Rollup 了，只是你可能没意识到而已。
+实际上，有一个你可能每天都在用的工具——**Vite**。在 Vite 1–7 中，生产构建就是用 Rollup 打包的：开发服务器使用 esbuild 做快速转译，执行 `vite build` 时则由 Rollup 负责 Tree Shaking 和优化输出。Vite 8 已改用 Rolldown，但 Rolldown 兼容 Rollup 插件 API，所以大量 Vite 生态插件仍然与 Rollup 的设计一脉相承。
 
 这就像你去一家餐厅吃饭，后厨是谁在炒菜你不需要知道，你只关心菜好不好吃。
 
@@ -383,10 +383,10 @@ rollup --config
 
 1. **Rollup 是什么**：一个专注于 ES Module 的 JavaScript 打包工具，核心理念是 Tree-Shaking（消除死代码）、Zero Runtime（极简运行时代码）和原生 ES Module 支持。
 
-2. **核心特性**：Tree-Shaking 死代码消除、Scope Hoisting 作用域提升、多格式输出（ES/CJS/UMD/IIFE/AMD/System）、代码分割（Dynamic Import，需要配置 `output.dir` 或 `manualChunks`，多入口时自动共享依赖）、插件系统、Source Map 生成。IIFE/UMD 格式还需要 `output.name` 来指定全局变量名。**注意**：Rollup 原生不支持 TypeScript、JSX、CSS 等，需要相应插件；Rollup 3.0 起移除了内置 CommonJS 支持，需使用 `@rollup/plugin-commonjs`。
+2. **核心特性**：Tree-Shaking 死代码消除、Scope Hoisting 作用域提升、多格式输出（ES/CJS/UMD/IIFE/AMD/System）、代码分割（Dynamic Import，需要配置 `output.dir` 或 `manualChunks`，多入口时自动共享依赖）、插件系统、Source Map 生成。IIFE/UMD 格式还需要 `output.name` 来指定全局变量名。**注意**：Rollup 原生不支持 TypeScript、JSX、CSS 等，需要相应插件；CommonJS 转换也需要 `@rollup/plugin-commonjs`。
 
 3. **快速上手**：可以通过 CLI 直接打包，也可以使用 `rollup.config.js` 配置文件。推荐本地安装配合 npm scripts 使用。配置文件注意插件执行顺序是从上到下。
 
-4. **与 Webpack 的关系**：两者定位不同——Rollup 擅长打包库和工具，追求产物体积最小化；Webpack 擅长打包应用，功能丰富但配置复杂。Vite 生产构建就是用 Rollup，所以 Rollup 其实离你很近。
+4. **与 Webpack 的关系**：两者定位不同——Rollup 擅长打包库和工具，追求产物体积最小化；Webpack 擅长打包应用，功能丰富但配置复杂。Vite 1–7 的生产构建使用 Rollup，Vite 8 起改用 Rolldown，因此 Rollup 的插件 API 仍然深刻影响着现代前端工具链。
 
 下一章我们将穿越时空，聊聊 Rollup 的诞生史和版本演进——看看这个"固执的小厨子"是怎么一步步走到今天的。

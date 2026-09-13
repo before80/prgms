@@ -1,6 +1,6 @@
 +++
 title = "第 4B 章：作用域、链接与存储期 —— 程序的'地盘'之争"
-weight = 40
+weight = 41
 date = "2026-03-29T22:34:00+08:00"
 type = "docs"
 description = ""
@@ -447,7 +447,7 @@ int main(void) {
 }
 ```
 
-> 枚举常量的坑：由于枚举常量在 C 中属于普通标识符名字空间，如果你定义了一个同名的宏或变量，就会产生冲突：
+> 枚举常量的坑：由于枚举常量在 C 中属于普通标识符名字空间，如果你定义了一个同名的宏，就会出**大问题**——而且问题的表现比你想的更难看：
 
 ```c
 #include <stdio.h>
@@ -457,17 +457,41 @@ int main(void) {
 enum Fruit {
     APPLE,
     ORANGE,
-    GREEN  // ⚠️ 警告！在 C 中这会和上面的宏 GREEN 冲突
+    GREEN  // ⚠️ 预处理后这一行变成 "0x00FF00,"，枚举常量当场失去名字！
 };
+```
+
+编译会直接报错（在预处理阶段宏就已经把 `GREEN` 换掉了，编译器根本看不到"GREEN"这个枚举常量）：
+
+```
+error: expected identifier
+    GREEN  // 展开后变成 0x00FF00，不是一个标识符
+    ^
+```
+
+> 想直观感受一下这个过程，用 `gcc -E 上面的文件.c` 看看预处理后的结果就明白了。
+
+如果非要在枚举里用这个名字，就得**换个写法**——把冲突的一方改名，或者用 `#undef`：
+
+```c
+#include <stdio.h>
+
+#define GREEN 0x00FF00
 
 int main(void) {
     printf("GREEN macro = %d\n", GREEN);  // 输出：GREEN macro = 16711935
-    // 注意：这里 GREEN 是宏展开后的值（16711935），不是枚举常量的值（2）
-    // 因为宏在预处理阶段就完成了替换，编译器根本看不到枚举常量 GREEN
-    // 换句话说，宏和枚举常量虽然都在普通标识符名字空间，但宏的"权力"在预处理阶段就碾压了一切
+
+    // 想用"绿色"这个枚举常量？先撤掉宏，再定义枚举：
+    #undef GREEN
+    enum Color { RED, ORANGE_C, GREEN };   // 现在 GREEN 是合法的枚举常量了
+    enum Color c = GREEN;
+    printf("enum GREEN = %d\n", c);        // 输出：enum GREEN = 2
+
     return 0;
 }
 ```
+
+> 💡 一句话总结：**宏的"权力"发生在预处理阶段，比编译器早一步**。它不管你后面写了什么枚举、结构体还是函数名，只要文本对上了就替换——所以 `#define` 出来的名字最好**全大写加前缀**（比如 `COLOR_GREEN`），别用 `GREEN` 这种太普通的名字。
 
 ```mermaid
 flowchart LR
@@ -641,6 +665,8 @@ int main(void) {
 
 现在我们来看多个源文件的情况：
 
+> 📎 **阅读提示**：下面开始会出现很多**多文件示例**。每个代码块对应一个**独立的文件**，文件名写在块内第一行的注释里（如 `// main.c`）。把它们分别存成同名文件、放在同一个目录里再编译（例如 `cc main.c math_utils.c -o app`）才能跑起来；单独拷出其中一个块编译，会因为找不到别的文件或声明而报错。
+
 ```c
 // math_utils.h - 头文件声明
 #ifndef MATH_UTILS_H
@@ -686,6 +712,8 @@ static int internalVar = 5; // 定义：内部链接，只有 file_a.c 能用
 
 ```c
 // file_b.c
+#include <stdio.h>           /* printf */
+
 extern int externalVar;      // ✅ 声明：引用 file_a.c 中的 externalVar
 extern int uninitExtVar;    // ✅ 声明：引用 file_a.c 中的 uninitExtVar
 extern int internalVar;     // ❌ 错误：internalVar 在 file_a.c 是内部链接，访问不到
@@ -779,6 +807,7 @@ int sum(int a, int b) {
 
 ```c
 // main.c
+#include <stdio.h>
 #include "mymath.h"
 
 int main(void) {

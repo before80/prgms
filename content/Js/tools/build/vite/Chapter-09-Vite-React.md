@@ -10,7 +10,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-09-Vite-React
 
 # 第9章：Vite + React 实战
 
@@ -21,6 +20,8 @@ draft = false
 > 这一章，我们来一场 React + Vite 的"深度游"：从项目创建开始，到 React 18 新特性，再到 React Router、Zustand 状态管理，最后到开发最佳实践。准备好了吗？Let's React! ⚛️
 
 ---
+
+> 📌 **版本提示（2026-09 核对）**：React 当前主线是 19.x，Next.js 16 也使用 React 19.2。本章大量示例基于 React 18 的 API，但仍然适用于 React 19；新项目请以 React 19 和最新 `@vitejs/plugin-react` 的文档为准。
 
 ## 9.1 React 项目创建
 
@@ -1190,7 +1191,7 @@ const [loading, setLoading] = useState<boolean>(false)  // boolean
 
 ### 9.4.6 React Server Components 了解
 
-React Server Components（RSC）是 React 18+ 的新特性，允许组件在服务器端渲染。
+React Server Components（RSC）在 React 18 时代以实验特性出现，React 19 中逐步稳定。它允许组件在服务器端渲染，并减少发送到客户端的 JavaScript。
 
 **服务端组件 vs 客户端组件**：
 

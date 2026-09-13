@@ -101,6 +101,8 @@ draft = false
 ### 场景一：数组大小在运行时才确定
 
 ```c
+#include <stdio.h>
+
 int main() {
     printf("请输入要处理的学生数量：");
     int n;
@@ -186,13 +188,20 @@ int main() {
 }
 ```
 
-> **注意：** 上面代码中，我用了 `(int *)` 对 `malloc` 的返回值做了**强制类型转换**。在 C89/C90 中，这是必须的！但从 **C89 起（包括 C99、C11、C17、C23）**，如果你 `#include <stdlib.h>` 了，**`malloc` 返回 `void *`，可以直接赋给任何类型的指针，不需要强制转换**。
+> **注意：** 上面代码中我写了 `(int *)` 做**强制类型转换**，其实这在 C 里是**多余**的，更推荐的写法是不转。原因如下：
 >
-> 举例：`int *p = malloc(sizeof(int));` —— 完全合法，简洁美观！
+> 只要 `#include <stdlib.h>`（或 `<string.h>` 等声明了它的头），标准就规定 `malloc` 返回 `void *`，而 `void *` 可以**隐式**赋给任何对象指针类型。所以：
 >
-> 为什么不推荐强制转换？有两个原因：
-> 1. **多余代码**：C 语言会自动做 `void *` 到其他指针类型的隐式转换，多写等于画蛇添足
-> 2. **掩盖错误**：如果你忘了 `#include <stdlib.h>`，编译器会警告你（因为 `void *` 不能隐式转换）。但如果你强制转换了，编译器就不警告了，错误就被隐藏了！
+> ```c
+> int *p = malloc(sizeof(int));   // ✅ 推荐：简洁，且能暴露错误
+> int *q = (int *)malloc(sizeof(int));  // ⚠️ 不推荐：多余
+> ```
+>
+> 为什么不该强制转换？
+> 1. **多余**：C 会自动把 `void *` 转换成目标指针类型，加个 cast 是画蛇添足。
+> 2. **会掩盖错误**：如果你忘了 `#include <stdlib.h>`，不加 cast 时编译器会报"隐式声明 / 类型不匹配"的错，帮你发现问题；一旦加了 cast，这个错误就被静悄悄地掩盖了。
+>
+> 那什么时候非写 cast 不可？——只有**远古的 K&R C（C89 之前）**，那时 `malloc` 返回 `char *`，才需要手写强转。写现代 C 请直接省略 cast。（注意：本节为了照顾各种编译器/资料里的老写法，部分示例仍保留了 cast，你可以放心地删掉它。）
 
 ### 分配一块连续的内存（比如数组）
 
@@ -304,6 +313,8 @@ int main() {
 ```
 
 > **选择建议：** 如果你分配内存后要立刻全部写入（覆盖掉原来的值），用 `malloc`（省了清零的开销）。如果你不确定要不要全部写入，用 `calloc` 更安全——至少不会因为没初始化就读取而出现奇怪的 bug。
+
+> **⚠️ 关于上面那个例子：** 里面的 `a[i]` 读取的是**未初始化**的内存，它具体显示什么完全取决于那会儿那块内存里残留的是啥（编译器、系统、运行时都可能不同），绝对不能写进真正的程序里——**读取未初始化的值是 bug**。这里只是为了让你"看见" `malloc` 和 `calloc` 的差别。
 
 ---
 
@@ -569,7 +580,7 @@ void leak_example() {
 }
 ```
 
-服务器如果每秒调用一次这个函数，一小时后你就泄漏了 3600 个 int。运行一天？72 MB 没了。
+服务器如果每秒调用一次这个函数，一小时后你就泄漏了 3600 个 `int`（约 14 KB）；运行一天约 337 KB。单看数字不大，但真实程序里泄漏的往往是更大的对象、更频繁的调用——累积起来就会把内存慢慢吃光。
 
 **如何检测内存泄漏？** 后面我们会讲 `valgrind` 和 AddressSanitizer。
 
@@ -612,9 +623,9 @@ printf("%d\n", *p);  // ❌ 还在用！这是悬挂指针
 
 写 C 语言程序，内存错误是家常便饭。好消息是，有很多工具能帮你"监控"内存问题，就像程序员的 X 光机。
 
-### valgrind（Linux / macOS）
+### valgrind（Linux 等平台；macOS 上基本不可用）
 
-`valgrind` 是 Linux 下最强大的内存检测工具，专门用来抓内存泄漏、越界访问、使用未初始化内存等错误。
+`valgrind` 是 Linux 下最强大的内存检测工具，专门用来抓内存泄漏、越界访问、使用未初始化内存等错误。它**不支持 Windows**，对 macOS 的支持也基本已经废掉（见本节末尾的提示）。
 
 **安装（Linux）：**
 ```bash
@@ -622,10 +633,7 @@ sudo apt install valgrind   # Debian/Ubuntu
 sudo yum install valgrind   # RHEL/CentOS
 ```
 
-**安装（macOS）：**
-```bash
-brew install valgrind
-```
+> ⚠️ **macOS 用户请注意**：Homebrew 已经移除了 `valgrind` 这个 formula，近年版本对 macOS 10.14+ 的支持也极差，所以**不要照着 `brew install valgrind` 去装**——大概率装不上或者装上就跑不起来。Mac 上请直接跳到下面的 **AddressSanitizer / LeakSanitizer**（Apple Clang 自带，零安装）。
 
 **使用：**
 ```bash
@@ -665,15 +673,21 @@ valgrind --leak-check=full ./leak
 ==12345== HEAP SUMMARY:
 ==12345==     in use at exit: 12 bytes in 3 blocks
 ==12345==   total heap usage: 3 allocs, 0 frees, 12 bytes allocated
-==12345== 
+==12345==
 ==12345== LEAK SUMMARY:
 ==12345==    definitely lost: 12 bytes in 3 blocks
-==12345==       ...
-
-All heap blocks were freed -- no leaks are possible  // 只有 all free 了才显示这句
+==12345==    indirectly lost: 0 bytes in 0 blocks
+==12345==      possibly lost: 0 bytes in 0 blocks
+==12345==    still reachable: 0 bytes in 0 blocks
+==12345==         suppressed: 0 bytes in 0 blocks
+==12345== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
 ```
 
-> **小贴士：** `valgrind` 只能在 Linux/macOS 上跑，不支持 Windows。
+> **小贴士：**
+>
+> - `valgrind` 不支持 Windows；官方支持 Linux（以及部分 BSD/Solaris）。
+> - macOS 上 **valgrind 实际上已经不可用**（近年版本对 macOS 10.14+ 支持极差，Homebrew 也已移除该 formula），所以 Mac 用户请优先用下面的 **AddressSanitizer / LeakSanitizer**（Apple Clang 自带）。
+> - 如果程序**完全没有泄漏**，结尾才会出现 `All heap blocks were freed -- no leaks are possible` 这句话；上面这个有泄漏的例子是不会出现它的。
 
 ### Visual Leak Detector（Windows + Visual Studio）
 
@@ -689,7 +703,7 @@ Windows 用户如果用 Visual Studio 写 C/C++，可以用 **Visual Leak Detect
 
 ### AddressSanitizer（交叉平台，高性能）
 
-AddressSanitizer（简称 ASan）是 Google 开发的编译器级内存检测工具，比 `valgrind` 快 2 倍左右（10-50 倍加速！），非常适合生产环境和 CI/CD。
+AddressSanitizer（简称 ASan）是 Google 开发的编译器级内存检测工具。它的运行开销通常只有约 **2 倍**（也就是程序大约慢一倍），而 `valgrind` 往往要慢 **10–50 倍**——所以 ASan 非常适合日常开发和 CI/CD。它自带在 GCC 和 Clang 里（Apple Clang 也有），macOS 上尤其推荐。
 
 **使用超级简单，编译时加个 flag：**
 ```bash
@@ -893,7 +907,7 @@ int main() {
 
 | 对比项 | 直接用 `malloc`/`free` | 内存池 |
 |---|---|---|
-| 系统调用次数 | 每次分配都要 | 池空时才要 |
+| 系统调用次数 | 堆增长时可能触发 | 池空时才要 |
 | 分配速度 | 慢（系统调用开销） | 快（池内指针操作） |
 | 内存碎片 | 容易产生（频繁分配释放） | 少（固定大小块） |
 | 适用场景 | 大小不一的通用分配 | 大小固定的重复分配 |
@@ -1051,7 +1065,7 @@ int main() {
 
 8. **常见内存错误**：野指针（未初始化指针）、重复 `free`、内存泄漏（长期运行的隐形杀手）、越界访问（缓冲区溢出）、悬挂指针（free 后继续使用）。
 
-9. **内存检测工具**：`valgrind`（Linux/macOS）、Visual Leak Detector（Windows）、AddressSanitizer（`gcc -fsanitize=address`，跨平台）。
+9. **内存检测工具**：`valgrind`（仅 Linux 等平台，现代 macOS 上基本不可用）、Visual Leak Detector（Windows + Visual Studio）、AddressSanitizer / LeakSanitizer（`gcc -fsanitize=address`，跨平台，macOS 首选）。
 
 10. **`aligned_alloc`**（C11）：分配指定对齐要求的内存，常用于 SIMD 编程。
 

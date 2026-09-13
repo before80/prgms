@@ -42,9 +42,9 @@ auto [key, value] = p;  // 优雅，太优雅了！
 ```mermaid
 graph TB
     A["std::pair<int, std::string>"] --> B["结构化绑定"]
-    B --> C["auto [key, value] = p;"]
+    B --> C["auto [key, value] = p"]
     C --> D["key = 1 (int)"]
-    C --> E["value = \"one\" (string)"]
+    C --> E["value = one (string)"]
 ```
 
 ### 25.1.3 绑定数组
@@ -514,7 +514,7 @@ std::vector<int> v{1, 2, 3};  // 必须写类型
 
 ```cpp
 #include <iostream>
-#include <pair>
+#include <utility>   // std::pair
 #include <vector>
 
 // C++17: 类模板参数推导
@@ -768,11 +768,14 @@ graph TB
 
 在这个"核心数量比程序员头发还多"的时代，如何充分利用多核CPU成了每个C++程序员的必修课。C++17在`<algorithm>`头文件中引入了并行算法的支持，让你能轻松地利用多核进行并行计算！
 
+> 📎 **可用性说明**：并行算法（`std::execution::par` 等）需要标准库集成 PSTL 后端（如 Intel TBB）。**Apple clang 自带的 libc++ 到 21 版都没有实现**，写 `std::execution::par` 会报 `no member named 'par' in namespace 'std::execution'`。想真正跑起来请用 GCC 9+ 或 MSVC 并链接 TBB。下面保留标准写法，供理解 API 之用。
+
 ```cpp
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <execution>
+#include <numeric>    // std::iota
+#include <execution>  // std::execution::par
 
 int main() {
     // C++17: 并行算法

@@ -194,7 +194,8 @@ int main() {
     modifyVector(big);  // 修改原对象
     
     std::cout << "Vector size after modify: " << big.size() << std::endl;
-    // 输出: Vector size after modify: 1000001（多了个42）
+    // 输出: Vector size after modify: 1000001
+    // （原来是 1000000 个元素，push_back 又多了个 42）
     
     return 0;
 }
@@ -271,6 +272,11 @@ void process(int x, int y, int& out_min, int& out_max) {
     out_max = (x > y) ? x : y;
 }
 
+// 直接返回tuple
+std::tuple<std::string, int, double> getPerson() {
+    return {"Alice", 25, 1.68};  // 返回一个人的信息：名字、年龄、身高（米）
+}
+
 int main() {
     // pair用法：C++17的结构化绑定让取出多个值变得优雅
     auto [minVal, maxVal] = minMax(10, 5);  // 像拆快递一样，一个个打开
@@ -286,10 +292,6 @@ int main() {
     process(100, 50, mn, mx);  // 函数往盒子里塞东西
     std::cout << "process: min=" << mn << ", max=" << mx << std::endl;  // 输出: process: min=50, max=100
     
-    // 直接返回tuple
-    std::tuple<std::string, int, double> getPerson() {
-        return {"Alice", 25, 1.68};  // 返回一个人的信息：名字、年龄、身高（米）
-    }
     auto [name, age, height] = getPerson();
     std::cout << name << " is " << age << " years old, " << height << "m tall" << std::endl;
     // 输出: Alice is 25 years old, 1.68m tall
@@ -460,9 +462,9 @@ void print(int x) {
     std::cout << "non-const: " << x << std::endl;  // 输出: non-const: 10
 }
 
-void print(const int x) {  // 这不是重载！编译器把它当作重复声明
-    std::cout << "const: " << x << std::endl;  // 实际上这行代码根本不会被编译通过，因为签名相同
-}
+// void print(const int x) {  // ❌ 这不是重载！和上面签名相同，重复定义
+//     std::cout << "const: " << x << std::endl;
+// }
 
 // 正确做法：用指针或引用来区分const
 void printPtr(int* x) {  // 指向非const的指针
@@ -478,7 +480,7 @@ int main() {
     const int b = 20;
     
     print(a);  // 调用non-const版本，输出: non-const: 10
-    // print(b);  // 编译错误！因为第二个print是重复声明，程序根本编译不过
+    print(b);  // b是const int，但传值时会丢掉const，仍然调用同一个print
     
     printPtr(&a);  // 调用int*版本，a可以被修改
     printPtr(&b);  // 调用const int*版本，b不能被修改
@@ -552,15 +554,15 @@ int compute(int x) {  // 另一个重载版本
 
 int main() {
     // compute(5) 会调用哪个？
-    // compute(int x, int y=10) 可以通过省略y来匹配
-    // compute(int x) 精确匹配
-    // 编译器内心OS：精确匹配优先，所以选compute(int x)
-    std::cout << compute(5) << std::endl;  // 输出: 10 (5 * 2)，调的是第二个！
+    // 两个候选都只需一步"身份转换"就能匹配，谁都不比谁差
+    // 编译器内心OS：我选不出来 —— 报错：call to 'compute' is ambiguous
+    // std::cout << compute(5) << std::endl;  // ❌ 编译错误：调用有歧义！
+
+    // 显式给出第二个参数就没有歧义了
+    std::cout << compute(5, 10) << std::endl;  // 输出: 15，调用第一个
     
-    // 但如果写成这样：
-    // compute(5, 10) -> 第一个（无歧义）
-    // compute(5) -> 精确匹配优先，选择compute(int x)，无歧义！
-    // 真正的歧义需要更复杂的场景，比如添加另一个接受float的重载
+    // 结论：同时使用默认参数和重载时，很容易制造歧义，
+    // 最好让每个调用形式都能被唯一识别
     
     return 0;
 }
@@ -1144,7 +1146,7 @@ int main() {
     auto withParams = [](int x) { return x * 2; };
     std::cout << "withParams(21) = " << withParams(21) << std::endl;  // 输出: withParams(21) = 42
     
-    // C++23还简化了泛型lambda的语法
+    // 顺带一提：下面这种"带模板参数列表"的泛型 Lambda 是 C++20 的语法
     // auto generic = []<typename T>(T x) { return x; };
     
     return 0;

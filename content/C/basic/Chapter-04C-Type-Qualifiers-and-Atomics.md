@@ -1,6 +1,6 @@
 +++
 title = "第 4C 章：类型限定符与原子操作"
-weight = 40
+weight = 42
 date = "2026-03-29T22:34:00+08:00"
 type = "docs"
 description = ""
@@ -168,13 +168,22 @@ const float CONST_PI = 3.14159;
 
 int main(void)
 {
-    printf("RAW_PI 的地址: %p (宏没有地址！)\n", (void*)&RAW_PI);
+    // &RAW_PI 会被展开成 &3.14159 —— 对字面量取地址，编译直接报错：
+    //   error: cannot take the address of an rvalue of type 'double'
+    // printf("RAW_PI 的地址: %p\n", (void*)&RAW_PI);   // ❌ 编译不过！
+
+    // 宏能做的只是"把值拿来用"：
+    double raw = RAW_PI;                       // 等价于 double raw = 3.14159;
+    printf("RAW_PI = %f (只是个字面量，没有地址)\n", raw);
+
     printf("CONST_PI 的地址: %p (真有这块内存！)\n", (void*)&CONST_PI);
     return 0;
 }
 ```
 
-> ⚠️ 注意：`&RAW_PI` 在某些编译器上可能能取到地址（因为编译器可能会给宏分配一个变量），但语义上宏是**没有地址**的纯粹文本替换。
+> ⚠️ **注意这里的编译错误**：宏是纯文本替换，`&RAW_PI` 展开后就是对字面量 `3.14159` 取地址——而字面量是个右值（rvalue），**没有地址可取**，所以会报 `cannot take the address of an rvalue`。
+>
+> 这一点上 `const` 就表现得"正常"了：`CONST_PI` 是一个真正的对象，有类型、有地址、占内存（有时还能被放进只读段），`&CONST_PI` 完全合法。
 
 **区别三：作用域**
 
@@ -417,6 +426,7 @@ void process(int* restrict a, int* restrict b, int n)
 
 ```c
 #include <stdio.h>
+#include <stdlib.h>   /* malloc、free */
 #include <time.h>
 
 #define SIZE 10000000
@@ -622,18 +632,24 @@ int main(void)
 卖出了 5 件，之前的库存是 990，现在库存是 985
 ```
 
-#### 3. 原子交换（Exchange）
+#### 3. 用 `atomic_flag` 实现自旋锁
+
+> 💡 这里先点明一个关键区别：**`atomic_flag` 和 `_Atomic int` 不是一回事**。`atomic_flag` 是标准专门定义的"保证无锁（lock-free）"的布尔标志，只能配套 `atomic_flag_test_and_set()` / `atomic_flag_clear()` 使用；把 `_Atomic int` 传给它俩是**编译错误**（`member reference base type 'int' is not a structure or union`）。
 
 ```c
 #include <stdio.h>
 #include <stdatomic.h>
 
-_Atomic int lock = 0;
+// ⚠️ 自旋锁要用 atomic_flag，不能用 _Atomic int！
+// atomic_flag 是"保证无锁（lock-free）"的最小原子类型，
+// 而 _Atomic int 不保证无锁，也不能传给 atomic_flag 系列函数。
+atomic_flag lock = ATOMIC_FLAG_INIT;   // 必须用 ATOMIC_FLAG_INIT 初始化
 
 void acquire_lock(void)
 {
-    // atomic_flag_test_and_set 是专门用于锁的原子操作
-    // 不断尝试把锁从 0 变成 1，直到成功
+    // atomic_flag_test_and_set 返回"设置之前的旧值"：
+    //   - 返回 true  → 原本就是 1，说明别人占着锁，继续自旋
+    //   - 返回 false → 原本是 0，说明抢到了锁，跳出循环
     while (atomic_flag_test_and_set(&lock)) {
         // 锁被占用，自旋等待……
     }
@@ -642,7 +658,7 @@ void acquire_lock(void)
 
 void release_lock(void)
 {
-    atomic_flag_clear(&lock);  // 把锁清零
+    atomic_flag_clear(&lock);  // 把锁清零（释放）
     printf("释放锁！\n");
 }
 
@@ -863,7 +879,7 @@ graph TB
 
 ```c
 #include <stdio.h>
-#include <thrd.h>
+#include <threads.h>
 #include <stdatomic.h>
 
 _Atomic int lock = 0;  // 0=未锁定, 1=已锁定

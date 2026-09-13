@@ -30,7 +30,7 @@ draft = false
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -267,13 +267,13 @@ export default config
 
 - `.mjs` 扩展名表示这是一个 ES Module 文件。在 Node.js 环境中，默认情况下 `.js` 文件会被当作 CommonJS 模块来解析，而 `.mjs` 文件始终被当作 ES Module 来解析。使用 `.mjs` 可以避免在某些环境下因为模块类型不匹配而产生的奇怪错误。
 
-### 6.1.6 .eslintrc.json（ESLint 配置，如有）
+### 6.1.6 eslint.config.mjs（Next.js 16 默认）与 .eslintrc.json（旧版）
 
-**ESLint** 是一个静态代码分析工具，它可以在不运行代码的情况下检查你的代码是否存在潜在错误、是否符合编码规范、是否有不良风格。想象一个超级挑剔的语文老师，不仅改你的作文内容，连标点符号和空格都要管。
+**ESLint** 是一个静态代码分析工具，它可以在不运行代码的情况下检查你的代码是否存在潜在错误、是否符合编码规范、是否有不良风格。Next.js 16 默认使用 ESLint Flat Config（`eslint.config.mjs`），并移除了 `next lint` 命令。
 
-**.eslintrc.json** 是 ESLint 的配置文件，它定义了 ESLint 要检查哪些规则、以什么级别报错（错误还是警告）、以及使用哪些插件来扩展检查能力。
+**`.eslintrc.json`** 是旧版 ESLint 配置格式，主要存在于 Next.js 15 及更早的项目中；它定义了要检查哪些规则、以什么级别报错，以及使用哪些插件来扩展检查能力。
 
-一个典型的 `.eslintrc.json` 长这样：
+一个典型的旧版 `.eslintrc.json` 长这样：
 
 ```json
 {
@@ -300,7 +300,7 @@ export default config
 
 - **`rules`**：自定义规则配置。在这里你可以覆盖 `extends` 中继承的规则的严重级别，或者调整规则的具体参数。
 
-> **提示**：在 Next.js 项目中，ESLint 会在你运行 `npm run dev` 和 `npm run build` 时自动执行。如果你不喜欢某些规则（比如强迫你每行代码末尾必须加分号），可以在 `.eslintrc.json` 中关闭它们，但请确保你了解每个规则背后的理由——毕竟 ESLint 的规则大多是为了帮助你写出更健壮、更易维护的代码。
+> **提示**：Next.js 16 中 `next build` 不再自动运行 lint，需要单独执行 `npm run lint`（通常就是 `eslint .`）。旧项目可以通过 codemod 从 `next lint` 迁移到 ESLint CLI：`npx @next/codemod@canary next-lint-to-eslint-cli .`。
 
 ### 6.1.7 .gitignore（Git 忽略配置）
 
@@ -474,9 +474,9 @@ export default nextConfig
 
 - 还有一个更宽松的配置方式 `images: { unoptimized: true }`，但这会完全禁用 Next.js 的图片优化功能，不推荐在生产环境使用。
 
-### 6.2.2 experimental.turbo（开启 Turbopack 实验特性）
+### 6.2.2 Turbopack 配置（Next.js 16 已移到顶层 `turbopack`）
 
-**Turbopack** 是 Next.js 14+ 引入的新一代打包工具，它是用 Rust 编写的，目标是比 Webpack 快 10 倍以上（理想情况下）。`experimental.turbo` 配置项允许你开启一些尚在实验阶段的 Turbopack 特性。
+**Turbopack** 是 Next.js 14+ 引入的新一代打包工具，用 Rust 编写，目标是比 Webpack 快得多。早期版本把配置放在 `experimental.turbo` 下；从 **Next.js 16** 开始，Turbopack 已是默认打包器，配置项改为顶层 `turbopack`，不再放在 `experimental` 中。
 
 "实验阶段"（experimental）这个词在软件世界里意味着"这个东西很酷，但可能会在你意想不到的时候爆炸"。所以如果你在生产环境使用 experimental 功能，请务必做好心理准备——以及备份。
 
@@ -484,38 +484,31 @@ export default nextConfig
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // experimental.turbo 下的配置项可能会随着 Next.js 版本更新而变化或移除
-  experimental: {
-    turbo: {
-      // resolveAlias 允许你为模块路径设置别名，类似 tsconfig.json 中的 paths
-      // 但这个是在打包时生效的，比 tsconfig 的 paths 更底层
-      resolveAlias: {
-        // 把 'underscore' 别名指向 'lodash'，用于某些库的错误导入
-        underscore: 'lodash',
-      },
-      // resolveExtensions 允许你配置模块解析时尝试的扩展名顺序
-      // 当你 import 一个没有扩展名的模块时，Turbopack 会按这个列表依次尝试
-      resolveExtensions: [
-        '.jsx',
-        '.js',
-        '.ts',
-        '.tsx',
-        '.mjs',
-        '.mts',
-      ],
-      // memoryLimit 限制 Turbopack 的内存使用上限（单位：字节）
-      // 如果你的项目非常大，可能会占用很多内存，设置这个可以防止内存溢出
-      // memoryLimit: 4096 * 1024 * 1024, // 4GB
-      // rules 允许你为特定类型的文件配置自定义加载器（loader）
-      // 类似于 Webpack 的 module.rules
-      // rules: [
-      //   {
-      //     // 匹配所有 .svg 文件
-      //     test: /\.svg$/,
-      //     use: ['@svgr/webpack'],
-      //   },
-      // ],
+  // Next.js 16 使用顶层 turbopack 配置；旧版本曾使用 experimental.turbo
+  turbopack: {
+    // resolveAlias 允许你为模块路径设置别名，类似 tsconfig.json 中的 paths
+    resolveAlias: {
+      // 把 'underscore' 别名指向 'lodash'，用于某些库的错误导入
+      underscore: 'lodash',
     },
+    // resolveExtensions 允许你配置模块解析时尝试的扩展名顺序
+    // 当你 import 一个没有扩展名的模块时，Turbopack 会按这个列表依次尝试
+    resolveExtensions: [
+      '.jsx',
+      '.js',
+      '.ts',
+      '.tsx',
+      '.mjs',
+      '.mts',
+    ],
+    // rules 允许你为特定类型的文件配置自定义加载器（loader）
+    // 类似于 Webpack 的 module.rules
+    // rules: [
+    //   {
+    //     test: /\.svg$/,
+    //     use: ['@svgr/webpack'],
+    //   },
+    // ],
   },
 }
 
@@ -524,11 +517,11 @@ export default nextConfig
 
 几点说明：
 
-- `experimental` 命名空间下的配置项不是 Next.js 官方稳定 API 的一部分，它们可能会在任何版本中发生变化，甚至被移除。使用这些配置时请务必确认你的 `package.json` 中 Next.js 的版本号。
+- `turbopack` 的配置项仍会随版本演进；旧项目中的 `experimental.turbo` 应按 Next.js 16 迁移指南改写，避免把两个版本的字段混用。
 
-- `experimental.turbo` 下的很多功能实际上可以通过 `turbo.json`（Turbo 构建系统的配置文件）来配置，尤其是当你使用 Turbo 生态圈中的其他工具（如 Turborepo）时。
+- `turbo.json` 属于 Turborepo 的配置，和 Next.js 的 `turbopack` 不是同一个东西，不要混用。
 
-- 想要完全开启 Turbopack，只需要运行 `npm run dev -- --turbo`，不需要在 `next.config.ts` 中添加任何配置。我们会在 6.3.5 节详细讲解。
+- Next.js 16 默认使用 Turbopack，不需要运行 `--turbo`；Next.js 14/15 才需要按对应参数显式开启。我们会在 6.3.5 节详细讲解。
 
 ### 6.2.3 常用配置项一览
 
@@ -693,7 +686,7 @@ npm run dev
 npm run dev -- --port 4000
 
 # 其他有用的 flags：
-# --turbo 开启 Turbopack 加速（详见 6.3.5 节）
+# --webpack 在 Next.js 16 中退回 Webpack；旧版才需要 --turbo / --turbopack
 # --hostname 指定监听的 host，比如你想在局域网内用手机访问：
 # npm run dev -- --hostname 192.168.1.100
 ```
@@ -814,9 +807,9 @@ npm run start -- --hostname 0.0.0.0
 
 > **提示**：`npm run start` 启动的服务器不使用 HMR，每次修改代码后都需要重新构建。所以它只适合用来预览最终效果，不适合用来开发。如果你在开发阶段误用了 `npm run start`，然后抱怨"为什么改代码不生效"，那就是用错工具了。
 
-### 6.3.4 npm run lint（代码检查）
+### 6.3.4 npm run lint（运行 ESLint）
 
-`npm run lint` 是运行 ESLint 检查代码质量的命令。这个命令会扫描 `src`、`app`、`pages`、`components`、`lib`、`hooks` 等目录下的文件，检查是否存在代码风格问题、潜在 bug、不安全的模式等。
+Next.js 16 的 `npm run lint` 通常执行 `eslint .`，扫描项目中的代码风格问题、潜在 bug 和不安全模式。旧版本可能使用 `next lint`，但该命令已在 Next.js 16 中移除。
 
 ```bash
 # 运行 ESLint 检查
@@ -870,13 +863,19 @@ ESLint 的错误级别：
 
 > **经验之谈**：ESLint 是代码质量的守门员，但它不是银弹。有些团队会把 ESLint 规则设置得非常严格，导致每次提交前都要花费大量时间修复 lint 错误，结果开发者开始把 lint 警告视为噪音——这是一个典型的"狼来了"效应。建议：把真正重要的规则设为 error，把一些风格相关的规则设为 off 或 warning，保持一个合理的平衡。
 
-### 6.3.5 npm run dev -- --turbo（Turbopack 加速构建）
+### 6.3.5 Next.js 16 默认使用 Turbopack；旧版本的 `--turbo`
 
-`npm run dev -- --turbo` 是在开发模式下使用 **Turbopack**（下一代打包工具）来启动开发服务器的命令。`--turbo` 是一个命令行参数，它告诉 Next.js 的开发服务器使用 Turbopack 而不是默认的 Webpack 来进行代码打包和热更新。
+在 Next.js 14 中，可以用 `--turbo` 开启实验性 Turbopack；在 Next.js 15 中参数改为 `--turbopack`；到 **Next.js 16**，Turbopack 已是默认打包器，通常不需要显式开启。只有使用自定义 Webpack 配置的项目才需要通过 `next build --webpack` 临时退回 Webpack。
 
 ```bash
-# 使用 Turbopack 启动开发服务器
+# Next.js 14：使用 Turbopack 启动开发服务器
 npm run dev -- --turbo
+
+# Next.js 15：使用 --turbopack
+npm run dev -- --turbopack
+
+# Next.js 16：默认就是 Turbopack，无需额外参数
+npm run dev
 
 # 同样可以指定端口和 host
 npm run dev -- --turbo --port 4000 --hostname 0.0.0.0
@@ -907,9 +906,9 @@ Turbopack 的优势在于速度——根据 Vercel 官方的测试数据，Turbo
 
 如果说 Next.js 是一个超级英雄，那么它的工具链就是围绕在英雄身边的盟友、小跟班、以及偶尔出现的反派——每个工具都有它的用途，有些让你事半功倍，有些则会让你陷入"这破玩意儿怎么又报错了"的绝望深渊。本节我们就来认识这些工具链，看看它们各自负责什么，以及如何正确地与它们相处。
 
-### 6.4.1 Turbopack（新一代打包工具，Next.js 14+ 支持）
+### 6.4.1 Turbopack（新一代打包工具，Next.js 16 默认启用）
 
-**Turbopack** 是 Vercel 团队开发的下一代打包工具，用 Rust 语言编写，目标是极致的速度和开发体验。它是 Webpack 的继任者，但并不是完全重写——你可以把它理解为Webpack 的"精神继承者"，它借鉴了 Webpack 的核心概念（入口、输出、loader、chunk），但用更高效的底层实现来重写了这些功能。
+**Turbopack** 是 Vercel 团队开发的下一代打包工具，用 Rust 语言编写，目标是极致的速度和开发体验。它借鉴了 Webpack 的核心概念（入口、输出、loader、chunk），但底层实现完全不同。Next.js 16 已把 Turbopack 作为开发和生产构建的默认方案。
 
 Turbopack 的核心特性：
 
@@ -929,7 +928,7 @@ flowchart LR
     style B fill:#f9f,stroke:#333,stroke-width:2px
 ```
 
-> **历史趣闻**：Turbopack 的前身是 Webpack 5 中引入的 SWC（Speedy Web Compiler），SWC 是一个用 Rust 写的 JavaScript/TypeScript 编译器，比 Babel 快得多。Next.js 从 12 版本开始就用 SWC 替代了 Babel。而 Turbopack 则更进一步，不仅替换了编译器，还替换了整个打包系统。所以 Turbopack 可以说是 SWC 的"终极进化形态"。
+> **历史说明**：SWC 是 Next.js 从 12 版本开始用于替代 Babel 的 Rust 编译器；Turbopack 是独立的 Rust 打包系统，并使用了 SWC 等底层能力。把 Turbopack 说成 SWC 的“前身”并不准确——它们解决的是编译与打包两个不同层面的问题。
 
 ### 6.4.2 Vercel（Next.js 官方部署平台）
 
@@ -987,13 +986,13 @@ npm install -D @next/codemod
 npx @next/codemod --help
 
 # 运行一个具体的 codemod
-# 下面的例子是把 Next.js 13 的 image 组件配置迁移到新版本
-npx @next/codemod next-image-to-legacy-image ./path/to/your/project
+# 下面的例子把旧的 next/image 导入迁移到 next/legacy/image
+npx @next/codemod@latest next-image-to-legacy-image ./path/to/your/project
 ```
 
 常见的 @next/codemod 迁移脚本：
 
-- **`name-default-component`**：将 `name` 属性从图片组件迁移到其他组件（比如 `<Image name="icon" />` 变成 `<Image name="icon" />`，这个改动实际上是因为 React 19 的变化）。
+- **`name-default-component`**：把匿名的默认导出组件变成有名字的函数组件，例如把 `export default function () {}` 改成 `export default function MyComponent() {}`，便于调试和 Fast Refresh。
 - **`new-link`**：将 `<a>` 标签包裹的 `<Link>` 简化为直接使用 `<Link>` 组件（App Router 中的改进）。
 - **`add-missing-react-import`**：为缺少 `import React from 'react'` 的文件自动添加这个导入。
 - **`url-to-withrouter`**：将已弃用的 `router.events` 用法迁移到新的 API。
@@ -1056,8 +1055,8 @@ npx next build
 # 使用 npx next 启动生产服务器
 npx next start
 
-# 使用 npx next 运行 lint 检查
-npx next lint
+# Next.js 16 使用 ESLint CLI 运行 lint
+npx eslint .
 
 # 查看所有可用命令和帮助信息
 npx next --help
@@ -1080,7 +1079,8 @@ Available commands
   server      Starts the Next.js production server with the built-in runtime
 
 Options
-  --turbo     Enable Turbopack dev server (beta)
+  --turbopack Enable Turbopack dev server (Next.js 15+；Next.js 16 已默认)
+  --webpack   Use Webpack instead of Turbopack
   --port      Specify a port number
   --hostname  Specify a hostname
   --help      Show this help message
@@ -1176,13 +1176,13 @@ npx next dev
 
 4. **Tailwind CSS 相关配置**（tailwind.config.ts、postcss.config.mjs）负责样式系统的定制和 PostCSS 流水线的构建。
 
-5. **ESLint 配置**（.eslintrc.json）是你代码的"挑剔语文老师"，帮你揪出各种潜在问题。
+5. **ESLint 配置**（Next.js 16 默认 `eslint.config.mjs`，旧版为 `.eslintrc.json`）是你代码的"挑剔语文老师"，帮你揪出各种潜在问题。
 
 6. **.gitignore** 是 Git 的"门卫"，把不该进版本库的垃圾文件挡在门外。`.env.local` 永远不要提交！
 
 7. **package.json scripts** 中的 `dev`、`build`、`start`、`lint` 是日常开发的四大金刚。其中 `npm run dev` 启动开发服务器，`npm run build` 构建生产版本，`npm run start` 预览生产效果，`npm run lint` 检查代码质量。
 
-8. **Turbopack** 是用 Rust 写的新一代打包工具，`--turbo` 参数可以加速开发服务器，但生产构建目前仍使用 Webpack/SWC。
+8. **Turbopack** 是用 Rust 写的新一代打包工具；Next.js 16 已默认用它进行开发和生产构建，旧版本才需要 `--turbo` / `--turbopack`，需要 Webpack 时可用 `--webpack` 退回。
 
 9. **Vercel** 是 Next.js 的官方部署平台，Git push 即可自动部署，零配置。
 

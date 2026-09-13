@@ -458,6 +458,8 @@ flowchart LR
 
 想象你的程序是一个手机系统，插件就是各种 App。你不需要重新刷机就能安装卸载 App。
 
+> **📁 多文件示例：** 下面几个代码块依次是 `plugin.h`（接口）、`plugin.c`（某个插件的实现）和 `main.c`（加载插件的主程序），请分别存成独立文件。
+
 ```c
 /* plugin.h - 插件接口 */
 #ifndef PLUGIN_H
@@ -743,6 +745,8 @@ gcc library.o user.o -o program
 
 这就是很多库的"自定义 hook"机制背后的原理。
 
+> **小提示：** 真实工程里 `user.c` 应该通过头文件看到 `do_something_useful` 的声明（例如 `void do_something_useful(void);`），否则编译器会提示"隐式函数声明"。这里为了突出"弱符号被用户覆盖"这个重点，把声明省略了。
+
 ---
 
 ## 21.5 链接错误解析
@@ -888,6 +892,8 @@ int global_count = 10;    /* 定义：真正分配内存 */
 2. **全局变量在 .c 文件定义，在 .h 文件 `extern` 声明**
 3. **防止重复包含**（`#ifndef` 包裹整个头文件内容）
 
+> **📁 多文件示例：** 下面三个代码块依次是 `math_utils.h`、`math_utils.c`、`main.c` 三个独立文件，编译命令是 `gcc main.c math_utils.c -o app`。
+
 ```c
 /* math_utils.h */
 #ifndef MATH_UTILS_H
@@ -945,6 +951,8 @@ gcc main.c math_utils.c -o program
 ## 21.7 Windows DLL：`__declspec(dllexport)` 与 `__declspec(dllimport)`
 
 Windows 的动态链接库叫做 **DLL**（Dynamic Link Library），文件扩展名是 `.dll`。
+
+> **🪟 本节仅适用于 Windows（MSVC / MinGW）。** `__declspec(...)`、`.dll`、`LoadLibrary` 等都是 Windows 专有机制；Linux/macOS 上请用前面讲的 `dlopen`/`dlsym` 方案。
 
 ### 导出符号：`__declspec(dllexport)`
 
@@ -1027,6 +1035,8 @@ gcc -o client.exe client.c mydll.dll
 上面的方式，程序启动时操作系统自动加载 DLL。如果 DLL 不存在，程序直接启动失败。
 
 #### 显式加载（更灵活）
+
+> **🪟 仅限 Windows：** 下面这段代码用到了 `<windows.h>`（MSVC 或 MinGW 才能编译）；Linux/macOS 上对应的写法是用 `dlopen` / `dlsym` / `dlclose`。
 
 ```c
 #include <windows.h>
@@ -1150,13 +1160,13 @@ OBJS = $(SRCS:.c=.o)
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-    $(CC) $(OBJS) -o $(TARGET) $(LDFLAGS)
+	$(CC) $(OBJS) -o $(TARGET) $(LDFLAGS)
 
 %.o: %.c
-    $(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-    rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET)
 
 .PHONY: all clean
 ```

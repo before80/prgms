@@ -32,7 +32,7 @@ Makefile 的基本单元是**规则**（Rule），每条规则长这样：
 
 ```makefile
 目标(target): 依赖(prerequisites)
-    命令(commands)
+	命令(commands)
 ```
 
 **目标**是你想要生成的东西，**依赖**是生成这个目标需要用到的文件，**命令**则是具体的操作步骤。
@@ -47,7 +47,7 @@ Makefile 的基本单元是**规则**（Rule），每条规则长这样：
 # 执行：用 gcc 编译
 
 main: main.c
-    gcc main.c -o main
+	gcc main.c -o main
 ```
 
 > **专业词汇：** `main` 在这里是一个**目标**（Target），`main.c` 是它的**依赖**（Prerequisite），`gcc` 那一行是**命令**（Command）。注意：命令前面**必须是一个 Tab 字符**，不是空格！这坑了 90% 的初学者，我们后面会详细讲。
@@ -73,18 +73,18 @@ make clean         # 构建 clean 目标（通常是删除生成的文件）
 # 链接生成可执行文件 app
 
 app: main.o utils.o
-    gcc main.o utils.o -o app
+	gcc main.o utils.o -o app
 
 # main.o 依赖 main.c
 main.o: main.c
-    gcc -c main.c -o main.o
+	gcc -c main.c -o main.o
 
 # utils.o 依赖 utils.c
 utils.o: utils.c
-    gcc -c utils.c -o utils.o
+	gcc -c utils.c -o utils.o
 
 clean:
-    rm -f app main.o utils.o
+	rm -f app main.o utils.o
 ```
 
 执行 `make` 后，Make 会：
@@ -119,7 +119,7 @@ A = $(B)
 B = hello
 
 all:
-    echo $(A)   # 输出: hello
+	echo $(A)   # 输出: hello
 ```
 
 递归展开的好处是你可以先引用后定义，但危险是容易造成**无限循环**：
@@ -139,7 +139,7 @@ A := hello
 B := $(A) world
 
 all:
-    echo $(B)   # 输出: hello world
+	echo $(B)   # 输出: hello world
 ```
 
 > **建议：** 99% 的情况下用 `:=`，它更安全、更容易理解。只有当你确实需要"先引用后定义"这种延时求值特性时，才考虑用 `=`。
@@ -151,7 +151,7 @@ all:
 CC ?= gcc
 
 all:
-    echo $(CC)   # 输出: gcc（如果是首次定义）
+	echo $(CC)   # 输出: gcc（如果是首次定义）
 ```
 
 这个常用于**允许用户在命令行覆盖默认值**：
@@ -168,7 +168,7 @@ CFLAGS = -Wall -O2
 CFLAGS += -g     # 追加调试符号
 
 all:
-    echo $(CFLAGS)   # 输出: -Wall -O2 -g
+	echo $(CFLAGS)   # 输出: -Wall -O2 -g
 ```
 
 #### 综合示例
@@ -185,19 +185,19 @@ OBJS := $(SRCS:.c=.o)       # 把 .c 替换成 .o: main.o utils.o
 BINDIR ?= /usr/local/bin
 
 $(TARGET): $(OBJS)
-    $(CC) $(OBJS) -o $(TARGET)
+	$(CC) $(OBJS) -o $(TARGET)
 
 main.o: main.c
-    $(CC) $(CFLAGS) -c main.c -o main.o
+	$(CC) $(CFLAGS) -c main.c -o main.o
 
 utils.o: utils.c
-    $(CC) $(CFLAGS) -c utils.c -o utils.o
+	$(CC) $(CFLAGS) -c utils.c -o utils.o
 
 clean:
-    rm -f $(TARGET) $(OBJS)
+	rm -f $(TARGET) $(OBJS)
 
 install: $(TARGET)
-    cp $(TARGET) $(BINDIR)
+	cp $(TARGET) $(BINDIR)
 ```
 
 这里出现了一个小技巧：`$(SRCS:.c=.o)` 是**变量替换**语法，意思是把 `SRCS` 变量中所有 `.c` 替换成 `.o`。这比手动列目标文件优雅多了！
@@ -220,15 +220,15 @@ install: $(TARGET)
 ```makefile
 # 使用自动变量简化规则
 app: main.o utils.o
-    # $@ = app, $^ = main.o utils.o
-    gcc $^ -o $@
+	# $@ = app, $^ = main.o utils.o
+	gcc $^ -o $@
 
 main.o: main.c
-    # $< = main.c, $@ = main.o
-    gcc -c $< -o $@
+	# $< = main.c, $@ = main.o
+	gcc -c $< -o $@
 
 utils.o: utils.c
-    gcc -c $< -o $@
+	gcc -c $< -o $@
 ```
 
 再看一个更清晰的示例，解释每个变量的值：
@@ -236,14 +236,14 @@ utils.o: utils.c
 ```makefile
 # 假设我们执行: make app
 app: main.o utils.o
-    # $@ = app
-    # $< = main.o（第一个依赖）
-    # $^ = main.o utils.o（所有依赖，空格分隔）
-    # $? = main.o utils.o（比 app 新的依赖，这里全部都是因为 app 还不存在）
-    @echo "目标: $@"
-    @echo "第一个依赖: $<"
-    @echo "所有依赖: $^"
-    gcc -o $@ $^
+	# $@ = app
+	# $< = main.o（第一个依赖）
+	# $^ = main.o utils.o（所有依赖，空格分隔）
+	# $? = main.o utils.o（比 app 新的依赖，这里全部都是因为 app 还不存在）
+	@echo "目标: $@"
+	@echo "第一个依赖: $<"
+	@echo "所有依赖: $^"
+	gcc -o $@ $^
 ```
 
 `@` 符号放在命令前面表示**静默执行**，不打印这条命令本身，只输出命令的输出。如果没有 `@`，Make 会先打印执行的命令再执行它。
@@ -262,16 +262,16 @@ CFLAGS := -Wall -O2
 
 # 模式规则：所有 .o 文件都由同名 .c 编译而来
 %.o: %.c
-    $(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 app: main.o utils.o
-    gcc $^ -o $@
+	gcc $^ -o $@
 
 main.o: main.c
 utils.o: utils.c
 
 clean:
-    rm -f app *.o
+	rm -f app *.o
 ```
 
 > **重要：** 模式规则必须是**精确匹配**的，不能跨多个 `%`。`%.o: %.c` 是正确的，`%.o: %.c%.h` 也是正确的（依赖两个文件），但 `%x.o: %y.c` 就是非法的——模式规则中**只能有一个 %**，而且两边的 % 各自独立代表"同一个字符串"。
@@ -287,24 +287,24 @@ Makefile 里也可以写条件逻辑，让构建过程根据不同情况生成�
 ```makefile
 # ifeq = if equal，判断两个参数是否相等
 ifeq ($(DEBUG),1)
-    CFLAGS := -Wall -O0 -g
+	CFLAGS := -Wall -O0 -g
 else
-    CFLAGS := -Wall -O2
+	CFLAGS := -Wall -O2
 endif
 
 # ifneq = if not equal
 ifneq ($(PLATFORM),)
-    CFLAGS += -DPLATFORM=$(PLATFORM)
+	CFLAGS += -DPLATFORM=$(PLATFORM)
 endif
 
 # ifdef = if defined，判断变量是否已定义（已定义且非空）
 ifdef VERBOSE
-    MAKEFLAGS += --print-directory
+	MAKEFLAGS += --print-directory
 endif
 
 # ifndef = if not defined
 ifndef OUTPUT
-    OUTPUT := dist/app
+	OUTPUT := dist/app
 endif
 ```
 
@@ -315,21 +315,21 @@ endif
 BUILD_TYPE ?= Release
 
 ifeq ($(BUILD_TYPE),Debug)
-    CFLAGS := -Wall -g -O0 -DDEBUG
-    TARGET := $(TARGET)-debug
+	CFLAGS := -Wall -g -O0 -DDEBUG
+	TARGET := $(TARGET)-debug
 else
-    CFLAGS := -Wall -O2 -DNDEBUG
-    TARGET := $(TARGET)-release
+	CFLAGS := -Wall -O2 -DNDEBUG
+	TARGET := $(TARGET)-release
 endif
 
 app: main.o utils.o
-    gcc $^ -o $(TARGET)
+	gcc $^ -o $(TARGET)
 
 %.o: %.c
-    gcc $(CFLAGS) -c $< -o $@
+	gcc $(CFLAGS) -c $< -o $@
 
 clean:
-    rm -f *.o *-debug *-release
+	rm -f *.o *-debug *-release
 
 # 使用方法:
 # make              # 默认 Release
@@ -405,7 +405,7 @@ NAME := $(call toupper, hello)
 # 结果: HELLO
 
 all:
-    @echo "大写: $(NAME)"
+	@echo "大写: $(NAME)"
 ```
 
 #### 综合示例：自动收集源文件并编译
@@ -427,14 +427,14 @@ OBJECTS := $(wildcard $(OBJECTS))
 OBJECTS := $(filter %.o, $(OBJECTS))
 
 app: $(OBJECTS)
-    echo "编译: $(OBJECTS)"
-    $(CC) $^ -o $@
+	echo "编译: $(OBJECTS)"
+	$(CC) $^ -o $@
 
 %.o: %.c
-    $(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-    rm -f app $(OBJECTS)
+	rm -f app $(OBJECTS)
 
 .PHONY: all clean app
 ```
@@ -455,7 +455,7 @@ B = $(C)
 C = hello
 
 all:
-    @echo $(A)   # 输出: hello
+	@echo $(A)   # 输出: hello
 ```
 
 递归展开的特点：**等用到的时候才展开，而且一直展开到没有变量引用为止**。所以 `$(A)` 最终会变成 `hello`。
@@ -467,7 +467,7 @@ A = $(B)
 B = $(A)
 
 all:
-    @echo $(A)   # Make 报错: Makefile:2: *** Recursive variable 'A' references itself (apparent).
+	@echo $(A)   # Make 报错: Makefile:2: *** Recursive variable 'A' references itself (apparent).
 ```
 
 #### 简单展开（Simple Expansion）—— 用 `:=`
@@ -477,7 +477,7 @@ A := $(B)
 B := hello
 
 all:
-    @echo $(A)   # 输出: hello（立即展开）
+	@echo $(A)   # 输出: hello（立即展开）
 ```
 
 简单展开的特点：**定义的时候立即求值**。`A := $(B)` 执行时，`$(B)` 立刻被替换成当时的值（空字符串，因为 `B` 还没定义），而不是等 `A` 被使用时。
@@ -489,7 +489,7 @@ A := $(B)
 B := hello
 
 all:
-    @echo $(A)   # 输出: （空！因为定义 A 时 B 还没值）
+	@echo $(A)   # 输出: （空！因为定义 A 时 B 还没值）
 ```
 
 #### `?=` 的展开时机
@@ -500,7 +500,7 @@ A ?= $(B)   # A 已定义，跳过
 B := world
 
 all:
-    @echo $(A)   # 输出: hello
+	@echo $(A)   # 输出: hello
 ```
 
 `?=` 只在变量**未定义或为空**时才赋值。一旦赋了值，后续的简单展开或递归展开都直接用已有值。
@@ -521,9 +521,9 @@ SRCS2 := main.c utils.c config.c io.c
 OBJS3 := $(SRCS2:%.c=%.o)
 
 all:
-    @echo "方法1: $(OBJS1)"
-    @echo "方法2: $(OBJS2)"
-    @echo "方法3: $(OBJS3)"
+	@echo "方法1: $(OBJS1)"
+	@echo "方法2: $(OBJS2)"
+	@echo "方法3: $(OBJS3)"
 ```
 
 > **核心区别总结：**
@@ -544,11 +544,11 @@ all:
 ```makefile
 # 错误示范！命令前的空格不是 Tab，Make 会报错
 app: main.c
-    gcc main.c -o main   # 这里用的是空格！
+	gcc main.c -o main   # 这里用的是空格！
 
 # 正确示范
 app: main.c
-    gcc main.c -o app     # 这里必须是 Tab！
+	gcc main.c -o app     # 这里必须是 Tab！
 ```
 
 报错信息通常长这样：
@@ -568,8 +568,8 @@ Make 自带很多**隐式规则**（Implicit Rules），比如 `%.o: %.c` 就是
 ```makefile
 # 你想自定义 .o 文件的编译方式
 %.o: %.c
-    @echo "正在编译: $<"   # 自定义输出
-    gcc -c $< -o $@
+	@echo "正在编译: $<"   # 自定义输出
+	gcc -c $< -o $@
 
 # 但是 Make 可能用它的内置规则覆盖你的设置
 # 或者反过来，你以为用了你的规则，实际用的是内置的
@@ -585,12 +585,12 @@ Make 自带很多**隐式规则**（Implicit Rules），比如 `%.o: %.c` 就是
 # 那么所有相对路径都会出问题！
 
 app: src/main.o
-    gcc $^ -o app   # 找不到 src/main.o，因为你在 src/ 目录里
+	gcc $^ -o app   # 找不到 src/main.o，因为你在 src/ 目录里
 
 # 正确做法：使用 $(CURDIR) 或 Makefile 的绝对路径
 TOP := $(CURDIR)
 app: $(TOP)/src/main.o
-    gcc $^ -o $(TOP)/app
+	gcc $^ -o $(TOP)/app
 ```
 
 #### 陷阱四：变量为空导致命令错误
@@ -598,7 +598,7 @@ app: $(TOP)/src/main.o
 ```makefile
 # 如果 $(SRCS) 为空，命令会变成裸的 gcc
 app: $(SRCS)
-    gcc -o app $^   # 如果 SRCS 为空，就成了: gcc -o app
+	gcc -o app $^   # 如果 SRCS 为空，就成了: gcc -o app
 ```
 
 解决方案：检查变量是否为空，或者使用 `$(if $(SRCS), ...)` 条件判断。
@@ -764,6 +764,10 @@ int main() {
     return 0;
 }
 ```
+
+> 📦 **运行前提**：这段代码依赖 OpenSSL 的开发包，不是系统自带就能编译的。macOS 上需要 `brew install openssl` 并按 Homebrew 的提示把 `include` / `lib` 目录加进编译命令；Debian/Ubuntu 上需要安装 `libssl-dev`，链接时用 `-lssl -lcrypto`。
+>
+> 另外，`SSL_library_init()`、`ERR_free_strings()`、`EVP_cleanup()` 这几个函数在 OpenSSL 1.1.0 之后已经被标记为废弃（1.1.0 起库会自动初始化，无需手动调用）。上面的写法在新版本上仍能编译，但会收到 `deprecated` 警告；更现代的写法是直接调用 `OPENSSL_init_ssl()`，或者在程序里完全省略初始化步骤。
 
 ### 19.2.3 条件配置：`if` / `option` / `target_compile_definitions`
 
@@ -1061,6 +1065,8 @@ Meson 的特点：**配置直观、执行快速、输出是 Ninja 文件**。你
 
 ```c
 #include <stdio.h>
+#include <string.h>   /* strerror */
+#include <errno.h>    /* errno */
 
 // 根据不同平台包含不同的头文件
 #ifdef _WIN32
@@ -1215,7 +1221,7 @@ CFLAGS := $(shell pkg-config --cflags openssl)
 LIBS := $(shell pkg-config --libs openssl)
 
 app: main.c
-    $(CC) $< -o $@ $(CFLAGS) $(LIBS)
+	$(CC) $< -o $@ $(CFLAGS) $(LIBS)
 ```
 
 ### 在 CMake 中使用
@@ -1283,14 +1289,14 @@ all: vmlinux
 
 # vmlinux 是未经压缩的内核镜像
 vmlinux: $(vmlinux-objs) vmlinuxoflags $(vmlinux-lds)
-    $(call if_changed,link)
+	$(call if_changed,link)
 
 # modules 是编译所有内核模块的目标
 modules: $(modules)
 
 # 模块安装
 modules_install:
-    $(make) -C $(KDIR) M=$(pwd) modules_install
+	$(make) -C $(KDIR) M=$(pwd) modules_install
 ```
 
 > **关键理解：** Linux 内核 Makefile 的核心哲学是**一切皆模块**。`make menuconfig` 生成 `.config` 文件（包含各种配置选项），然后 Makefile 根据这些配置决定编译哪些代码、如何编译。
@@ -1308,25 +1314,25 @@ SQLite 虽然古老，但构建系统维护得很好。它既可以用 Autotools
 # SQLite Makefile 片段
 CC = gcc
 TCC = $(CC) -DSQLITE_THREADSAFE=1 \
-      -DSQLITE_ENABLE_FTS5 \
-      -DSQLITE_ENABLE_JSON1 \
-      -DHAVE_USLEEP=1
+	  -DSQLITE_ENABLE_FTS5 \
+	  -DSQLITE_ENABLE_JSON1 \
+	  -DHAVE_USLEEP=1
 
 # SQLite 的 Makefile 会根据 TCCS 和 TCLSH 等变量
 # 动态生成 tclsqlite.c 和 sqlite3.h
 
 libsqlite3.a: sqlite3.o
-    ar rcs $@ $^
+	ar rcs $@ $^
 
 sqlite3.o: sqlite3.c sqlite3.h
-    $(TCC) -c sqlite3.c -o $@
+	$(TCC) -c sqlite3.c -o $@
 
 # 测试目标
 tclsh: sqlite3.o tclsqlite.o
-    $(CC) $^ -o $@ -ltcl
+	$(CC) $^ -o $@ -ltcl
 
 check: tclsh
-    ./tclsh $(TOP)/test/permutations.test veryquick
+	./tclsh $(TOP)/test/permutations.test veryquick
 ```
 
 ```bash
@@ -1358,15 +1364,15 @@ REDIS_CLI_SRC:= $(wildcard src/anet.c src/ae.c src/anrio.c)
 
 # 编译可执行文件
 redis-server: $(REDIS_SERVER_SRC)
-    $(CC) $(CFLAGS) $^ -o $@ -lm
+	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 redis-cli: $(REDIS_CLI_SRC)
-    $(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@
 
 # 安装
 install: redis-server redis-cli
-    install -m 755 redis-server $(DESTDIR)/usr/local/bin/
-    install -m 755 redis-cli $(DESTDIR)/usr/local/bin/
+	install -m 755 redis-server $(DESTDIR)/usr/local/bin/
+	install -m 755 redis-cli $(DESTDIR)/usr/local/bin/
 
 .PHONY: clean install
 ```

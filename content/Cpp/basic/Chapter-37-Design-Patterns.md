@@ -70,6 +70,12 @@ UnsafeSingleton* UnsafeSingleton::instance = nullptr;
 ### 37.1.3 C++11 线程安全版本（用这个！）
 
 ```cpp
+#include <iostream>
+#include <string>
+#include <mutex>
+#include <chrono>
+#include <ctime>
+
 class Logger {
 public:
     static Logger& getInstance() {
@@ -110,7 +116,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 Logger initialized
 [2024-01-15 10:30:45] 程序启动了
 [2024-01-15 10:30:45] 正在做有趣的事情
@@ -272,7 +278,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
  Rendering a Windows-style button [ OK ]
  Rendering a Mac-style button ◉
  Windows button clicked! Ding!
@@ -360,7 +366,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 === Word Application ===
 Opening .docx file in Microsoft Word
 Saving as .docx
@@ -491,7 +497,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 ○  Agree to terms
  (●)  Submit
 ```
@@ -515,8 +521,15 @@ int main() {
 #include <string>
 #include <algorithm>
 
-// 前向声明
-class Observer;
+// 观察者（订阅者）接口
+// 注意：Subject 里要调用 observer->update(...)，所以这里必须给出完整定义，
+// 只写前向声明 class Observer; 是不够的（会报 incomplete type 错误）。
+class Observer {
+public:
+    virtual ~Observer() = default;
+    virtual void update(const std::string& title, const std::string& content) = 0;
+    virtual std::string getName() const = 0;
+};
 
 // 主题（发布者）
 class Subject {
@@ -549,14 +562,6 @@ private:
     std::vector<std::shared_ptr<Observer>> observers_;
     std::string title_;
     std::string content_;
-};
-
-// 观察者（订阅者）接口
-class Observer {
-public:
-    virtual ~Observer() = default;
-    virtual void update(const std::string& title, const std::string& content) = 0;
-    virtual std::string getName() const = 0;
 };
 
 // 具体观察者：邮件订阅者
@@ -610,7 +615,7 @@ private:
 };
 
 int main() {
-    NewsPortal portal;
+    Subject portal;
 
     auto alice = std::make_shared<EmailSubscriber>("alice@example.com");
     auto bob = std::make_shared<MobileSubscriber>("iPhone-12345");
@@ -647,7 +652,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 === Publishing Tech News ===
 
 [Breaking News] C++26 新特性发布！ranges::to_vector 终于合并了！
@@ -743,6 +748,9 @@ private:
 #include <algorithm>
 #include <memory>
 #include <chrono>
+#include <functional>   // std::greater
+#include <random>       // std::random_device / std::mt19937
+#include <string>
 
 // 策略接口
 class SortStrategy {
@@ -866,7 +874,7 @@ int main() {
 ```
 
 **输出示例：**
-```
+```text
 === 默认：快速排序 ===
 Before (QuickSort (std::sort)): 42 17 89 23 56 78 12 45 67 34
 After:  12 17 23 34 42 45 56 67 78 89
@@ -1032,7 +1040,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 === 咖啡订单系统 ===
 
 订单1: 浓缩咖啡 (Espresso)
@@ -1253,7 +1261,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 === 智能家居演示 ===
 
 💡 电灯亮了
@@ -1413,7 +1421,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 --- 结账 ---
 商品总价: $99.99
 支付方式: PayPal
@@ -1460,8 +1468,10 @@ int main() {
 // 抽象基类：饮料
 class Beverage {
 public:
-    // 模板方法：定义算法骨架（final 防止子类重写）
-    void prepareRecipe() final {
+    // 模板方法：定义算法骨架
+    // 注意：这是普通（非虚拟）成员函数，本来就不能被子类"重写"，
+    // 所以这里不能写 final —— final 只能修饰虚函数。
+    void prepareRecipe() {
         boilWater();
         brew();
         pourInCup();
@@ -1543,7 +1553,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 === 制作咖啡 ===
 烧水至 100°C
 用咖啡机滴滤咖啡
@@ -1684,7 +1694,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 ========== 准备观影 ==========
 爆米花机开启
 制作爆米花 🍿
@@ -1784,6 +1794,7 @@ int main() {
 #include <iostream>
 #include <iterator>
 #include <algorithm>
+#include <numeric>   // std::accumulate
 
 // 自定义容器：只包含偶数的集合
 class EvenNumbers {
@@ -1835,7 +1846,10 @@ public:
     };
 
     Iterator begin() { return Iterator(0, max_); }
-    Iterator end() { return Iterator(max_ + (max_ % 2), max_); }
+    // 结束位置 = "第一个大于 max_ 的偶数"
+    // max_ 是偶数（如 20）→ 22；max_ 是奇数（如 19）→ 20
+    // 注意别写成 max_ + (max_ % 2)：那样偶数上限会被漏掉（20 时只走到 18）
+    Iterator end() { return Iterator(max_ + 2 - (max_ % 2), max_); }
 
     // 反向迭代器支持
     std::reverse_iterator<Iterator> rbegin() { return std::make_reverse_iterator(end()); }
@@ -1870,7 +1884,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 === 偶数集合 (0-20) ===
 0 2 4 6 8 10 12 14 16 18 20
 
@@ -1937,18 +1951,15 @@ public:
 // 具体状态：有钱状态
 class HasCoinState : public State {
 public:
-    void insertCoin(int amount) override {
-        machine_->addCoin(amount);
-        std::cout << "[有钱状态] 又投了 " << amount << " 元 (总共 "
-                  << machine_->totalCoins() << " 元)\n";
-    }
+    // 注意：这两个函数要访问 VendingMachine 的成员，
+    // 而 VendingMachine 此时还只是前向声明，所以只能"先声明，
+    // 等 VendingMachine 定义完再在外面写实现"。
+    void insertCoin(int amount) override;
     void selectProduct(const std::string& product) override;
     void dispense() override {
         std::cout << "[有钱状态] 请先选择商品！\n";
     }
-    std::string getStatus() const override {
-        return "已投币 " + std::to_string(machine_->totalCoins()) + " 元";
-    }
+    std::string getStatus() const override;
 };
 
 // 具体状态：出售状态
@@ -2023,6 +2034,16 @@ void NoCoinState::insertCoin(int amount) {
     machine_->setState(machine_->hasCoinState_.get());
 }
 
+void HasCoinState::insertCoin(int amount) {
+    machine_->addCoin(amount);
+    std::cout << "[有钱状态] 又投了 " << amount << " 元 (总共 "
+              << machine_->totalCoins() << " 元)\n";
+}
+
+std::string HasCoinState::getStatus() const {
+    return "已投币 " + std::to_string(machine_->totalCoins()) + " 元";
+}
+
 void HasCoinState::selectProduct(const std::string& product) {
     auto priceIt = machine_->prices.find(product);
     if (priceIt == machine_->prices.end()) {
@@ -2082,7 +2103,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 === 售货机演示 ===
 状态: 等待投币
 
@@ -2276,7 +2297,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 === 电脑定制系统 ===
 
 >>> 客户A: 游戏玩家
@@ -2434,7 +2455,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 === 文件系统模拟 ===
 
 📁 root (总计: 4535114 KB)
@@ -2582,7 +2603,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 === 依赖注入演示 ===
 
 --- 场景1：使用 ConsoleLogger ---
@@ -2679,7 +2700,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 === CRTP 静态多态演示 ===
 
 我是一只猫
@@ -2708,6 +2729,11 @@ Pimpl（Pointer to Implementation）是一种减少编译依赖的惯用法：�
 
 ```cpp
 // ========== widget.h ==========
+// 这里把真实项目里分处两个文件的代码放在一起演示，
+// 所以头文件需要的 include 也一并写在这里：
+#include <string>
+#include <memory>
+
 // 这个头文件非常"干净"，不暴露任何实现细节
 class Widget {
 public:
@@ -2731,7 +2757,7 @@ private:
 };
 
 // ========== widget.cpp ==========
-#include "widget.h"
+// #include "widget.h"   // 真实项目中在这里包含头文件
 #include <iostream>
 
 struct Widget::Impl {
@@ -2790,7 +2816,7 @@ int main() {
 ```
 
 **输出：**
-```
+```text
 窗口: 主窗口 (800x600)
 窗口: 副本窗口 (800x600)
 窗口: 主窗口 (800x600)

@@ -1,0 +1,6168 @@
+{
+  "abstract" : [
+    {
+      "text" : "Organize data using arrays, sets, and dictionaries.",
+      "type" : "text"
+    }
+  ],
+  "hierarchy" : {
+    "paths" : [
+      [
+        "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language"
+      ]
+    ]
+  },
+  "identifier" : {
+    "interfaceLanguage" : "swift",
+    "url" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language\/CollectionTypes"
+  },
+  "kind" : "article",
+  "metadata" : {
+    "role" : "article",
+    "title" : "Collection Types"
+  },
+  "primaryContentSections" : [
+    {
+      "content" : [
+        {
+          "inlineContent" : [
+            {
+              "text" : "Swift provides three primary ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "collection types",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "known as arrays, sets, and dictionaries,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "for storing collections of values.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Arrays are ordered collections of values.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Sets are unordered collections of unique values.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Dictionaries are unordered collections of key-value associations.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "identifier" : "CollectionTypes_intro",
+              "type" : "image"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Arrays, sets, and dictionaries in Swift are always clear about",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the types of values and keys that they can store.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "This means that you can’t insert a value of the wrong type",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "into a collection by mistake.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "It also means you can be confident about the type of values",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you will retrieve from a collection.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Swift’s array, set, and dictionary types are implemented as ",
+                  "type" : "text"
+                },
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "generic collections",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "emphasis"
+                },
+                {
+                  "text" : ".",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "For more about generic types and collections, see ",
+                  "type" : "text"
+                },
+                {
+                  "identifier" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language\/Generics",
+                  "isActive" : true,
+                  "type" : "reference"
+                },
+                {
+                  "text" : ".",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "anchor" : "Mutability-of-Collections",
+          "level" : 2,
+          "text" : "Mutability of Collections",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "If you create an array, a set, or a dictionary, and assign it to a variable,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the collection that’s created will be ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "mutable",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "This means that you can change (or ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "mutate",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : ") the collection after it’s created",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "by adding, removing, or changing items in the collection.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "If you assign an array, a set, or a dictionary to a constant,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that collection is ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "immutable",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and its size and contents can’t be changed.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "It’s good practice to create immutable collections",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "in all cases where the collection doesn’t need to change.",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "Doing so makes it easier for you to reason about your code",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "and enables the Swift compiler to optimize the performance of",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "the collections you create.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "anchor" : "Arrays",
+          "level" : 2,
+          "text" : "Arrays",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "An ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "array",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : " stores values of the same type in an ordered list.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The same value can appear in an array multiple times at different positions.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Swift’s ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Array",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " type is bridged to Foundation’s ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "NSArray",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " class.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "For more information about using ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Array",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " with Foundation and Cocoa,",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "see ",
+                  "type" : "text"
+                },
+                {
+                  "identifier" : "https:\/\/developer.apple.com\/documentation\/swift\/array#2846730",
+                  "isActive" : true,
+                  "type" : "reference"
+                },
+                {
+                  "text" : ".",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "anchor" : "Array-Type-Shorthand-Syntax",
+          "level" : 3,
+          "text" : "Array Type Shorthand Syntax",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The type of a Swift array is written in full as ",
+              "type" : "text"
+            },
+            {
+              "code" : "Array<Element>",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "where ",
+              "type" : "text"
+            },
+            {
+              "code" : "Element",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is the type of values the array is allowed to store.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You can also write the type of an array in shorthand form as ",
+              "type" : "text"
+            },
+            {
+              "code" : "[Element]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Although the two forms are functionally identical,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the shorthand form is preferred",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and is used throughout this guide when referring to the type of an array.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "anchor" : "Creating-an-Empty-Array",
+          "level" : 3,
+          "text" : "Creating an Empty Array",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can create an empty array in Swift using two approaches.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "If the context already provides type information,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "such as a function argument or an already typed variable or constant,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you can use an empty array literal,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "which is written as ",
+              "type" : "text"
+            },
+            {
+              "code" : "[]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "(an empty pair of square brackets):",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var someInts: [Int] = []",
+            "print(\"someInts is of type [Int] with \\(someInts.count) items.\")",
+            "\/\/ Prints \"someInts is of type [Int] with 0 items.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Alternatively, you can create an empty array of a certain type",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "using explicit initializer syntax,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "by writing the element type in square brackets",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "followed by parentheses —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "for example, ",
+              "type" : "text"
+            },
+            {
+              "code" : "[Int]()",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " in the following:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var someInts = [Int]()",
+            "print(\"someInts is of type [Int] with \\(someInts.count) items.\")",
+            "\/\/ Prints \"someInts is of type [Int] with 0 items.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Both approaches produce the same result.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "However,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "an empty array literal is shorter and usually easier to read.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "In both cases, you can use the empty array literal (",
+              "type" : "text"
+            },
+            {
+              "code" : "[]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ") to",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "reassign an empty array to an existing variable:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "someInts.append(3)",
+            "\/\/ someInts now contains 1 value of type Int",
+            "someInts = []",
+            "\/\/ someInts is now an empty array, but is still of type [Int]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Creating-an-Array-with-a-Default-Value",
+          "level" : 3,
+          "text" : "Creating an Array with a Default Value",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Swift’s ",
+              "type" : "text"
+            },
+            {
+              "code" : "Array",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " type also provides",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "an initializer for creating an array of a certain size",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "with all of its values set to the same default value.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You pass this initializer",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "a default value of the appropriate type (called ",
+              "type" : "text"
+            },
+            {
+              "code" : "repeating",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "):",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and the number of times that value is repeated in the new array (called ",
+              "type" : "text"
+            },
+            {
+              "code" : "count",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "):",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var threeDoubles = Array(repeating: 0.0, count: 3)",
+            "\/\/ threeDoubles is of type [Double], and equals [0.0, 0.0, 0.0]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Creating-an-Array-by-Adding-Two-Arrays-Together",
+          "level" : 3,
+          "text" : "Creating an Array by Adding Two Arrays Together",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can create a new array by adding together two existing arrays with compatible types",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "with the addition operator (",
+              "type" : "text"
+            },
+            {
+              "code" : "+",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ").",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The new array’s type is inferred from the type of the two arrays you add together:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var anotherThreeDoubles = Array(repeating: 2.5, count: 3)",
+            "\/\/ anotherThreeDoubles is of type [Double], and equals [2.5, 2.5, 2.5]",
+            "",
+            "var sixDoubles = threeDoubles + anotherThreeDoubles",
+            "\/\/ sixDoubles is inferred as [Double], and equals [0.0, 0.0, 0.0, 2.5, 2.5, 2.5]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Creating-an-Array-with-an-Array-Literal",
+          "level" : 3,
+          "text" : "Creating an Array with an Array Literal",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can also initialize an array with an ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "array literal",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "which is a shorthand way to write one or more values as an array collection.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "An array literal is written as a list of values, separated by commas,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "surrounded by a pair of square brackets:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "[<#value 1#>, <#value 2#>, <#value 3#>]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The example below creates an array called ",
+              "type" : "text"
+            },
+            {
+              "code" : "shoppingList",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to store ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " values:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var shoppingList: [String] = [\"Eggs\", \"Milk\"]",
+            "\/\/ shoppingList has been initialized with two initial items"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The ",
+              "type" : "text"
+            },
+            {
+              "code" : "shoppingList",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " variable is declared as",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "“an array of string values”, written as ",
+              "type" : "text"
+            },
+            {
+              "code" : "[String]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Because this particular array has specified a value type of ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "it’s allowed to store ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " values only.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Here, the ",
+              "type" : "text"
+            },
+            {
+              "code" : "shoppingList",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " array is initialized with two ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " values",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "(",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Eggs\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " and ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Milk\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "), written within an array literal.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "The ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "shoppingList",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " array is declared as a variable (with the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "var",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " introducer)",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "and not a constant (with the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "let",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " introducer)",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "because more items are added to the shopping list in the examples below.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "In this case, the array literal contains two ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " values and nothing else.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "This matches the type of the ",
+              "type" : "text"
+            },
+            {
+              "code" : "shoppingList",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " variable’s declaration",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "(an array that can only contain ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " values),",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and so the assignment of the array literal is permitted",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as a way to initialize ",
+              "type" : "text"
+            },
+            {
+              "code" : "shoppingList",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " with two initial items.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Thanks to Swift’s type inference,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you don’t have to write the type of the array",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "if you’re initializing it with an array literal containing values of the same type.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The initialization of ",
+              "type" : "text"
+            },
+            {
+              "code" : "shoppingList",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " could have been written in a shorter form instead:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var shoppingList = [\"Eggs\", \"Milk\"]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Because all values in the array literal are of the same type,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Swift can infer that ",
+              "type" : "text"
+            },
+            {
+              "code" : "[String]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the correct type to use for the ",
+              "type" : "text"
+            },
+            {
+              "code" : "shoppingList",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " variable.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can include a comma after last value in an array literal,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "which is known as a ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "trailing comma",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : ":",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var shoppingList = [",
+            "    \"Eggs\",",
+            "    \"Milk\",",
+            "]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Because the trailing comma makes every line end the same way,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "it’s a useful way to write arrays like the one above",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that have one value per line.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "When you change the array,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you only need to add, remove, or reorder values —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you don’t have to add or remove commas.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "anchor" : "Accessing-and-Modifying-an-Array",
+          "level" : 3,
+          "text" : "Accessing and Modifying an Array",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You access and modify an array through its methods and properties,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or by using subscript syntax.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "To find out the number of items in an array, check its read-only ",
+              "type" : "text"
+            },
+            {
+              "code" : "count",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "print(\"The shopping list contains \\(shoppingList.count) items.\")",
+            "\/\/ Prints \"The shopping list contains 2 items.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use the Boolean ",
+              "type" : "text"
+            },
+            {
+              "code" : "isEmpty",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as a shortcut for checking whether the ",
+              "type" : "text"
+            },
+            {
+              "code" : "count",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property is equal to ",
+              "type" : "text"
+            },
+            {
+              "code" : "0",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ":",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "if shoppingList.isEmpty {",
+            "    print(\"The shopping list is empty.\")",
+            "} else {",
+            "    print(\"The shopping list isn't empty.\")",
+            "}",
+            "\/\/ Prints \"The shopping list isn't empty.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can add a new item to the end of an array by calling the array’s ",
+              "type" : "text"
+            },
+            {
+              "code" : "append(_:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "shoppingList.append(\"Flour\")",
+            "\/\/ shoppingList now contains 3 items, and someone is making pancakes"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Alternatively, append an array of one or more compatible items",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "with the addition assignment operator (",
+              "type" : "text"
+            },
+            {
+              "code" : "+=",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "):",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "shoppingList += [\"Baking Powder\"]",
+            "\/\/ shoppingList now contains 4 items",
+            "shoppingList += [\"Chocolate Spread\", \"Cheese\", \"Butter\"]",
+            "\/\/ shoppingList now contains 7 items"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Retrieve a value from the array by using ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "subscript syntax",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "passing the index of the value you want to retrieve within square brackets",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "immediately after the name of the array:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var firstItem = shoppingList[0]",
+            "\/\/ firstItem is equal to \"Eggs\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "The first item in the array has an index of ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "0",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : ", not ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "1",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : ".",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "Arrays in Swift are always zero-indexed.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can use subscript syntax to change an existing value at a given index:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "shoppingList[0] = \"Six eggs\"",
+            "\/\/ the first item in the list is now equal to \"Six eggs\" rather than \"Eggs\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "When you use subscript syntax,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the index you specify needs to be valid.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "For example, writing ",
+              "type" : "text"
+            },
+            {
+              "code" : "shoppingList[shoppingList.count] = \"Salt\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to try to append an item to the end of the array",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "results in a runtime error.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can also use subscript syntax to change a range of values at once,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "even if the replacement set of values has a different length than the range you are replacing.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The following example replaces ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Chocolate Spread\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ", ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Cheese\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ", and ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Butter\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "with ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Bananas\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " and ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Apples\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ":",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "shoppingList[4...6] = [\"Bananas\", \"Apples\"]",
+            "\/\/ shoppingList now contains 6 items"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "To insert an item into the array at a specified index,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "call the array’s ",
+              "type" : "text"
+            },
+            {
+              "code" : "insert(_:at:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "shoppingList.insert(\"Maple Syrup\", at: 0)",
+            "\/\/ shoppingList now contains 7 items",
+            "\/\/ \"Maple Syrup\" is now the first item in the list"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "This call to the ",
+              "type" : "text"
+            },
+            {
+              "code" : "insert(_:at:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method inserts a new item with a value of ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Maple Syrup\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "at the very beginning of the shopping list,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "indicated by an index of ",
+              "type" : "text"
+            },
+            {
+              "code" : "0",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Similarly, you remove an item from the array with the ",
+              "type" : "text"
+            },
+            {
+              "code" : "remove(at:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "This method removes the item at the specified index and returns the removed item",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "(although you can ignore the returned value if you don’t need it):",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let mapleSyrup = shoppingList.remove(at: 0)",
+            "\/\/ the item that was at index 0 has just been removed",
+            "\/\/ shoppingList now contains 6 items, and no Maple Syrup",
+            "\/\/ the mapleSyrup constant is now equal to the removed \"Maple Syrup\" string"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "If you try to access or modify a value for an index",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "that’s outside of an array’s existing bounds,",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "you will trigger a runtime error.",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "You can check that an index is valid before using it",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "by comparing it to the array’s ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "count",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " property.",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "The largest valid index in an array is ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "count - 1",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "because arrays are indexed from zero —",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "however, when ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "count",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " is ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "0",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " (meaning the array is empty),",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "there are no valid indexes.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Any gaps in an array are closed when an item is removed,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and so the value at index ",
+              "type" : "text"
+            },
+            {
+              "code" : "0",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is once again equal to ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Six eggs\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ":",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "firstItem = shoppingList[0]",
+            "\/\/ firstItem is now equal to \"Six eggs\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "If you want to remove the final item from an array,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "use the ",
+              "type" : "text"
+            },
+            {
+              "code" : "removeLast()",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method rather than the ",
+              "type" : "text"
+            },
+            {
+              "code" : "remove(at:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to avoid the need to query the array’s ",
+              "type" : "text"
+            },
+            {
+              "code" : "count",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Like the ",
+              "type" : "text"
+            },
+            {
+              "code" : "remove(at:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method, ",
+              "type" : "text"
+            },
+            {
+              "code" : "removeLast()",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " returns the removed item:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let apples = shoppingList.removeLast()",
+            "\/\/ the last item in the array has just been removed",
+            "\/\/ shoppingList now contains 5 items, and no apples",
+            "\/\/ the apples constant is now equal to the removed \"Apples\" string"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Iterating-Over-an-Array",
+          "level" : 3,
+          "text" : "Iterating Over an Array",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can iterate over the entire set of values in an array with the ",
+              "type" : "text"
+            },
+            {
+              "code" : "for",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "-",
+              "type" : "text"
+            },
+            {
+              "code" : "in",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " loop:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "for item in shoppingList {",
+            "    print(item)",
+            "}",
+            "\/\/ Six eggs",
+            "\/\/ Milk",
+            "\/\/ Flour",
+            "\/\/ Baking Powder",
+            "\/\/ Bananas"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "If you need the integer index of each item as well as its value,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "use the ",
+              "type" : "text"
+            },
+            {
+              "code" : "enumerated()",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method to iterate over the array instead.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "For each item in the array,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the ",
+              "type" : "text"
+            },
+            {
+              "code" : "enumerated()",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method returns a tuple",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "composed of an integer and the item.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The integers start at zero and count up by one for each item;",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "if you enumerate over a whole array,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "these integers match the items’ indices.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You can decompose the tuple into temporary constants or variables",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as part of the iteration:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "for (index, value) in shoppingList.enumerated() {",
+            "    print(\"Item \\(index + 1): \\(value)\")",
+            "}",
+            "\/\/ Item 1: Six eggs",
+            "\/\/ Item 2: Milk",
+            "\/\/ Item 3: Flour",
+            "\/\/ Item 4: Baking Powder",
+            "\/\/ Item 5: Bananas"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "For more about the ",
+              "type" : "text"
+            },
+            {
+              "code" : "for",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "-",
+              "type" : "text"
+            },
+            {
+              "code" : "in",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " loop, see ",
+              "type" : "text"
+            },
+            {
+              "identifier" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language\/ControlFlow#For-In-Loops",
+              "isActive" : true,
+              "type" : "reference"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "anchor" : "Sets",
+          "level" : 2,
+          "text" : "Sets",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "A ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "set",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : " stores distinct values of the same type",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "in a collection with no defined ordering.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You can use a set instead of an array when the order of items isn’t important,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or when you need to ensure that an item only appears once.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Swift’s ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Set",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " type is bridged to Foundation’s ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "NSSet",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " class.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "For more information about using ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Set",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " with Foundation and Cocoa,",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "see ",
+                  "type" : "text"
+                },
+                {
+                  "identifier" : "https:\/\/developer.apple.com\/documentation\/swift\/set#2845530",
+                  "isActive" : true,
+                  "type" : "reference"
+                },
+                {
+                  "text" : ".",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "anchor" : "Hash-Values-for-Set-Types",
+          "level" : 3,
+          "text" : "Hash Values for Set Types",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "A type must be ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "hashable",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : " in order to be stored in a set —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that is, the type must provide a way to compute a ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "hash value",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : " for itself.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "A hash value is an ",
+              "type" : "text"
+            },
+            {
+              "code" : "Int",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " value that’s the same for all objects that compare equally,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "such that if ",
+              "type" : "text"
+            },
+            {
+              "code" : "a == b",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the hash value of ",
+              "type" : "text"
+            },
+            {
+              "code" : "a",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is equal to the hash value of ",
+              "type" : "text"
+            },
+            {
+              "code" : "b",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "All of Swift’s basic types (such as ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ", ",
+              "type" : "text"
+            },
+            {
+              "code" : "Int",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ", ",
+              "type" : "text"
+            },
+            {
+              "code" : "Double",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ", and ",
+              "type" : "text"
+            },
+            {
+              "code" : "Bool",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ")",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "are hashable by default, and can be used as set value types or dictionary key types.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Enumeration case values without associated values",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "(as described in ",
+              "type" : "text"
+            },
+            {
+              "identifier" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language\/Enumerations",
+              "isActive" : true,
+              "type" : "reference"
+            },
+            {
+              "text" : ")",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "are also hashable by default.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "You can use your own custom types as set value types or dictionary key types",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "by making them conform to the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Hashable",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " protocol",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "from the Swift standard library.",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "For information about implementing the required ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "hash(into:)",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " method,",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "see ",
+                  "type" : "text"
+                },
+                {
+                  "identifier" : "https:\/\/developer.apple.com\/documentation\/swift\/hashable",
+                  "isActive" : true,
+                  "type" : "reference"
+                },
+                {
+                  "text" : ".",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "For information about conforming to protocols, see ",
+                  "type" : "text"
+                },
+                {
+                  "identifier" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language\/Protocols",
+                  "isActive" : true,
+                  "type" : "reference"
+                },
+                {
+                  "text" : ".",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "anchor" : "Set-Type-Syntax",
+          "level" : 3,
+          "text" : "Set Type Syntax",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The type of a Swift set is written as ",
+              "type" : "text"
+            },
+            {
+              "code" : "Set<Element>",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "where ",
+              "type" : "text"
+            },
+            {
+              "code" : "Element",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is the type that the set is allowed to store.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Unlike arrays, sets don’t have an equivalent shorthand form.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "anchor" : "Creating-and-Initializing-an-Empty-Set",
+          "level" : 3,
+          "text" : "Creating and Initializing an Empty Set",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can create an empty set of a certain type",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "using initializer syntax:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var letters = Set<Character>()",
+            "print(\"letters is of type Set<Character> with \\(letters.count) items.\")",
+            "\/\/ Prints \"letters is of type Set<Character> with 0 items.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "The type of the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "letters",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " variable is inferred to be ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Set<Character>",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : ",",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "from the type of the initializer.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Alternatively, if the context already provides type information,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "such as a function argument or an already typed variable or constant,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you can create an empty set with an empty array literal:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "letters.insert(\"a\")",
+            "\/\/ letters now contains 1 value of type Character",
+            "letters = []",
+            "\/\/ letters is now an empty set, but is still of type Set<Character>"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Creating-a-Set-with-an-Array-Literal",
+          "level" : 3,
+          "text" : "Creating a Set with an Array Literal",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can also initialize a set with an array literal,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as a shorthand way to write one or more values as a set collection.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The example below creates a set called ",
+              "type" : "text"
+            },
+            {
+              "code" : "favoriteGenres",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " to store ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " values:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var favoriteGenres: Set<String> = [\"Rock\", \"Classical\", \"Hip hop\"]",
+            "\/\/ favoriteGenres has been initialized with three initial items"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The ",
+              "type" : "text"
+            },
+            {
+              "code" : "favoriteGenres",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " variable is declared as",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "“a set of ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " values”, written as ",
+              "type" : "text"
+            },
+            {
+              "code" : "Set<String>",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Because this particular set has specified a value type of ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "it’s ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "only",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : " allowed to store ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " values.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Here, the ",
+              "type" : "text"
+            },
+            {
+              "code" : "favoriteGenres",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " set is initialized with three ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " values",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "(",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Rock\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ", ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Classical\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ", and ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Hip hop\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "), written within an array literal.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "The ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "favoriteGenres",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " set is declared as a variable (with the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "var",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " introducer)",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "and not a constant (with the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "let",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " introducer)",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "because items are added and removed in the examples below.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "A set type can’t be inferred from an array literal alone,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "so the type ",
+              "type" : "text"
+            },
+            {
+              "code" : "Set",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " must be explicitly declared.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "However, because of Swift’s type inference,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you don’t have to write the type of the set’s elements",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "if you’re initializing it with an array literal",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "that contains values of just one type.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The initialization of ",
+              "type" : "text"
+            },
+            {
+              "code" : "favoriteGenres",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " could have been written in a shorter form instead:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var favoriteGenres: Set = [\"Rock\", \"Classical\", \"Hip hop\"]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Because all values in the array literal are of the same type,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Swift can infer that ",
+              "type" : "text"
+            },
+            {
+              "code" : "Set<String>",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the correct type to use for the ",
+              "type" : "text"
+            },
+            {
+              "code" : "favoriteGenres",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " variable.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "anchor" : "Accessing-and-Modifying-a-Set",
+          "level" : 3,
+          "text" : "Accessing and Modifying a Set",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You access and modify a set through its methods and properties.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "To find out the number of items in a set,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "check its read-only ",
+              "type" : "text"
+            },
+            {
+              "code" : "count",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "print(\"I have \\(favoriteGenres.count) favorite music genres.\")",
+            "\/\/ Prints \"I have 3 favorite music genres.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use the Boolean ",
+              "type" : "text"
+            },
+            {
+              "code" : "isEmpty",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as a shortcut for checking whether the ",
+              "type" : "text"
+            },
+            {
+              "code" : "count",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property is equal to ",
+              "type" : "text"
+            },
+            {
+              "code" : "0",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ":",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "if favoriteGenres.isEmpty {",
+            "    print(\"As far as music goes, I'm not picky.\")",
+            "} else {",
+            "    print(\"I have particular music preferences.\")",
+            "}",
+            "\/\/ Prints \"I have particular music preferences.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can add a new item into a set by calling the set’s ",
+              "type" : "text"
+            },
+            {
+              "code" : "insert(_:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "favoriteGenres.insert(\"Jazz\")",
+            "\/\/ favoriteGenres now contains 4 items"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can remove an item from a set by calling the set’s ",
+              "type" : "text"
+            },
+            {
+              "code" : "remove(_:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "which removes the item if it’s a member of the set,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and returns the removed value,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or returns ",
+              "type" : "text"
+            },
+            {
+              "code" : "nil",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " if the set didn’t contain it.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Alternatively, all items in a set can be removed with its ",
+              "type" : "text"
+            },
+            {
+              "code" : "removeAll()",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "if let removedGenre = favoriteGenres.remove(\"Rock\") {",
+            "    print(\"\\(removedGenre)? I'm over it.\")",
+            "} else {",
+            "    print(\"I never much cared for that.\")",
+            "}",
+            "\/\/ Prints \"Rock? I'm over it.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "To check whether a set contains a particular item, use the ",
+              "type" : "text"
+            },
+            {
+              "code" : "contains(_:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "if favoriteGenres.contains(\"Funk\") {",
+            "    print(\"I get up on the good foot.\")",
+            "} else {",
+            "    print(\"It's too funky in here.\")",
+            "}",
+            "\/\/ Prints \"It's too funky in here.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Iterating-Over-a-Set",
+          "level" : 3,
+          "text" : "Iterating Over a Set",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can iterate over the values in a set with a ",
+              "type" : "text"
+            },
+            {
+              "code" : "for",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "-",
+              "type" : "text"
+            },
+            {
+              "code" : "in",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " loop.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "for genre in favoriteGenres {",
+            "    print(\"\\(genre)\")",
+            "}",
+            "\/\/ Classical",
+            "\/\/ Jazz",
+            "\/\/ Hip hop"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "For more about the ",
+              "type" : "text"
+            },
+            {
+              "code" : "for",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "-",
+              "type" : "text"
+            },
+            {
+              "code" : "in",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " loop, see ",
+              "type" : "text"
+            },
+            {
+              "identifier" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language\/ControlFlow#For-In-Loops",
+              "isActive" : true,
+              "type" : "reference"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Swift’s ",
+              "type" : "text"
+            },
+            {
+              "code" : "Set",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " type doesn’t have a defined ordering.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "To iterate over the values of a set in a specific order,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "use the ",
+              "type" : "text"
+            },
+            {
+              "code" : "sorted()",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "which returns the set’s elements as an array",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "sorted using the ",
+              "type" : "text"
+            },
+            {
+              "code" : "<",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " operator.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "for genre in favoriteGenres.sorted() {",
+            "    print(\"\\(genre)\")",
+            "}",
+            "\/\/ Classical",
+            "\/\/ Hip hop",
+            "\/\/ Jazz"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Performing-Set-Operations",
+          "level" : 2,
+          "text" : "Performing Set Operations",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can efficiently perform fundamental set operations,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "such as combining two sets together,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "determining which values two sets have in common,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or determining whether two sets contain all, some, or none of the same values.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "anchor" : "Fundamental-Set-Operations",
+          "level" : 3,
+          "text" : "Fundamental Set Operations",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The illustration below depicts two sets — ",
+              "type" : "text"
+            },
+            {
+              "code" : "a",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " and ",
+              "type" : "text"
+            },
+            {
+              "code" : "b",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "with the results of various set operations represented by the shaded regions.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "identifier" : "setVennDiagram",
+              "type" : "image"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "items" : [
+            {
+              "content" : [
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "Use the ",
+                      "type" : "text"
+                    },
+                    {
+                      "code" : "intersection(_:)",
+                      "type" : "codeVoice"
+                    },
+                    {
+                      "text" : " method to create a new set with only the values common to both sets.",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "paragraph"
+                }
+              ]
+            },
+            {
+              "content" : [
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "Use the ",
+                      "type" : "text"
+                    },
+                    {
+                      "code" : "symmetricDifference(_:)",
+                      "type" : "codeVoice"
+                    },
+                    {
+                      "text" : " method to create a new set with values in either set, but not both.",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "paragraph"
+                }
+              ]
+            },
+            {
+              "content" : [
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "Use the ",
+                      "type" : "text"
+                    },
+                    {
+                      "code" : "union(_:)",
+                      "type" : "codeVoice"
+                    },
+                    {
+                      "text" : " method to create a new set with all of the values in both sets.",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "paragraph"
+                }
+              ]
+            },
+            {
+              "content" : [
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "Use the ",
+                      "type" : "text"
+                    },
+                    {
+                      "code" : "subtracting(_:)",
+                      "type" : "codeVoice"
+                    },
+                    {
+                      "text" : " method to create a new set with values not in the specified set.",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "paragraph"
+                }
+              ]
+            }
+          ],
+          "type" : "unorderedList"
+        },
+        {
+          "code" : [
+            "let oddDigits: Set = [1, 3, 5, 7, 9]",
+            "let evenDigits: Set = [0, 2, 4, 6, 8]",
+            "let singleDigitPrimeNumbers: Set = [2, 3, 5, 7]",
+            "",
+            "oddDigits.union(evenDigits).sorted()",
+            "\/\/ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]",
+            "oddDigits.intersection(evenDigits).sorted()",
+            "\/\/ []",
+            "oddDigits.subtracting(singleDigitPrimeNumbers).sorted()",
+            "\/\/ [1, 9]",
+            "oddDigits.symmetricDifference(singleDigitPrimeNumbers).sorted()",
+            "\/\/ [1, 2, 9]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Set-Membership-and-Equality",
+          "level" : 3,
+          "text" : "Set Membership and Equality",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The illustration below depicts three sets — ",
+              "type" : "text"
+            },
+            {
+              "code" : "a",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ", ",
+              "type" : "text"
+            },
+            {
+              "code" : "b",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " and ",
+              "type" : "text"
+            },
+            {
+              "code" : "c",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " —",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "with overlapping regions representing elements shared among sets.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Set ",
+              "type" : "text"
+            },
+            {
+              "code" : "a",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is a ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "superset",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : " of set ",
+              "type" : "text"
+            },
+            {
+              "code" : "b",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "because ",
+              "type" : "text"
+            },
+            {
+              "code" : "a",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " contains all elements in ",
+              "type" : "text"
+            },
+            {
+              "code" : "b",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Conversely, set ",
+              "type" : "text"
+            },
+            {
+              "code" : "b",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is a ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "subset",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : " of set ",
+              "type" : "text"
+            },
+            {
+              "code" : "a",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "because all elements in ",
+              "type" : "text"
+            },
+            {
+              "code" : "b",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " are also contained by ",
+              "type" : "text"
+            },
+            {
+              "code" : "a",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Set ",
+              "type" : "text"
+            },
+            {
+              "code" : "b",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " and set ",
+              "type" : "text"
+            },
+            {
+              "code" : "c",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " are ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "disjoint",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : " with one another,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "because they share no elements in common.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "identifier" : "setEulerDiagram",
+              "type" : "image"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "items" : [
+            {
+              "content" : [
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "Use the “is equal” operator (",
+                      "type" : "text"
+                    },
+                    {
+                      "code" : "==",
+                      "type" : "codeVoice"
+                    },
+                    {
+                      "text" : ") to determine whether two sets contain all of the same values.",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "paragraph"
+                }
+              ]
+            },
+            {
+              "content" : [
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "Use the ",
+                      "type" : "text"
+                    },
+                    {
+                      "code" : "isSubset(of:)",
+                      "type" : "codeVoice"
+                    },
+                    {
+                      "text" : " method to determine whether all of the values of a set are contained in the specified set.",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "paragraph"
+                }
+              ]
+            },
+            {
+              "content" : [
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "Use the ",
+                      "type" : "text"
+                    },
+                    {
+                      "code" : "isSuperset(of:)",
+                      "type" : "codeVoice"
+                    },
+                    {
+                      "text" : " method to determine whether a set contains all of the values in a specified set.",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "paragraph"
+                }
+              ]
+            },
+            {
+              "content" : [
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "Use the ",
+                      "type" : "text"
+                    },
+                    {
+                      "code" : "isStrictSubset(of:)",
+                      "type" : "codeVoice"
+                    },
+                    {
+                      "text" : " or ",
+                      "type" : "text"
+                    },
+                    {
+                      "code" : "isStrictSuperset(of:)",
+                      "type" : "codeVoice"
+                    },
+                    {
+                      "text" : " methods to determine whether a set is a subset or superset, but not equal to, a specified set.",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "paragraph"
+                }
+              ]
+            },
+            {
+              "content" : [
+                {
+                  "inlineContent" : [
+                    {
+                      "text" : "Use the ",
+                      "type" : "text"
+                    },
+                    {
+                      "code" : "isDisjoint(with:)",
+                      "type" : "codeVoice"
+                    },
+                    {
+                      "text" : " method to determine whether two sets have no values in common.",
+                      "type" : "text"
+                    }
+                  ],
+                  "type" : "paragraph"
+                }
+              ]
+            }
+          ],
+          "type" : "unorderedList"
+        },
+        {
+          "code" : [
+            "let houseAnimals: Set = [\"🐶\", \"🐱\"]",
+            "let farmAnimals: Set = [\"🐮\", \"🐔\", \"🐑\", \"🐶\", \"🐱\"]",
+            "let cityAnimals: Set = [\"🐦\", \"🐭\"]",
+            "",
+            "houseAnimals.isSubset(of: farmAnimals)",
+            "\/\/ true",
+            "farmAnimals.isSuperset(of: houseAnimals)",
+            "\/\/ true",
+            "farmAnimals.isDisjoint(with: cityAnimals)",
+            "\/\/ true"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Dictionaries",
+          "level" : 2,
+          "text" : "Dictionaries",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "A ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "dictionary",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : " stores associations between",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "keys of the same type and values of the same type",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "in a collection with no defined ordering.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Each value is associated with a unique ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "key",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "which acts as an identifier for that value within the dictionary.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Unlike items in an array, items in a dictionary don’t have a specified order.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "You use a dictionary when you need to look up values based on their identifier,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "in much the same way that a real-world dictionary is used to look up",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the definition for a particular word.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "Swift’s ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Dictionary",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " type is bridged to Foundation’s ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "NSDictionary",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " class.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "For more information about using ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Dictionary",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " with Foundation and Cocoa,",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "see ",
+                  "type" : "text"
+                },
+                {
+                  "identifier" : "https:\/\/developer.apple.com\/documentation\/swift\/dictionary#2846239",
+                  "isActive" : true,
+                  "type" : "reference"
+                },
+                {
+                  "text" : ".",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "anchor" : "Dictionary-Type-Shorthand-Syntax",
+          "level" : 3,
+          "text" : "Dictionary Type Shorthand Syntax",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The type of a Swift dictionary is written in full as ",
+              "type" : "text"
+            },
+            {
+              "code" : "Dictionary<Key, Value>",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "where ",
+              "type" : "text"
+            },
+            {
+              "code" : "Key",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is the type of value that can be used as a dictionary key,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and ",
+              "type" : "text"
+            },
+            {
+              "code" : "Value",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is the type of value that the dictionary stores for those keys.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "A dictionary ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Key",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " type must conform to the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "Hashable",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " protocol,",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "like a set’s value type.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can also write the type of a dictionary in shorthand form as ",
+              "type" : "text"
+            },
+            {
+              "code" : "[Key: Value]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Although the two forms are functionally identical,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the shorthand form is preferred",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and is used throughout this guide when referring to the type of a dictionary.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "anchor" : "Creating-an-Empty-Dictionary",
+          "level" : 3,
+          "text" : "Creating an Empty Dictionary",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "As with arrays,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you can create an empty ",
+              "type" : "text"
+            },
+            {
+              "code" : "Dictionary",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " of a certain type by using initializer syntax:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var namesOfIntegers: [Int: String] = [:]",
+            "\/\/ namesOfIntegers is an empty [Int: String] dictionary"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "This example creates an empty dictionary of type ",
+              "type" : "text"
+            },
+            {
+              "code" : "[Int: String]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to store human-readable names of integer values.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Its keys are of type ",
+              "type" : "text"
+            },
+            {
+              "code" : "Int",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ", and its values are of type ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "If the context already provides type information,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you can create an empty dictionary with an empty dictionary literal,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "which is written as ",
+              "type" : "text"
+            },
+            {
+              "code" : "[:]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "(a colon inside a pair of square brackets):",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "namesOfIntegers[16] = \"sixteen\"",
+            "\/\/ namesOfIntegers now contains 1 key-value pair",
+            "namesOfIntegers = [:]",
+            "\/\/ namesOfIntegers is once again an empty dictionary of type [Int: String]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Creating-a-Dictionary-with-a-Dictionary-Literal",
+          "level" : 3,
+          "text" : "Creating a Dictionary with a Dictionary Literal",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can also initialize a dictionary with a ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "dictionary literal",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "which has a similar syntax to the array literal seen earlier.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "A dictionary literal is a shorthand way to write",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "one or more key-value pairs as a ",
+              "type" : "text"
+            },
+            {
+              "code" : "Dictionary",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " collection.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "A ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "key-value pair",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : " is a combination of a key and a value.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "In a dictionary literal,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the key and value in each key-value pair are separated by a colon.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The key-value pairs are written as a list, separated by commas,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "surrounded by a pair of square brackets:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "[<#key 1#>: <#value 1#>, <#key 2#>: <#value 2#>, <#key 3#>: <#value 3#>]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The example below creates a dictionary to store the names of international airports.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "In this dictionary, the keys are three-letter International Air Transport Association codes,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and the values are airport names:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var airports: [String: String] = [\"YYZ\": \"Toronto Pearson\", \"DUB\": \"Dublin\"]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The ",
+              "type" : "text"
+            },
+            {
+              "code" : "airports",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " dictionary is declared as having a type of ",
+              "type" : "text"
+            },
+            {
+              "code" : "[String: String]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "which means “a ",
+              "type" : "text"
+            },
+            {
+              "code" : "Dictionary",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " whose keys are of type ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and whose values are also of type ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "”.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "content" : [
+            {
+              "inlineContent" : [
+                {
+                  "text" : "The ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "airports",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " dictionary is declared as a variable (with the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "var",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " introducer),",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "and not a constant (with the ",
+                  "type" : "text"
+                },
+                {
+                  "code" : "let",
+                  "type" : "codeVoice"
+                },
+                {
+                  "text" : " introducer),",
+                  "type" : "text"
+                },
+                {
+                  "text" : " ",
+                  "type" : "text"
+                },
+                {
+                  "text" : "because more airports are added to the dictionary in the examples below.",
+                  "type" : "text"
+                }
+              ],
+              "type" : "paragraph"
+            }
+          ],
+          "name" : "Note",
+          "style" : "note",
+          "type" : "aside"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The ",
+              "type" : "text"
+            },
+            {
+              "code" : "airports",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " dictionary is initialized with",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "a dictionary literal containing two key-value pairs.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The first pair has a key of ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"YYZ\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " and a value of ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Toronto Pearson\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The second pair has a key of ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"DUB\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " and a value of ",
+              "type" : "text"
+            },
+            {
+              "code" : "\"Dublin\"",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "This dictionary literal contains two ",
+              "type" : "text"
+            },
+            {
+              "code" : "String: String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " pairs.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "This key-value type matches the type of the ",
+              "type" : "text"
+            },
+            {
+              "code" : "airports",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " variable declaration",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "(a dictionary with only ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " keys, and only ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " values),",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and so the assignment of the dictionary literal is permitted",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as a way to initialize the ",
+              "type" : "text"
+            },
+            {
+              "code" : "airports",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " dictionary with two initial items.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "As with arrays,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "you don’t have to write the type of the dictionary",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "if you’re initializing it with a dictionary literal whose keys and values have consistent types.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "The initialization of ",
+              "type" : "text"
+            },
+            {
+              "code" : "airports",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " could have been written in a shorter form instead:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var airports = [\"YYZ\": \"Toronto Pearson\", \"DUB\": \"Dublin\"]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Because all keys in the literal are of the same type as each other,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and likewise all values are of the same type as each other,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Swift can infer that ",
+              "type" : "text"
+            },
+            {
+              "code" : "[String: String]",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " is",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the correct type to use for the ",
+              "type" : "text"
+            },
+            {
+              "code" : "airports",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " dictionary.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Like array literals,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "dictionary literals can include a trailing comma",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "after the last key-value pair:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "var airports = [",
+            "    \"YYZ\": \"Toronto Pearson\",",
+            "    \"DUB\": \"Dublin\",",
+            "]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Accessing-and-Modifying-a-Dictionary",
+          "level" : 3,
+          "text" : "Accessing and Modifying a Dictionary",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You access and modify a dictionary through its methods and properties,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or by using subscript syntax.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "As with an array, you find out the number of items in a ",
+              "type" : "text"
+            },
+            {
+              "code" : "Dictionary",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "by checking its read-only ",
+              "type" : "text"
+            },
+            {
+              "code" : "count",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "print(\"The airports dictionary contains \\(airports.count) items.\")",
+            "\/\/ Prints \"The airports dictionary contains 2 items.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Use the Boolean ",
+              "type" : "text"
+            },
+            {
+              "code" : "isEmpty",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as a shortcut for checking whether the ",
+              "type" : "text"
+            },
+            {
+              "code" : "count",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property is equal to ",
+              "type" : "text"
+            },
+            {
+              "code" : "0",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ":",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "if airports.isEmpty {",
+            "    print(\"The airports dictionary is empty.\")",
+            "} else {",
+            "    print(\"The airports dictionary isn't empty.\")",
+            "}",
+            "\/\/ Prints \"The airports dictionary isn't empty.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can add a new item to a dictionary with subscript syntax.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Use a new key of the appropriate type as the subscript index,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and assign a new value of the appropriate type:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "airports[\"LHR\"] = \"London\"",
+            "\/\/ the airports dictionary now contains 3 items"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can also use subscript syntax to change the value associated with a particular key:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "airports[\"LHR\"] = \"London Heathrow\"",
+            "\/\/ the value for \"LHR\" has been changed to \"London Heathrow\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "As an alternative to subscripting,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "use a dictionary’s ",
+              "type" : "text"
+            },
+            {
+              "code" : "updateValue(_:forKey:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "to set or update the value for a particular key.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Like the subscript examples above, the ",
+              "type" : "text"
+            },
+            {
+              "code" : "updateValue(_:forKey:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "sets a value for a key if none exists,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or updates the value if that key already exists.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Unlike a subscript, however,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the ",
+              "type" : "text"
+            },
+            {
+              "code" : "updateValue(_:forKey:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method returns the ",
+              "type" : "text"
+            },
+            {
+              "inlineContent" : [
+                {
+                  "text" : "old",
+                  "type" : "text"
+                }
+              ],
+              "type" : "emphasis"
+            },
+            {
+              "text" : " value after performing an update.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "This enables you to check whether or not an update took place.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "The ",
+              "type" : "text"
+            },
+            {
+              "code" : "updateValue(_:forKey:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method returns an optional value",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "of the dictionary’s value type.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "For a dictionary that stores ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " values, for example,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the method returns a value of type ",
+              "type" : "text"
+            },
+            {
+              "code" : "String?",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ",",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or “optional ",
+              "type" : "text"
+            },
+            {
+              "code" : "String",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "”.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "This optional value contains the old value for that key if one existed before the update,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or ",
+              "type" : "text"
+            },
+            {
+              "code" : "nil",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " if no value existed:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "if let oldValue = airports.updateValue(\"Dublin Airport\", forKey: \"DUB\") {",
+            "    print(\"The old value for DUB was \\(oldValue).\")",
+            "}",
+            "\/\/ Prints \"The old value for DUB was Dublin.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can also use subscript syntax to retrieve a value from the dictionary for a particular key.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Because it’s possible to request a key for which no value exists,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "a dictionary’s subscript returns an optional value of the dictionary’s value type.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "If the dictionary contains a value for the requested key,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "the subscript returns an optional value containing the existing value for that key.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Otherwise, the subscript returns ",
+              "type" : "text"
+            },
+            {
+              "code" : "nil",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : ":",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "if let airportName = airports[\"DUB\"] {",
+            "    print(\"The name of the airport is \\(airportName).\")",
+            "} else {",
+            "    print(\"That airport isn't in the airports dictionary.\")",
+            "}",
+            "\/\/ Prints \"The name of the airport is Dublin Airport.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can use subscript syntax to remove a key-value pair from a dictionary",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "by assigning a value of ",
+              "type" : "text"
+            },
+            {
+              "code" : "nil",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " for that key:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "airports[\"APL\"] = \"Apple International\"",
+            "\/\/ \"Apple International\" isn't the real airport for APL, so delete it",
+            "airports[\"APL\"] = nil",
+            "\/\/ APL has now been removed from the dictionary"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Alternatively, remove a key-value pair from a dictionary",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "with the ",
+              "type" : "text"
+            },
+            {
+              "code" : "removeValue(forKey:)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "This method removes the key-value pair if it exists",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and returns the removed value,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "or returns ",
+              "type" : "text"
+            },
+            {
+              "code" : "nil",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " if no value existed:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "if let removedValue = airports.removeValue(forKey: \"DUB\") {",
+            "    print(\"The removed airport's name is \\(removedValue).\")",
+            "} else {",
+            "    print(\"The airports dictionary doesn't contain a value for DUB.\")",
+            "}",
+            "\/\/ Prints \"The removed airport's name is Dublin Airport.\""
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "anchor" : "Iterating-Over-a-Dictionary",
+          "level" : 3,
+          "text" : "Iterating Over a Dictionary",
+          "type" : "heading"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can iterate over the key-value pairs in a dictionary with a ",
+              "type" : "text"
+            },
+            {
+              "code" : "for",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "-",
+              "type" : "text"
+            },
+            {
+              "code" : "in",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " loop.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "Each item in the dictionary is returned as a ",
+              "type" : "text"
+            },
+            {
+              "code" : "(key, value)",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " tuple,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "and you can decompose the tuple’s members into temporary constants or variables",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "as part of the iteration:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "for (airportCode, airportName) in airports {",
+            "    print(\"\\(airportCode): \\(airportName)\")",
+            "}",
+            "\/\/ LHR: London Heathrow",
+            "\/\/ YYZ: Toronto Pearson"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "For more about the ",
+              "type" : "text"
+            },
+            {
+              "code" : "for",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : "-",
+              "type" : "text"
+            },
+            {
+              "code" : "in",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " loop, see ",
+              "type" : "text"
+            },
+            {
+              "identifier" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language\/ControlFlow#For-In-Loops",
+              "isActive" : true,
+              "type" : "reference"
+            },
+            {
+              "text" : ".",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "You can also retrieve an iterable collection of a dictionary’s keys or values",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "by accessing its ",
+              "type" : "text"
+            },
+            {
+              "code" : "keys",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " and ",
+              "type" : "text"
+            },
+            {
+              "code" : "values",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " properties:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "for airportCode in airports.keys {",
+            "    print(\"Airport code: \\(airportCode)\")",
+            "}",
+            "\/\/ Airport code: LHR",
+            "\/\/ Airport code: YYZ",
+            "",
+            "for airportName in airports.values {",
+            "    print(\"Airport name: \\(airportName)\")",
+            "}",
+            "\/\/ Airport name: London Heathrow",
+            "\/\/ Airport name: Toronto Pearson"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "If you need to use a dictionary’s keys or values",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "with an API that takes an ",
+              "type" : "text"
+            },
+            {
+              "code" : "Array",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " instance, initialize a new array",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "with the ",
+              "type" : "text"
+            },
+            {
+              "code" : "keys",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " or ",
+              "type" : "text"
+            },
+            {
+              "code" : "values",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property:",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        },
+        {
+          "code" : [
+            "let airportCodes = [String](airports.keys)",
+            "\/\/ airportCodes is [\"LHR\", \"YYZ\"]",
+            "",
+            "let airportNames = [String](airports.values)",
+            "\/\/ airportNames is [\"London Heathrow\", \"Toronto Pearson\"]"
+          ],
+          "syntax" : "swift",
+          "type" : "codeListing"
+        },
+        {
+          "inlineContent" : [
+            {
+              "text" : "Swift’s ",
+              "type" : "text"
+            },
+            {
+              "code" : "Dictionary",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " type doesn’t have a defined ordering.",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "To iterate over the keys or values of a dictionary in a specific order,",
+              "type" : "text"
+            },
+            {
+              "text" : " ",
+              "type" : "text"
+            },
+            {
+              "text" : "use the ",
+              "type" : "text"
+            },
+            {
+              "code" : "sorted()",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " method on its ",
+              "type" : "text"
+            },
+            {
+              "code" : "keys",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " or ",
+              "type" : "text"
+            },
+            {
+              "code" : "values",
+              "type" : "codeVoice"
+            },
+            {
+              "text" : " property.",
+              "type" : "text"
+            }
+          ],
+          "type" : "paragraph"
+        }
+      ],
+      "kind" : "content"
+    }
+  ],
+  "schemaVersion" : {
+    "major" : 0,
+    "minor" : 3,
+    "patch" : 0
+  },
+  "sections" : [
+
+  ]
+, 
+"references": {
+"CollectionTypes_intro": {
+  "alt" : null,
+  "identifier" : "CollectionTypes_intro",
+  "type" : "image",
+  "variants" : [
+    {
+      "traits" : [
+        "2x",
+        "light"
+      ],
+      "url" : "\/images\/org.swift.tspl\/CollectionTypes_intro@2x.png"
+    },
+    {
+      "traits" : [
+        "2x",
+        "dark"
+      ],
+      "url" : "\/images\/org.swift.tspl\/CollectionTypes_intro~dark@2x.png"
+    }
+  ]
+},
+"doc://org.swift.tspl/documentation/The-Swift-Programming-Language": {
+  "abstract" : [
+    {
+      "text" : "Write safe, fast, expressive code with a modern, general-purpose language.",
+      "type" : "text"
+    }
+  ],
+  "identifier" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language",
+  "kind" : "article",
+  "role" : "collection",
+  "title" : "The Swift Programming Language (6.4 beta)",
+  "type" : "topic",
+  "url" : "\/documentation\/the-swift-programming-language"
+},
+"doc://org.swift.tspl/documentation/The-Swift-Programming-Language/ControlFlow#For-In-Loops": {
+  "abstract" : [
+
+  ],
+  "identifier" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language\/ControlFlow#For-In-Loops",
+  "kind" : "section",
+  "title" : "For-In Loops",
+  "type" : "topic",
+  "url" : "\/documentation\/the-swift-programming-language\/controlflow#For-In-Loops"
+},
+"doc://org.swift.tspl/documentation/The-Swift-Programming-Language/Enumerations": {
+  "abstract" : [
+    {
+      "text" : "Model custom types that define a list of possible values.",
+      "type" : "text"
+    }
+  ],
+  "identifier" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language\/Enumerations",
+  "kind" : "article",
+  "role" : "article",
+  "title" : "Enumerations",
+  "type" : "topic",
+  "url" : "\/documentation\/the-swift-programming-language\/enumerations"
+},
+"doc://org.swift.tspl/documentation/The-Swift-Programming-Language/Generics": {
+  "abstract" : [
+    {
+      "text" : "Write code that works for multiple types and specify requirements for those types.",
+      "type" : "text"
+    }
+  ],
+  "identifier" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language\/Generics",
+  "kind" : "article",
+  "role" : "article",
+  "title" : "Generics",
+  "type" : "topic",
+  "url" : "\/documentation\/the-swift-programming-language\/generics"
+},
+"doc://org.swift.tspl/documentation/The-Swift-Programming-Language/Protocols": {
+  "abstract" : [
+    {
+      "text" : "Define requirements that conforming types must implement.",
+      "type" : "text"
+    }
+  ],
+  "identifier" : "doc:\/\/org.swift.tspl\/documentation\/The-Swift-Programming-Language\/Protocols",
+  "kind" : "article",
+  "role" : "article",
+  "title" : "Protocols",
+  "type" : "topic",
+  "url" : "\/documentation\/the-swift-programming-language\/protocols"
+},
+"https://developer.apple.com/documentation/swift/array#2846730": {
+  "identifier" : "https:\/\/developer.apple.com\/documentation\/swift\/array#2846730",
+  "title" : "Bridging Between Array and NSArray",
+  "titleInlineContent" : [
+    {
+      "text" : "Bridging Between Array and NSArray",
+      "type" : "text"
+    }
+  ],
+  "type" : "link",
+  "url" : "https:\/\/developer.apple.com\/documentation\/swift\/array#2846730"
+},
+"https://developer.apple.com/documentation/swift/dictionary#2846239": {
+  "identifier" : "https:\/\/developer.apple.com\/documentation\/swift\/dictionary#2846239",
+  "title" : "Bridging Between Dictionary and NSDictionary",
+  "titleInlineContent" : [
+    {
+      "text" : "Bridging Between Dictionary and NSDictionary",
+      "type" : "text"
+    }
+  ],
+  "type" : "link",
+  "url" : "https:\/\/developer.apple.com\/documentation\/swift\/dictionary#2846239"
+},
+"https://developer.apple.com/documentation/swift/hashable": {
+  "identifier" : "https:\/\/developer.apple.com\/documentation\/swift\/hashable",
+  "title" : "Hashable",
+  "titleInlineContent" : [
+    {
+      "code" : "Hashable",
+      "type" : "codeVoice"
+    }
+  ],
+  "type" : "link",
+  "url" : "https:\/\/developer.apple.com\/documentation\/swift\/hashable"
+},
+"https://developer.apple.com/documentation/swift/set#2845530": {
+  "identifier" : "https:\/\/developer.apple.com\/documentation\/swift\/set#2845530",
+  "title" : "Bridging Between Set and NSSet",
+  "titleInlineContent" : [
+    {
+      "text" : "Bridging Between Set and NSSet",
+      "type" : "text"
+    }
+  ],
+  "type" : "link",
+  "url" : "https:\/\/developer.apple.com\/documentation\/swift\/set#2845530"
+},
+"setEulerDiagram": {
+  "alt" : null,
+  "identifier" : "setEulerDiagram",
+  "type" : "image",
+  "variants" : [
+    {
+      "traits" : [
+        "2x",
+        "light"
+      ],
+      "url" : "\/images\/org.swift.tspl\/setEulerDiagram@2x.png"
+    },
+    {
+      "traits" : [
+        "2x",
+        "dark"
+      ],
+      "url" : "\/images\/org.swift.tspl\/setEulerDiagram~dark@2x.png"
+    }
+  ]
+},
+"setVennDiagram": {
+  "alt" : null,
+  "identifier" : "setVennDiagram",
+  "type" : "image",
+  "variants" : [
+    {
+      "traits" : [
+        "2x",
+        "light"
+      ],
+      "url" : "\/images\/org.swift.tspl\/setVennDiagram@2x.png"
+    },
+    {
+      "traits" : [
+        "2x",
+        "dark"
+      ],
+      "url" : "\/images\/org.swift.tspl\/setVennDiagram~dark@2x.png"
+    }
+  ]
+}
+}
+}

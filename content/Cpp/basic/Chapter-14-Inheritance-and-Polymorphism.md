@@ -131,7 +131,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 多态演示 ===
 Buddy barks: Woof! Woof!
 Whiskers meows: Meow~
@@ -491,7 +491,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 虚函数 vs 普通函数 ===
 Drawing a circle
 I am a Shape
@@ -695,7 +695,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 抽象类演示 ===
 Drawing a circle with radius 5
 Drawing a rectangle 4x3
@@ -1095,14 +1095,14 @@ int main() {
     
     std::cout << "\n=== 函数参数的切片陷阱 ===" << std::endl;
     // 注意！如果你这样写：
-    void processByValue(Base b);      // 值传递会切片！
-    // processByValue(d);  // 编译通过！但d被切片——派生类部分被丢弃！
+    // void processByValue(Base b);   // 值传递会切片！
+    // processByValue(d);             // 编译通过！但d被切片——派生类部分被丢弃！
     // 这是个隐蔽的bug：代码能跑，但行为不符合预期
     
     // 正确做法：传引用或传指针
-    void processRef(const Base& b) {  // 传引用，不会切片
+    auto processRef = [](const Base& b) {  // 传引用，不会切片
         b.identify();
-    }
+    };
     processRef(d);
     
     return 0;
@@ -1207,10 +1207,15 @@ public:
 int main() {
     Derived d;
     
-    d.method(5);      // 调用Derived::method(int) -> 输出: 10
-    d.method(3.14);    // 调用Base::method(double)！
-    // 因为Derived::method(double)不存在，所以没有隐藏
-    // 输出: Base::method(double) = 3.14
+    d.method(5);      // 调用Derived::method(int) -> 输出: Derived::method(int) = 10
+    d.method(3.14);   // ⚠️ 仍然是 Derived::method(int)！
+    // 名字查找只看"名字"：Derived 里一旦存在 method，
+    // 基类的整个重载集合就被隐藏了，编译器根本不会去 Base 里找 method(double)。
+    // 于是 3.14 被隐式转换成 int 3 -> 输出: Derived::method(int) = 6
+    // （这正是"隐藏"最坑人的地方：能编译通过，结果却和你以为的完全不一样）
+
+    // 想调用基类版本，要么用作用域限定，要么在派生类里用 using 引入
+    d.Base::method(3.14);   // 输出: Base::method(double) = 3.14
     
     // 如果想重写所有重载版本，必须全部override
     // 或者在Derived中 using Base::method; 来恢复所有重载

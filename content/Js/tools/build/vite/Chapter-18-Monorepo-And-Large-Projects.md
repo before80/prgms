@@ -11,7 +11,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-18-Monorepo-And-Large-Projects
 
 # 第18章：Monorepo 与大型项目
 

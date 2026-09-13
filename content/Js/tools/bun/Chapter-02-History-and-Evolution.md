@@ -29,7 +29,7 @@ Bun 有几个非常明确的设计目标：
 3. **100% 兼容 Node.js**：不需要改代码，直接替换 node
 4. **一体化**：一个工具替代 n 个工具（包管理 + 运行时 + 打包 + 测试）
 
-这些目标听起来简单，但实现起来非常难。Bun 团队用了全新的技术栈（JavaScriptCore + Zig）来实现这些目标。
+这些目标听起来简单，但实现起来非常难。Bun 团队用了全新的技术栈（JavaScriptCore + Zig，后来在 Bun 1.4 中把底层重写为 Rust）来实现这些目标。
 
 ---
 
@@ -119,17 +119,19 @@ Bun 选择 JavaScriptCore（简称 **JSC**）而不是 V8 作为 JavaScript 引�
 
 ---
 
-## 2.10 核心架构选型：Zig 语言重写底层
+## 2.10 核心架构选型：从 Zig 到 Rust
 
-Zig 是一门新兴的系统编程语言，作者是 Andrew Kelley。Bun 用 Zig 重写了整个底层（JavaScript 引擎除外），包括内存管理、文件系统 I/O、网络 socket 等核心模块。
+Zig 是一门新兴的系统编程语言，作者是 Andrew Kelley。Bun 1.3 及之前用 Zig 重写了整个底层（JavaScript 引擎除外），包括内存管理、文件系统 I/O、网络 socket 等核心模块。
 
-**为什么选 Zig？**
+**为什么早期选 Zig？**
 - **内存管理精细**：Zig 让你手动控制内存分配，没有 GC（垃圾回收器）的不可预测停顿
 - **高性能**：Zig 的性能接近 C，但比 C 更安全
 - **简单**：语法比 Rust 简单，上手更快
 - **与 C 无缝互调**：方便复用现有的 C 生态库
 
 Bun 的内存管理是自己写的，不依赖现有的运行时，这意味着 Bun 团队可以**精确控制**每个操作的内存分配和释放。这也是 Bun 速度快的秘诀之一。
+
+**Bun 1.4（2026 年 8 月）改用 Rust 重写**：Bun 官方宣布将运行时底层从 Zig 迁移到 Rust，并大幅提升了 Node.js 兼容性、降低了内存占用和空闲 CPU 使用率。因此，描述当前 Bun 架构时应写成 **Rust + JavaScriptCore**；Zig 是早期版本的历史事实。
 
 ---
 
@@ -162,8 +164,8 @@ Bun 的终极目标是：**统一 JavaScript 工具链**。
 
 ## 本章小结
 
-本章梳理了 Bun 的发展历史。Bun 由 Jarred Sumner 于 2022 年创立，Oven 公司维护，基于 JavaScriptCore + Zig 从零重写，目标是统一 JavaScript 工具链。
+本章梳理了 Bun 的发展历史。Bun 由 Jarred Sumner 于 2022 年创立，Oven 公司维护，基于 JavaScriptCore + Zig（1.4 起为 Rust）从零重写，目标是统一 JavaScript 工具链。
 
-关键版本节点：v0.1（2022.07 首发）→ v1.0（2023.09 生产可用）→ v1.1（2024.03 Windows 支持）→ v1.2（2024.10 内置 PostgreSQL(Bun.sql)/SQLite/S3，MySQL/Redis 仍在开发）→ v1.3（2025.02 全栈前端开发+HMR+MySQL+Redis 客户端+Bun.cron）。2024 年 Bun 宣布加入 Anthropic，获得了更强大的资源支持。
+关键版本节点：v0.1（2022.07 首发）→ v1.0（2023.09 生产可用）→ v1.1（2024.03 Windows 支持）→ v1.2（2024.10 内置 PostgreSQL(Bun.sql)/SQLite/S3）→ v1.3（2025.02 全栈前端开发+HMR+MySQL+Redis 客户端+Bun.cron）→ v1.4（2026.08 底层改用 Rust，新增 Bun.Image、Bun.WebView、Bun.markdown 等内置能力）。2024 年 Bun 宣布加入 Anthropic，获得了更强大的资源支持。
 
-Bun 的技术选型：JavaScriptCore 引擎（启动快） + Zig 语言（底层全栈自研），这两个选择共同构成了 Bun"极速"的底层基础。
+Bun 的技术选型：JavaScriptCore 引擎（启动快） + Rust 语言（当前底层，1.4+；早期为 Zig），这两个选择共同构成了 Bun"极速"的底层基础。

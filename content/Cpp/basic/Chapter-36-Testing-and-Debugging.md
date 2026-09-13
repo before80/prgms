@@ -79,6 +79,9 @@ C++更是bug的重灾区。指针操作、内存管理、模板元编程的诡�
 // math_utils.h
 #pragma once
 
+#include <iostream>    // std::cout / std::cerr
+#include <stdexcept>   // std::runtime_error / std::invalid_argument
+
 int add(int a, int b) {
     return a + b;
 }
@@ -164,6 +167,8 @@ cd googletest && cmake -B build && cmake --build build
 ```
 
 #### Google Test快速上手
+
+> 📦 **依赖**：GoogleTest 是**第三方库**，需要按上面的方式安装（macOS：`brew install googletest`，或把源码加进 CMake 的 `add_subdirectory`）。下面的例子不能只靠标准库编译。
 
 ```cpp
 // gtest_demo.cpp
@@ -310,7 +315,7 @@ g++ -std=c++17 gtest_demo.cpp -lgtest -lgtest_main -pthread -o gtest_demo
 ```
 
 输出示例：
-```
+```text
 [==========] Running 13 tests from 3 test suites.
 [----------] Global test environment set-up.
 [----------] 3 tests from MathBasic
@@ -890,7 +895,7 @@ clang++ -fsanitize=fuzzer,address -g fuzz_target.cpp -o fuzz_target
 5. **修复（Fix）**：实施修复
 6. **确认（Confirm）**：运行测试，确认修复有效
 
-```
+```text
 Bug的症状 ──> 缩小范围 ──> 提出假设 ──> 验证 ──> 找到根因 ──> 修复
      ^                                                           │
      └─────────────────── 验证修复 ──────────────────────────────┘
@@ -1094,6 +1099,7 @@ ASan能检测：
 
 ```cpp
 // asan_demo.cpp
+#include <iostream>   // std::cout
 #include <cstdlib>
 #include <cstring>
 
@@ -1135,7 +1141,7 @@ g++ -fsanitize=address -g -O1 asan_demo.cpp -o asan_demo
 ```
 
 ASan输出示例：
-```
+```text
 =================================================================
 ==12345==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x602000000030
 WRITE of size 35 at 0x602000000030 thread T0
@@ -1180,7 +1186,7 @@ valgrind --leak-check=full ./valgrind_demo
 ```
 
 输出：
-```
+```text
 ==12346== Memcheck, a memory error detector
 ...
 ==12346== 100 bytes in 1 blocks are definitely lost in loss record 1 of 1
@@ -1205,6 +1211,7 @@ C++的很多操作是"undefined behavior"（未定义行为），编译器可能
 ```cpp
 // ubsan_demo.cpp
 #include <cstdint>
+#include <climits>    // INT_MAX
 
 int main() {
     // 有符号整数溢出 - UB！
@@ -1229,7 +1236,7 @@ g++ -fsanitize=undefined -g ubsan_demo.cpp -o ubsan_demo
 ```
 
 UBSan输出：
-```
+```text
 ubsan_demo.cpp:5: runtime error: signed integer overflow: 2147483647 + 1 cannot be represented in type 'int'
 ```
 
@@ -1399,17 +1406,23 @@ int main() {
 }
 ```
 
-**输出**：
+**输出**（时间戳、线程ID、文件路径、行号都随实际运行环境变化，下面只保留格式）：
+
+```text
+[INFO ] (时间) (线程ID) (文件路径):(行号) - Application started
+[DEBUG] (时间) (线程ID) (文件路径):(行号) - Debug mode enabled
+[INFO ] (时间) (线程ID) (文件路径):(行号) - Connecting to example.com:8080
+[DEBUG] (时间) (线程ID) (文件路径):(行号) - Connection established
+[DEBUG] (时间) (线程ID) (文件路径):(行号) - Sent 13 bytes
+[INFO ] (时间) (线程ID) (文件路径):(行号) - Connecting to :80
+[ERROR] (时间) (线程ID) (文件路径):(行号) - Host cannot be empty
+[WARN ] (时间) (线程ID) (文件路径):(行号) - Sending empty data
+[INFO ] (时间) (线程ID) (文件路径):(行号) - Application finished
 ```
-[INFO ] 2026-03-29 15:48:00.123 [12345] logger_demo.cpp:71 - Application started
-[DEBUG] 2026-03-29 15:48:00.124 [12345] logger_demo.cpp:72 - Debug mode enabled
-[INFO ] 2026-03-29 15:48:00.124 [12345] logger_demo.cpp:79 - Connecting to example.com:8080
-[DEBUG] 2026-03-29 15:48:00.125 [12345] logger_demo.cpp:80 - Connection established
-[DEBUG] 2026-03-29 15:48:00.125 [12345] logger_demo.cpp:86 - Sent 13 bytes
-[ERROR] 2026-03-29 15:48:00.125 [12345] logger_demo.cpp:81 - Host cannot be empty
-[WARN ] 2026-03-29 15:48:00.125 [12345] logger_demo.cpp:87 - Sending empty data
-[INFO ] 2026-03-29 15:48:00.125 [12345] logger_demo.cpp:91 - Application finished
-```
+
+> ⚠️ **注意日志顺序**：`net.connect("", 80)` 会先打印 `Connecting to :80`，**再**打印错误 `Host cannot be empty`——
+> 因为"连接"这行日志写在空主机名检查之前。而 `net.send("")` 则直接给出警告，不会有 `Sent 0 bytes`。
+> 用日志排查问题时，"最后一条日志"往往比异常信息更有价值，所以顺序和内容都要看清楚。
 
 **生产环境建议**：使用成熟的日志库如`spdlog`或`boost.log`，不要重复造轮子。
 
@@ -1420,6 +1433,7 @@ int main() {
 ```cpp
 #include <cassert>
 #include <algorithm>
+#include <vector>
 
 int binarySearch(const std::vector<int>& sorted, int target) {
     assert(std::is_sorted(sorted.begin(), sorted.end()) && 
@@ -1490,7 +1504,7 @@ void processAge(int age) {
 
 **持续集成（Continuous Integration）**是一种开发实践：每次代码提交（commit）到版本库时，自动运行构建和测试，及时发现集成错误。
 
-```
+```text
 开发者A ──> 提交代码 ──> CI服务器 ──> 编译 ──> 测试 ──> 报告结果
                               │
 开发者B ──> 提交代码 ──> ──────┘
@@ -1675,6 +1689,10 @@ C++模板错误信息出了名的难懂，一个简单的错误可能引发几�
 
 ```cpp
 // 这个代码在C++17之前可能产生100+行的错误信息
+#include <vector>
+#include <string>
+#include <algorithm>
+
 template<typename T>
 T maxValue(const std::vector<T>& v) {
     return *std::max_element(v.begin(), v.end());

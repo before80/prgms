@@ -586,13 +586,13 @@ npx create-next-app my-project --use-bun
 | **npm** | Node.js 内置，无需安装，生态最大 | 所有人，尤其是初学者 |
 | **yarn** | 速度快，有离线缓存，输出信息友好 | 喜欢 yarn 工作流的团队 |
 | **pnpm** | 磁盘利用率极高（使用硬链接/软链接），速度快 | 磁盘空间紧张或追求性能的开发者 |
-| **bun** | 用 Zig 写的，极速，支持 TypeScript 内置 | 极客玩家和追求最新技术的先行者 |
+| **bun** | 用 Rust 重写的极速一体化运行时，内置 TypeScript 支持 | 极客玩家和追求最新技术的先行者 |
 
 如果你不传这个参数，交互式创建时会**让你手动选择一个**。
 
 > 一个小技巧：如果你同时安装了多个包管理器，macOS/Linux 下可以用 `corepack enable` 来快速启用 yarn 或 pnpm，而不需要单独安装它们。
 
-### 3.3.8 `--turbo`（Next.js 14）/ `--turbopack`（Next.js 15+）
+### 3.3.8 `--turbo`（Next.js 14）/ `--turbopack`（Next.js 15）与 Next.js 16 默认行为
 
 **作用**：启用 Turbopack——Vercel 开发的下一代打包工具，被认为是 Webpack 的"性能猛兽升级版"。
 
@@ -600,8 +600,11 @@ npx create-next-app my-project --use-bun
 # Next.js 14：使用 --turbo
 npx create-next-app@14 my-project --turbo
 
-# Next.js 15+：使用 --turbopack
-npx create-next-app@latest my-project --turbopack
+# Next.js 15：使用 --turbopack
+npx create-next-app@15 my-project --turbopack
+
+# Next.js 16：Turbopack 已是默认打包器，通常不需要再显式开启
+npx create-next-app@16 my-project
 ```
 
 **Turbopack** 是 Vercel 用 Rust 重写的打包工具，它的目标是：
@@ -622,7 +625,7 @@ graph LR
     E --> G[立即看到变化<br/>开发体验拉满]
 ```
 
-> 注意：Turbopack 在 Next.js 15 中作为**稳定版**推荐使用，而在 Next.js 14 中还是实验性功能。如果你使用的是 Next.js 15 及以上，`--turbopack` 会是默认的开发服务器选项（`next dev` 默认使用 Turbopack）。如果你还在用 Next.js 14，就需要使用 `--turbo` 来启用它。
+> 注意：Turbopack 在 Next.js 15 中已逐步稳定，在 Next.js 16 中成为**开发和生产构建的默认打包器**。如果你还在用 Next.js 14，需要 `--turbo` 启用实验性 Turbopack；如果用 Next.js 15，可使用 `--turbopack`；Next.js 16 通常不需要额外参数，确实需要退回 Webpack 时可使用 `next build --webpack`。
 
 ### 3.3.9 `--yes` / `-y`
 
@@ -732,10 +735,10 @@ my-fullstack-app/
 │   ├── components/           # （空的，但目录已创建）
 │   └── lib/                  # （空的，但目录已创建）
 ├── public/
-├── .eslintrc.json            # ESLint 配置
+├── eslint.config.mjs         # ESLint 配置（Next.js 16 默认 Flat Config）
 ├── .gitignore
 ├── next-env.d.ts             # Next.js 的 TypeScript 类型声明文件
-├── next.config.mjs          # Next.js 配置文件
+├── next.config.ts           # Next.js 配置文件（Next.js 16 默认）
 ├── package-lock.json         # npm 锁文件（精确记录每个依赖的版本）
 ├── package.json
 ├── postcss.config.mjs        # PostCSS 配置（Tailwind 需要）
@@ -878,7 +881,7 @@ npm run dev
 >     "dev": "next dev",
 >     "build": "next build",
 >     "start": "next start",
->     "lint": "next lint"
+>     "lint": "eslint ."
 >   }
 > }
 > ```
@@ -932,7 +935,7 @@ http://localhost:3000
 | `--app` / `--no-app` | 是否使用 App Router | ✅ 默认开启 |
 | `--import-alias` | 路径别名前缀 | `@/*` |
 | `--use-npm/yarn/pnpm/bun` | 指定包管理器 | 交互式选择 |
-| `--turbopack` | 启用 Turbopack 打包 | Next.js 15+ |
+| `--turbopack` | 显式启用 Turbopack；Next.js 16 已默认启用 | Next.js 15+ |
 | `--yes` / `-y` | 使用所有默认选项 | — |
 
 ### 创建后的启动流程

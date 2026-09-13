@@ -141,37 +141,48 @@ constexpr 类型 变量名 = 表达式;
 
 ### std::is_integral_v 的前世今生
 
-在C++11/14中，有一个经典的需求：判断一个类型是否是整数类型。通常你会这么写：
+有一个经典的需求：判断一个类型是否是整数类型。在C++11里，你只能这么写：
 
 ```cpp
-// C++11风格
+// C++11 风格：类型萃取类模板 + ::value
 std::is_integral<int>::value  // 返回true
 std::is_integral<double>::value  // 返回false
 ```
 
-这玩意儿又臭又长，每次写都要敲半天。到了C++14，人们决定给它起个绰号（别名模板），于是：
+这玩意儿又臭又长，每次写都要敲半天。于是人们很自然地想：能不能把它变成一个**变量**？
 
 ```cpp
-// C++14风格
+// C++17 才有的标准写法
 std::is_integral_v<int>  // 更简洁，效果一样
 ```
 
-这个`_v`后缀就是变量模板的约定。下面我们来看完整例子：
+> ⚠️ **一个极易搞混的时间点**（很多教程都写错）：
+> - **变量模板这个语言特性**是 **C++14** 引入的；
+> - 但标准库里那一大批 **`_v` 后缀**（`is_integral_v`、`is_floating_point_v`、`is_same_v`…）
+>   是 **C++17** 才补上的（提案 P0006R0）。
+>
+> 换句话说：**C++14 里根本没有 `std::is_integral_v`**。你要么写 `std::is_integral<int>::value`，
+> 要么**自己定义一个变量模板**——而这正是 C++14 让这件事变简单的原因。下面就是完整的例子：
+
+这个`_v`后缀后来成了标准库的约定。而在 C++14 里，你完全可以自己写一个同样好用的变量模板：
 
 ```cpp
 #include <iostream>
+#include <cstddef>
 #include <type_traits>
 
 // C++14: 变量模板
 // 语法：template<typename T> constexpr 类型 变量名 = 初始值;
 
 // 判断T是否是整数类型，结果是一个编译期常量bool
+// （注意：这是在"自己造一个 C++17 才有的 std::is_integral_v"，所以故意起了同名，
+//   用来说明"C++14 里这个得你自己写"。真实项目里请直接写 std::is_integral_v）
 template<typename T>
 constexpr bool is_integral_v = std::is_integral<T>::value;
 
 // 获取T类型的大小（字节数），结果是一个编译期常量size_t
 template<typename T>
-constexpr size_t type_size_v = sizeof(T);
+constexpr std::size_t type_size_v = sizeof(T);
 
 int main() {
     std::cout << std::boolalpha;  // 输出true/false而不是1/0
@@ -211,7 +222,7 @@ constexpr bool is_integral_v_char = std::is_integral<char>::value;     // true
 
 ### 常见标准库变量模板
 
-C++14之后，标准库提供了大量的`_v`变量模板（到了C++17还有`_nv`等变体）：
+**C++17** 起，标准库补齐了大量 `_v` 变量模板（C++14 里一个都没有，得自己写）：
 
 | 变量模板 | 判断的类型 |
 |---------|-----------|
@@ -221,16 +232,30 @@ C++14之后，标准库提供了大量的`_v`变量模板（到了C++17还有`_n
 | `is_pointer_v<T>` | T是否是指针类型 |
 | `is_enum_v<T>` | T是否是枚举类型 |
 
+> 📌 **顺带认识两个同类后缀**（都是命名约定，不是不同的语言特性）：
+>
+> | 后缀 | 含义 | 新写法 | 老写法 |
+> |---|---|---|---|
+> | `_v` | 变量模板，取**值** | `std::is_integral_v<int>` | `std::is_integral<int>::value` |
+> | `_t` | 别名模板，取**类型** | `std::remove_reference_t<int&>` | `std::remove_reference<int&>::type` |
+>
+> 这两个后缀**不是同一批进来的**，正好可以用来检验你有没有记住本节的重点：
+> - `_t`（**取类型**，如 `std::remove_const_t<T>`）是 **C++14** 就有的（N3655）；
+> - `_v`（**取值**，如 `std::is_integral_v<T>`）要等到 **C++17**（P0006R0）。
+>
+> 实测一下就很清楚：`clang++ -std=c++14` 编译 `std::remove_const_t<const int>` 通过，
+> 编译 `std::is_integral_v<int>` 则报 `no template named 'is_integral_v'`。
+
 ### 幽默一刻
 
-变量模板的命名约定其实是个悲伤的故事：
+变量模板的故事是个典型的"起了个大早，赶了个晚集"：
 
-1. C++11：写`::value`
-2. C++14：写`_v`
-3. C++17：写`::value_v`（不，等等，标准没采纳）
-4. 最终共识：`_v`就是标准答案
+1. **C++11**：只有 `std::is_integral<int>::value`，又臭又长。
+2. **C++14**：语言层面给了你**变量模板**这个工具，但标准库**一个都没用上**——
+   你得自己写 `template<typename T> constexpr bool is_integral_v = std::is_integral<T>::value;`。
+3. **C++17**：标准库终于把 `_v` 版本补齐了（P0006R0），从此 `std::is_integral_v<int>` 开箱即用。
 
-所以你记住：看到`_v`，就知道这是个C++14的变量模板；看到`::value`，就知道这是C++11的元编程遗产。
+所以你记住这条**容易记反**的结论：**变量模板是 C++14 的，`std::xxx_v` 是 C++17 的。**
 
 ---
 
@@ -423,9 +448,10 @@ int main() {
     int packet = TCPFlags::SYN | TCPFlags::ACK;
     
     std::cout << "TCP包标志位: " << std::endl;
-    std::cout << "  SYN: " << ((packet & TCPFlags::SYN) != 0) << std::endl;  // 输出: 1 (true)
-    std::cout << "  ACK: " << ((packet & TCPFlags::ACK) != 0) << std::endl;  // 输出: 1 (true)
-    std::cout << "  FIN: " << ((packet & TCPFlags::FIN) != 0) << std::endl;  // 输出: 0 (false)
+    // 注意：没打开 boolalpha，所以 bool 会打印成 1 / 0
+    std::cout << "  SYN: " << ((packet & TCPFlags::SYN) != 0) << std::endl;  // 输出: 1（即 true）
+    std::cout << "  ACK: " << ((packet & TCPFlags::ACK) != 0) << std::endl;  // 输出: 1（即 true）
+    std::cout << "  FIN: " << ((packet & TCPFlags::FIN) != 0) << std::endl;  // 输出: 0（即 false）
     
     return 0;
 }
@@ -449,10 +475,26 @@ int main() {
 
 ### 语法规则
 
-1. 单引号可以放在数字之间的任意位置
-2. 可以连续放多个（比如`0b1111'0000'1111'0000`）
-3. 不能放在数字开头或结尾
-4. 进制前缀（`0x`、`0b`）后面可以直接跟数字
+1. 单引号只能放在**两个数字之间**，并且**只能放一个**（`1'000` ✅，`1''000` ❌）
+2. 不能放在数字的开头或结尾（`1'000'` ❌；写成 `'1000'` 就更糟——那会变成"多字符字面量"，见下文）
+3. 不能紧挨着进制前缀（`0x'FF` ❌、`0b'1010` ❌）
+4. 十六进制里的字母也算"数字"，所以 `0xFF'00'00` 合法；小数点在两边有数字时也能用（`1'000.000'1` ✅）
+
+> 🧪 **这是"实测才能记住"的一条**。下面几种写法在 Apple clang 21 上的真实结果（别背规则，亲手试一遍）：
+>
+> ```text
+> int a = 1''000;   // ❌ error: expected ';' after top level declarator
+>                   //    （另有一条 warning: empty character constant）
+> int b = 0x'FF;    // ❌ error: invalid suffix 'x'FF' on integer constant
+> int c = 1'000';   // ❌ error: expected ';' after top level declarator
+>                   //    （另有一条 warning: missing terminating ' character）
+> int e = 0b'1010;  // ❌ error: invalid digit 'b' in octal constant
+> ```
+>
+> ⚠️ **最阴的一个坑在这里**：`int d = '1000';`（单引号开头、单引号结尾、里面塞了 4 位数字）
+> **既不报错也不报警告**——因为它是合法的**多字符字面量**（multi-character literal），值是**实现定义**的。
+> 在 Apple clang 21 上打印出来是 `825241648`，而标准只保证"它是某个 `int`"。
+> 看到这种数字，基本可以断定作者本来想写 `1'000`。
 
 ```cpp
 #include <iostream>
@@ -471,7 +513,7 @@ int main() {
     int mask = 0b1111'0000'1111'0000;  // 高低四位都是1
     
     // 十六进制：每2位一组
-    int color = 0xFF'00'00;  // 纯红色（ARGB格式）
+    int color = 0xFF'00'00;  // 纯红色（RGB 格式：红 FF、绿 00、蓝 00）
     
     // long long：天文数字也能readably
     long long big = 9'223'372'036'854'775'807LL;  // LLONG_MAX
@@ -497,6 +539,7 @@ int main() {
 
 ```cpp
 #include <iostream>
+#include <cstddef>   // std::size_t
 
 int main() {
     // 物理/数学常数
@@ -508,10 +551,10 @@ int main() {
     long double tax = 199'999.90;      // 约二十万税
     
     // 字节数
-    const size_t KB = 1'024;           // 1KB = 1024字节
-    const size_t MB = 1'048'576;       // 1MB = 1024*1024
-    const size_t GB = 1'073'741'824;   // 1GB = 1024^3
-    const size_t TB = 1'099'511'627'776;  // 1TB
+    const std::size_t KB = 1'024;            // 1KB = 1024字节
+    const std::size_t MB = 1'048'576;        // 1MB = 1024*1024
+    const std::size_t GB = 1'073'741'824;    // 1GB = 1024^3
+    const std::size_t TB = 1'099'511'627'776;  // 1TB（64 位上没问题，32 位会溢出）
     
     std::cout << "1KB = " << KB << " bytes" << std::endl;  // 输出: 1KB = 1024 bytes
     std::cout << "1MB = " << MB << " bytes" << std::endl;  // 输出: 1MB = 1048576 bytes
@@ -739,42 +782,104 @@ int main() {
 
 ### 为什么推荐使用make_unique？
 
-1. **异常安全**：直接用`new`构造时，如果构造函数抛出异常，内存可能泄漏
-2. **代码简洁**：不需要重复写类型名
-3. **性能优化**：`make_unique`可以一次性分配对象和引用计数块（对于shared_ptr）
+1. **异常安全**：在"一行里干好几件事"的表达式里，裸 `new` 可能在你还没把指针交给智能指针时就抛异常，内存就丢了
+2. **不会泄漏**：手动 `new`/`delete` 一旦提前 `return` 或抛异常，`delete` 就永远执行不到；`unique_ptr` 的析构总会被调用
+3. **代码简洁**：不需要重复写两遍类型名（`std::unique_ptr<T>(new T(...))` vs `std::make_unique<T>(...)`）
+
+> ❌ **一个常见的错误说法**：有些教程写"`make_unique` 可以一次性分配对象和引用计数块，所以更快"。
+> 这是把 `make_shared` 的特性套到了 `make_unique` 头上——**`unique_ptr` 根本没有引用计数块**，
+> 也就不存在"合并分配"这回事。`make_unique` 的快，主要体现在**少写一遍类型名、少一次手写 `new`**，
+> 真正的价值是**异常安全**，不是性能。
+
+先看最直观的一条差异——"提前返回"时会发生什么：
 
 ```cpp
 #include <iostream>
 #include <memory>
 
 struct Resource {
-    Resource() { std::cout << "Resource acquired" << std::endl; }
+    Resource()  { std::cout << "Resource acquired" << std::endl; }
     ~Resource() { std::cout << "Resource released" << std::endl; }
 };
 
-void process_with_raw_pointer() {
-    // 危险！如果do_something()抛出异常，内存泄漏
+// ① 手动 new/delete：一旦提前返回（或抛异常），delete 就永远执行不到 → 泄漏
+void with_raw_pointer(bool earlyExit) {
     Resource* r = new Resource();
-    // do_something();  // 假设这里抛出异常
-    delete r;  // 永远不会执行到
+    if (earlyExit) {
+        return;                 // ⚠️ 泄漏！r 指向的内存没人释放
+    }
+    delete r;
 }
 
-void process_with_unique_ptr() {
-    // 安全！即使do_something()抛出异常，unique_ptr也会释放资源
+// ② 智能指针：不管怎么离开作用域，析构函数都会跑
+void with_unique_ptr(bool earlyExit) {
     auto r = std::make_unique<Resource>();
-    // do_something();  // 假设这里抛出异常
-    // r会自动销毁
+    if (earlyExit) {
+        return;                 // ✅ 依然会释放
+    }
 }
 
 int main() {
-    std::cout << "=== 使用裸指针 ===" << std::endl;
-    // process_with_raw_pointer();
-    
-    std::cout << "=== 使用unique_ptr ===" << std::endl;
-    process_with_unique_ptr();
-    
+    std::cout << "=== 裸指针版本（提前返回 → 泄漏）===" << std::endl;
+    with_raw_pointer(true);     // 只看到 acquired，看不到 released
+
+    std::cout << "=== unique_ptr 版本（提前返回 → 仍然释放）===" << std::endl;
+    with_unique_ptr(true);      // acquired 和 released 都会出现
+
     return 0;
 }
+```
+
+输出：
+```text
+=== 裸指针版本（提前返回 → 泄漏）===
+Resource acquired
+=== unique_ptr 版本（提前返回 → 仍然释放）===
+Resource acquired
+Resource released
+```
+
+还有一条更隐蔽的**异常安全**问题，也是 `make_unique` 存在的最大理由：当它出现在"一个函数调用的实参列表"里时，
+手写 `new` 有可能在两个实参求值之间抛异常，导致已经分配的内存无人认领：
+
+```cpp
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+
+struct Widget {
+    Widget()  { std::cout << "Widget 构造" << std::endl; }
+    ~Widget() { std::cout << "Widget 析构" << std::endl; }
+};
+
+int mayThrow() {
+    throw std::runtime_error("出错了");
+}
+
+void use(std::unique_ptr<Widget> w, int n) { (void)w; (void)n; }
+
+int main() {
+    try {
+        // ❌ 危险写法（注释掉，跑起来会泄漏）：
+        //    new Widget() 先把裸指针造好，接着给 use 求第二个实参时抛异常，
+        //    那个裸指针就没人负责了。
+        // use(std::unique_ptr<Widget>(new Widget), mayThrow());
+
+        // ✅ 安全写法：make_unique 返回时所有权已经在 unique_ptr 里，
+        //    之后求值即使抛异常，临时对象也会把 Widget 释放掉。
+        use(std::make_unique<Widget>(), mayThrow());
+    } catch (const std::exception& e) {
+        std::cout << "捕获异常: " << e.what() << std::endl;
+    }
+    return 0;
+}
+```
+
+输出（注意：`Widget 构造` 之后**紧跟着** `Widget 析构`，说明异常路径上资源也没丢）：
+```text
+Widget 构造
+Widget 析构
+捕获异常: 出错了
 ```
 
 ### 实际使用场景
@@ -819,9 +924,17 @@ int main() {
 
 ### 幽默一刻
 
-关于`make_unique`有个趣事：C++11就有`make_shared`，但`make_unique`要等到C++14才加入。有人问Bjarne Stroustrup为什么，他说："呃...我们忘了？"
+上一版这里写了个段子，说"有人问 Bjarne Stroustrup 为什么，他说：呃……我们忘了？"——
+**这个引语是编的**，Stroustrup 没说过这话，标准委员会的会议记录里也没有"我们忘了一件事"这种承认。
 
-这大概是标准委员会唯一一次承认"我们忘了一件事"。
+真实的情况平淡得多：`make_shared` 在 C++11 就进了标准（它和 `shared_ptr` 一起设计），
+而 `make_unique` 的提案（N3588，作者 Stephan T. Lavavej）**提交得太晚**，赶不上 C++11 的特性冻结，
+只能排到 C++14。于是就有了这么个尴尬的十年：标准库教你别写 `new`，
+却偏偏没给你 `make_unique`，大家只好在项目里自己写一个 `make_unique` 垫着用。
+
+> 📝 **顺带一提**：这也解释了为什么很多老代码库里都有一个自己实现的 `make_unique`——
+> 它们是在 C++14 之前写的。如果你在旧代码里看到自己实现的 `make_unique`，
+> 而且项目已经升级到 C++14 以上，那就可以把自定义版本删掉、直接用 `std::make_unique` 了。
 
 ---
 
@@ -840,14 +953,21 @@ Lambda表达式可以"捕获"外部变量，使其在Lambda内部可见。但C++
 
 ### C++11的困境：移动捕获的缺失
 
-在C++11中，Lambda不支持移动捕获。如果你想"捕获"一个即将被移动的对象，你只能先复制或移动到局部变量，然后捕获它：
+在C++11中，Lambda不支持移动捕获（也没有 `std::make_unique`——它是C++14的）。
+如果你想把一个"只能移动"的对象（如 `std::unique_ptr`）弄进 Lambda，是做不到的：
 
 ```cpp
-// C++11做不到的事情
-auto up = std::make_unique<int>(42);
-// 想捕获up的移动后的状态？
-// [up = std::move(up)]  // C++11: 语法错误！
+// C++11 的写法：只能移动的对象根本进不了捕获列表
+std::unique_ptr<int> up(new int(42));   // C++11 只能用 new 来造
+
+// auto f = [up]() { return *up; };        // ❌ 按值捕获要拷贝，unique_ptr 不可拷贝
+// auto f = [&up]() { return *up; };       // ⚠️ 能编译，但只是在引用外面的 up，
+//                                         //    一旦 up 离开作用域就成了悬垂引用
+// auto f = [up = std::move(up)]() {...};  // ❌ 初始化捕获是 C++14 才有的语法
 ```
+
+> 换句话说：C++11 里想把 `unique_ptr` **安全地搬进** Lambda，无解。
+> 你只能退而求其次——捕获裸指针（丢掉了所有权语义），或者干脆不用 Lambda。
 
 ### C++14：初始化捕获
 
@@ -930,10 +1050,12 @@ int main() {
     
     // 例子：捕获字符串的一部分
     std::string full_name = "John Doe";
-    auto last_name = [name = full_name.substr(5)]() {  // substr返回" Doe"
+    // "John Doe" 的下标：J0 o1 h2 n3 (空格)4 D5 o6 e7
+    // substr(5) 从下标 5 开始，得到的是 "Doe"（不包含空格）
+    auto last_name = [name = full_name.substr(5)]() {
         return name;
     };
-    std::cout << "姓氏: '" << last_name() << "'" << std::endl;  // 输出: ' Doe'
+    std::cout << "姓氏: '" << last_name() << "'" << std::endl;  // 输出: 'Doe'
     
     // 例子：按引用初始化捕获
     int counter = 0;
@@ -974,7 +1096,7 @@ int main() {
     // 场景2：创建带状态的回调
     int invocation_count = 0;
     auto counting_callback = [count = 0]() mutable {
-        ++count;  // mutable允许修改按值捕获的变量
+        ++count;  // mutable 允许修改"按值捕获"出来的那份副本
         return count;
     };
     
@@ -982,8 +1104,13 @@ int main() {
     std::cout << "第2次调用: " << counting_callback() << std::endl;  // 输出: 2
     std::cout << "第3次调用: " << counting_callback() << std::endl;  // 输出: 3
     
-    // 注意：每次调用创建新的count，因为Lambda是按值捕获的
-    // 这是"拷贝"不是"引用"，所以不会影响外部的invocation_count
+    // 关键点：count 是 Lambda 对象自己的一个数据成员，从 0 初始化之后就一直在那儿。
+    // 正是因为有 mutable，才能每次调用都改它，于是依次得到 1、2、3——
+    // 这恰恰说明它**不是**每次新建，而是在同一个 Lambda 对象里累加。
+    //
+    // 至于外部的 invocation_count，它和这个 count 是两个毫无关系的变量，
+    // 所以调用三次之后，invocation_count 仍然是 0。
+    std::cout << "外部 invocation_count = " << invocation_count << std::endl;  // 输出: 0
     
     return 0;
 }
@@ -1001,9 +1128,194 @@ int main() {
 
 ---
 
+---
+
+## 24.9 容易被漏掉的几个 C++14 特性
+
+C++14 的"八大特性"是各大教程的常驻嘉宾，但标准里其实还塞了几个**不显眼但很好用**的东西。
+它们不像泛型 Lambda 那样天天上头条，却经常在你需要的时候突然出现。
+
+### 24.9.1 `[[deprecated]]`：正式的标准属性（注意：这是 C++14，不是 C++11！）
+
+`[[...]]` 这种属性语法是 C++11 引入的，但 C++11 里只定义了 `[[noreturn]]` 和 `[[carries_dependency]]`。
+大家最常用的 `[[deprecated]]` 其实是 **C++14** 才进入标准的：
+
+```cpp
+#include <iostream>
+
+[[deprecated("请改用 newAPI()")]]      // 可以带一句解释，编译警告里会原样打出来
+void oldAPI() {
+    std::cout << "老接口" << std::endl;
+}
+
+struct [[deprecated]] OldStruct {      // 属性写在 struct 关键字之后
+    int x;
+};
+
+int main() {
+    // oldAPI();     // ⚠️ 编译警告：'oldAPI' is deprecated: 请改用 newAPI()
+    // OldStruct s;  // ⚠️ 编译警告：'OldStruct' is deprecated
+
+    std::cout << "已标记废弃的接口，调用时会收到编译警告" << std::endl;
+    return 0;
+}
+```
+
+> ⚠️ **一个实测小坑**：Apple clang 21 在 `-std=c++11` 下**也接受** `[[deprecated]]`
+> 并且照样报 `-Wdeprecated-declarations` 警告——这是编译器的"向前兼容"，不代表它是 C++11 的特性。
+> 换个严格遵守标准的编译器（或看特性宏 `__has_cpp_attribute(deprecated)`），就能看出差别。
+
+### 24.9.2 `std::exchange`：一步完成"取值 + 换值"
+
+这是 `<utility>` 里的小工具，签名是 `exchange(obj, new_value)`——**返回 obj 的旧值，同时把 obj 改成 new_value**。
+
+```cpp
+#include <iostream>
+#include <string>
+#include <utility>
+
+int main() {
+    std::string a = "hello";
+
+    // 把 a 换成 "world"，同时把旧值 "hello" 拿走
+    std::string b = std::exchange(a, "world");
+
+    std::cout << "a = " << a << std::endl;   // 输出: a = world
+    std::cout << "b = " << b << std::endl;   // 输出: b = hello
+    return 0;
+}
+```
+
+它在实现移动构造函数、移动赋值运算符时特别顺手：
+
+```cpp
+class Buffer {
+    int* data_ = nullptr;
+    std::size_t size_ = 0;
+
+public:
+    Buffer(Buffer&& other) noexcept
+        : data_(std::exchange(other.data_, nullptr)),   // 一步：接管指针 + 把对方置空
+          size_(std::exchange(other.size_, 0)) {}
+};
+```
+
+### 24.9.3 `std::integer_sequence`：编译期的整数序列
+
+`std::integer_sequence<T, Is...>` 和它的别名 `std::index_sequence<0,1,2,...>` 是 C++14 放进 `<utility>` 的。
+它的价值在于：**把"参数包"变成"一串可以用在编译期的下标"**，这是展开 tuple、实现泛型 `apply` 的基础工具。
+
+```cpp
+#include <cstddef>
+#include <iostream>
+#include <utility>
+
+template<typename T, T... Is>
+void print_seq(std::integer_sequence<T, Is...>) {
+    // C++14 里还没有折叠表达式，用数组初始化的老技巧把包展开
+    int dummy[] = { (std::cout << Is << ' ', 0)... };
+    (void)dummy;
+    std::cout << std::endl;
+}
+
+int main() {
+    print_seq(std::integer_sequence<int, 0, 1, 2, 3>{});   // 手写序列
+    print_seq(std::make_index_sequence<5>{});              // 自动生成 0 1 2 3 4
+
+    std::cout << "index_sequence<0,1,2,3,4>::size() = "
+              << std::index_sequence<0, 1, 2, 3, 4>{}.size() << std::endl;
+    return 0;
+}
+```
+
+输出：
+```text
+0 1 2 3
+0 1 2 3 4
+index_sequence<0,1,2,3,4>::size() = 5
+```
+
+### 24.9.4 带大小的释放函数（sized deallocation）
+
+这可能是 C++14 里最"存在感为零"的一个特性。C++14 允许你写这样一个释放函数：
+
+```cpp
+static void operator delete(void* p, std::size_t n) noexcept;
+```
+
+多了个 `n` 参数，表示"这块内存有多大"。**为什么有用？** 因为分配器以前必须把"每块内存多大"记在旁边，
+才能在你 `delete` 的时候还回去；现在编译器可以直接把大小告诉你，分配器就省下了那份记录。
+
+```cpp
+#include <cstddef>
+#include <iostream>
+#include <new>
+
+struct Big {
+    double payload[2];
+
+    static void* operator new(std::size_t n) {
+        std::cout << "new: 申请 " << n << " 字节" << std::endl;
+        return ::operator new(n);
+    }
+
+    // C++14 新增：带 size 参数的释放函数
+    static void operator delete(void* p, std::size_t n) noexcept {
+        std::cout << "sized delete: 归还 " << n << " 字节" << std::endl;
+        ::operator delete(p);
+    }
+};
+
+int main() {
+    Big* b = new Big;
+    delete b;          // 对象大小在编译期已知，于是走"带大小"的版本
+    return 0;
+}
+```
+
+输出：
+```text
+new: 申请 16 字节
+sized delete: 归还 16 字节
+```
+
+> 💡 **注意**：上面两个 `std::size_t` 的值都是 `16`，因为 `Big` 里有两个 `double`——**不是** `sizeof(Big)` 之外的什么东西，
+> 就是对象本身的大小（`new` 申请的就是它）。这也顺便解释了为什么数组 `new[]` 需要额外记录元素个数、
+> 而这里的单对象 `new` 不需要。
+
+### 24.9.5 `std::quoted`：让字符串能"带着引号"来回走
+
+`<iomanip>` 里的 `std::quoted`。它的用途很具体：**输出时给字符串加引号，输入时把引号去掉**，
+这样含空格的字符串也能安全地读写。
+
+```cpp
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+
+int main() {
+    std::string s = "hello world";
+
+    std::cout << std::quoted(s) << std::endl;        // 输出: "hello world"
+    std::cout << "长度 = " << s.size() << std::endl;  // 输出: 长度 = 11
+
+    std::stringstream ss;
+    ss << std::quoted(s);          // 写进去，带引号
+    std::string back;
+    ss >> std::quoted(back);       // 读出来，引号自动剥掉
+    std::cout << "读回来 = " << back << std::endl;    // 输出: 读回来 = hello world
+    return 0;
+}
+```
+
+> 🎯 **为什么需要它**：`std::cin >> str` 遇到空格就停，所以直接把 `"hello world"` 写出去再读回来，
+> 只会得到 `"hello"`。`std::quoted` 用一对引号把内容"包起来"，读的时候再拆掉，
+> 于是含空格的字符串就能原样往返。写简单的数据文件、做日志的字段级解析时很好用。
+
 ## 本章小结
 
-C++14是C++11之后的一次重要补丁更新，它不是在开创新的范式，而是在完善已有的功能。本章我们学习了C++14的八大特性：
+C++14是C++11之后的一次重要补丁更新，它不是在开创新的范式，而是在完善已有的功能。本章我们学习了C++14的核心特性：
 
 ### 24.1 泛型Lambda
 - **核心变化**：`auto`可以用于Lambda参数
@@ -1012,7 +1324,8 @@ C++14是C++11之后的一次重要补丁更新，它不是在开创新的范式�
 
 ### 24.2 变量模板
 - **核心变化**：模板可以用于定义变量
-- **解决的问题**：类型特征（type traits）的`::value`可以简写为`_v`
+- **解决的问题**：给"编译期的值"一个正式的写法，写起来像变量而不是像类型
+- **⚠️ 最易记反的一点**：变量模板是 **C++14**；标准库里成批的 `std::xxx_v` 是 **C++17**（`_t` 别名则是 C++14）
 - **应用场景**：编译期类型查询、类型大小判断
 
 ### 24.3 放宽的constexpr限制
@@ -1044,5 +1357,12 @@ C++14是C++11之后的一次重要补丁更新，它不是在开创新的范式�
 - **核心变化**：捕获列表可以使用表达式初始化
 - **解决的问题**：移动捕获、重命名捕获
 - **应用场景**：移动语义与Lambda结合
+
+### 24.9 其他容易被漏掉的特性
+- **`[[deprecated]]`**：大家最常用的属性，其实是 **C++14** 才进标准的（C++11 只有 `[[noreturn]]`、`[[carries_dependency]]`）
+- **`std::exchange`**：`exchange(obj, 新值)` 一步完成"取旧值 + 换新值"，写移动构造/移动赋值特别顺手
+- **`std::integer_sequence` / `std::index_sequence`**：把参数包变成可用在编译期的下标序列
+- **带大小的释放函数**：`operator delete(void*, std::size_t)`，让分配器不必再单独记录每块内存的大小
+- **`std::quoted`**：让含空格的字符串"带引号"地写出去、再原样读回来
 
 > 📝 **学习建议**：C++14的特性虽然看起来简单，但都是"用时方恨少"的实用工具。建议读者在实践中多使用这些特性，感受它们带来的便利。

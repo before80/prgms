@@ -123,9 +123,9 @@ int main() {
     int score = 85;
 
     if (score >= 90) {
-        printf("优秀！太强了！\n");  // 输出：优秀！太强了！
+        printf("优秀！太强了！\n");
     } else if (score >= 70) {
-        printf("良好！继续保持！\n");
+        printf("良好！继续保持！\n");  // 输出：良好！继续保持！
     } else if (score >= 60) {
         printf("及格，险过！\n");
     } else {
@@ -404,14 +404,14 @@ int main() {
 #include <stdio.h>
 
 int main() {
-    int score = 85;
+    int score = 90;
 
     switch (score) {
         case 90:
             printf("优秀\n");
-            break;  // 漏写了这句？
+            /* 这里漏写了 break！ */
         case 80:
-            printf("良好\n");  // 本意是 80 分输出良好
+            printf("良好\n");  // 本意是 80 分（这里想匹配 80-89 段）才输出良好
             break;
         case 70:
             printf("及格\n");
@@ -428,10 +428,13 @@ int main() {
 运行结果：
 
 ```
+优秀
 良好
 ```
 
-虽然 `score = 85` 应该匹配 `default`（因为没有 `case 85`），但由于 `case 90` 缺少 `break`，程序"穿透"到了 `case 80`，输出了"良好"——完全错误！
+`score = 90` 先匹配 `case 90`，输出"优秀"；但因为 `case 90` 末尾漏写了 `break`，程序**穿透**（fall through）到了 `case 80`，又输出了一次"良好"——这显然不是我们想要的结果！
+
+> **注意穿透的触发条件：** 一定要先**匹配到某个 `case`**，之后才会顺着往下穿透。如果一个 `case` 从头到尾都没被匹配到（比如这里若把 `score` 设为 85，三个 `case` 都不匹配），程序会直接跳到 `default`，前面那些"漏写的 `break`"也就不会影响结果了。
 
 > **划重点：** 每个 `case` 末尾一般都要加 `break`，除非你**故意**想利用穿透效应。养成习惯，忘记 `break` 是新手最常犯的错误之一。
 
@@ -489,9 +492,9 @@ flowchart TD
 
 ---
 
-## 6.4 `[[fallthrough]]` 属性（C17）——给"穿透"贴个标签
+## 6.4 `[[fallthrough]]` 属性（C23）——给"穿透"贴个标签
 
-既然穿透效应既有用又危险，C17 标准特意引入了一个新属性 `[[fallthrough]]`，放在 `case` 的最后（`break` 之前或直接替代它），用来**显式声明"我这是故意的"**。
+既然穿透效应既有用又危险，C23 标准特意引入了一个新属性 `[[fallthrough]]`，放在 `case` 的最后（`break` 之前或直接替代它），用来**显式声明"我这是故意的"**。
 
 ```c
 #include <stdio.h>
@@ -502,7 +505,7 @@ int main() {
     switch (day) {
         case 6:
             printf("周六，想睡懒觉\n");
-            [[fallthrough]];  // C17：显式标记穿透，编译器不会报警告
+            [[fallthrough]];  // C23：显式标记穿透，编译器不会报警告
         case 7:
             printf("周日，也是周末！\n");  // 周六周日都执行
             break;
@@ -522,9 +525,9 @@ int main() {
 周日，也是周末！
 ```
 
-如果不写 `[[fallthrough]]`，在支持 C17 的编译器里（比如 GCC 7+、Clang 5+），使用 `-Wimplicit-fallthrough` 警告选项时，编译器会报警告："嗨，你这里可能漏写了 `break`！"加上 `[[fallthrough]]` 就是告诉编译器："我知道我在干什么，别警告我。"
+如果不写 `[[fallthrough]]`，在使用 `-Wimplicit-fallthrough` 警告选项时，编译器会报警告："嗨，你这里可能漏写了 `break`！"加上 `[[fallthrough]]` 就是告诉编译器："我知道我在干什么，别警告我。"
 
-> **兼容性提示：** `[[fallthrough]]` 是 C11 引入的属性语法（`[[...]]`），C17 才正式支持。如果你的代码需要兼容旧编译器，可能需要用注释（如 `/* fall through \*/`）或编译器特定的宏来达到类似效果。
+> **兼容性提示：** 双中括号属性语法（`[[...]]`）是 **C23** 才引入的，C11/C17 都没有属性。因此 `[[fallthrough]]` 在 C23 之前的代码里不是一个"标准"写法；GCC / Clang 早在 C 模式之前就通过 `__attribute__((fallthrough))` 支持相同功能。如果你要兼容旧编译器或非 C23 编译模式，可以用注释（如 `/* fall through */`）或 `__attribute__((fallthrough))` 来达到类似效果。
 
 ---
 
@@ -764,7 +767,7 @@ int main() {
 }
 ```
 
-> **编译器选项：** GCC 和 Clang 默认支持 C11 及以上（`-std=c17` 可以指定 C17 标准）。如果你发现声明变量报错，可能需要确认编译时使用了正确的标准（如 `gcc -std=c99 main.c`）。
+> **编译器选项：** 现代 GCC / Clang 默认使用的 C 版本都**高于 C99**（GCC 8–14 和常见 Clang 默认是 `gnu17`，GCC 15 起默认 `gnu23`），所以这种写法开箱即用。但如果你显式用 `-std=c89`（或者 `-std=c90 -pedantic-errors`）编译，声明在 `for` 里的变量就会报错——此时应改用 `-std=c99` 或更高（如 `gcc -std=c99 main.c`）。
 
 ### 6.7.3 复合字面量与 for 循环的妙用
 
@@ -806,7 +809,7 @@ int main() {
 
 循环体内可以再放一个循环，这就叫**嵌套循环**（Nested Loop）。外层循环每执行一次，内层循环就要从头到尾跑完一轮。
 
-### 8.8.1 打印九九乘法表
+### 6.8.1 打印九九乘法表
 
 嵌套循环最经典的例子——九九乘法表：
 
@@ -839,7 +842,7 @@ int main() {
 1×9= 9  2×9=18  3×9=27  4×9=36  5×9=45  6×9=54  7×9=63  8×9=72  9×9=81  
 ```
 
-### 8.8.2 打印星号三角形
+### 6.8.2 打印星号三角形
 
 ```c
 #include <stdio.h>
@@ -871,7 +874,7 @@ int main() {
 *********
 ```
 
-### 8.8.3 二维数组的遍历
+### 6.8.3 二维数组的遍历
 
 嵌套循环在处理**二维数组**（Matrix）时特别有用——外层循环遍历行，内层循环遍历列：
 
@@ -1157,9 +1160,23 @@ int main() {
 
 ---
 
-## 6.11 C23：`[[ likely ]]` / `[[ unlikely ]]`——分支预测提示
+## 6.11 分支预测提示：`[[likely]]` / `[[unlikely]]` 的真相
 
-这是 C23 标准（C 语言的最新版本，于 2023 年发布）引入的一个新特性，`[[likely]]` 和 `[[unlikely]]` 是**属性声明**（Attribute），用来给编译器提供**分支预测**（Branch Prediction）的提示。
+很多网上教程（包括一些 AI 生成的版本）会告诉你："C23 引入了 `[[likely]]` 和 `[[unlikely]]` 属性，用来做分支预测。" **这个说法是错误的。**
+
+`[[likely]]` 和 `[[unlikely]]` 是 **C++20** 引入的属性。它们曾被提议加入 C23，但**最终没有进入 C23 标准**。C23 实际采纳的 7 个标准属性是：
+
+| 属性 | 含义 | 可作用于 |
+|------|------|----------|
+| `[[deprecated]]` | 标记为已废弃，使用时会告警 | 声明 |
+| `[[fallthrough]]` | 显式标记 `switch` 的有意穿透 | 语句 |
+| `[[maybe_unused]]` | 抑制"未使用"警告 | 声明 |
+| `[[nodiscard]]` | 返回值不应被丢弃 | 函数/类型/枚举 |
+| `[[noreturn]]` | 函数不会正常返回 | 函数 |
+| `[[reproducible]]` | 函数是"可重复"的纯函数 | 函数 |
+| `[[unsequenced]]` | 函数无顺序依赖的纯函数 | 函数 |
+
+注意 `likely` 和 `unlikely` **不在其中**。如果你在 C 代码里写 `if (x) [[likely]] { ... }`，GCC / Clang 只会给出 `warning: unknown attribute 'likely' ignored`——属性被直接忽略，不会有任何优化效果。
 
 ### 6.11.1 什么是分支预测？
 
@@ -1167,28 +1184,30 @@ int main() {
 
 编译器也在做类似的优化——如果它知道某个 `if` 条件"通常为真"或"通常为假"，就可以把"更可能执行的分支"的代码安排在更"热"（更容易被缓存命中）的位置。
 
-### 6.11.2 怎么用？
+### 6.11.2 C 里怎么做分支预测？
 
-在 `if` 或 `switch` 语句前加上 `[[likely]]` 或 `[[unlikely]]`：
+C 语言没有标准的属性写法，但 GCC / Clang 提供了内建函数 `__builtin_expect`。实践中通常把它封装成 `likely` / `unlikely` 宏（Linux 内核就是这么做的）：
 
 ```c
 #include <stdio.h>
 
-int main() {
+/* 告诉编译器 x 大概率成立 / 大概率不成立 */
+#define likely(x)   __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+
+int main(void) {
     int errors = 0;
 
-    // 假设正常情况下 errors 为 0（大概率走 else 分支）
-    // 所以给 else 分支加 [[likely]]
-    if (errors == 0) [[likely]] {
+    // 告诉编译器：errors == 0 更可能成立
+    if (likely(errors == 0)) {
         printf("一切正常！\n");  // 输出：一切正常！
     } else {
         printf("出错了！\n");
     }
 
-    // 另一个例子：错误处理通常是" unlikely" 的
-    // 所以错误分支加 [[unlikely]]
+    // 告诉编译器：错误处理分支通常不会走
     int result = 42;
-    if (result < 0) [[unlikely]] {
+    if (unlikely(result < 0)) {
         printf("结果为负数，异常！\n");
     } else {
         printf("结果正常: %d\n", result);  // 输出：结果正常: 42
@@ -1198,16 +1217,36 @@ int main() {
 }
 ```
 
-### 6.11.3 实际影响
+> **注意：** `__builtin_expect` 是 GNU 扩展，不属于 ISO C 标准；MSVC 没有这个内建函数（不过它通常能自行做分支预测）。要写可移植代码，可以用 `#if defined(__GNUC__) || defined(__clang__)` 包裹这些宏，或者干脆不用——现代编译器的静态分支预测通常已经够好。
 
-`[[likely]]` 和 `[[unlikely]]` 是**编译提示**（Hint），不会改变程序的语义（逻辑结果永远不变），但编译器可以利用这些提示来优化生成的机器码：
+### 6.11.3 那 `[[fallthrough]]` 呢？
 
-- `[[likely]]`：告诉编译器"这个分支大概率会被执行"，编译器会把它的代码放在更"热"的位置，减少指令缓存（I-Cache）未命中的概率
-- `[[unlikely]]`：告诉编译器"这个分支大概率不会被执行"，编译器会把它的代码放在不太影响性能的位置
+和 `likely` 不同，`[[fallthrough]]` **确实是 C23 的标准属性**（见 6.4 节）。它放在 `case` 分支的末尾，明确告诉编译器和读者"这次穿透是有意的"，配合 `-Wimplicit-fallthrough` 使用可以消除误报：
 
-在高性能场景（如网络协议栈、操作系统内核、游戏引擎、物理引擎）下，这种优化可能带来显著的性能提升。但在普通应用代码里，这种优化带来的收益可能微乎其微。
+```c
+#include <stdio.h>
 
-> **兼容性提示：** `[[likely]]` 和 `[[unlikely]]` 是 **C23 标准**的新特性。截至目前（2025年），只有最新版本的 GCC（14+）、Clang（16+）和 MSVC（19.35+）部分支持。如果你需要编写可移植的代码，应该用条件编译（`#ifdef __STDC_VERSION__`）包裹这些用法，或者干脆等主流编译器都稳定支持后再使用。
+int main(void) {
+    int level = 1;
+    switch (level) {
+        case 1:
+            printf("Level 1\n");
+            [[fallthrough]];   // 有意穿透到 case 2
+        case 2:
+            printf("Level 2\n");
+            break;
+        default:
+            printf("Default\n");
+    }
+    return 0;
+}
+```
+
+想确认某个属性是否可用，可以用 C23 的 `__has_c_attribute` 探测，例如 `#if __has_c_attribute(likely)` 在 GCC 15 / Clang 21 上会判定为假（返回 `0`）。
+
+### 6.11.4 什么时候值得用？
+
+分支预测提示只在**热点代码**（被调用数百万次的内核路径）里才可能有可测量的收益。绝大多数应用代码里，它的影响微乎其微，甚至因为干扰编译器自身的判断而变慢。**先测量，再优化**——不要凭直觉到处加 `likely` / `unlikely`。
 
 ---
 
@@ -1228,8 +1267,8 @@ int main() {
 | **跳转语句** | `break` | 跳出当前循环或 switch |
 | | `continue` | 跳过本次循环，进入下一次 |
 | | `goto` | 无条件跳转（慎用，仅推荐用于错误处理） |
-| **特殊语法** | `[[fallthrough]]`（C17） | 显式标记 switch 的有意穿透 |
-| | `[[likely]]` / `[[unlikely]]`（C23） | 分支预测提示，优化性能 |
+| **特殊语法** | `[[fallthrough]]`（C23） | 显式标记 switch 的有意穿透 |
+| | `__builtin_expect`（GNU 扩展） | 分支预测提示，封装为 `likely`/`unlikely` 宏 |
 
 **核心要点：**
 
@@ -1241,6 +1280,6 @@ int main() {
 - `break` 跳出**最内层**循环，`continue` 跳过**本次**循环
 - `goto` 慎用，只推荐用于错误处理的统一清理路径
 - 死循环 `while(1)` 和 `for(;;)` 等价，需要确保有退出机制
-- `[[likely]]` / `[[unlikely]]` 是 C23 新特性，用于分支预测优化
+- 分支预测提示在 C 里要用 GNU 扩展 `__builtin_expect`（封装成 `likely`/`unlikely` 宏）；`[[likely]]`/`[[unlikely]]` 是 **C++20** 属性，**不属于 C23**，写在 C 里只会被忽略
 
 控制流程是程序的"交通系统"——选择结构是"十字路口"，循环是"环形公路"，跳转语句是"传送门和捷径"。掌握好这些，你就能写出"能思考、会判断、懂循环"的智能程序了！

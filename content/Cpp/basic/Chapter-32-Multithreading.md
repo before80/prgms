@@ -561,6 +561,7 @@ graph TB
 #include <thread>
 #include <mutex>
 #include <chrono>
+#include <functional>   // std::ref
 
 /*
  * std::scoped_lock 示例：C++17的多锁管理器
@@ -1101,6 +1102,7 @@ int main() {
 #include <iostream>
 #include <future>
 #include <chrono>
+#include <thread>       // std::this_thread::sleep_for
 
 /*
  * std::async 示例：简单的异步编程
@@ -1167,6 +1169,7 @@ int main() {
 #include <future>
 #include <thread>
 #include <chrono>
+#include <functional>   // std::ref
 
 /*
  * std::future 和 std::promise 示例：线程间值传递

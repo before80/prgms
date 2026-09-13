@@ -614,26 +614,30 @@ int main() {
     
     // filename() - 获取文件名（包括扩展名）
     std::cout << "filename: " << p1.filename() << std::endl;
-    // 输出: filename: file.txt
+    // 输出: filename: "file.txt"
+    // ⚠️ path 的 operator<< 会自动加引号（标准规定等价于输出 quoted(字符串)）！
+    // 想要不带引号的形式，用 .string()：
+    std::cout << "filename(不加引号): " << p1.filename().string() << std::endl;
+    // 输出: filename(不加引号): file.txt
     
     // stem() - 获取文件名主体（不包括扩展名）
     std::cout << "stem: " << p1.stem() << std::endl;
-    // 输出: stem: file
+    // 输出: stem: "file"
     
     // extension() - 获取文件扩展名
     std::cout << "extension: " << p1.extension() << std::endl;
-    // 输出: extension: .txt
+    // 输出: extension: ".txt"
     
     // parent_path() - 获取父目录路径
     std::cout << "parent: " << p1.parent_path() << std::endl;
-    // 输出: parent: /home/user
+    // 输出: parent: "/home/user"
     
     // ========== 路径操作 ==========
     
     // 路径拼接：用 / 运算符（重载过的！）
     fs::path p2 = fs::path("/home") / "user" / "documents" / "report.pdf";
     std::cout << "full path: " << p2 << std::endl;
-    // 输出: full path: /home/user/documents/report.pdf
+    // 输出: full path: "/home/user/documents/report.pdf"
     
     // 判断是否是绝对路径
     std::cout << "is absolute: " << p1.is_absolute() << std::endl;
@@ -646,6 +650,7 @@ int main() {
     // 转换为绝对路径
     fs::path absPath = fs::absolute(p1);
     std::cout << "absolute: " << absPath << std::endl;
+    // 输出: absolute: "/home/user/file.txt"（当前目录为 / 时）
     
     return 0;
 }
@@ -711,7 +716,10 @@ int main() {
     // fs::last_write_time() - 获取最后修改时间
     // 返回的是 fs::file_time_type 类型
     auto ftime = fs::last_write_time("test.txt");
-    std::cout << "Last modified time: " << ftime.time_since_epoch().count() << std::endl;
+    // ⚠️ 在 macOS/libc++ 上，这个时长内部的整数类型是 __int128，
+    //    直接 << 会有二义性，需要先转成 long long。
+    auto ticks = static_cast<long long>(ftime.time_since_epoch().count());
+    std::cout << "Last modified time: " << ticks << std::endl;
     // 输出: Last modified time: [某个时间戳数字]
     
     // ========== 目录操作 ==========
@@ -925,9 +933,9 @@ int main() {
 
 ```mermaid
 graph LR
-    A["格式化字符串<br/>\"Hello, {}!\""] --> B["占位符 {}"]
-    B --> C["参数 \"World\""]
-    C --> D["拼接结果<br/>\"Hello, World!\""]
+    A["格式化字符串<br/>Hello, {}!"] --> B["占位符 {}"]
+    B --> C["参数 World"]
+    C --> D["拼接结果<br/>Hello, World!"]
     
     E["格式说明符<br/>{:.2f}"] --> F[".2 精度"]
     E --> G["f 定点记数"]
@@ -1006,6 +1014,8 @@ int main() {
 在多线程世界里，有一个经典的问题：**竞态条件（Race Condition）**。想象两个线程同时往`std::cout`输出——一个线程输出"Hello"，另一个输出"World"，结果可能变成"HeWlloorl d"这种鬼画符。
 
 `std::osyncstream`（输出同步流）就是来解决这个问题的。它能保证一整条消息的输出是**原子操作**——要么全部输出，要么不输出，不会被其他线程的输出"插队"。
+
+> 📎 **可用性说明**：`<syncstream>` 是 C++20 的特性，需要 `-std=c++20` 或更高。**Apple clang 自带的 libc++ 到 21 版还没实现 `std::osyncstream`**，在 macOS 上会报 `no member named 'osyncstream' in namespace 'std'`。以下为标准写法，供理解 API 之用（GCC 11+ / MSVC 19.29+ 可用）。
 
 ```cpp
 // std::osyncstream 同步输出流（C++20）

@@ -470,13 +470,21 @@ Hello, World!
 >
 > 类比一下：就像你去餐厅吃饭，菜单（头文件）告诉你有什么菜（函数），长什么样（参数），吃完给多少钱（返回值）。你不需要知道厨师（实现细节）是怎么做的，你只需要看菜单点菜就行！
 
-没有 `#include <stdio.h>`，编译器就会报错：
+没有 `#include <stdio.h>`，编译器就会报错。**新旧编译器的措辞不太一样**：
 
 ```
-error: implicit declaration of function 'printf'
+# Clang 16+ / GCC 14+ 的措辞（更贴心，直接告诉你缺哪个头文件）
+error: call to undeclared library function 'printf' with type 'int (const char *, ...)';
+      ISO C99 and later do not support implicit function declarations
+note: include the header <stdio.h> or explicitly provide a declaration for 'printf'
+
+# GCC 13 及更早版本的措辞
+warning: implicit declaration of function 'printf' [-Wimplicit-function-declaration]
 ```
 
 翻译成人话就是："我不知道 `printf` 是啥！因为你没有给我它的说明书！"
+
+> ⚠️ 特别注意：在老版本 GCC 里这只是一个**警告**（还能编译通过），程序里的 `printf` 会被当成"返回 `int` 的未知函数"来处理。这种"隐式函数声明"在 C99 就已经被移除了，**C23 起更是直接变成错误**。所以别指望它只是警告就当没看见。
 
 > 还有一点：`<stdio.h>` 用尖括号包起来，表示这是一个系统头文件，编译器去系统目录里找它。如果是你自己写的头文件，要用双引号：`#include "myheader.h"`。
 
@@ -531,7 +539,7 @@ Hello, World!
 
 ```c
 int main(void) {
-    ...
+    // 函数体：这个程序不需要任何命令行参数
 }
 ```
 
@@ -541,7 +549,7 @@ int main(void) {
 
 ```c
 int main(int argc, char *argv[]) {
-    ...
+    // 函数体：可以从 argc / argv 里读取命令行参数
 }
 ```
 
@@ -701,7 +709,18 @@ gcc -Wall main.c -o hello
 
 ### 2.6.4 指定 C 标准
 
-GCC 默认使用的 C 标准取决于编译器版本。较旧的 GCC（如 5.x 以下）默认用 C90/C95，较新的 GCC（10+）默认用 C11，GCC 14 默认用 C17。为了确保代码在任何 GCC 版本下行为一致，最好显式指定标准：
+GCC 默认使用的 C 标准**取决于编译器版本**，而且这个默认值变过好几次：
+
+| GCC 版本 | 默认的 C 标准 |
+|---------|--------------|
+| 4.9 及更早 | `-std=gnu90` |
+| 5 ~ 7 | `-std=gnu11` |
+| 8 ~ 14 | `-std=gnu17` |
+| **15 及以后** | **`-std=gnu23`** |
+
+> ⚠️ **注意 GCC 15 的这个变化**：从 GCC 15 开始，默认标准从 `gnu17` 换成了 **`gnu23`**。这意味着升级编译器后，一些以前合法的代码可能因为 C23 的收紧规则而报错（比如 `()` 作为函数参数声明被彻底移除、`bool` 变成关键字等）。如果你的项目依赖老行为，记得显式写 `-std=c17` 或 `-std=gnu17`。
+
+为了确保代码在任何 GCC 版本下行为一致，**最好每次都显式指定标准**：
 
 ```bash
 gcc -std=c17 -Wall main.c -o hello
@@ -716,7 +735,9 @@ gcc -std=c17 -Wall main.c -o hello
 | C99 | 1999 | 增加了很多现代特性（inline 函数、变长数组、`//` 单行注释、`for` 循环内声明变量等） |
 | C11 | 2011 | 增加了多线程支持、泛型选择 `_Generic`、编译期断言 `_Static_assert`、对齐字节等 |
 | C17/C18 | 2017/2018 | 主要是 bug 修复，没有新特性（与 C11 同代） |
-| C23 | 2023 | 最新标准，增加了 `typeof`（类似 `decltype`）、`nullptr`（空指针常量）、二进制整数字面量（`0b1010`）、`static if` 泛型选择等大量新特性 |
+| C23 | 2023 | 最新标准，增加了 `typeof`（类似 `decltype`）、`nullptr`（空指针常量）、`constexpr` 常量、二进制整数字面量（`0b1010`）、`[[nodiscard]]` 属性等大量新特性 |
+
+> 顺带纠正一个流传很广的错误说法：C23 **没有** `static if` 这种语法。（`static if` 是 D 语言和 Zig 的特性；C++ 里对应的是 `if constexpr`。）C 里做编译期分支，靠的是 `#if`、`_Generic` 和 `if constexpr` 之外的常规手段——准确地说，是 `#if` 预处理指令加上 `static_assert` 编译期断言。
 
 > 注意：C17 和 C18 是同一个标准（2017 年发布草案，2018 年正式发布），只是叫法不同。
 > 建议：学习用 `c17` 或 `c11` 就行，除非你写的是很老很老的代码。
@@ -850,12 +871,20 @@ int main(void) {
 虽然能编译，但会**警告**（不是错误）：
 
 ```
-warning: initialization makes integer from floating-point without a cast
+# Clang 的措辞
+warning: implicit conversion from 'double' to 'int' changes value from 3.14 to 3
+         [-Wliteral-conversion]
+
+# GCC 的措辞
+warning: conversion from 'double' to 'int' changes value from '3.14' to '3'
+         [-Wfloat-conversion]
 ```
 
-翻译："我把一个小数塞进了整数类型里，这可能会丢失精度！"
+翻译："我把一个小数塞进了整数类型里，`3.14` 会变成 `3`，小数部分丢掉了！"
 
 > `%d` 是 `printf` 的格式说明符，表示"按十进制整数打印"。如果你想打印小数，应该用 `%f` 和 `double` 类型。
+>
+> 编译时加上 `-Wconversion` 还能揪出更多这类"悄悄丢精度"的转换。
 
 ### 2.7.7 错误：`main` 函数写错
 
@@ -870,10 +899,19 @@ void main(void) {  // main 的返回类型必须是 int！
 报错：
 
 ```
+# 现代 Clang 的措辞
+error: 'main' must return 'int'
+    2 | void main(void){
+      | ^~~~
+      | int
+
+# 部分编译器/旧版本的措辞
 error: 'void main(void)' is not allowed in C99 or later
 ```
 
 翻译："`void main(void)` 这种写法在现代 C 标准里是不允许的！main 必须返回 int！"
+
+> ⚠️ 有些老编译器（以及 Windows 上的 MSVC）对 `void main` 只是警告甚至默默放过，这让 `void main` 在教材和网上代码里流传甚广。但它是**非标准的**：C 标准明确规定 `main` 的返回类型是 `int`。写 `void main` 的代码在 macOS/Linux 上换一个编译器就可能直接编译不过。
 
 **正确的写法：**
 
@@ -890,20 +928,27 @@ int main(void) {
 #include <stdio.h>
 
 int main(void) {
-    printf("Hello, World!\n");  // 这里用了中文引号！
+    printf("Hello, World!\n");  // ← 这里的引号是中文全角引号 “ ”
     return 0;
 }
 ```
 
-有些新手在复制代码时，不小心用了中文的引号（`""`）而不是英文的（`""`），导致编译报错：
+有些新手在复制代码时，不小心用了中文的引号（`“`、`”`）而不是英文半角的（`"`），导致编译报错：
 
 ```
+# Clang 的措辞
+error: unexpected character <U+201C>
+error: character <U+201D> not allowed in an identifier
+
+# GCC 的措辞
 error: missing terminating " character
 ```
 
-翻译："引号怎么只有一个？另一个去哪了？"
+翻译："这个字符 `U+201C` 我不认识！"——因为 `“` 的 Unicode 码点是 `U+201C`，它根本不是 C 语言的标点。
 
 **解决：** 确保用的是英文半角引号。
+
+> ⚠️ 中文输入法下的**全角标点**是新手最常见的"隐形杀手"。除了引号，还要小心全角分号 `；`、全角括号 `（）`、全角逗号 `，`、以及中文的空格（`U+3000`）。写代码前先把输入法切到英文状态，或者配置编辑器的"保存时自动替换全角标点"功能。
 
 ### 2.7.9 错误对照表
 
@@ -991,11 +1036,11 @@ int main(void) {
 
 # 目标：最终的可执行文件
 hello: main.c utils.c utils.h
-    gcc main.c utils.c -o hello -Wall
+	gcc main.c utils.c -o hello -Wall
 
 # 清理生成的文件
 clean:
-    rm -f hello
+	rm -f hello
 
 # .PHONY 声明这些是"伪目标"（不是真实文件），这样 make 就不会检查同名的文件是否存在
 .PHONY: clean
@@ -1066,15 +1111,15 @@ OBJS = main.o utils.o
 
 # 规则：生成目标文件
 %.o: %.c
-    $(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # 规则：生成可执行文件
 $(TARGET): $(OBJS)
-    $(CC) $(OBJS) -o $(TARGET)
+	$(CC) $(OBJS) -o $(TARGET)
 
 # 清理
 clean:
-    rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET)
 
 .PHONY: clean
 ```
@@ -1136,10 +1181,10 @@ project/
 **`CMakeLists.txt`：**
 
 ```cmake
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)   # 3.16 起才完整支持现代 CMake 写法
 project(HELLO VERSION 1.0 LANGUAGES C)
 
-# 设置 C 标准
+# 设置 C 标准（更推荐按 target 设置，见下面的说明）
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
@@ -1157,6 +1202,16 @@ message(STATUS "C standard: ${CMAKE_C_STANDARD}")
 > `cmake_minimum_required` 声明你需要的最低 CMake 版本。
 > `project` 定义项目名称和版本。
 > `add_executable` 指定要生成的可执行文件以及用哪些源文件。
+>
+> **优化建议**：`file(GLOB ...)` 是"反模式"——新增源文件后 CMake 不会自动感知，必须手动重跑配置。中大型项目建议**把源文件显式列出来**：
+>
+> ```cmake
+> add_executable(hello main.c utils.c)
+> target_compile_options(hello PRIVATE -Wall -Wextra)
+> set_target_properties(hello PROPERTIES C_STANDARD 17 C_STANDARD_REQUIRED ON)
+> ```
+>
+> 这样"编译选项跟着 target 走"，才符合现代 CMake 的推荐实践。
 
 ### 2.9.3 使用 CMake 构建
 
@@ -1173,7 +1228,6 @@ cmake ..
 
 ```
 -- The C compiler identification is GNU 13.2.0
--- The CXX compiler identification is GNU 13.2.0
 -- Detecting C compiler ABI info
 -- Detecting C compile features
 -- C compiler: /usr/bin/gcc
@@ -1182,6 +1236,8 @@ cmake ..
 -- Generating done
 -- Build files have been written to: /home/user/project/build
 ```
+
+> 因为 `project(... LANGUAGES C)` 只启用了 C 语言，所以**不会**去探测 C++ 编译器——如果你的输出里出现了 `The CXX compiler identification`，说明 `LANGUAGES` 漏写了或者写的是默认值。
 
 **第二步：编译**
 
@@ -1232,7 +1288,7 @@ Hello from utils!
 
 Linux 是程序员的"梦中情系统"（别喷我，macOS 也是 Unix，也很好）。如果你用 Linux 来开发 C 语言，一些进阶配置能让你的效率飞起！
 
-### 2.10.1 终端配置： oh-my-zsh
+### 2.10.1 终端配置：oh-my-zsh
 
 Linux 默认的 bash 终端已经很不错了，但 **oh-my-zsh** 可以让它变得更强大、更漂亮。
 

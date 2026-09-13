@@ -498,8 +498,9 @@ template<int N> struct A {};
 // 合法：指针（空指针常量）
 template<int* P> struct B {};
 
-// 合法：枚举
-template<enum E> struct C {};
+// 合法：枚举类型的值作参数（注意写成 enum E 是错的，要写具体的枚举类型）
+enum Color { Red, Green, Blue };
+template<Color C> struct C2 {};
 
 // C++20 合法：支持整数和指针
 template<std::size_t N> struct D { char arr[N]; };
@@ -894,17 +895,17 @@ int main() {
 #include <iostream>
 #include <tuple>
 
-// C++26（草案阶段）: 包索引允许通过索引访问参数包中的元素
+// C++26（已采纳，提案 P2662R3）: 包索引允许通过索引访问参数包中的元素
 // 
-// 草案语法示例：
+// 标准语法示例（本机编译器尚未实现）：
 // template<typename... Args>
 // void printThird(Args... args) {
 //     std::cout << args[2] << std::endl;  // 访问第三个参数（从0开始）
 // }
 // printThird(1, 2, 3, 4, 5);  // 输出: 3
 
-// 由于C++26还在草案阶段，当前编译器不支持
-// 我们可以用 std::tuple + std::get 来模拟类似功能
+// 由于本机的 Apple clang 21 还没实现包索引，
+// 下面先用 std::tuple + std::get 模拟类似功能
 
 template<typename... Args>
 void accessElements(Args... args) {
@@ -933,30 +934,30 @@ int main() {
 }
 ```
 
-### 包索引的语法（草案）
+### 包索引的语法（C++26 已采纳，P2662R3）
 
 ```cpp
-// C++26 草案中的语法：
+// C++26 正式语法（本机 Apple clang 21 尚未实现，编译会报
+// "expression contains unexpanded parameter pack"）：
 template<typename... Args>
 void demo(Args... args) {
     // 通过 [index] 访问参数包中的元素
     std::cout << args[0] << std::endl;  // 第一个参数
     std::cout << args[1] << std::endl;  // 第二个参数
     std::cout << args[2] << std::endl;  // 第三个参数
-    
-    // 负数索引：从后面往前数
-    // std::cout << args[-1] << std::endl;  // 最后一个参数
 }
 
 // 也可以用于模板参数包
 template<auto... values>
 void process() {
     // 访问编译时常量包
-    // constexpr auto x = values[0];  // 第一个值
+    constexpr auto x = values[0];  // 第一个值
 }
 ```
 
-> 包索引让可变参数模板的使用更加直观！想象一下，以前你要写一个递归函数来访问第N个元素，现在直接`args[N]`就可以了，就像访问数组一样。
+> 包索引让可变参数模板的使用更加直观！以前你要写递归（或者用 `std::tuple` + `std::get`）才能拿到第 N 个元素，
+> 现在直接 `args[N]` 就可以了，就像访问数组一样。
+> 注意索引必须是**常量表达式**，且目前标准只规定了非负索引。
 
 ## 16.10 模板编译错误诊断
 

@@ -9,6 +9,8 @@ draft = false
 +++
 # 第 4 章　用在哪里
 
+> 📌 **版本提示（2026-09 核对）**：本章中涉及 Vite 生产构建的描述适用于 Vite 1–7；Vite 8 已改用 Rolldown。Rollup 仍然广泛用于 npm 库、独立工具和兼容 Rolldown 的插件生态。
+
 ---
 
 ## 4.1 开源库 / npm 包发布
@@ -199,14 +201,15 @@ qiankun 是蚂蚁集团开源的微前端框架，它支持多种打包方式（
 
 ## 4.3 Vite 生产构建
 
-这是 Rollup 被使用得最广泛的场景——尽管很多开发者可能没有意识到他们在"用 Rollup"。想象一下：全球几百万个项目用 Vite 构建生产代码，而这些项目的最终产物，都出自 Rollup 之手。Rollup 在幕后默默干活，却很少被人记起——这大概就是开源世界里的"幕后英雄"吧。
+这是 Rollup 被使用得最广泛的场景——尽管很多开发者可能没有意识到他们在"用 Rollup"。Vite 1–7 的几百万个项目在生产构建时都经过 Rollup；Vite 8 改用 Rolldown 后，Rolldown 仍兼容 Rollup 插件 API。Rollup 在幕后默默干活，却很少被人记起——这大概就是开源世界里的"幕后英雄"吧。
 
-### 4.3.1 Vite 架构：开发用 esbuild，生产用 Rollup
+### 4.3.1 Vite 1–7 架构：开发用 esbuild，生产用 Rollup
 
 Vite 是一个"开发时快如闪电，生产时质量过硬"的构建工具。它的架构设计非常聪明：
 
-- **开发阶段**：使用 **esbuild** 做依赖预构建和即时转译。esbuild 是用 Go 语言写的，打包速度极快（比 Webpack 快 10-100 倍），Vite 启动时会先对项目依赖进行预构建（把 CJS 转成 ESM、合并 import 等），之后用户访问页面时请求的代码已经是预转译好的 ESM，用户几乎感觉不到等待。
-- **生产阶段**：使用 **Rollup** 做最终打包。Rollup 的 Tree-Shaking 和多格式输出能力能确保最终产物既小又快。
+- **开发阶段（Vite 1–7）**：使用 **esbuild** 做依赖预构建和即时转译。esbuild 用 Go 编写、速度极快，Vite 启动时会先对项目依赖进行预构建，之后浏览器请求的代码已经是预转译好的 ESM。
+- **生产阶段（Vite 1–7）**：使用 **Rollup** 做最终打包。Rollup 的 Tree-Shaking 和多格式输出能力能确保最终产物既小又快。
+- **Vite 8+**：开发与生产统一改用 **Rolldown**，并用 Oxc 负责转换；上面这幅双引擎图应作为历史架构理解。
 
 ```mermaid
 graph LR
@@ -223,7 +226,7 @@ graph LR
 
 > **esbuild 依赖预构建**：这是 Vite 开发阶段的第一步，会把项目依赖（如 `node_modules` 中的 CJS 库）提前转成 ESM，并处理 `import` 合并等。这不是"访问时"才发生，而是在你敲下 `vite` 命令后就悄悄完成了。
 
-这种"开发用 esbuild，生产用 Rollup"的架构，既保证了开发体验，又保证了产物质量，是 Vite 成为现代前端主流工具的重要原因。
+这种"开发用 esbuild，生产用 Rollup"的架构，曾在 Vite 1–7 中同时保证开发体验和产物质量，是 Vite 早期崛起的重要原因。
 
 ### 4.3.2 `vite build` 命令底层调用 Rollup
 
@@ -425,7 +428,7 @@ Rollup 的 watch 模式更偏向于"文件变了，重新打包"，而不是"局
 
 ### 4.6.2 需要强 HMR（热模块替换）实时重载的场景
 
-如果你需要一个在保存代码后毫秒级看到效果的开发体验，Rollup 同样不是你的菜。这个场景应该用 **Vite**（开发服务器用 esbuild 即时转译）或 **Webpack**（内置成熟 HMR）——它们的 watch + 热更新链路是专门为"改一行代码等三秒"这种痛苦场景优化的。
+如果你需要一个在保存代码后毫秒级看到效果的开发体验，Rollup 同样不是你的菜。这个场景应该用 **Vite** 或 **Webpack**。Vite 1–7 的开发服务器用 esbuild 即时转译，Vite 8 已改用 Rolldown；它们的 watch + 热更新链路是专门为"改一行代码等三秒"这种痛苦场景优化的。
 
 ### 4.6.3 watch 模式对大项目的性能瓶颈
 
@@ -449,7 +452,7 @@ Rollup 本身不处理 polyfill。如果你需要兼容旧版浏览器（比如�
 
 2. **前端工具链开发**：Babel 插件、Webpack Loader/Plugin、ESLint 插件、Vite 插件、微前端子应用，都适合用 Rollup 打包。工具链追求快、小、稳，Rollup 完美契合。
 
-3. **Vite 生产构建**：Vite 的生产构建底层就是 Rollup，所有使用 Vite 的开发者都在间接使用 Rollup。动态导入与代码分割（Code Splitting）也是通过 Rollup 的 `manualChunks` 和动态 `import()` 实现的。
+3. **Vite 生产构建（历史）**：Vite 1–7 的生产构建底层是 Rollup；Vite 8 起改为 Rolldown。动态导入与代码分割在 Rollup 路径中通过 `manualChunks` 和动态 `import()` 实现，Vite 8 则使用 Rolldown 的 `codeSplitting` 等配置。
 
 4. **Monorepo 项目**：子模块独立打包、共享包的高效构建与发布——Rollup 让 monorepo 中的包既能独立发布，又能被其他包按需引用。
 

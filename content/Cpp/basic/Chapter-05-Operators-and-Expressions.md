@@ -265,32 +265,34 @@ int main() {
     unsigned int b = 0b1010;  // 10
     
     std::cout << "a = " << std::hex << a << " (0b1100)" << std::endl;
+    // 输出: a = c (0b1100)   ← 这里切成了十六进制：12 就是 c
     std::cout << std::dec;  // 切回十进制
     std::cout << "b = " << b << " (0b1010)" << std::endl;
     
     // 按位与 &: 两位都是1才得1
     std::cout << "a & b = " << (a & b) << " (0b1000 = 8)" << std::endl;
-    // 输出: a & b = 8 (0b1000)
+    // 输出: a & b = 8 (0b1000 = 8)
     
     // 按位或 |: 任一为1就得1
     std::cout << "a | b = " << (a | b) << " (0b1110 = 14)" << std::endl;
-    // 输出: a | b = 14 (0b1110)
+    // 输出: a | b = 14 (0b1110 = 14)
     
     // 按位异或 ^: 不同为1，相同为0
     std::cout << "a ^ b = " << (a ^ b) << " (0b0110 = 6)" << std::endl;
-    // 输出: a ^ b = 6 (0b0110)
+    // 输出: a ^ b = 6 (0b0110 = 6)
     
     // 按位取反 ~: 0变1，1变0
     std::cout << "~a = " << (~a) << std::endl;
-    // 输出: ~a = 4294967283 (32位全1 - 12)
+    // 输出: ~a = 4294967283
+    // 说明：unsigned int 是 32 位，~12 相当于 0xFFFFFFFF - 12 = 4294967283
     
     // 左移 <<: 乘以2^n
     std::cout << "a << 1 = " << (a << 1) << " (0b11000 = 24)" << std::endl;
-    // 输出: a << 1 = 24 (0b11000)
+    // 输出: a << 1 = 24 (0b11000 = 24)
     
     // 右移 >>: 除以2^n（整数除法，向下取整）
     std::cout << "a >> 1 = " << (a >> 1) << " (0b0110 = 6)" << std::endl;
-    // 输出: a >> 1 = 6 (0b0110)
+    // 输出: a >> 1 = 6 (0b0110 = 6)
     
     // 常见用法：判断某位是否为1
     unsigned int flags = 0b10110;  // 第1、2、3位为1
@@ -616,9 +618,12 @@ int main() {
     std::cout << "++k = " << ++k << ", now k = " << k << std::endl;  // 输出: ++k = 3, now k = 3
     
     // 建议：能用前置++就用前置++（省一个临时变量）
-    for (std::vector<int>::iterator it = /*...*/; /*...*/; ++it) {
-        // 前置更高效
+    int arr[3] = {1, 2, 3};
+    for (int* it = arr; it != arr + 3; ++it) {
+        // 前置 ++ 不需要保存旧值，通常更高效
+        std::cout << *it << " ";
     }
+    std::cout << std::endl;
     
     return 0;
 }
@@ -1466,6 +1471,12 @@ int main() {
 #include <iostream>
 #include <vector>
 
+// 函数返回局部变量（NRVO优化后是xvalue）
+std::vector<int> createVector() {
+    std::vector<int> v = {1, 2, 3};
+    return v;  // 编译器可能会省略复制，直接移动
+}
+
 int main() {
     // 将亡值（Expiring Value / Xvalue）：
     // 即将被销毁但可以"偷走"资源的对象
@@ -1478,11 +1489,6 @@ int main() {
     std::cout << "v2 size: " << v2.size() << std::endl;  // 输出: v2 size: 5
     std::cout << "v1 size after move: " << v1.size() << std::endl;  // 输出: v1 size after move: 0
     
-    // 函数返回局部变量（NRVO优化后是xvalue）
-    std::vector<int> createVector() {
-        std::vector<int> v = {1, 2, 3};
-        return v;  // 编译器可能会省略复制，直接移动
-    }
     
     auto v3 = createVector();
     std::cout << "v3 size: " << v3.size() << std::endl;  // 输出: v3 size: 3

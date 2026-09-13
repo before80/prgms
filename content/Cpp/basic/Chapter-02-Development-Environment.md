@@ -345,7 +345,7 @@ int main() {
 ```bash
 clang++ -std=c++20 -Wall -o hello_clang hello_clang.cpp
 ./hello_clang
-// 输出: Clang真好用！错误提示超友好！
+# 输出: Clang真好用！错误提示超友好！
 ```
 
 ## 2.3 第一个C++程序：Hello World详解
@@ -359,11 +359,12 @@ clang++ -std=c++20 -Wall -o hello_clang hello_clang.cpp
 // 这是单行注释，以 // 开头
 // 编译器会忽略所有 // 后面的内容，直到本行结束
 
-/*
- * 这是多行注释
- * 以 /* 开头，以 */ 结尾
- * 中间的所有内容都会被忽略
- */
+  /*
+   * 这是多行注释
+   * 从斜杠加星号开始，到星号加斜杠结束
+   * 中间的所有内容都会被忽略
+   * 注意：多行注释不能嵌套！
+   */
 
 // 第1行：引入输入输出头文件
 #include <iostream>
@@ -435,12 +436,12 @@ cout << "Hello!" << endl;  // 短了，但可能有冲突
 # Linux/macOS 用 g++ 或 clang++
 g++ -o hello_world hello_world.cpp
 ./hello_world
-// 输出: Hello, World!
+# 输出: Hello, World!
 
 # Windows (MinGW/MSYS2)
 g++ -o hello_world.exe hello_world.cpp
 ./hello_world.exe
-// 输出: Hello, World!
+# 输出: Hello, World!
 
 # Windows (VS)
 # 打开 x64 Native Tools Command Prompt for VS 2022
@@ -693,7 +694,7 @@ g++ main.o utils.o -o program
 
 # 运行！
 ./program
-// 输出: 结果：3
+# 输出: 结果：3
 ```
 
 **链接命令：**

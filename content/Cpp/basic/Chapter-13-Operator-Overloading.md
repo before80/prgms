@@ -444,7 +444,9 @@ int main() {
 
 ### 静态下标运算符
 
-**静态**下标运算符意味着你可以不创建对象就直接调用`ClassName[i]`，就像访问静态数组一样。这在设计"全局注册表"或"配置类"时很有用。
+**静态**下标运算符意味着调用它不需要对象，这在设计"全局注册表"或"配置类"时很有用。
+
+> ⚠️ **重要提醒**：`static operator[]` **不能**写成 `ClassName[i]` 这种形式！`ClassName[i]` 要求 `ClassName` 是一个值。静态版本必须显式调用 `ClassName::operator[](i)`。这一点和很多人的直觉相反，编译器会直接报错 `'Registry' does not refer to a value`。
 
 ```cpp
 #include <iostream>
@@ -466,18 +468,20 @@ public:
 int Registry::data[5] = {10, 20, 30, 40, 50};
 
 int main() {
-    // 不需要创建Registry对象就能使用
-    // 语法：ClassName[index]
-    std::cout << "Registry[0] = " << Registry[0] << std::endl;  // 输出: Registry[0] = 10
+    // 不需要创建 Registry 对象
+    // 注意：不能写 Registry[0]，必须显式调用 operator[]
+    std::cout << "Registry::operator[](0) = "
+              << Registry::operator[](0) << std::endl;  // 输出: 10
 
-    Registry[0] = 999;  // 也可以修改
-    std::cout << "Registry[0] = " << Registry[0] << std::endl;  // 输出: Registry[0] = 999
+    Registry::operator[](0) = 999;  // 也可以修改
+    std::cout << "Registry::operator[](0) = "
+              << Registry::operator[](0) << std::endl;  // 输出: 999
 
     return 0;
 }
 ```
 
-> 静态下标运算符看起来很酷，但使用时要小心语义清晰。`Registry[0]`到底是访问什么东西？如果你的类有多个静态数组，用命名更明确的静态方法可能更清晰。
+> 静态下标运算符看起来很酷，但使用时要小心语义清晰。`Registry::operator[](0)`到底访问的是什么？如果你的类有多个静态数组，用命名更明确的静态方法（比如 `Registry::get(0)`）可能更清晰。
 
 ## 13.6 箭头运算符重载
 
@@ -486,6 +490,18 @@ int main() {
 ```cpp
 #include <iostream>
 
+// 注意：Widget 必须先定义，因为 Ptr 的成员要用到 Widget*
+class Widget {
+public:
+    void display() const {
+        std::cout << "Widget::display() called!" << std::endl;
+    }
+
+    int value = 42;
+};
+
+// 一个"不拥有对象"的代理指针：只借用别人的 Widget
+// （如果这里写上 delete data_，就会删除栈上的对象，造成严重错误）
 class Ptr {
 private:
     Widget* data_;  // 代理一个Widget对象
@@ -498,17 +514,6 @@ public:
     Widget* operator->() const {
         return data_;
     }
-
-    ~Ptr() { delete data_; }
-};
-
-class Widget {
-public:
-    void display() const {
-        std::cout << "Widget::display() called!" << std::endl;
-    }
-
-    int value = 42;
 };
 
 int main() {
@@ -546,14 +551,16 @@ public:
 class Outer {
 public:
     Middle middle;
-    Middle* operator->() { return &middle; }
+    // 返回"类类型"（这里用引用）才会触发链式调用；
+    // 如果返回 Middle*，编译器会直接把它当普通指针，不再继续链
+    Middle& operator->() { return middle; }
 };
 
 int main() {
     Outer obj;
     // 链式调用：obj->x 会递归调用 operator->()
-    // obj.operator->() 返回 Middle*（指向 middle）
-    // 编译器发现返回值还是类类型指针，继续调用 Middle::operator->()，得到 Inner*
+    // 第 1 步：obj.operator->() 返回 Middle&（仍是类类型）
+    // 第 2 步：对 Middle& 继续调用 Middle::operator->()，得到 Inner*
     // 最终通过 Inner* 访问 x 成员
     std::cout << "obj->x = " << obj->x << std::endl;  // 输出: obj->x = 100
 
@@ -629,16 +636,19 @@ int main() {
 
 ### 静态函数调用运算符
 
-函数调用运算符也可以是**静态**的！这意味着你可以不创建对象就调用`ClassName(args)`，就像调用一个命名空间函数一样。
+函数调用运算符也可以是**静态**的！这样调用时就不需要对象。
+
+> ⚠️ **重要提醒**：和 `static operator[]` 一样，`static operator()` **不能**写成 `Adder(1, 2)`。因为 `Adder` 是类类型而不是值，`Adder(1, 2)` 会被理解成"用 {1, 2} 初始化一个临时对象"，反而报错。必须显式写 `Adder::operator()(1, 2)`。
 
 ```cpp
 #include <iostream>
+#include <string>
 
 class Adder {
 public:
     // 静态operator()
     // 可以不用创建对象直接调用
-    // Adder(1, 2) 就像调用一个命名空间函数
+    // 调用方式：Adder::operator()(1, 2)
 
     static int operator()(int a, int b) {
         return a + b;
@@ -651,10 +661,13 @@ public:
 
 int main() {
     // 不需要创建Adder对象
-    std::cout << "Adder(1, 2) = " << Adder(1, 2) << std::endl;  // 输出: Adder(1, 2) = 3
+    std::cout << "Adder::operator()(1, 2) = "
+              << Adder::operator()(1, 2) << std::endl;  // 输出: 3
 
-    std::cout << "Adder(\"Hello\", \" World\") = " << Adder("Hello", " World") << std::endl;
-    // 输出: Adder("Hello", " World") = Hello World
+    std::cout << "Adder::operator()(\"Hello\", \" World\") = "
+              << Adder::operator()(std::string("Hello"), std::string(" World"))
+              << std::endl;
+    // 输出: Hello World
 
     return 0;
 }
@@ -716,11 +729,13 @@ int main() {
 
     Counter c1 = ++c;  // 前置：先加到6，然后赋值给c1
     std::cout << "++c = " << c1.get() << ", c = " << c.get() << std::endl;
-    // 输出: ++c = 6, c = 6 (c自己也变成6了)
+    // 输出: ++c = 6, c = 6
+    // （前置 ++ 返回自增之后的自己，所以 c 也是 6）
 
     Counter c2 = c++;  // 后置：先赋值c2=6，然后c再加1变成7
     std::cout << "c++ = " << c2.get() << ", c = " << c.get() << std::endl;
-    // 输出: c++ = 6, c = 7 (c2是旧值，c是新值)
+    // 输出: c++ = 6, c = 7
+    // （后置 ++ 先把自己拷贝一份返回旧值 c2=6，自己再自增到 7）
 
     Counter c3 = --c;  // 前置递减
     std::cout << "--c = " << c3.get() << ", c = " << c.get() << std::endl;

@@ -8,7 +8,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-11-Development-Server-Advanced
 
 # 第11章：开发服务器进阶
 
@@ -2055,4 +2054,4 @@ console.log(envConfig.api.baseUrl)  // 有类型提示
 
 ---
 
-> 📌 **预告**：下一章我们将进入 **生产构建优化**，学习 Rollup 配置、代码压缩、Tree Shaking、产物分析、兼容性处理、CDN 发布等内容。敬请期待！
+> 📌 **预告**：下一章我们将进入 **生产构建优化**，学习 Rolldown / Rollup 配置、代码压缩、Tree Shaking、产物分析、兼容性处理、CDN 发布等内容。敬请期待！

@@ -351,14 +351,17 @@ int main(void)
 #define container_of(ptr, type, member) \
     ((type *)((char *)(ptr) - offsetof(type, member)))
 
+/* 先给这个"内层小结构"起个名字，稍后指针类型才不会对不上 */
+struct point2d {
+    int x;
+    int y;
+};
+
 struct person {
     char name[32];
     int age;
     double height;
-    struct {
-        int x;
-        int y;
-    } position;  /* 假设这个是 ptr 指向的成员 */
+    struct point2d position;  /* 假设这个是 ptr 指向的成员 */
 };
 
 int main(void)
@@ -369,7 +372,7 @@ int main(void)
     p.position.y = 200;
 
     /* 假设我们只有 position 的地址 */
-    struct { int x; int y; } *pos_ptr = &p.position;
+    struct point2d *pos_ptr = &p.position;
 
     /* 用 container_of 反推 person 的指针 */
     struct person *person_ptr = container_of(pos_ptr, struct person, position);
@@ -384,7 +387,9 @@ int main(void)
     /* 验证偏移量 */
     printf("position 在 person 中的偏移量: %zu 字节\n",
            offsetof(struct person, position));
-    // position 是最后一个成员，所以偏移量 = sizeof(person) - sizeof(position)
+    // 因为 position 是最后一个成员，在本机上偏移量恰好等于
+    // sizeof(struct person) - sizeof(struct point2d)
+    // （顺序/填充规则因实现而异，不要把这个等式当成通用规律）
 
     return 0;
 }
@@ -840,62 +845,61 @@ pahole --show_padding vmlinux   # 显示填充字节（用黄色/特殊颜色标
 #include <stdio.h>
 #include <stddef.h>  /* offsetof */
 
-/* 有填充的结构体 */
+/* 成员顺序不好：char / int / char，中间和尾部都会被填充 */
 struct with_padding {
-    char   a;     /* 1 字节 */
-    int    b;     /* 4 字节，但编译器会在 a 后面填 3 个字节 */
-    char   c;     /* 1 字节，但 b 是 4 字节对齐，所以后面可能再填 3 字节 */
+    char   a;
+    int    b;     /* 为了对齐，a 后面要填 3 个字节 */
+    char   c;
 };
 
-/* 没有填充的结构体（手动紧凑） */
-struct packed {
+/* 只是把成员按"大的在前"重排了一下，填充就少了很多 */
+struct reordered {
+    int    b;
     char   a;
-    char   b;
-    int    c;
-    char   d;
+    char   c;
 };
 
 int main(void)
 {
     printf("=== 结构体内存布局对比 ===\n\n");
 
-    printf("with_padding:\n");
-    printf("  char   a: 偏移 %zu, 大小 1\n", offsetof(struct with_padding, a));
-    printf("  int    b: 偏移 %zu, 大小 4（前面有 3 字节填充）\n",
+    printf("with_padding (char / int / char):\n");
+    printf("  char   a: 偏移 %zu\n", offsetof(struct with_padding, a));
+    printf("  int    b: 偏移 %zu   <- a 后面填了 3 个字节\n",
            offsetof(struct with_padding, b));
-    printf("  char   c: 偏移 %zu, 大小 1（前面有 3 字节填充）\n",
-           offsetof(struct with_padding, c));
-    printf("  总大小: %zu 字节（实际用了 %zu 字节数据 + %zu 字节填充）\n\n",
+    printf("  char   c: 偏移 %zu\n", offsetof(struct with_padding, c));
+    printf("  总大小: %zu 字节（数据本身只有 %zu 字节）\n\n",
            sizeof(struct with_padding),
-           1 + 4 + 1,
-           sizeof(struct with_padding) - 6);
+           (size_t)(sizeof(char) + sizeof(int) + sizeof(char)));
 
-    printf("packed（紧凑）:\n");
-    printf("  char   a: 偏移 %zu\n", offsetof(struct packed, a));
-    printf("  char   b: 偏移 %zu\n", offsetof(struct packed, b));
-    printf("  int    c: 偏移 %zu\n", offsetof(struct packed, c));
-    printf("  char   d: 偏移 %zu\n", offsetof(struct packed, d));
-    printf("  总大小: %zu 字节（无填充！）\n", sizeof(struct packed));
+    printf("reordered (int / char / char):\n");
+    printf("  int    b: 偏移 %zu\n", offsetof(struct reordered, b));
+    printf("  char   a: 偏移 %zu\n", offsetof(struct reordered, a));
+    printf("  char   c: 偏移 %zu\n", offsetof(struct reordered, c));
+    printf("  总大小: %zu 字节（数据本身只有 %zu 字节）\n",
+           sizeof(struct reordered),
+           (size_t)(sizeof(char) + sizeof(int) + sizeof(char)));
 
     return 0;
 }
 
-// 输出：
+// 在常见的 64 位平台上输出：
 // === 结构体内存布局对比 ===
 //
-// with_padding:
-//   char   a: 偏移 0, 大小 1
-//   int    b: 偏移 4, 大小 4（前面有 3 字节填充）
-//   char   c: 偏移 8, 大小 1（前面有 3 字节填充）
-//   总大小: 12 字节（实际用了 6 字节数据 + 6 字节填充）
-//
-// packed（紧凑）:
+// with_padding (char / int / char):
 //   char   a: 偏移 0
-//   char   b: 偏移 1
-//   int    c: 偏移 2
-//   char   d: 偏移 6
-//   总大小: 7 字节（无填充！）
+//   int    b: 偏移 4   <- a 后面填了 3 个字节
+//   char   c: 偏移 8
+//   总大小: 12 字节（数据本身只有 6 字节）
+//
+// reordered (int / char / char):
+//   int    b: 偏移 0
+//   char   a: 偏移 4
+//   char   c: 偏移 5
+//   总大小: 8 字节（数据本身只有 6 字节）
 ```
+
+> 💡 注意上面 `reordered` 的**总大小是 8 字节而不是 6 字节**：编译器要在末尾补 2 个字节，让 `sizeof` 是最大对齐数（这里是 4）的整数倍。所以"重排成员"只能*减少*填充，不能完全消除；想彻底去掉填充得用 `#pragma pack` 或 `__attribute__((packed))` 这类厂商扩展，代价是访问速度变慢、甚至在部分架构上无法访问。
 
 ---
 
@@ -907,8 +911,7 @@ Git 是 Linus Torvalvalds 用 C 语言开发的版本控制系统，被全世界
 
 Git 的核心是一个"内容寻址文件系统"（Content-Addressable File System）。所有的数据都被当作"对象"存储，每个对象都有唯一的 SHA-1 哈希值作为"名字"。
 
-```
-mermaid
+```mermaid
 graph TD
     A["blob 对象<br/>（文件内容）"] --> B["tree 对象<br/>（目录快照）"]
     B --> C["commit 对象<br/>（版本快照）"]
@@ -1366,8 +1369,7 @@ SQLite 是世界上最广泛部署的数据库引擎——你的手机浏览器�
 
 VDBE（Virtual Database Engine）是 SQLite 的核心。它不是真正执行 SQL 的引擎，而是一个"虚拟机"——它把 SQL 语句编译成一套"字节码"（bytecode），然后执行这些字节码。
 
-```
-mermaid
+```mermaid
 graph LR
     A["SQL 语句<br/>SELECT * FROM users"] --> B["SQLite 编译器<br/>生成字节码"]
     B --> C["VDBE 虚拟机<br/>执行字节码"]
@@ -1480,8 +1482,7 @@ struct VdbeOp {
 
 SQLite 使用 B-tree（特别是 B-tree 的一种变体 B+tree）来存储数据。B+tree 的特点是所有数据都在叶子节点，非叶子节点只存储索引。
 
-```
-mermaid
+```mermaid
 graph TD
     A["B+Tree 根节点<br/>[ptr1|ptr2|ptr3]"] --> B["中间节点1<br/>[key|ptr]"]
     A --> C["中间节点2<br/>[key|ptr]"]
@@ -1995,8 +1996,7 @@ NGINX 是高性能 HTTP 服务器和反向代理服务器，以事件驱动、�
 
 NGINX 的核心非常小，只提供基本的事件处理和 HTTP 框架。所有的功能（HTTP、负载均衡、SSL 等）都以**模块**的形式存在：
 
-```
-mermaid
+```mermaid
 graph TB
     A["NGINX Core<br/>ngx_core<br/>事件循环、模块管理"] --> B["HTTP 模块链"]
     A --> C["Mail 模块链"]
@@ -2422,6 +2422,8 @@ int main(int argc, char *argv[])
  */
 ```
 
+> 📎 这是一个**节选片段**：`parse_options`、`init_environment`、`load_config`、`run_main_loop` 都定义在项目其他文件里，单独把这段抄出来是编译不过的。真正的重点不是代码本身，而是"从 `main` 顺着一层层调用往下追"的阅读路线。
+
 ### 26.7.3 关注核心数据结构：先读 .h 文件，再读 .c 实现
 
 大型 C 项目，头文件是"骨架"，源文件是"血肉"。读代码的正确顺序是：
@@ -2482,8 +2484,7 @@ int my_struct_process(struct my_struct *s, int data);
 
 **函数调用图示例：**
 
-```
-mermaid
+```mermaid
 graph TD
     A["main()"] --> B["init()"]
     A --> C["parse_args()"]
@@ -2500,8 +2501,7 @@ graph TD
 
 **数据流图示例：**
 
-```
-mermaid
+```mermaid
 graph LR
     A["输入数据<br/>bytes"] --> B["解析器<br/>Parser"]
     B --> C{"数据有效?"}
@@ -2514,18 +2514,17 @@ graph LR
 
 **状态机图示例：**
 
-```
-mermaid
+```mermaid
 graph TD
-    A["IDLE"] -->|"收到请求| REQUESTED"]
-    REQUESTED -->|"验证通过| VERIFIED"]
-    REQUESTED -->|"验证失败| REJECTED"]
-    VERIFIED -->|"处理中| PROCESSING"]
-    PROCESSING -->|"成功| COMPLETED"]
-    PROCESSING -->|"失败| FAILED"]
-    COMPLETED -->|"超时或重置| IDLE"]
-    REJECTED -->|"重试| REQUESTED"]
-    FAILED -->|"重试| REQUESTED"]
+    A["IDLE"] -->|"收到请求"| REQUESTED["REQUESTED"]
+    REQUESTED -->|"验证通过"| VERIFIED["VERIFIED"]
+    REQUESTED -->|"验证失败"| REJECTED["REJECTED"]
+    VERIFIED -->|"处理中"| PROCESSING["PROCESSING"]
+    PROCESSING -->|"成功"| COMPLETED["COMPLETED"]
+    PROCESSING -->|"失败"| FAILED["FAILED"]
+    COMPLETED -->|"超时或重置"| IDLE
+    REJECTED -->|"重试"| REQUESTED
+    FAILED -->|"重试"| REQUESTED
 ```
 
 ### 26.7.5 善用 grep -r / ctags / cscope 做符号追踪
@@ -2589,6 +2588,7 @@ vim -t my_function
  */
 
 #include <stdio.h>
+#include <string.h>   /* strerror */
 
 /* 1. Windows vs Linux 的基本差异 */
 #ifdef _WIN32

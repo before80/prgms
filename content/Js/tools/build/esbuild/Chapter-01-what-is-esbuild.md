@@ -98,7 +98,7 @@ esbuild 还自带一个本地开发服务器。你改代码，它自动重新构
 |------|------|
 | **Webpack** | 一个啥都会的全能大厨，能做满汉全席，但厨房（配置）巨大，光预热就要半天 |
 | **Rollup** | 一个专注于做精致小菜的私房菜厨师，输出干净简洁，特别适合打包类库（Lib） |
-| **Vite** | 一个用现代理念经营的快餐店老板，店内引入了 esbuild 当首席加速厨师 |
+| **Vite** | 一个用现代理念经营的快餐店老板；Vite 1–7 把 esbuild 当首席加速厨师，Vite 8 已改用 Rolldown/Oxc |
 | **esbuild** | 一个用 Go 语言修炼了十年内功的闪电侠，别的厨师做菜要 10 分钟，它 10 毫秒搞定 |
 
 ### esbuild vs Webpack
@@ -107,7 +107,7 @@ Webpack 是前端构建领域的老大哥，生态极其丰富，插件多如牛
 
 esbuild 最大的特点就是**快**。不是"快一点"，是"快几十倍"那种快。在 esbuild 里，打包一个项目可能只需要几百毫秒，而 Webpack 可能需要几十秒。
 
-但 esbuild 不是 Webpack 的替代品——它更像是一个"提速工具"。很多现代工具（如 Vite）实际上把 esbuild 当作自己的一部分，用它来处理转译和压缩这些需要快速度的环节。
+但 esbuild 不是 Webpack 的替代品——它更像是一个"提速工具"。Vite 1–7 曾把 esbuild 作为开发阶段的一部分；Vite 8 改用了 Rust 工具链，但其他打包器、CLI 和构建脚本仍广泛使用 esbuild 做转译与压缩。
 
 ### esbuild vs Rollup
 
@@ -121,17 +121,17 @@ esbuild 在类库打包上也能做得很好，而且速度更快。但 Rollup �
 
 Vite 的核心理念是"快"。
 
-Vite 在开发阶段使用 esbuild 来做转译和预构建（因为快），而在生产环境则根据场景灵活选择——可以用 esbuild 做打包，也可以用 Rollup。
+Vite 1–7 在开发阶段使用 esbuild 做转译和预构建，在生产环境使用 Rollup；Vite 8 已改为使用 Rolldown/Oxc，esbuild 不再是 Vite 的直接依赖。
 
-所以它们不是竞争关系——**Vite 把 esbuild 当作自己速度的秘密武器之一**。
+所以它们不是竞争关系——**esbuild 曾经是 Vite 1–7 速度的秘密武器之一；Vite 8 则进入了 Rolldown/Oxc 时代**。
 
-简单来说：如果你需要一个全家桶，Vite；如果你追求极限速度，esbuild；如果两者都要——那就把 esbuild 装进 Vite 里。
+简单来说：如果你需要 Vite 这样的完整开发体验，用 Vite；如果你只需要极速转译/压缩能力，用 esbuild；两者可以组合，但 Vite 8 默认已不再依赖 esbuild。
 
 ```mermaid
 graph TD
     A["你的源代码"] --> B["Vite 开发模式"]
     A --> C["Vite 生产模式"]
-    B --> D["esbuild<br/>转译 + 预构建<br/>⚡ 极速启动"]
+    B --> D["esbuild<br/>转译 + 预构建<br/>⚡ 极速启动（Vite 1–7）"]
     C --> E["esbuild / Rollup<br/>打包<br/>灵活选择"]
     D --> G["浏览器 🚀"]
     E --> H["生产产物 📦"]
@@ -183,7 +183,7 @@ esbuild 从零开始，只支持最新的模块化标准，不需要兼容那些
 
 > 一个小八卦：Evan Wallace 最初并不是想做一个"取代 Webpack"的工具，他只是受不了自己项目里 Webpack 慢得像蜗牛的速度，于是自己写了一个快的。后来他把这个工具开源，大家才发现：哦，原来一个人写一个打包工具可以这么快、这么好。
 
-如今 esbuild 已经成为前端工具链中不可或缺的一环，从 Vite 到 Remix，从 SvelteKit 到 Astro，到处都有它的身影。
+如今 esbuild 已经成为前端工具链中的重要一环，许多框架、CLI 和构建脚本仍在使用它；不过 Vite 8 已改用 Rolldown/Oxc，不能再把“Vite 必然内置 esbuild”当作当前事实。
 
 ---
 
@@ -195,6 +195,6 @@ esbuild 从零开始，只支持最新的模块化标准，不需要兼容那些
 
 它的速度快得离谱，原因是 Go 语言 + 多核并行 + 从零构建没有历史包袱。
 
-它不是 Webpack 的直接替代品，而是很多现代工具的秘密武器，Vite、Rollup 都可能内置 esbuild 来提速。
+它不是 Webpack 的直接替代品，而是很多现代工具的秘密武器；Rollup、webpack 等项目可以通过插件使用 esbuild，Vite 1–7 也大量依赖过它。
 
 第一章就这么愉快地结束了！下一章我们来聊聊 esbuild 的安装与入门，手把手带你写出第一个 esbuild 脚本。

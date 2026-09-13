@@ -1,6 +1,8 @@
 ﻿
 
 +++
+
+# 第7章 配置参考
 title = "第7章 配置参考"
 weight = 70
 date = "2026-03-28T11:54:00+08:00"
@@ -100,9 +102,9 @@ await esbuild.build({
 // 输出：dist/index.mjs
 ```
 
-### 7.1.6 splitting（代码分割，仅 esm + browser + 动态 import 场景）
+### 7.1.6 splitting（代码分割，要求 ESM 输出格式）
 
-代码分割能让打包产物分成多个文件，浏览器按需加载——代价是你得同时满足三个条件（esm + browser + 动态 import），缺一不可。esbuild 在这里很有原则：不给足条件就罢工，不给你"我以为你能用"的幻想。
+代码分割能让打包产物分成多个文件，按需加载。esbuild 的硬性要求是：输出格式必须是 `esm`，并配合 `outdir`；浏览器场景通常还会配合动态 `import()`。它并不要求平台必须是 browser，但不同平台的运行时对 ESM 和动态导入的支持情况不同。
 
 > **补充**：`chunkNames` 用于自定义 chunk 文件的命名模板（如 `chunkNames: 'chunks/[name]-[hash]'`），属于进阶用法，本节不展开。
 
@@ -113,7 +115,7 @@ await esbuild.build({
   bundle: true,
   format: 'esm',     // 必须用 ESM 格式
   splitting: true,   // 开启代码分割
-  platform: 'browser', // 只能在浏览器环境使用
+  platform: 'browser', // 浏览器场景示例；Node ESM 场景也可使用 esm 格式
 });
 ```
 
@@ -220,11 +222,11 @@ await esbuild.build({
 
 | 平台 | 特点 |
 |------|------|
-| `browser` | 把 Node.js 内置模块标记为外部依赖；**bundled 时默认 format 为 esm**，非 bundled 时默认 iife |
-| `node` | 把 Node.js 内置模块标记为外部依赖；**bundled 时默认 format 为 esm**，非 bundled 时默认 cjs |
+| `browser` | 面向浏览器；**bundled 时默认 format 为 iife** |
+| `node` | 面向 Node.js；**bundled 时默认 format 为 cjs**，并把内置模块标记为外部依赖 |
 | `neutral` | 不做平台特定处理，保持 require() 调用 |
 
-> **注意**：`platform` 的默认 format 与是否 `bundle` 有关。bundled 模式下默认 esm，非 bundled 模式下 browser 默认 iife、node 默认 cjs。
+> **注意**：`platform` 会改变默认输出格式。官方文档明确说明：bundling 时 `platform: 'browser'` 默认输出 `iife`，`platform: 'node'` 默认输出 `cjs`。需要 ESM 时必须显式设置 `format: 'esm'`。
 
 ### 7.2.3 format 与 platform 组合的最佳实践
 
@@ -447,6 +449,7 @@ await esbuild.build({
 // 注意：esbuild 的 loader 选项只接受扩展名到加载器名称的简单映射，
 // 如需处理自定义文件类型（如 .myext），应使用插件的 onLoad 钩子，
 // 具体方法参见 7.13 节插件配置。
+```
 
 ---
 

@@ -1161,7 +1161,7 @@ C23 最大的新特性之一——**`_BitInt`**允许你声明任意位宽的整
 
 ```c
 #include <stdio.h>
-#include <stdint.h>
+#include <limits.h>   /* BITINT_MAXWIDTH 定义在这里 */
 
 int main(void) {
     // C23 新特性：_BitInt(N) 表示恰好 N 位的整数
@@ -1173,37 +1173,58 @@ int main(void) {
     nibble = 63;
     byte = 255;
 
-    printf("nibble = %d\n", nibble);
+    // printf 没有 _BitInt 专属的格式符，老老实实先转成标准类型再打印。
+    // （即使 _BitInt(7) 比 int 窄，Clang 也会对直接传 %d 给出 -Wformat 警告）
+    printf("nibble = %d\n", (int)nibble);
     // 输出: nibble = 63
 
-    printf("byte = %u\n", byte);
+    printf("byte = %u\n", (unsigned)byte);
     // 输出: byte = 255
 
-    // 超大整数
-    _BitInt(1024) big;  // 1024 位整数！
-    big = 1;
-    for (int i = 0; i < 1023; i++) {
-        big *= 2;  // 计算 2^1023
+    // 位宽上限由实现定义，写在 <limits.h> 的 BITINT_MAXWIDTH 宏里
+    printf("本实现的 BITINT_MAXWIDTH = %d\n", BITINT_MAXWIDTH);
+
+    // 更宽的整数（写之前先确认不超过 BITINT_MAXWIDTH）
+    unsigned _BitInt(64) big = 1;
+    for (int i = 0; i < 63; i++) {
+        big *= 2;  // 计算 2^63
     }
-    // _BitInt_max(N) 宏返回 N 位有符号 _BitInt 类型能表示的最大值
-    _BitInt(1024) max_val = _BitInt_max(1024);
-    printf("1024 位整数的最大值位数验证: %d\n", 1024);
-    printf("big = 2^1023（这是一个约 309 位的十进制数，循环乘了 1023 次）\n");
+
+    // _BitInt 没有专属的 printf 格式符，打印前必须先转成标准整数类型
+    printf("2^63 = %llu\n", (unsigned long long)big);
     // _BitInt 在大数计算、密码学等领域非常有用
 
     return 0;
 }
 ```
 
-> **注意：** `_BitInt`是 C23 的新特性写作本书时（2025年），主流编译器（GCC 14+、Clang 18+）已支持，但需要加`-std=c23`编译参数。
+> **注意**：`_BitInt` 是 C23 的新特性，需要显式加 `-std=c23` 编译参数（GCC 14+ / Clang 16+ 已支持）。
+>
+> ⚠️ **三个容易踩的坑**：
+>
+> 1. **没有 `_BitInt_max()` 这个宏**。网上一些教程（包括 AI 生成的）会写 `_BitInt_max(1024)`，那是**杜撰出来的**，C23 标准里根本不存在。想知道能写多宽，看 `<limits.h>` 里的 `BITINT_MAXWIDTH`。
+> 2. **位宽不是想写多大就多大**。`N` 必须落在 `1 ~ BITINT_MAXWIDTH` 之间。目前 Clang 对**有符号** `_BitInt` 的上限是 128 位，写 `_BitInt(1024)` 会直接报 `signed _BitInt of bit sizes greater than 128 not supported`（无符号可以更大）。
+> 3. **不能用 `%d` 直接打印宽的 `_BitInt`**。`%d` 要的是 `int`。宽度超过 `int` 的 `_BitInt` 必须先显式转换成 `long long` 之类的标准类型再打印，否则是未定义行为。
 
 ---
 
 ## 4.16 C23 `_Decimal32` / `_Decimal64` / `_Decimal128`
 
-这是 C23 引入的**十进制浮点类型**，基于 IEEE 754-2019 标准。
+这是 C23 里的**十进制浮点类型**（`_Decimal32` / `_Decimal64` / `_Decimal128`），对应 IEEE 754-2019 的 decimal interchange formats。
+
+> ⚠️ **先说清楚它的地位**：十进制浮点在 C23 里属于**可选特性（optional feature）**，只有当实现定义了 `__STDC_IEC_60559_DFP__` 宏时才提供，相关特性宏写在 `<float.h>` 里。换句话说——**不是所有 C23 编译器都有它**。GCC 提供这三个类型，但用的是较早期的 TR 24732 草案规格，并且**本身不带对应的 `printf` 实现**（要靠 C 库，比如 glibc 来提供）。MSVC 和 macOS 的 Apple Clang 目前都不支持。所以本节把它当作"了解有这回事"即可。
 
 > **为什么需要十进制浮点？** 传统的二进制浮点数（如`float`、`double`）在表示十进制小数时存在精度问题：`0.1 + 0.2 ≠ 0.3`（因为 0.1 在二进制里是无限循环小数）。在**金融计算**中，这种误差是不可接受的。十进制浮点直接用十进制存储，精确表示常见的十进制小数。
+
+先记住**类型、字面量后缀、printf 格式符**的对应关系（这三者最容易记串）：
+
+| 类型 | 字面量后缀 | 十进制精度 | printf 格式符 |
+|------|-----------|-----------|--------------|
+| `_Decimal32` | `df` / `DF` | 约 7 位 | `%Hf` |
+| `_Decimal64` | `dd` / `DD` | 约 16 位 | `%Df` |
+| `_Decimal128` | `dl` / `DL` | 约 34 位 | `%DDf` |
+
+> ⚠️ **别记反了**：`_Decimal64` 的后缀是 **`DD`**（Double Decimal），`_Decimal128` 才是 **`DL`**。很多教程把这两个搞混，写成"`_Decimal64` 用 `DF`"——那是**错的**，`DF` 是 `_Decimal32` 的后缀。
 
 ```c
 #include <stdio.h>
@@ -1213,28 +1234,29 @@ int main(void) {
     // _Decimal64：64 位十进制浮点，约 16 位十进制精度
     // _Decimal128：128 位十进制浮点，约 34 位十进制精度
 
-    _Decimal64 price = 19.99DF;  // 注意后缀 DF（_Decimal64 用 DF，_Decimal128 才用 DD）
-    _Decimal64 tax = price * 0.08DF;  // 8% 税
+    _Decimal64 price = 19.99DD;       // _Decimal64 用 DD 后缀
+    _Decimal64 tax = price * 0.08DD;  // 8% 税
     _Decimal64 total = price + tax;
 
     printf("商品价格: %Df\n", price);
     printf("税额(8%%): %Df\n", tax);
     printf("总价: %Df\n", total);
 
-    // 十进制浮点能精确表示 0.1、0.2 等
+    // 十进制浮点能精确表示 0.1、0.2 等十进制小数
     _Decimal64 a = 0.1DD;
     _Decimal64 b = 0.2DD;
     _Decimal64 sum = a + b;
 
-    printf("0.1 + 0.2 = %DD\n", sum);
-    // 输出: 0.1 + 0.2 = 0.30000000000000000DD
-    // 注意：这里是精确的 0.3！
+    printf("0.1 + 0.2 = %Df\n", sum);
+    // 输出: 0.1 + 0.2 = 0.3    ← 精确！不像 double 那样得到 0.30000000000000004
 
     return 0;
 }
 ```
 
-> **生活比喻：** 二进制浮点数就像用分数（1/3 = 0.333333...无限循环）来表示小数，而十进制浮点数就像直接用小数点（0.33333...可以精确表示 1/3 吗？不能！但 0.1 在十进制可以精确表示，在二进制反而不行）。金融计算用十进制，就像会计用"元、角、分"，而不是"盎司、磅"。
+> 💡 想亲眼看看区别，可以把 `DD` 换成普通的 `double`：`double a = 0.1, b = 0.2;` 之后 `a + b != 0.3`，这就是二进制浮点的经典坑。十进制浮点正是为金融、会计这类**不能容忍这种误差**的场景准备的。
+
+> **生活比喻：** 二进制浮点数就像用分数来表示小数——`1/3` 在十进制里是无限循环的 `0.333...`，同理 `0.1` 在二进制里也是无限循环的，存不下就只能截断。十进制浮点数则直接用"十进制小数点"存储，`0.1`、`0.2`、`0.3` 都能精确表示（`1/3` 这种反而表示不了）。金融计算选十进制，就像会计用"元、角、分"，而不是"盎司、磅"。
 
 ---
 
@@ -1303,7 +1325,7 @@ int main(void) {
 
 ```c
 #include <stdio.h>
-#include <stdint.h>
+#include <limits.h>   /* INT_MAX / UINT_MAX 定义在这里 */
 
 int main(void) {
     // 有符号整数溢出：未定义行为！（编译器可能优化掉你的判断）

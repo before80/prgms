@@ -87,7 +87,9 @@ Qt的强项：
 - ✅ 丰富的模块（网络、数据库、图形、音频……）
 - ✅ 商业友好的许可证（GPL/LGPL/Commercial）
 
-> 有趣的是，Qt最初被命名为"Qt"是因为Trolltech的工程师们觉得"OOP"（面向对象）和"X"（Unix）合起来很酷，但"OOX"听起来像个洗衣机。所以他们决定用"Qt"——既是"cute"的谐音，也暗示着比C++多了一个"+"。
+> **名字的由来**：据 Qt 官方历史记载，两位创始人 Haavard Nord 和 Eirik Chambe-Eng 当时觉得字母 **Q** 在他们用的字体里很好看，
+> 而 **t** 取自 "toolkit"（工具包），于是就有了 "Qt"；它的发音也正好近似英文的 **cute**（可爱）。
+> 顺带一提，Qt 由挪威公司 Trolltech 开发，后来几经转手（Nokia → Digia → The Qt Company），这也是它"名字不像缩写字"的原因。
 
 ### 信号与槽：Qt的灵魂所在
 
@@ -95,6 +97,13 @@ Qt的强项：
 
 **信号（Signal）**：当某个事情发生时，对象发出的"广播"
 **槽（Slot）**：接收信号的"处理函数"
+
+> 📦 **依赖：本节开始的所有 Qt 示例都需要先安装 Qt 开发环境！**
+> - macOS：`brew install qt`
+> - Ubuntu/Debian：`sudo apt install qt6-base-dev`
+> - Windows：用 Qt 官方在线安装器，或 `vcpkg install qtbase`
+>
+> 编译时不能只用 `g++ main.cpp`，需要用 `qmake`、CMake（`find_package(Qt6 ...)`）或 `pkg-config` 把 Qt 的头文件和库带上。
 
 ```cpp
 #include <QCoreApplication>
@@ -172,6 +181,17 @@ QObject::disconnect(button, &QPushButton::clicked, nullptr, nullptr);
 ### 第一个Qt GUI程序
 
 让我们写一个完整的、可以运行的Qt程序：
+
+> 📦 **依赖：必须先安装 Qt 开发环境！**
+> 本节以及后面所有 Qt 示例都依赖 Qt6（含 Widgets 模块），**不是标准库的一部分**。
+> 没有安装 Qt 时，编译会直接报 `'QApplication' file not found` 之类的错误。
+>
+> 安装方法：
+> - macOS：`brew install qt`（装好后可用 `brew --prefix qt` 查看路径）
+> - Ubuntu/Debian：`sudo apt install qt6-base-dev`
+> - Windows：用 Qt 官方在线安装器，或 `vcpkg install qtbase`
+>
+> 本章最后的「CMakeLists.txt」小节给出了推荐的编译方式；用 CMake 时请让 `find_package(Qt6 ...)` 自动处理头文件与链接选项。
 
 ```cpp
 #include <QApplication>

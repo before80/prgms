@@ -680,11 +680,14 @@ int main() {
 
 C++17带来了重磅功能——并行算法！想象一下，原来需要一个厨师慢慢炒10000道菜，现在有8个厨师同时开工，速度直接起飞！
 
+> 📎 **可用性说明**：并行算法（`std::execution::par` 等）需要标准库集成 PSTL 后端（如 Intel TBB）。**Apple clang 自带的 libc++ 到 21 版都没有实现**，写 `std::execution::par` 会报 `no member named 'par' in namespace 'std::execution'`。想真正跑起来请用 GCC 9+ 或 MSVC 并链接 TBB。下面保留标准写法，供理解 API 之用。
+
 ```cpp
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <execution>
+#include <numeric>    // std::iota
+#include <execution>  // std::execution::par
 
 int main() {
     std::vector<int> v(1000000);
@@ -826,6 +829,7 @@ int main() {
 #include <iostream>
 #include <vector>
 #include <ranges>
+#include <functional>
 
 int main() {
     std::vector<int> v = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
@@ -844,10 +848,13 @@ int main() {
     // reverse: 反转
     auto reversed = v | std::views::reverse;
     
-    // unique: 去重（只处理相邻重复，所以 {1,1,2,2,3,3} → {1,2,3}）
-    // 注意：unique_view只能遍历一次！第一次遍历完就空了
+    // 去重：标准里**没有** std::views::unique 这个适配器！
+    // 正确做法是用 C++23 的 views::chunk_by 把相邻相同元素分组，
+    // 再取每组第一个元素：{1,1,2,2,3,3} → {1,2,3}
     std::vector<int> dup = {1, 1, 2, 2, 3, 3};
-    auto uniq = dup | std::views::unique;
+    auto uniq = dup
+              | std::views::chunk_by(std::equal_to<>{})
+              | std::views::transform([](auto group) { return group.front(); });
     
     std::cout << "First 5: ";
     for (int x : first5) std::cout << x << " ";  // 输出: 1 2 3 4 5
@@ -867,7 +874,7 @@ int main() {
 > - `take(n)`：取前n个元素
 > - `drop(n)`：跳过前n个元素
 > - `reverse`：反转顺序
-> - `unique`：移除相邻重复元素
+> - `chunk_by(pred)`：按谓词把相邻元素分组（想"去重"就取每组第一个）
 > - `common`：把视图转成普通范围
 
 ## 20.10 范围适配器新增（C++23）
@@ -881,8 +888,11 @@ C++23继续为ranges库添砖加瓦，新增了几个超实用的适配器。不
 
 int main() {
     // C++23: as_const_view - 把视图转成const，防止意外修改
+    // ⚠️ Apple clang 自带的 libc++（到 21 版）还没有实现 std::views::as_const，
+    //    直接用会报 "no member named 'as_const'"。
+    //    这里用一个等价小技巧代替：transform 返回 const 引用。
     std::vector<int> v = {1, 2, 3, 4, 5};
-    auto const_v = v | std::views::as_const;
+    auto const_v = v | std::views::transform([](int& x) -> const int& { return x; });
     // *const_v.begin() = 99;  // 编译错误！无法修改const引用
     std::cout << "as_const view: ";
     for (int x : const_v) std::cout << x << " ";  // 输出: 1 2 3 4 5
@@ -901,7 +911,7 @@ int main() {
     // std::views::chunk_by(pred)        - 按谓词分组，相邻满足条件的元素放同一组
     
     std::cout << "C++23 range adapters include:" << std::endl;
-    std::cout << "- std::views::as_const (shown above)" << std::endl;
+    std::cout << "- std::views::as_const (用 transform 模拟)" << std::endl;
     std::cout << "- std::views::drop_while (shown above)" << std::endl;
     std::cout << "- std::views::adjacent<N> - tuple pairs" << std::endl;
     std::cout << "- std::views::adjacent_transform<N> - transform tuples" << std::endl;
@@ -930,12 +940,15 @@ int main() {
 
 `std::generator`是C++23最令人兴奋的特性之一——它是一种协程，可以优雅地生成惰性序列。就像会变魔术的兔子，从帽子里一只一只地变出兔子，而不是提前准备好一整窝。
 
+> 📎 **可用性说明**：`<generator>` 目前由 MSVC 19.38+ 和 GCC 14+ 提供。**Apple clang 自带的 libc++ 到 21 版还没有 `<generator>` 头文件**，下面这段代码在 macOS 上无法直接编译。保留标准写法供理解 API 之用。
+
 ```cpp
 #include <iostream>
-// #include <generator>  // C++23，仅MSVC和部分GCC/Clang实验性支持
+#include <generator>   // C++23，仅 MSVC 和部分 GCC 提供
 
-// 注意：以下代码需要支持 C++23协程的编译器（如 MSVC 19.38+ 或 GCC 14+ 附赠 -fcoroutines）
-// 如果你的编译器还没跟上，先看注释理解思想，代码跑不起来不丢人！
+// 注意：以下代码需要支持 C++23 协程与 std::generator 的标准库
+// （如 MSVC 19.38+ 或 GCC 14+）。如果你的编译器还没跟上，
+// 先看注释理解思想，代码跑不起来不丢人！
 
 // 一个生成斐波那契数列的generator
 // std::generator<int, int> 表示：值类型int，参数类型int（可以省略）

@@ -1,6 +1,8 @@
 
 
 +++
+
+# 第6章 注意事项与陷阱
 title = "第6章 注意事项与陷阱"
 weight = 60
 date = "2026-03-28T11:54:00+08:00"
@@ -22,25 +24,25 @@ esbuild **没有内置 HMR**。这不是 bug，是设计选择——HMR 需要�
 
 **如果你的项目需要 HMR，有两个选择：**
 
-第一个是使用 Vite。Vite 在 esbuild 基础上实现了完整的 HMR 协议，是目前最好用的带 HMR 的开发服务器。
+第一个是使用 Vite。Vite 1–7 在 esbuild 基础上实现了完整的 HMR 协议；Vite 8 已切换到 Rolldown/Oxc。Vite 依然是目前最好用的带 HMR 的开发服务器之一。
 
 第二个是自己实现。你可以用 `ctx.watch()` 监听文件变化，然后用浏览器的 HMR API 自己实现模块热替换。这个方案比较复杂，一般不推荐。
 
-### 6.1.2 代码分割（Code Splitting）有条件限制（仅支持 esm + import.meta.url 场景）
+### 6.1.2 代码分割（Code Splitting）要求 ESM 输出格式
 
 代码分割（Code Splitting）是指把打包产物拆成多个文件，浏览器按需加载，而不是一次性下载整个 bundle。
 
 esbuild **支持代码分割**，但有条件限制：
 
 ```javascript
-// 开启代码分割（必须在 format=esm 且 platform=浏览器场景下）
+// 开启代码分割（format 必须为 esm，并使用 outdir）
 await esbuild.build({
   entryPoints: ['src/index.js'],
   outdir: 'dist',
   bundle: true,
   format: 'esm',
   splitting: true,
-  // 只能用 import.meta.url，不能用 __dirname
+  // 浏览器场景示例
   platform: 'browser',
 });
 ```
@@ -612,7 +614,7 @@ const API_KEY = process.env.API_KEY; // 运行时从环境读取，bundle 里只
 ```json
 {
   "devDependencies": {
-    "esbuild": "0.20.0"  // 锁定到精确版本，不用 ^0.20.0
+    "esbuild": "0.28.2"  // 锁定到精确版本，不用 ^0.28.2
   }
 }
 ```
@@ -620,7 +622,7 @@ const API_KEY = process.env.API_KEY; // 运行时从环境读取，bundle 里只
 ```bash
 # 提交 lock 文件
 git add package-lock.json
-git commit -m "chore: lock esbuild version to 0.20.0"
+git commit -m "chore: lock esbuild version to 0.28.2"
 ```
 
 定期更新 esbuild 到最新稳定版可以获得性能提升和 bug 修复，但更新前最好先在测试环境验证。

@@ -69,7 +69,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 I am R2-D2!
 R2-D2 is fully charged!
 ```
@@ -177,7 +177,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 多态演示 ===
 Buddy says: Woof!
 Whiskers says: Meow!
@@ -281,7 +281,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 栈操作演示 ===
 Pushed: 10
 Pushed: 20
@@ -370,7 +370,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 栈上创建对象 ===
 (3, 4)
 
@@ -463,7 +463,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 矩形类演示 ===
 宽度: 5
 高度: 3
@@ -588,7 +588,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 访问控制演示 ===
 
 === 通过公有接口操作 ===
@@ -656,7 +656,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 创建第一个机器人 ===
 Robot created: Unknown
 
@@ -732,7 +732,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 创建点 ===
 Point(3, 4) created
 (3, 4)
@@ -798,7 +798,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 直接创建Alice ===
 Person("Alice", 25) created
 
@@ -879,7 +879,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 创建大对象 ===
 BigObject constructed: heavy
 obj1内存占用：numbers有1000000个元素
@@ -968,7 +968,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 全参数构造 ===
 Main constructor: Alice
 
@@ -1051,7 +1051,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === explicit演示 ===
 String created from C-string
 String created from C-string
@@ -1128,7 +1128,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 正常构造 ===
 Resource acquired
 Resource acquired
@@ -1206,7 +1206,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 创建连接 ===
 Connection Database opened
 
@@ -1291,7 +1291,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 创建字符串 ===
 String created: Hello
 String created: World
@@ -1378,7 +1378,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 Before move: s1=Hello, s2=World
 
 === 移动赋值 ===
@@ -1512,7 +1512,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 深拷贝演示 ===
 Deep copy of: Hello
 Deep assignment of: Hello
@@ -1656,7 +1656,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 五法则演示 ===
 
 === 移动赋值 ===
@@ -1719,6 +1719,8 @@ public:
     // 告诉编译器：虽然有自定义构造函数，但析构函数用默认的就行
     ~DefaultDemo() = default;
     
+    int value() const { return value_; }
+
     // 其他特殊成员函数编译器会自动生成
 };
 
@@ -1740,7 +1742,7 @@ int main() {
     
     DefaultDemo d1(10);
     DefaultDemo d2(d1);  // OK！默认拷贝构造
-    std::cout << "d2.value = " << d2.value_ << std::endl;
+    std::cout << "d2.value = " << d2.value() << std::endl;
     
     std::cout << "\n=default and =delete demo 成功！" << std::endl;
     
@@ -1750,7 +1752,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === =delete演示 ===
 nc1.id = 1
 nc5.id = 4
@@ -1817,7 +1819,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === C++20 指定初始化器 ===
 p1: (1, 2, 3)
 p2: (5, 0, 0)
@@ -1861,7 +1863,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === C++20 括号聚合初始化 ===
 c1: RGB(255,0,0)
 c2: RGB(0,255,0)
@@ -1906,7 +1908,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === C++23 成员初始化顺序强制 ===
 a=1, b=2, c=3
 
@@ -1979,7 +1981,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 切片问题演示 ===
 d创建完毕
 
@@ -2058,7 +2060,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 构造函数中的虚函数调用 ===
 Creating Derived object:
 Base constructor - calling virtual function

@@ -129,7 +129,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 === 创建b1（调用普通构造函数）===
 Buffer constructed, size=1000
 
@@ -297,6 +297,7 @@ C++11带来了**智能指针**（Smart Pointers），它们就像是自动铲屎
 ```cpp
 #include <iostream>
 #include <memory>    // 智能指针的头文件
+#include <utility>   // std::move
 
 int main() {
     // ========== 创建unique_ptr ==========
@@ -322,11 +323,11 @@ int main() {
     // 输出: null
 
     // ========== 转移所有权（move） ==========
-    auto up2 = std::make_unique<int>(100);
-    auto up3 = std::move(up2);  // 所有权从up2转移到up3
-    // up2现在为空，up3拥有那个100
+    auto up4 = std::make_unique<int>(100);
+    auto up3 = std::move(up4);  // 所有权从up4转移到up3
+    // up4现在为空，up3拥有那个100
 
-    std::cout << "up2 after move: " << (up2 ? "not null" : "null") << std::endl;  // null
+    std::cout << "up4 after move: " << (up4 ? "not null" : "null") << std::endl;  // null
     std::cout << "up3 value: " << *up3 << std::endl;  // 100
 
     // ========== unique_ptr作为函数参数 ==========
@@ -805,6 +806,9 @@ public:
 ```cpp
 #include <iostream>
 #include <typeinfo>  // 用于查看类型信息
+#include <vector>
+#include <string>
+#include <functional>
 
 int main() {
     // ========== 基本类型推导 ==========
@@ -956,7 +960,7 @@ int main() {
     decltype(x + 5) e = 100;      // int（x+5是int）
     decltype(++x) f = x;          // int&（++x是左值，返回的是x的引用）
     decltype(x++) g = x;          // int（x++是右值，返回的是副本）
-    decltype("hello") h = "hi";   // const char[6]
+    decltype("hello") h = "hello"; // const char(&)[6]（字符串字面量的类型是数组的引用）
 
     // ========== decltype(auto) C++14 ==========
     // 用于函数返回类型，让返回类型自动推导
@@ -1429,20 +1433,23 @@ int main() {
 
 ```cpp
 #include <iostream>
+#include <cstddef>
 
-void func(int* p) {
-    std::cout << "func(int*) called" << std::endl;
+void func(int) {
+    std::cout << "func(int) called —— 实参被当成整数" << std::endl;
 }
 
-void func(double d) {
-    std::cout << "func(double) called" << std::endl;
+void func(char*) {
+    std::cout << "func(char*) called —— 实参被当成空指针" << std::endl;
 }
 
 int main() {
-    // 当传入NULL时，编译器会犯迷糊
-    func(NULL);  // C++中NULL是0，是int，调用的是func(double)！
+    func(0);        // 输出: func(int) called —— 0 是整数
 
-    // 这不是我们想要的！NULL本意是指针，却调用了double版本
+    // func(NULL);  // ❌ 编译错误：call to 'func' is ambiguous
+    // NULL 既可以当整数 0，又可以当空指针，编译器无法决定调用哪个版本。
+    // 所以 C++11 引入了 nullptr：它有专属类型 std::nullptr_t，只匹配指针。
+    func(nullptr);  // 输出: func(char*) called —— 只会匹配指针版本
 
     return 0;
 }
@@ -1461,6 +1468,11 @@ void func(int* p) {
 
 void func(double d) {
     std::cout << "func(double) called" << std::endl;
+}
+
+// 函数返回指针
+int* returnPtr() {
+    return nullptr;  // 明确表示返回空指针
 }
 
 int main() {
@@ -1484,10 +1496,6 @@ int main() {
 
     // ========== 典型使用场景 ==========
 
-    // 函数返回指针
-    int* returnPtr() {
-        return nullptr;  // 明确表示返回空指针
-    }
 
     // 检查指针
     int* ptr = returnPtr();
@@ -1515,6 +1523,11 @@ int main() {
 #include <iostream>
 #include <type_traits>
 
+// nullptr_t的用途：函数重载
+void process(nullptr_t) {
+    std::cout << "process(nullptr_t)" << std::endl;
+}
+
 int main() {
     // nullptr_t类型
     std::nullptr_t n1;
@@ -1524,10 +1537,6 @@ int main() {
     // n1 = 0;  // 编译错误！
     // n1 = NULL;  // 编译错误！
 
-    // nullptr_t的用途：函数重载
-    void process(nullptr_t) {
-        std::cout << "process(nullptr_t)" << std::endl;
-    }
 
     process(nullptr);  // 调用process(nullptr_t)
 
@@ -1736,6 +1745,11 @@ int main() {
 constexpr int MAX_SIZE = 1000;
 constexpr double PI = 3.141592653589793;
 
+// constexpr函数：可以在编译期调用
+constexpr int square(int x) {
+    return x * x;
+}
+
 int main() {
     // ========== constexpr用于变量 ==========
     // 注意：数组大小必须是整型常量表达式
@@ -1745,10 +1759,6 @@ int main() {
 
     // ========== constexpr用于函数 ==========
 
-    // constexpr函数：可以在编译期调用
-    constexpr int square(int x) {
-        return x * x;
-    }
 
     // 编译期调用：用于数组大小
     int compArr[square(5)];  // 编译期计算，数组大小25
@@ -1789,7 +1799,9 @@ constexpr int multiply(int a, int b) {
 }
 
 // 条件表达式
-constexpr int abs(int x) {
+// 注意：不要把这个函数命名为 abs，否则会和 <cstdlib>/<cmath> 里的 std::abs 冲突，
+// 编译器会报 "constexpr declaration of 'abs' follows non-constexpr declaration"
+constexpr int my_abs(int x) {
     return x >= 0 ? x : -x;
 }
 
@@ -1903,6 +1915,7 @@ C++11引入了 `using` 关键字来定义类型别名，语法更清晰：
 #include <vector>
 #include <string>
 #include <functional>
+#include <map>
 
 // ========== 基本类型别名 ==========
 using IntPtr = int*;
@@ -2280,8 +2293,11 @@ C++11允许你**自定义字面量的行为**，这就是**用户定义字面量
 ### 23.12.2 用户定义字面量的语法
 
 ```cpp
-// 返回类型 operator"" 名称(参数)
-long double operator"" _km(long double val) {
+// 返回类型 operator""名称(参数)
+// ⚠️ 名称必须紧跟在 "" 后面，中间不能有空格：
+//    operator""_km   ✅ 标准写法
+//    operator"" _km  ❌ C++23 起已废弃（-Wdeprecated-literal-operator）
+long double operator""_km(long double val) {
     return val * 1000.0;  // 转换为米
 }
 ```
@@ -2297,23 +2313,23 @@ long double operator"" _km(long double val) {
 
 // ========== 浮点数字面量 ==========
 // 公里转米
-long double operator"" _km(long double val) {
+long double operator""_km(long double val) {
     return val * 1000.0;  // 公里 -> 米
 }
 
 // 米转厘米
-long double operator"" _m(long double val) {
+long double operator""_m(long double val) {
     return val;  // 已经是米
 }
 
 // 厘米转米
-long double operator"" _cm(long double val) {
+long double operator""_cm(long double val) {
     return val / 100.0;  // 厘米 -> 米
 }
 
 // ========== 整数字面量 ==========
 // 二进制字面量（简化版）
-unsigned long long operator"" _b(const char* s) {
+unsigned long long operator""_b(const char* s) {
     unsigned long long result = 0;
     while (*s) {
         result = result * 2 + (*s - '0');
@@ -2350,13 +2366,13 @@ int main() {
 
 // ========== 字符串字面量 ==========
 // 把摄氏度转成华氏度
-double operator"" _celsius(const char* s) {
+double operator""_celsius(const char* s) {
     double c = std::atof(s);
     return c * 9.0 / 5.0 + 32.0;
 }
 
 // 字符串转十六进制整数
-unsigned int operator"" _hex(const char* s) {
+unsigned int operator""_hex(const char* s) {
     unsigned int result = 0;
     const char* p = s;
 
@@ -2405,7 +2421,7 @@ int main() {
 #include <iostream>
 
 // 字符转ASCII码
-int operator"" _asc(char c) {
+int operator""_asc(char c) {
     return static_cast<int>(c);
 }
 
@@ -2426,6 +2442,7 @@ C++14为标准库添加了一些预定义的字面量：
 #include <iostream>
 #include <chrono>
 #include <string>
+#include <complex>
 
 int main() {
     // ========== std::chrono字面量（C++14）==========
@@ -2440,8 +2457,14 @@ int main() {
     std::cout << "100ms = " << ms100.count() << " milliseconds" << std::endl;
 
     // 2分钟
+    // 注意：2min 的类型是 std::chrono::minutes，
+    // count() 返回的是"以分钟为单位的数量"，也就是 2，
+    // 而不是秒数——单位换算要靠 duration_cast。
     auto min2 = 2min;
-    std::cout << "2min = " << min2.count() << " seconds" << std::endl;
+    std::cout << "min2.count() = " << min2.count() << " （单位是分钟！）" << std::endl;
+    auto min2_sec = duration_cast<seconds>(min2);
+    std::cout << "2min = " << min2_sec.count() << " seconds" << std::endl;
+    // 输出: min2.count() = 2 （单位是分钟！）
     // 输出: 2min = 120 seconds
 
     // ========== std::string字面量（C++14）==========
@@ -2870,6 +2893,12 @@ int main() {
 
 ### 23.15.3 [[deprecated]]：标记废弃
 
+> ⚠️ **版本提醒**：`[[...]]` 这套属性语法确实是 **C++11** 引入的，但 C++11 只定义了
+> **`[[noreturn]]`** 和 **`[[carries_dependency]]`** 两个标准属性。
+> 下面要讲的 **`[[deprecated]]` 其实是 C++14 才进标准的**（C++11 时期只有 GCC/Clang 的
+> `__attribute__((deprecated))` 这类扩展）。把它放在这里读没问题——因为语法一脉相承——
+> 但请记住它的正式身世在 C++14（详见第 24 章 24.9.1）。
+
 ```cpp
 #include <iostream>
 
@@ -2879,9 +2908,8 @@ void oldAPI() {
     std::cout << "Old API called" << std::endl;
 }
 
-// 标记类型已废弃
-[[deprecated]]
-struct OldStruct {
+// 标记类型已废弃（属性要写在 struct 关键字之后）
+struct [[deprecated]] OldStruct {
     int x;
     int y;
 };
@@ -2973,7 +3001,8 @@ void process(int x) {
 
 // C++17 [[likely]]/[[unlikely]]：分支预测提示
 int branchPrediction(int x) {
-    if (x > 0 [[likely]]) {
+    // 属性要写在条件之后的括号外：if (cond) [[likely]] { ... }
+    if (x > 0) [[likely]] {
         return x * 2;
     } else [[unlikely]] {
         return 0;
@@ -3074,7 +3103,7 @@ using Vec = std::vector<T>;     // 模板别名（typedef做不到）
 ### 23.16.12 用户定义字面量
 
 ```cpp
-long double operator"" _km(long double val) { return val * 1000; }
+long double operator""_km(long double val) { return val * 1000; }
 5.0_km  // = 5000
 ```
 

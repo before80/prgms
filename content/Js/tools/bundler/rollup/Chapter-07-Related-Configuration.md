@@ -338,20 +338,20 @@ export default {
 
 > 💡 **命名变量说明**：`[name]` 是入口名称（如 `main`、`admin`），`[hash]` 是基于内容生成的内容哈希（内容不变则哈希不变，便于缓存）。如果不需要 hash 去掉这个变量即可。
 
-### 7.2.16 output.inlineDynamicImports：内联动态导入（⚠️ Rollup 4.x 已废弃）
+### 7.2.16 output.inlineDynamicImports：内联动态导入
 
-当设置为 `true` 时，Rollup 不会把动态 `import()` 的模块分割成独立文件，而是内联到主文件中。不过在 Rollup 4.x 中，这个选项已经被废弃了——现在你应该用 `output.manualChunks` 来精确控制代码分割策略。
+当设置为 `true` 时，Rollup 不会把动态 `import()` 的模块分割成独立文件，而是内联到主文件中。这个选项在 Rollup 4.x 中仍然有效，但它要求只有一个入口，并且会改变动态导入模块的执行时机；如果你需要更细粒度的分包控制，应优先使用 `output.manualChunks`。
 
 ```javascript
 export default {
   output: {
-    // true：禁用代码分割，所有代码打包进一个文件（⚠️ 已废弃）
+    // true：把动态导入内联到单个入口文件中
     inlineDynamicImports: true
   }
 };
 ```
 
-> 💡 **推荐做法**：用 `manualChunks` 替代 `inlineDynamicImports`，可以更细粒度地控制哪些模块应该被分割成独立 chunk。
+> 💡 **推荐做法**：多入口或需要细粒度分包时，用 `manualChunks`；只有明确需要“单个 bundle”时才使用 `inlineDynamicImports`。
 
 ### 7.2.17 output.manualChunks：自定义代码分割策略（🔥 最重要！没有之一）
 
@@ -457,22 +457,27 @@ export default {
 >
 > 💡 **典型场景**：假设 A.js 导入了 B，B 导入了 C。当你启用 `hoistTransitiveImports: true` 时，产物中的 A 会直接 `import { something } from 'C'`（跳过 B）；关闭时则保持 `A → B → C` 的原始链路。前者产物更扁平，后者调试更方便（断点能精准命中源码位置）。
 
-### 7.2.22 output.generatedCode：输出 JS 语法特性（es2015 / esnext / preserved）
+### 7.2.22 output.generatedCode：控制 Rollup 辅助代码的语法级别
 
 ```javascript
 export default {
   output: {
-    // es2015：输出 ES2015 兼容的代码（适合较老的目标环境）
+    // 允许的值："es5"（默认）或 "es2015"
     generatedCode: 'es2015',
 
-    // esnext：使用最新语法特性（产物更小，但需要目标环境支持）
-    // generatedCode: 'esnext',
-
-    // preserved：尽量保留源代码的语法特性
-    // generatedCode: 'preserved'
+    // 也可以用对象形式精细控制 Rollup 生成的 helper：
+    // generatedCode: {
+    //   preset: 'es2015',
+    //   arrowFunctions: true,
+    //   constBindings: true,
+    //   objectShorthand: true,
+    //   symbols: true
+    // }
   }
 };
 ```
+
+> ⚠️ `generatedCode` 只影响 Rollup 自己生成的包装代码和 helper，不会把业务代码从 `const` 转成 `var`；`esnext`、`preserved` 不是它的合法预设值。
 
 ### 7.2.23 output.reexportHelpers：将 helper 函数内联而非 external（⚠️ Rollup 4.x 已废弃）
 
@@ -488,7 +493,7 @@ export default {
 };
 ```
 
-> 🔥 **迁移提示**：如果你之前用 `reexportHelpers: false` 配合 `generatedCode: 'esnext'` 来external化 helper 函数，现在 Rollup 4.x 会直接忽略这个选项。所有 helper 都会内联到使用它们的 chunk 中。
+> 🔥 **迁移提示**：`reexportHelpers` 已不再用于 external 化 helper；现代 Rollup 会把 helper 内联到使用它们的 chunk 中。`generatedCode` 的合法预设是 `"es5"` 和 `"es2015"`，不要写成 `"esnext"`。
 
 ### 7.2.24 output.experimentalMinChunkSize：合并小 chunk 的阈值
 
@@ -798,13 +803,13 @@ export default {
 >
 > 💡 **为什么会有这个选项？** 当 `external` 配置用了绝对路径（如 `/Users/name/project/node_modules/lodash/index.js`）时，这个选项决定产物里是保留绝对路径还是转成相对路径。相对路径更利于项目迁移，绝对路径在某些场景下更稳定（比如符号链接环境）。
 
-### 7.5.5 compiletime：测量并输出本次构建耗时（⚠️ 实验性功能，API 不稳定）
+### 7.5.5 perf：测量并输出本次构建耗时（CLI 也有 --perf）
 
 ```javascript
 export default {
   input: 'src/main.js',
   // 开启构建耗时测量
-  compiletime: true
+  perf: true
 };
 ```
 
@@ -1309,7 +1314,7 @@ export default {
 
 4. **Tree-Shaking 配置**：`moduleSideEffects`、`propertyReadSideEffects`、`annotations`、`tryCatchDeoptimization`、`unknownGlobalSideEffects`、`templateObjects` 六个细粒度控制选项（Rollup 的 Tree-Shaking 比你想的精细得多！）。
 
-5. **构建行为控制**：watch 监听配置、`context` 顶层 this、`moduleContext` 按模块覆盖、`makeAbsoluteExternalsRelative`、`compiletime` 耗时测量。
+5. **构建行为控制**：watch 监听配置、`context` 顶层 this、`moduleContext` 按模块覆盖、`makeAbsoluteExternalsRelative`、`perf` 耗时测量。
 
 6. **日志与警告**：`logLevel`、`onwarn` 自定义警告处理、`onerror` 自定义错误处理。
 

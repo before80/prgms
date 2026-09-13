@@ -253,7 +253,7 @@ make
 
 大型项目通常像俄罗斯套娃一样，一层套一层。CMake用 `add_subdirectory` 来管理子目录。
 
-```
+```text
 myproject/
 ├── CMakeLists.txt
 ├── src/
@@ -685,6 +685,8 @@ target_link_libraries(myapp PRIVATE fmt::fmt)  # 链接fmt
 
 一个完整的vcpkg演示：
 
+> 📦 **依赖**：`fmt` 和 `spdlog` 都是**第三方库**，需要先由 vcpkg/Conan 等包管理器安装，并像上面那样通过 `find_package` + `target_link_libraries` 链接。下面这段不能只靠标准库编译。
+
 ```cpp
 // main.cpp - vcpkg包管理演示
 #include <fmt/core.h>               // fmt库的头文件
@@ -927,7 +929,7 @@ cmake --build .
 
 一个常见的场景：你的项目依赖一个古老的Make项目，同时又用CMake管理新代码。
 
-```
+```text
 myproject/
 ├── CMakeLists.txt           # 主构建系统
 ├── legacy/                  # 古老项目
@@ -1147,7 +1149,7 @@ cache hit rate            94.2%
 
 工作原理：
 
-```
+```text
 本地机器                    远程机器1                    远程机器2
 ┌──────────┐              ┌──────────┐              ┌──────────┐
 │  main.cpp │──分发编译──→│  main.o  │              │          │

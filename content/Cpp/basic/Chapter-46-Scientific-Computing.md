@@ -309,6 +309,8 @@ int main() {
 
 手写矩阵虽然有助于理解，但生产环境还是用Eigen吧！它快、准、而且接口优雅到哭。
 
+> 📦 **依赖**：Eigen 是**第三方库**（header-only），需要先下载：`brew install eigen`，或从 [eigen.tuxfamily.org](https://eigen.tuxfamily.org) 下载后加 `-I` 包含路径。
+
 ```cpp
 // 46_03_eigen_demo.cpp
 // 编译: g++ -std=c++20 -I/usr/include/eigen3 46_03_eigen_demo.cpp -o 46_03_eigen_demo
@@ -523,11 +525,18 @@ int main() {
     // ========== 再来一个: sin(x) = x/10 ==========
     std::cout << "========== 方程求根: sin(x) = x/10 ==========\n";
     auto g = [](double x) { return std::sin(x) - x / 10.0; };
-    
-    double x_g = bisection(g, 0.0, 5.0);
-    std::cout << "二分法结果: " << x_g << "\n";
-    std::cout << "验证: sin(" << x_g << ") = " << std::sin(x_g) 
-              << ", " << x_g << "/10 = " << x_g/10 << "\n";
+
+    // 注意选区间：二分法要求两端异号！
+    // g(0) = 0（正好是根，但 0 和 0 "同号"），g(5) ≈ -0.46，
+    // 用 [0, 5] 会直接抛异常——这正是函数开头那个检查存在的意义。
+    try {
+        double x_g = bisection(g, 1.0, 3.0);   // g(1) ≈ +0.74, g(3) ≈ -0.16，异号 ✓
+        std::cout << "二分法结果: " << x_g << "\n";
+        std::cout << "验证: sin(" << x_g << ") = " << std::sin(x_g)
+                  << ", " << x_g << "/10 = " << x_g / 10 << "\n";
+    } catch (const std::exception& e) {
+        std::cout << "二分法失败: " << e.what() << "\n";
+    }
     
     return 0;
 }
@@ -729,6 +738,9 @@ int main() {
 #include <vector>
 #include <iomanip>
 #include <fstream>
+#include <functional>   // std::function
+#include <utility>      // std::pair
+#include <algorithm>    // std::max
 
 // ========== 通用ODE求解器框架 ==========
 struct ODESolution {
@@ -1275,6 +1287,8 @@ int main() {
 
 科学计算中最常见的并行就是循环并行化——把一个for循环分散到多个线程上执行。
 
+> 📦 **依赖**：OpenMP 需要编译器支持并显式开启（GCC/Clang：`-fopenmp`；Apple clang 自带的编译器**不带 OpenMP**，需 `brew install libomp` 后加 `-Xpreprocessor -fopenmp -lomp`）。`omp.h` 不是标准库头文件。
+
 ```cpp
 // 46_10_openmp_vector_add.cpp
 // 编译: g++ -std=c++20 -fopenmp -O3 46_10_openmp_vector_add.cpp -o 46_10_openmp_vector_add
@@ -1479,6 +1493,8 @@ int main() {
 
 ### 46.7.2 高精度计算示例：Boost.Multiprecision
 
+> 📦 **依赖**：Boost 是**第三方库**（header-only 部分可直接用），需要先下载：`brew install boost`，或从 [boost.org](https://www.boost.org) 获取。
+
 ```cpp
 // 46_12_high_precision.cpp
 // 编译: g++ -std=c++20 -O2 46_12_high_precision.cpp -o 46_12_high_precision
@@ -1585,7 +1601,7 @@ int main() {
 
 ### 延伸学习路线
 
-```
+```text
 初级（能写科学计算程序）
 ├── 线性代数基础（矩阵运算、特征值、SVD）
 ├── 数值分析（误差、收敛性、稳定性）

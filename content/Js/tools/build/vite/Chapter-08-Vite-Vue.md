@@ -10,7 +10,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-08-Vite-Vue
 
 # 第8章：Vite + Vue 实战
 

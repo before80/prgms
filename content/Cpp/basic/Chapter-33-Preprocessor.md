@@ -41,7 +41,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 Preprocessor runs before compilation
 ```
 
@@ -121,11 +121,17 @@ int main() {
     // 而不是像函数一样需要运行时调用开销
     std::cout << "SQUARE(5) = " << SQUARE(5) << std::endl;  // 输出: SQUARE(5) = 25
 
-    // 宏的危险示例：参数有副作用时可能出问题
+    // 宏的危险示例：参数有副作用时会出大问题
     int n = 3;
-    // SQUARE_DANGEROUS(++n) 会展开成 (++n * ++n)
-    // 相当于 ((++n) * (++n))，n 会被增加两次！
-    std::cout << "SQUARE_DANGEROUS(++n) with n=3 gives: " << SQUARE_DANGEROUS(++n) << std::endl;  // 输出: 25 (n变成了5)
+    // SQUARE_DANGEROUS(++n) 会原样展开成 (++n * ++n)：
+    // 两个 ++n 之间没有先后顺序（未定序），n 被修改了两次
+    // ——这是货真价实的"未定义行为"，结果不可预测！
+    int bad = SQUARE_DANGEROUS(++n);
+    std::cout << "SQUARE_DANGEROUS(++n) with n=3 gives: " << bad
+              << ", n is now " << n << std::endl;
+    // 输出（clang 实测）: SQUARE_DANGEROUS(++n) with n=3 gives: 20, n is now 5
+    // 注意：20 只是这台编译器这一次的结果，标准根本不承诺任何数值。
+    // 如果换成 SQUARE(++n)（带括号的版本），结果同样是未定义行为——括号挡不住"参数被求值两次"！
 
     // #undef 取消 PI 的定义，之后再使用 PI 会导致编译错误
     // #undef PI
@@ -137,11 +143,11 @@ int main() {
 
 运行结果：
 
-```
+```text
 PI = 3.14159
 MAX(3, 5) = 5
 SQUARE(5) = 25
-SQUARE_DANGEROUS(++n) with n=3 gives: 25
+SQUARE_DANGEROUS(++n) with n=3 gives: 20, n is now 5
 ```
 
 > 宏的括号很重要！想象你没有加足够的括号：
@@ -190,7 +196,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 Debug mode enabled
 MY_MACRO is not defined
 ```
@@ -238,7 +244,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 Version 2 features
 Advanced features enabled
 ```
@@ -278,8 +284,16 @@ int main() {
         std::cout << "FEATURE_A is defined" << std::endl;  // 输出: FEATURE_A is defined
     #endif
 
-    // 还可以用三元运算符在宏值中使用 defined
-    #define CONFIG_FEATURES (defined(FEATURE_A) ? 1 : 0) + (defined(FEATURE_B) ? 2 : 0)
+    // ⚠️ 注意：defined 只能出现在 #if / #elif 的条件里！
+    // 如果把它写进宏的替换列表（比如 #define X defined(FOO)），
+    // 那它就是普通标识符，展开后会变成非法代码，
+    // 编译器会报 "use of undeclared identifier 'defined'"。
+    // 正确做法是用 #if 决定宏的值：
+    #if defined(FEATURE_A) && defined(FEATURE_B)
+        #define CONFIG_FEATURES 3
+    #else
+        #define CONFIG_FEATURES 0
+    #endif
     std::cout << "Config value: " << CONFIG_FEATURES << std::endl;  // 输出: Config value: 3
 
     return 0;
@@ -288,7 +302,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 Feature A and B
 A or C state different
 FEATURE_A is defined
@@ -301,13 +315,22 @@ C++标准定义了一系列**预定义宏**，这些宏在程序运行前就已�
 
 ```cpp
 #include <iostream>
+#include <string>    // std::to_string
 
 int main() {
     // __FILE__：当前源文件的文件名（字符串字面量）
-    std::cout << "__FILE__ = " << __FILE__ << std::endl;  // 输出: __FILE__ = (文件名)
+    // 具体内容取决于你用什么路径编译（绝对路径/相对路径），由编译器决定
+    std::cout << "__FILE__ = " << __FILE__ << std::endl;
+    // 输出示例: __FILE__ = src/predefined_macros.cpp
 
-    // __LINE__：当前代码所在的行号（整数）
-    std::cout << "__LINE__ = " << __LINE__ << std::endl;  // 输出: __LINE__ = 9
+    // __LINE__：当前代码在这份文件里的物理行号（整数）
+    // 它是"数出来的"，不是固定的——你在这行上面加一行注释，数字就加 1
+    std::cout << "__LINE__ = " << __LINE__ << std::endl;
+    // 输出: 本行在文件中的行号（本示例文件里是 12）
+
+    // 最实用的组合：把"文件:行号"拼成定位字符串，这正是断言/日志库的做法
+    #define WHERE (std::string(__FILE__) + ":" + std::to_string(__LINE__))
+    std::cout << "出错位置 = " << WHERE << std::endl;
 
     // __DATE__：编译日期，格式为 "Mmm dd yyyy"（如 "Jan 19 2026"）
     std::cout << "__DATE__ = " << __DATE__ << std::endl;  // 输出: __DATE__ = (编译日期)
@@ -337,16 +360,20 @@ int main() {
 }
 ```
 
-运行结果（假设使用 C++17 编译）：
+运行结果（下例以 C++23 编译；日期、时间、路径都随编译环境变化）：
 
-```
-__FILE__ = C:\...\predefined_macros.cpp
-__LINE__ = 9
-__DATE__ = Mar 29 2026
-__TIME__ = 15:42:00
-__cplusplus = 201703
+```text
+__FILE__ = src/predefined_macros.cpp
+__LINE__ = 12
+出错位置 = src/predefined_macros.cpp:17
+__DATE__ = Sep 13 2026
+__TIME__ = 14:47:10
+__cplusplus = 202302
 C++17 or later is supported!
 ```
+
+> ⚠️ **别再背数字**：`__LINE__` 的值完全由代码排版决定，`__FILE__` 由编译命令里的路径决定，`__DATE__`/`__TIME__` 由编译时刻决定。
+> 教程里的"输出示例"只是示意；要验证就自己编译运行一次。
 
 > 这些宏在调试时特别有用！比如你可以写一个自定义的 `ASSERT` 宏，在断言失败时输出文件名和行号，让你一眼就知道哪里出了问题。
 
@@ -447,7 +474,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 C++23 #warning directive
 ```
 
@@ -493,35 +520,53 @@ int main() {
 
 > 想象你要写一个程序，需要使用 `<optional>`（C++17引入），但你也要兼容只支持C++11的老系统。使用 `__has_include`，你就可以优雅地处理这种情况：有就用，没有就提供一个替代方案。
 
+> ⚠️ **最容易踩的坑**：`#include` 只能出现在**文件/命名空间作用域**，绝不能写进函数体里。
+> 所以 `__has_include` 探测 + `#include` 必须放在文件顶部，然后在函数里用宏来分支。
+
 ```cpp
+// ===== 文件顶部：能力探测（__has_include 只能在这里用）=====
+// __has_include(<header_name>)：检测尖括号头文件是否可用
+// __has_include("header_name")：检测引号头文件是否可用
+// 它返回 1（可包含）或 0（不可包含），只能出现在 #if / #elif 里。
+#ifdef __has_include
+#  if __has_include(<optional>)
+#    include <optional>
+#    define HAVE_OPTIONAL 1
+#  else
+#    define HAVE_OPTIONAL 0
+#  endif
+#  if __has_include(<filesystem>)
+#    include <filesystem>
+#    define HAVE_FILESYSTEM 1
+#  else
+#    define HAVE_FILESYSTEM 0
+#  endif
+#else
+#  define HAVE_OPTIONAL 0     // 老编译器不支持 __has_include
+#  define HAVE_FILESYSTEM 0
+#endif
+
 #include <iostream>
 
 int main() {
-    // __has_include(<header_name>)：检测尖括号头文件是否可用
-    // __has_include("header_name")：检测引号头文件是否可用
-    // 返回 true（1）如果头文件存在且可以被包含，否则返回 false（0）
+    // ===== 函数里只做分支，不再写 #include =====
+#if HAVE_OPTIONAL
+    std::optional<int> maybe = 42;
+    std::cout << "<optional> is available, value = " << *maybe << std::endl;
+#else
+    std::cout << "<optional> is NOT available" << std::endl;
+#endif
 
-    #if __has_include(<optional>)
-        #include <optional>
-        std::cout << "<optional> is available" << std::endl;  // 输出: <optional> is available
-        std::cout << "Using std::optional as a modern alternative to NULL" << std::endl;
-    #else
-        std::cout << "<optional> is NOT available" << std::endl;
-        // 提供一个替代方案，比如使用特殊的标记值
-    #endif
-
-    // 另一个例子：检查 <filesystem>（C++17的文件系统支持）
-    #if __has_include(<filesystem>)
-        #include <filesystem>
-        std::cout << "<filesystem> is available" << std::endl;  // 输出: <filesystem> is available
-    #else
-        std::cout << "<filesystem> is NOT available" << std::endl;
-    #endif
+#if HAVE_FILESYSTEM
+    std::cout << "<filesystem> is available" << std::endl;
+#else
+    std::cout << "<filesystem> is NOT available" << std::endl;
+#endif
 
     // 还可以组合使用
-    #if __has_include(<optional>) && __has_include(<filesystem>)
-        std::cout << "Both optional and filesystem are available!" << std::endl;  // 输出: Both optional and filesystem are available!
-    #endif
+#if HAVE_OPTIONAL && HAVE_FILESYSTEM
+    std::cout << "Both optional and filesystem are available!" << std::endl;
+#endif
 
     return 0;
 }
@@ -529,9 +574,8 @@ int main() {
 
 运行结果：
 
-```
-<optional> is available
-Using std::optional as a modern alternative to NULL
+```text
+<optional> is available, value = 42
 <filesystem> is available
 Both optional and filesystem are available!
 ```
@@ -567,6 +611,8 @@ int main() {
     int unused_var = 42;
     UNUSED(unused_var);  // 消除 unused_var 未使用的警告
 
+    callback(0, 0);  // 真正调用一次，否则"Event type"永远不会被打印出来
+
     // 场景2：字符串化操作
     // # 运算符可以将宏参数转换成字符串
     #define STRINGIZE(x) #x
@@ -584,13 +630,16 @@ int main() {
     // 想象你有一系列 xxx_impl() 函数，用 CONCAT 就能动态拼接调用
 
     // 场景4：条件编译开关
+    // 注意：宏没有"作用域"概念，写在哪一行就是哪一行生效。
+    // 想演示"发布版本"，把下面这行注释掉，LOG 就会变成一个空宏。
+    #define DEBUG_MODE
     #ifdef DEBUG_MODE
         #define LOG(msg) std::cout << "[DEBUG] " << msg << std::endl;
     #else
         #define LOG(msg)  // 在发布版本中什么都不做
     #endif
 
-    LOG("This is a debug message");
+    LOG("This is a debug message");  // 输出: [DEBUG] This is a debug message
 
     // 场景5：可变参数宏（Variadic Macro）
     // ... 运算符用于接收可变数量的参数，args 会收集所有多余参数
@@ -607,19 +656,25 @@ int main() {
 }
 ```
 
-运行结果：
+运行结果（`LOG` 走 stdout，`LOGF` 用的是 `fprintf(stderr, ...)`，所以下面分成两段）：
 
-```
+```text
+# —— stdout ——
 Appropriate uses of macros
+Event type: 0
 HelloWorld
 123 + 456
 42
-Event type: 0
-This is a debug message
+[DEBUG] This is a debug message
+
+# —— stderr ——
 [LOG] User Alice logged in
 [LOG] Value = 42
 [LOG] No args needed!
 ```
+
+> 💡 **小提醒**：日志/错误信息写到 `stderr` 是有意为之——这样即使用户把程序输出重定向到文件（`./app > out.txt`），
+> 错误信息依然会显示在终端上。想同时抓到两路输出，可以用 `./app > out.txt 2>&1`。
 
 ### 何时避免宏
 
@@ -672,7 +727,7 @@ int main() {
 
 运行结果：
 
-```
+```text
 Prefer constexpr/inline to macros
 max_modern(3, 5) = 5
 max_modern(x, y) = 20

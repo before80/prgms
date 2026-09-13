@@ -20,6 +20,21 @@ draft = false
 
 下面我们就按功能分类，逐个拆解那些最常用的标准库函数。让我们开始这场"工具箱探险"吧！
 
+> ⚠️ **本章的一条重要阅读提示：关于带 `_s` 后缀的"安全函数"**
+>
+> 你会在本章多处看到 `bsearch_s`、`qsort_s`、`localtime_s`、`gmtime_s`、`strcpy_s` 这类函数。它们来自 C11 的 **附录 K（Annex K，边界检查接口）**，而附录 K 是**可选特性**：
+>
+> | 平台 | 是否提供附录 K |
+> |------|---------------|
+> | Windows（MSVC） | ✅ 完整提供 |
+> | Linux（glibc / musl） | ❌ 不提供 |
+> | macOS（Apple Clang） | ❌ 不提供 |
+> | Android（bionic） | ❌ 不提供 |
+>
+> 所以在 Linux/macOS 上，本章里这些 `_s` 函数的代码**会直接报"未声明的标识符"**。它们的可移植性甚至比 POSIX 函数还差。
+>
+> **实践建议**：跨平台项目里，读写缓冲区用 `snprintf`，时间转换用 POSIX 的 `localtime_r`/`gmtime_r`（Linux/macOS）或条件编译，排序查找就用普通的 `qsort`/`bsearch`——它们本身就足够安全。本章保留 `_s` 版本是为了让你**看懂 MSVC 项目里的代码**，而不是建议你在新项目中使用。
+
 ---
 
 ## 17.1 `<stdlib.h>`——万能工具箱
@@ -256,22 +271,42 @@ int main(void) {
 > - `system` 会调用操作系统的命令行解释器（shell），所以它**非常强大**，但也**非常危险**——如果你的命令来自用户输入，务必小心**命令注入攻击**！
 > - 在 Windows 上，`system("notepad")` 会打开记事本，程序会"卡住"直到你关闭记事本。
 
-**更安全的替代方案**（C11）：`system_chk` 函数——它会检查缓冲区大小，防止溢出：
+❌ **不存在的函数：`system_chk`**
+
+你可能会在网上（尤其是一些 AI 生成的教程里）看到这样的说法：
+
+```c
+// ⚠️ 这是错的！C 标准里根本没有 system_chk 这个函数
+system_chk(command, size);
+```
+
+**C11 以及之后的任何 C 标准都没有 `system_chk` 这个函数**——它是凭空捏造出来的。`<stdlib.h>` 里关于执行命令的接口**只有 `system()` 和 `_wsystem()`（Windows 专用）**。
+
+那"更安全地执行命令"该怎么办？答案是**根本问题不在缓冲区大小，而在于是否把不可信输入拼进命令**。正确的做法：
 
 ```c
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(void) {
-    char command[] = "ls -la";
-    size_t size = sizeof(command);
+    /* 做法一：把命令写死，绝不让外部输入进入命令字符串 */
+    int status = system("ls -la");
+    if (status == -1) {
+        perror("system 调用失败");
+        return 1;
+    }
+    printf("命令退出状态: %d\n", status);
 
-    // system_chk 在 C11 引入，会检查命令是否超过指定大小
-    system_chk(command, size);  // 更安全！
+    /* 做法二：需要"命令 + 参数"时，用 exec 族直接传参数数组，
+       根本不给 shell 解析的机会（见第 22 章）——
+       execvp("ls", (char *[]){"ls", "-la", NULL});
+       这样即使参数里有 ";"、"|"，也只是普通字符 */
 
     return 0;
 }
 ```
+
+> 💡 **一句话记住**：`system()` 的真正危险是**把用户输入拼进命令串触发命令注入**，不是"缓冲区不够大"。要规避它，要么把命令完全写死，要么改用 `exec` 系列直接传参数数组，而不是去找一个并不存在的"安全版 `system`"。
 
 ### 17.1.5 环境变量操作——`getenv`、`setenv` 和 `putenv`
 
@@ -1055,7 +1090,15 @@ int main(void) {
 }
 ```
 
-**C23 新增——`timespec_getres`**：
+**C23 新增——`timespec_getres`**（用于查询时钟的**分辨率**）：
+
+> 📌 **可用性提醒**：`timespec_getres` 是 C23 才加入 `<time.h>` 的，glibc 2.34+ 和较新的 Clang/GCC 才提供。**macOS 的 Apple Clang 目前还没有**（会报 `use of undeclared identifier 'timespec_getres'`）。它的原型是：
+>
+> ```c
+> int timespec_getres(struct timespec *ts, int base);
+> ```
+>
+> 返回 0 表示失败，返回 `base` 的值表示成功。
 
 ```c
 #include <stdio.h>
@@ -1078,7 +1121,7 @@ int main(void) {
 
 ### 17.2.6 线程安全的本地时间和 UTC 时间
 
-前面提过，传统 `localtime` 和 `gmtime` 不是线程安全的，C11 提供了安全版本：
+前面提过，传统 `localtime` 和 `gmtime` 返回的是指向**内部静态缓冲区**的指针，多线程同时调用会互相覆盖，所以它们不是线程安全的。C11 的附录 K 提供了带 `_s` 后缀的版本（别忘了本章开头那条提示：附录 K 是可选特性，Linux/macOS 上**没有**这两个函数）：
 
 ```c
 #include <stdio.h>
@@ -1148,7 +1191,7 @@ int main(void) {
 
     c = '\n';
     printf("'\\n' (换行): isspace=%d, iscntrl=%d\n",
-           c, isspace(c), iscntrl(c));
+           isspace(c), iscntrl(c));
 
     c = '!';
     printf("'%c': ispunct=%d, isgraph=%d, isprint=%d\n",
@@ -1157,6 +1200,14 @@ int main(void) {
     return 0;
 }
 ```
+
+> ⚠️ **一个经典陷阱**：`<ctype.h>` 里的这些函数，参数必须是"可以直接当作 `unsigned char` 的值"，或者是 `EOF`。上面例子里 `c` 全是正数 ASCII 字符，所以没事；但如果 `char` 在你的平台上是**有符号**的，读取到 `0x80` 以上的字节（中文 UTF-8 文本里到处都是）时 `c` 会是负数，直接传给 `isalpha(c)` 属于**未定义行为**。稳妥写法是先转换：
+>
+> ```c
+> if (isalpha((unsigned char)c)) { ... }
+> ```
+>
+> 很多"在英文环境下好好的、一遇到中文就崩溃"的 bug，根子就在这里。
 
 **常用字符分类函数一览**：
 
@@ -1751,6 +1802,7 @@ int main(void) {
 ```c
 #include <stdio.h>
 #include <fenv.h>
+#include <math.h>   /* ceil / floor / round 等数学函数在这里 */
 
 #pragma STDC FENV_ACCESS ON  // 告诉编译器我们可能会改变浮点环境
 

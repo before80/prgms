@@ -10,7 +10,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-06-CSS-Processing
 
 # 第6章：CSS 处理
 

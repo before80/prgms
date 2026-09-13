@@ -67,8 +67,10 @@ gcc -pthread my_thread.c -o my_thread
 // 线程执行函数，返回 void*，参数是 void*
 void* hello_thread(void* arg) {
     char* name = (char*)arg;
-    printf("你好，我是线程：%s！\n", name);  // 输出：我好，我是线程：Worker1！
-    printf("我的线程 ID 是：%lu\n", pthread_self());  // 输出：我的线程 ID 是：140234567890112
+    printf("你好，我是线程：%s！\n", name);
+    // pthread_t 的底层类型由实现决定（glibc 上是 unsigned long，macOS 上是指针），
+    // 想打印就先强制转换一下，否则会收到 -Wformat 警告。
+    printf("我的线程 ID 是：%lu\n", (unsigned long)pthread_self());
     sleep(1);
     return NULL;  // 返回值会被 pthread_join 获取
 }
@@ -107,6 +109,8 @@ int main() {
 
 > 主线程就像包工头，创建完工人后得等他们都干完活才能宣布项目完成。`pthread_join` 就是包工头的"点名册"——必须所有人都到齐了才能散会。
 
+> 🔀 **运行多次会看到不同的输出顺序**：两个线程谁先打印"你好"是操作系统调度决定的，甚至可能出现"A 说完上半句、B 插进来、A 再说下半句"的交错。这是并发程序的正常现象，不要指望每次运行结果都一样。
+
 #### 线程回收：`pthread_join` 与 `pthread_detach`
 
 线程结束后，它的"遗产"（主要是栈空间）需要有人来处理。POSIX 线程提供了两种回收方式：
@@ -117,6 +121,7 @@ int main() {
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <stdlib.h>   /* malloc / free */
 
 void* compute_sum(void* arg) {
     int n = *(int*)arg;
@@ -124,7 +129,8 @@ void* compute_sum(void* arg) {
     for (int i = 1; i <= n; i++) {
         sum += i;
     }
-    printf("[线程 %lu] 计算 1 到 %d 的和 = %lld\n", pthread_self(), n, sum);
+    printf("[线程 %lu] 计算 1 到 %d 的和 = %lld\n",
+           (unsigned long)pthread_self(), n, sum);
 
     long long* result = malloc(sizeof(long long));
     *result = sum;
@@ -203,6 +209,7 @@ int main() {
 
 ```c
 #include <stdio.h>
+#include <stdlib.h>   /* malloc / free */
 #include <pthread.h>
 #include <unistd.h>
 
@@ -242,7 +249,8 @@ int main() {
     pthread_cancel(t3);  // 请求取消线程 t3
 
     pthread_join(t1, NULL);
-    pthread_join(t2, &void* retval);  // 获取显式退出的返回值
+    void* retval = NULL;              // 先声明一个 void* 变量
+    pthread_join(t2, &retval);        // 再把它的地址传进去，接收线程返回值
     pthread_join(t3, NULL);
 
     if (retval != NULL) {
@@ -1008,6 +1016,7 @@ pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL); // 异步取消，随�
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <unistd.h>   /* sleep */
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int shared_data = 0;
@@ -1083,8 +1092,10 @@ int main() {
 
 ```c
 #include <stdio.h>
+#include <stdlib.h>   /* free / strdup（strdup 在 POSIX 下也可由 <string.h> 提供） */
 #include <pthread.h>
 #include <string.h>
+#include <unistd.h>   /* sleep */
 
 // 创建线程局部存储的键
 pthread_key_t session_key;
@@ -1111,7 +1122,10 @@ void* session_worker(void* arg) {
     // 为当前线程分配一个"会话ID"
     char session_id[64];
     snprintf(session_id, sizeof(session_id), "session-%s-%lu",
-             thread_name, pthread_self() % 10000);
+             thread_name, (unsigned long)pthread_self() % 10000);
+    // ⚠️ 注意上面这个强制转换：pthread_t 在 Linux 上是 unsigned long，
+    // 但在 macOS 上是指针类型。直接写 pthread_self() % 10000 在 macOS 会报
+    // "invalid operands to binary expression"，必须先转成整数类型再取模。
 
     char* my_session = strdup(session_id);
     pthread_setspecific(session_key, my_session);
@@ -1193,7 +1207,7 @@ void* posix_worker(void* arg) {
     _Thread_local int local_counter = 0;  // 每个线程有独立的 local_counter
 
     _Thread_local char name[64];
-    snprintf(name, sizeof(name), "Thread-%lu", pthread_self() % 1000);
+    snprintf(name, sizeof(name), "Thread-%lu", (unsigned long)pthread_self() % 1000);
 
     for (int i = 0; i < 3; i++) {
         local_counter++;
@@ -1232,7 +1246,7 @@ int main() {
 
 ## 24.5 C11 `<threads.h>`
 
-> ⚠️ **重要警告**：C11 `<threads.h>` 的实现状况参差不齐。**glibc（大多数 Linux 发行版）只实现了部分**，很多函数实际上是"空壳"或未实现。生产环境强烈建议使用 POSIX `<pthread.h>`。本节作为知识储备，遇到实际问题请回归 pthread。
+> ⚠️ **重要警告**：C11 `<threads.h>` 的实现状况参差不齐。**glibc（大多数 Linux 发行版）只实现了部分**，很多函数实际上是"空壳"或未实现；而 **macOS 的 Apple Clang 和 MSVC 干脆连这个头文件都没有**（在 macOS 上会报 `'threads.h' file not found`）。生产环境强烈建议使用 POSIX `<pthread.h>`。本节作为知识储备，遇到实际问题请回归 pthread。
 
 C11 引入了标准化的线程支持库 `<threads.h>`，提供了一套与平台无关的线程 API。设计目标是"一次编写，到处运行"（write once, run anywhere），但现实是骨感的。
 
@@ -1578,6 +1592,7 @@ int main() {
 #include <stdio.h>
 #include <stdatomic.h>
 #include <pthread.h>
+#include <unistd.h>   /* sleep */
 
 atomic_int shared_flag = 0;
 atomic_int data[10];
@@ -1688,6 +1703,8 @@ T4: 用户B抢到红包，余额 = 100 - 50 = 50，写入  // 把A的结果覆�
 ```c
 #include <stdio.h>
 #include <pthread.h>
+#include <stdlib.h>   /* malloc / free */
+#include <string.h>   /* strcpy */
 
 int balance = 1000;  // 共享资源，没有同步保护！
 
@@ -1705,28 +1722,39 @@ void* buggy_withdraw(void* arg) {
     return NULL;
 }
 
-int main() {
-    pthread_t t1, t2, t3, t4;
+int main(void) {
+    pthread_t t[4];   // 用数组保存 4 个线程 ID
 
     printf("初始余额: %d\n", balance);
 
-    // 10 个人同时取钱
+    // 4 个人同时取钱
     for (int i = 0; i < 4; i++) {
-        char name[20];
-        sprintf(name, "用户%d", i + 1);
-        pthread_create(&t[i], NULL, buggy_withdraw, name);  // 注意：t[i] 在下标访问
+        // ⚠️ 名字必须用【堆内存】而不是循环里的局部数组：
+        // 局部数组 name 每轮循环都会失效/被覆盖，线程还没读到就已经是脏数据了！
+        char* name = malloc(32);
+        snprintf(name, 32, "用户%d", i + 1);
+        pthread_create(&t[i], NULL, buggy_withdraw, name);
     }
 
     for (int i = 0; i < 4; i++) {
-        pthread_join(t[i], NULL);
+        void* ret = NULL;
+        pthread_join(t[i], &ret);
     }
 
     printf("\n最终余额: %d（应该是 600）\n", balance);
-    printf("问题：部分取款操作"丢失"了！\n");
+    printf("问题：部分取款操作「丢失」了！\n");
+    // 注：线程里 malloc 的 name 需要在工作函数里 free —— 这里为保持示例简短，
+    // 把释放放在 buggy_withdraw 里更合适（见下面的"修正版"）
 
     return 0;
 }
 ```
+
+> ⚠️ **这个示例里埋了三个典型的初学者错误**，正好一并说明：
+>
+> 1. **`t[i]` 下标访问要先有数组**：原来写的是 `pthread_t t1, t2, t3, t4;` 却用 `t[i]`，编译器会直接报 `use of undeclared identifier 't'`。要用数组就得声明成 `pthread_t t[4];`。
+> 2. **不要把循环里的局部数组传给线程**：`char name[20];` 在每轮循环结束时生命周期就结束了，线程读到的可能是已经被下一轮覆盖（甚至已失效）的内存。正确做法是用 `malloc` 分配独立的内存（或者干脆用 4 个不同的字符串字面量）。
+> 3. **字符串里的引号要转义**：`printf("...(("丢失"了！")` 会打断字符串，编译报 `expected ')'`。中文场景建议用「」或者书名号，或者写成 `\"丢失\"`。
 
 运行结果（每次可能不同，这就是"竞态"的含义）：
 

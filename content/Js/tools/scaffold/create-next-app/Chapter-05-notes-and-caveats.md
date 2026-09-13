@@ -31,8 +31,8 @@ draft = false
 你可以把它想象成 JavaScript 的「超级英雄变身器」——没有它，你的 JavaScript 代码只能在浏览器里小打小闹；
 有了它，你的 JavaScript 就能上天入地、读写文件、连接数据库，甚至给你煮咖啡（如果硬件允许的话）。
 
-Next.js 14 及以上版本，要求 **Node.js 18.17.0 或更高版本**。
-为什么是 18？因为 Next.js 使用了一些比较新的 JavaScript 特性，
+Next.js 16 要求 **Node.js 20.9.0 或更高版本**，并且不再支持 Node.js 18。Next.js 14/15 的最低要求是 Node.js 18.17.0，但如果你要创建新项目，直接使用 Node.js 22.12+ 或 24.x LTS 更合适。
+为什么要求这么高？因为 Next.js 使用了一些比较新的 JavaScript 特性和模块加载行为，
 而这些特性需要较新版本的 Node.js 才能支持。就像你不能指望用 iPhone 4 来运行 iOS 17一样，
 旧版本的 Node.js 也带不动新版本的 Next.js。
 
@@ -49,12 +49,12 @@ node --version
 - **使用 nvm-windows**：如果你在 Windows 上，那 nvm-windows 就是你的好帮手（注意，nvm-windows 和 macOS/Linux 上的 nvm 不是同一个项目，但功能类似）。
 
 ```bash
-# 使用 nvm 安装 Node.js 18（如果你已经安装了 nvm）
-nvm install 18
-nvm use 18
+# 使用 nvm 安装 Node.js 22 LTS（如果你已经安装了 nvm）
+nvm install 22
+nvm use 22
 
 # 检查版本，确认升级成功
-node --version  # 输出：v18.17.0 或更高版本
+node --version  # 输出：v22.12.0 或更高版本
 npm --version   # 检查 npm 版本（通常是随 Node.js 一起安装的）
 ```
 
@@ -69,9 +69,11 @@ create-next-app 和 Next.js 是「秤不离砣」的关系。
 
 | create-next-app 版本 | Next.js 版本 | 说明 |
 |---------------------|-------------|------|
-| 14.x.x | Next.js 14.x | 当前主流版本，稳定可靠 |
-| 13.x.x | Next.js 13.x | 上一代版本，已引入 App Router |
-| 12.x.x | Next.js 12.x | 较老版本，主要使用 Pages Router |
+| 16.x.x | Next.js 16.x | 截至 2026-09 的最新稳定版，Turbopack 默认启用 |
+| 15.x.x | Next.js 15.x | 上一代稳定版，可继续维护 |
+| 14.x.x | Next.js 14.x | 较旧版本，Node.js 要求 18.17+ |
+| 13.x.x | Next.js 13.x | 已引入 App Router 的老版本 |
+| 12.x.x | Next.js 12.x | 主要使用 Pages Router 的老版本 |
 
 为什么会这样？因为 create-next-app 本质上是一个「脚手架工具」，
 它的主要任务就是帮你创建一个包含正确依赖和配置的 Next.js 项目。
@@ -107,6 +109,9 @@ cat package.json | grep next
 # 使用最新的稳定版（默认行为）
 npx create-next-app@latest my-project
 
+# 指定 Next.js 16.x 版本（当前最新稳定版）
+npx create-next-app@16 my-project
+
 # 指定 Next.js 14.x 版本
 npx create-next-app@14 my-project
 
@@ -132,8 +137,8 @@ npx create-next-app@14.0.0 my-project
 # 如果你想指定具体的小版本号（比如你想复现一个 14.0.0 的 bug）
 npx create-next-app@14.0.0 my-bug-reproduction-project
 
-# 如果你想用 Next.js 15 的 canary 版本来尝鲜
-npx create-next-app@canary my-next15-preview
+# 如果你想用最新 canary 版本来尝鲜
+npx create-next-app@canary my-next-preview
 ```
 
 > ⚠️ **警告**：canary 版本可能会遇到各种奇奇怪怪的问题，比如功能突然被移除、
@@ -453,7 +458,7 @@ git status
 # No commits yet
 # Untracked files:
 #   (use "git add <file>..." to include in what will be committed)
-#   .eslintrc.json
+#   eslint.config.mjs
 #   .gitignore
 #   .next/
 #   package-lock.json
@@ -556,7 +561,7 @@ cat package.json
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "next": "14.2.5",
@@ -582,7 +587,7 @@ cat package.json
   - `npm run dev`：启动开发服务器
   - `npm run build`：构建生产版本
   - `npm run start`：启动生产服务器
-  - `npm run lint`：运行代码检查
+  - `npm run lint`：运行 ESLint。Next.js 16 已移除 `next lint`，新模板使用 `eslint .` 和 Flat Config。
 - **`dependencies`**：生产环境依赖，项目运行时必需的包
 - **`devDependencies`**：开发环境依赖，仅在开发时使用的工具
 
@@ -635,7 +640,7 @@ npm run dev
 
 - **端口被占用**：如果 3000 端口已经被其他程序占用，Next.js 会尝试使用 3001 端口
 - **依赖缺失**：某些依赖可能没有安装成功
-- **配置错误**：可能是 `.eslintrc.json` 或 `next.config.js` 有语法错误
+- **配置错误**：可能是 ESLint 配置或 `next.config.ts` 有语法错误；Next.js 16 默认使用 `eslint.config.mjs`，旧项目才可能使用 `.eslintrc.json`
 
 ```bash
 # 如果你想使用其他端口，可以这样：
@@ -1555,7 +1560,7 @@ volumes:
 
 本章我们详细介绍了使用 create-next-app 创建 Next.js 项目后的各种注意事项：
 
-1. **版本与兼容性**：Node.js 18+ 是 Next.js 14+ 的最低要求，create-next-app 和 Next.js 版本号通常对齐，可以通过 `@latest`、`@14`、`@canary` 等方式指定版本，同时注意 npm/yarn/pnpm 的差异。
+1. **版本与兼容性**：Next.js 16 要求 Node.js 20.9+，Next.js 14/15 的最低要求是 Node.js 18.17+。create-next-app 和 Next.js 版本号通常对齐，可以通过 `@latest`、`@16`、`@14`、`@canary` 等方式指定版本，同时注意 npm/yarn/pnpm 的差异。
 
 2. **创建时的常见问题**：目标目录已存在需要使用空目录或 `--force` 参数，网络问题可以配置国内镜像源，磁盘空间不足需要清理缓存，权限错误需要配置用户目录权限，Windows 用户推荐使用 PowerShell 7+ 或 WSL2。
 

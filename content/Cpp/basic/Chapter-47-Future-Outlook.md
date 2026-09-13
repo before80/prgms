@@ -592,6 +592,7 @@ C++20协程有三个关键概念：
 #include <coroutine>
 #include <optional>
 #include <stdexcept>
+#include <exception>   // std::exception_ptr
 
 // C++20 协程基础演示
 
@@ -613,6 +614,7 @@ template<typename T>
 struct Generator {
     struct promise_type {
         T value_;
+        std::suspend_always initial_suspend() noexcept { return {}; }
         std::suspend_always final_suspend() noexcept { return {}; }
         std::suspend_always yield_value(T v) {
             value_ = v;
@@ -637,38 +639,59 @@ struct Generator {
 };
 
 
-// 模拟的异步操作
+// 模拟的异步操作（惰性 Task：创建时不执行，被 co_await 或被 get() 时才驱动）
 template<typename T>
 struct Task {
     struct promise_type {
-        T value_;
+        T value_{};
         std::exception_ptr exc_;
-        std::suspend_always initial_suspend() { return {}; }
-        struct awaiter {
-            bool await_ready() { return false; }
-            void await_suspend(std::coroutine_handle<> h) {}
-            void await_resume() {}
-        };
-        awaiter final_suspend() noexcept { return {}; }
+        std::suspend_always initial_suspend() noexcept { return {}; }
+        std::suspend_always final_suspend() noexcept { return {}; }
         Task get_return_object() { return Task{handle::from_promise(*this)}; }
         void return_value(T v) { value_ = v; }
         void unhandled_exception() { exc_ = std::current_exception(); }
     };
-    
+
     using handle = std::coroutine_handle<promise_type>;
     handle coro_;
-    
+
     explicit Task(handle h) : coro_(h) {}
+    Task(const Task&) = delete;
+    Task& operator=(const Task&) = delete;
+    Task(Task&& other) noexcept : coro_(other.coro_) { other.coro_ = {}; }
     ~Task() { if (coro_) coro_.destroy(); }
-    
+
     T get() {
-        coro_.resume();
+        if (!coro_.done()) coro_.resume();
         if (coro_.promise().exc_) std::rethrow_exception(coro_.promise().exc_);
         return coro_.promise().value_;
     }
-    
-    auto operator co_await() { return coro_.promise().awaiter{}; }
+
+    // awaitable：真正被 co_await 时，先驱动本协程，再把结果交给等待者
+    struct Awaiter {
+        handle h;
+        bool await_ready() const noexcept { return false; }
+        void await_suspend(std::coroutine_handle<>) const { if (!h.done()) h.resume(); }
+        T await_resume() const {
+            if (h.promise().exc_) std::rethrow_exception(h.promise().exc_);
+            return h.promise().value_;
+        }
+    };
+    Awaiter operator co_await() const noexcept { return Awaiter{coro_}; }
 };
+
+// 真实可运行的生成器协程
+Generator<int> counter(int start, int count) {
+    int v = start;
+    for (int i = 0; i < count; ++i) {
+        co_yield v++;
+    }
+}
+
+// 真实可运行的 Task 协程（这里用同步计算模拟“异步获取”）
+Task<int> addAsync(int a, int b) {
+    co_return a + b;
+}
 
 
 int main() {
@@ -683,20 +706,22 @@ int main() {
     std::cout << "  co_return - 暂停并返回一个值（结束协程）" << std::endl;
     std::cout << std::endl;
     
-    std::cout << "生成器示例（伪代码）：" << std::endl;
-    std::cout << R"(
-    Generator<int> counter(int start) {
-        int count = start;
-        while (true) {
-            co_yield count++;  // 暂停并返回值
+    std::cout << "生成器示例（真实运行）：" << std::endl;
+    {
+        Generator<int> gen = counter(0, 5);   // 0, 1, 2, 3, 4
+        std::cout << "  counter(0, 5) -> ";
+        while (gen.next()) {
+            std::cout << gen.value() << ' ';  // co_yield 出来的值
         }
+        std::cout << std::endl;
     }
-    
-    auto gen = counter(0);
-    std::cout << gen.value();  // 0
-    gen.next();
-    std::cout << gen.value();  // 1
-    )" << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Task 示例（真实运行）：" << std::endl;
+    {
+        Task<int> t = addAsync(2, 3);
+        std::cout << "  addAsync(2, 3) -> " << t.get() << std::endl;
+    }
     std::cout << std::endl;
     
     std::cout << "异步操作示例（伪代码）：" << std::endl;
@@ -722,46 +747,33 @@ int main() {
     
     std::cout << "C++20 coroutines fundamentals" << std::endl;
     // 输出: ========================================
-    // 输出: C++20 协程基础演示
-    // 输出: ========================================
-    // 输出: 
+    // 输出:
     // 输出: 协程的三个关键字：
     // 输出:   co_await - 暂停等待某个操作完成
     // 输出:   co_yield - 暂停并返回一个值（用于生成器）
     // 输出:   co_return - 暂停并返回一个值（结束协程）
-    // 输出: 
-    // 输出: 生成器示例（伪代码）：
-    // 输出: 
-    // 输出:     Generator<int> counter(int start) {
-    // 输出:         int count = start;
-    // 输出:         while (true) {
-    // 输出:             co_yield count++;  // 暂停并返回值
-    // 输出:         }
-    // 输出:     }
-    // 输出: 
-    // 输出:     auto gen = counter(0);
-    // 输出:     std::cout << gen.value();  // 0
-    // 输出:     gen.next();
-    // 输出:     std::cout << gen.value();  // 1
-    // 输出: 
+    // 输出:
+    // 输出: 生成器示例（真实运行）：
+    // 输出:   counter(0, 5) -> 0 1 2 3 4
+    // 输出:
+    // 输出: Task 示例（真实运行）：
+    // 输出:   addAsync(2, 3) -> 5
+    // 输出:
     // 输出: 异步操作示例（伪代码）：
-    // 输出: 
+    // 输出:
     // 输出:     Task<std::string> fetchData() {
     // 输出:         auto data = co_await httpGetAsync("/api/data");
     // 输出:         auto result = co_await processAsync(data);
     // 输出:         co_return result;
     // 输出:     }
-    // 输出: 
-    // 输出:     // 调用
-    // 输出:     std::string data = fetchData().get();
-    // 输出: 
+    // 输出:
     // 输出: 注意：C++20协程需要自己实现协程返回类型！
     // 输出: 标准库没有提供现成的Task或Generator。
     // 输出: 很多库提供了开箱即用的协程支持：
     // 输出:   - cppcoro（C++20官方参考实现）
     // 输出:   - libunifex（Facebook出品）
     // 输出:   - ranges::views::for_each（带协程支持）
-    // 输出: 
+    // 输出:
     // 输出: C++20 coroutines fundamentals
     
     return 0;
@@ -928,6 +940,8 @@ export int add(int a, int b) {
 export constexpr int MAX_SIZE = 1024;
 ```
 
+> 📦 **运行说明**：这是模块的"使用方"文件，需要和上面的模块接口单元一起编译，不能单独编译。
+
 ```cpp
 // main.cpp
 import MyModule;  // 导入模块
@@ -986,7 +1000,7 @@ int main() {
     std::cout << std::endl;
     
     // 优势3：消除宏污染
-    std::cout << "优势3：消除宏定义的" namespace pollution" << std::endl;
+    std::cout << "优势3：消除宏定义带来的 namespace pollution" << std::endl;
     std::cout << R"(
     头文件方式：
     - #include会把你不想要的宏也带进来

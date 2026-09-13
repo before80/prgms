@@ -15,6 +15,18 @@ draft = false
 
 > **温馨提示**：本章涉及的部分特性目前仍处于提案阶段，最终可能被修改、推迟或废除。毕竟标准委员会的工作节奏有时候比蜗牛还慢，比天气预报还不靠谱。但梦想还是要有的，万一哪天就通过了呢？
 
+> **🔍 读前必看：本章的诚实声明**
+>
+> "C++26 前瞻"这类内容最容易踩一个坑：把**提案（proposal）**当成**标准（standard）**。本章因此给每个特性都标注状态：
+>
+> | 标记 | 含义 |
+> |---|---|
+> | ✅ **已采纳** | 已写进 C++26 工作草案（文中的 `[章节号]` 可以查证），属于 C++26 |
+> | ⏳ **提案中** | 有人在委员会提过，但**没有**进入 C++26 |
+> | ❌ **未采纳** | 曾被讨论，但已确定不进入这一版 |
+>
+> 还要区分另外两件事：**标准说"有" ≠ 你的编译器"有"**，**语言特性支持 ≠ 标准库支持**。本章表格里的"实测"结论来自 **Apple clang 21 + libc++ + `-std=c++26`**，换一个编译器结论可能完全不同。
+
 ## 29.1 反射（Reflection）提案进展
 
 ### 什么是反射？
@@ -214,28 +226,34 @@ C++26的反射提案目前仍在积极讨论和完善中。这个特性被认为
 
 让我们看看传说中的契约语法：
 
+> 📎 **可用性说明**：C++26 的契约（Contracts）已经写入标准（[basic.contract]），但截至目前（2026 年）**Apple clang / libc++ 还没有实现**，下面代码暂时无法在 macOS 上编译。这里给出的是**标准规定的正确语法**，请对照学习。
+>
+> 关键点：契约说明符写在函数声明之后、函数体之前，形如 `pre (条件)`、`post (名字: 条件)`；函数体内的断言用语句 `contract_assert (条件);`。
+
 ```cpp
 #include <iostream>
-#include <stdexcept>
-
-// C++26: 契约语法示例
-// 注意：这是演示性代码，实际语法可能不同
 
 // 一个带前置条件的除法函数
-// [[ pre: b != 0 ]] 表示"调用此函数时，b必须不为0"
-int divide(int a, int b) [[ pre: b != 0 ]] {
+// pre (b != 0) 表示"调用此函数时，b必须不为0"
+int divide(int a, int b)
+    pre (b != 0)
+{
     return a / b;
 }
 
 // 一个带后置条件的平方根函数
-// [[ post: result >= 0 ]] 表示"函数返回时，返回值必须>=0"
-double my_sqrt(double x) [[ pre: x >= 0 ]] [[ post: result >= 0 ]] {
+// post (r: r >= 0) 表示"函数返回时，返回值（命名为 r）必须 >= 0"
+double my_sqrt(double x)
+    pre (x >= 0)
+    post (r: r >= 0)
+{
     return x;  // 简化版，实际实现会更复杂
 }
 
 // 一个带断言的函数
-// [[ assert: n >= 0 ]] 表示"函数执行过程中，n必须始终>=0（非负整数）"
-int factorial(int n) [[ assert: n >= 0 ]] {
+// contract_assert 是函数体内部的一条语句
+int factorial(int n) {
+    contract_assert (n >= 0);   // n 必须是非负整数
     if (n == 0 || n == 1) return 1;
     return n * factorial(n - 1);
 }
@@ -307,8 +325,10 @@ int divide_with_assert(int a, int b) {
     return a / b;
 }
 
-// 方式二：使用契约（假设C++26语法）
-int divide_with_contract(int a, int b) [[ pre: b != 0 ]] {
+// 方式二：使用契约（C++26 标准语法）
+int divide_with_contract(int a, int b)
+    pre (b != 0)
+{
     return a / b;
 }
 
@@ -388,7 +408,11 @@ graph LR
 
 > **温馨提示**：契约虽好，可不要贪杯哦！过多的契约检查会影响性能，就像你家的安保系统虽然能防小偷，但如果每进门一个人都要搜身，那就太麻烦了。合理使用才是王道！
 
-## 29.3 模式匹配
+## 29.3 模式匹配（未进入C++26的提案）
+
+> **⏳ 状态说明**：**模式匹配没有进入 C++26。** 相关提案（P2688 "Pattern Matching"）在委员会里讨论多年、改过好几版设计，但截至 C++26 定稿**没有被采纳**。
+>
+> 本节之所以保留它，是因为它是理解"现代 C++ 语法往哪儿走"的绝佳案例。但请把下面所有语法都当成**提案草稿**，而不是能编译的 C++26 代码——本节代码里的 `match` 语法，用任何编译器都编不过。
 
 ### 什么是模式匹配？
 
@@ -421,22 +445,22 @@ switch (value) {
 3. 每个case后面只能跟常量
 4. 代码写起来啰嗦
 
-### C++26模式匹配：代码界的"福尔摩斯"
+### 提案里的模式匹配：代码界的"福尔摩斯"
 
-C++26的模式匹配语法长这样：
+提案草稿里的模式匹配语法长这样（**再提醒一次：这不是 C++26**）：
 
 ```cpp
 #include <iostream>
 #include <variant>
 #include <string>
 
-// 假设C++26支持模式匹配
+// 假设委员会采纳了模式匹配（实际上没有）
 // match (值) { 模式 => 结果 }
 
 
 int main() {
     std::cout << "========================================" << std::endl;
-    std::cout << "C++26 模式匹配（Pattern Matching）演示" << std::endl;
+    std::cout << "模式匹配（Pattern Matching）提案演示（未进入C++26）" << std::endl;
     std::cout << "========================================" << std::endl;
     std::cout << std::endl;
     
@@ -474,9 +498,9 @@ int main() {
     )" << std::endl;
     
     std::cout << std::endl;
-    std::cout << "Pattern matching syntax for C++26" << std::endl;
+    std::cout << "Pattern matching: proposal syntax, NOT in C++26" << std::endl;
     // 输出: ========================================
-    // 输出: C++26 模式匹配（Pattern Matching）演示
+    // 输出: 模式匹配（Pattern Matching）提案演示（未进入C++26）
     // 输出: ========================================
     // 输出: 
     // 输出: 假设有 match (value) 语法:
@@ -502,9 +526,9 @@ int main() {
     // 输出:         _ => "未知类型"
     // 输出:     };
     // 输出: 
-    // 输出: Pattern matching syntax for C++26
+    // 输出: Pattern matching: proposal syntax, NOT in C++26
     // 输出: 
-    // 输出: Pattern matching syntax for C++26
+    // 输出: Pattern matching: proposal syntax, NOT in C++26
     
     return 0;
 }
@@ -542,7 +566,7 @@ int main() {
     
     // 场景2：匹配结构体
     std::cout << "2. 匹配结构体:" << std::endl;
-    std::cout R"(
+    std::cout << R"(
     struct Point { int x; int y; };
     struct Circle { Point center; double radius; };
     struct Rectangle { Point top_left; Point bottom_right; };
@@ -561,14 +585,14 @@ int main() {
     
     // 场景3：解构+绑定
     std::cout << "3. 解构同时绑定新变量:" << std::endl;
-    std::cout R"(
+    std::cout << R"(
     match (std::make_pair(10, 20)) {
         [x, y] => std::cout << x + y << std::endl;  // x=10, y=20
     }
     )" << std::endl;
     std::cout << std::endl;
     
-    std::cout << "Pattern matching syntax for C++26" << std::endl;
+    std::cout << "Pattern matching: proposal syntax, NOT in C++26" << std::endl;
     // 输出: ========================================
     // 输出: 模式匹配的实际应用
     // 输出: ========================================
@@ -601,7 +625,7 @@ int main() {
     // 输出:         [x, y] => std::cout << x + y << std::endl;  // x=10, y=20
     // 输出:     }
     // 输出: 
-    // 输出: Pattern matching syntax for C++26
+    // 输出: Pattern matching: proposal syntax, NOT in C++26
     
     return 0;
 }
@@ -1578,7 +1602,8 @@ int main() {
         }
     }
     
-    constexpr bool isDigit = match(R"(\d+)", "12345");  // 编译期
+    // 注意：这里演示的是"如果regex可以编译期使用"的理想情况
+    constexpr bool isDigit = match("\\d+", "12345");  // 编译期
     )" << std::endl;
     
     std::cout << std::endl;
@@ -1633,7 +1658,7 @@ int main() {
     // 输出:         }
     // 输出:     }
     // 输出: 
-    // 输出:     constexpr bool isDigit = match(R"(\d+)", "12345");  // 编译期
+    // 输出:     constexpr bool isDigit = match("\\d+", "12345");  // 编译期
     // 输出: 
     // 输出: Exceptions in constexpr context in C++26
     
@@ -2485,7 +2510,13 @@ int main() {
 
 > **这是一个高级特性**：大多数C++程序员可能永远不需要直接使用这个功能。但如果你在编写通用的模板库或元编程框架，这个特性会给你更多的抽象能力。当然，也意味着代码可能更难懂——欢迎来到模板元编程的深渊！
 
-## 29.11 平凡可重定位性
+## 29.11 平凡可重定位性（未进入C++26的提案）
+
+> **❌ 状态说明**：**"平凡可重定位（trivially relocatable）"没有进入 C++26。**
+>
+> 这个方向被讨论了很多年（P1144、P2786 等提案），但截至 C++26 定稿都没有被采纳。标准里目前**只有"可平凡拷贝（trivially copyable）"，没有"可平凡重定位"**。
+>
+> 本节的价值在于讲清"为什么编译器不敢自作主张地把『拷贝 + 析构』优化成 `memcpy`"，请把它当作**背景知识**来读，而不是一个新特性。
 
 ### 什么是"可重定位"？
 
@@ -2537,13 +2568,13 @@ graph LR
 #include <vector>
 #include <memory>
 
-// C++26: 平凡可重定位性（Trivially Relocatable）
+// 提案（未进入C++26）: 平凡可重定位性（Trivially Relocatable）
 // memcpy可以直接用于移动对象
 
 
 int main() {
     std::cout << "========================================" << std::endl;
-    std::cout << "C++26 平凡可重定位性" << std::endl;
+    std::cout << "平凡可重定位性（提案，未进入C++26）" << std::endl;
     std::cout << "========================================" << std::endl;
     std::cout << std::endl;
     
@@ -2572,22 +2603,22 @@ int main() {
     std::cout << "  - 网络序列化可以更高效" << std::endl;
     std::cout << std::endl;
     
-    std::cout << "C++26的保证：" << std::endl;
+    std::cout << "提案设想的保证：" << std::endl;
     std::cout << R"(
     // 如果类型满足"平凡可重定位"
     // 编译器可以自动使用memcpy优化
     
     template<typename T>
     void relocate(T* dest, T* src, std::size_t n) {
-        // C++26保证这对于可重定位类型是合法的
+        // 提案设想：标准保证这对于可重定位类型是合法的
         std::memcpy(dest, src, n * sizeof(T));
     }
     )" << std::endl;
     
     std::cout << std::endl;
-    std::cout << "Trivial relocatability in C++26" << std::endl;
+    std::cout << "Trivial relocatability: proposal, NOT in C++26" << std::endl;
     // 输出: ========================================
-    // 输出: C++26 平凡可重定位性
+    // 输出: 平凡可重定位性（提案，未进入C++26）
     // 输出: ========================================
     // 输出: 
     // 输出: 什么是可重定位？
@@ -2612,18 +2643,18 @@ int main() {
     // 输出:   - 内存池分配器可以无开销移动对象
     // 输出:   - 网络序列化可以更高效
     // 输出: 
-    // 输出: C++26的保证：
+    // 输出: 提案设想的保证：
     // 输出: 
     // 输出:     // 如果类型满足"平凡可重定位"
     // 输出:     // 编译器可以自动使用memcpy优化
     // 输出: 
     // 输出:     template<typename T>
     // 输出:     void relocate(T* dest, T* src, std::size_t n) {
-    // 输出:         // C++26保证这对于可重定位类型是合法的
+    // 输出:         // 提案设想：标准保证这对于可重定位类型是合法的
     // 输出:         std::memcpy(dest, src, n * sizeof(T));
     // 输出:     }
     // 输出: 
-    // 输出: Trivial relocatability in C++26
+    // 输出: Trivial relocatability: proposal, NOT in C++26
     
     return 0;
 }
@@ -2659,7 +2690,7 @@ int main() {
     )" << std::endl;
     std::cout << std::endl;
     
-    std::cout << "C++26对于平凡可重定位类型:" << std::endl;
+    std::cout << "提案设想：对于平凡可重定位类型:" << std::endl;
     std::cout << R"(
     void realloc() {
         T* new_data = allocate(new_capacity);
@@ -2679,7 +2710,7 @@ int main() {
     std::cout << "  - 对于大对象特别有效" << std::endl;
     std::cout << std::endl;
     
-    std::cout << "Trivial relocatability in C++26" << std::endl;
+    std::cout << "Trivial relocatability: proposal, NOT in C++26" << std::endl;
     // 输出: ========================================
     // 输出: 平凡可重定位的影响：vector示例
     // 输出: ========================================
@@ -2697,7 +2728,7 @@ int main() {
     // 输出:         deallocate(old_data);
     // 输出:     }
     // 输出: 
-    // 输出: C++26对于平凡可重定位类型:
+    // 输出: 提案设想：对于平凡可重定位类型:
     // 输出: 
     // 输出:     void realloc() {
     // 输出:         T* new_data = allocate(new_capacity);
@@ -2714,7 +2745,7 @@ int main() {
     // 输出:   - 更好的缓存局部性
     // 输出:   - 对于大对象特别有效
     // 输出: 
-    // 输出: Trivial relocatability in C++26
+    // 输出: Trivial relocatability: proposal, NOT in C++26
     
     return 0;
 }
@@ -3302,7 +3333,7 @@ int main() {
     template<typename T>
     constexpr const char* getSizeMessage() {
         if constexpr (sizeof(T) < 4) {
-            return "Type too small (less than 4 bytes)";
+            return "Type too small: less than 4 bytes";
         } else {
             return "Type size is OK";
         }
@@ -3361,7 +3392,7 @@ int main() {
     // 输出:     template<typename T>
     // 输出:     constexpr const char* getSizeMessage() {
     // 输出:         if constexpr (sizeof(T) < 4) {
-    // 输出:             return "Type too small (less than 4 bytes)";
+    // 输出:             return "Type too small: less than 4 bytes";
     // 输出:         } else {
     // 输出:             return "Type size is OK";
     // 输出:         }
@@ -3427,11 +3458,11 @@ int main() {
     template<typename... Args>
     struct Processor {
         static_assert(sizeof...(Args) <= 8,
-            "Too many template arguments (max 8)");
+            "Too many template arguments: max 8");
     };
     
     // Processor<int, int, int, int, int, int, int, int, int> 
-    // 编译错误：Too many template arguments (max 8)
+    // 编译错误：Too many template arguments: max 8
     )" << std::endl;
     std::cout << std::endl;
     
@@ -3454,7 +3485,7 @@ int main() {
     template<typename T, std::size_t N>
     struct FixedArray {
         static_assert(N > 0, "Array size must be positive");
-        static_assert(N <= 1024, "Array size too large (max 1024)");
+        static_assert(N <= 1024, "Array size too large: max 1024");
         
         std::array<T, N> data;
     };
@@ -3473,11 +3504,11 @@ int main() {
     // 输出:     template<typename... Args>
     // 输出:     struct Processor {
     // 输出:         static_assert(sizeof...(Args) <= 8,
-    // 输出:             "Too many template arguments (max 8)");
+    // 输出:             "Too many template arguments: max 8");
     // 输出:     };
     // 输出: 
     // 输出:     // Processor<int, int, int, int, int, int, int, int, int> 
-    // 输出:     // 编译错误：Too many template arguments (max 8)
+    // 输出:     // 编译错误：Too many template arguments: max 8
     // 输出: 
     // 输出: 示例2：类型兼容性检查
     // 输出: 
@@ -3494,7 +3525,7 @@ int main() {
     // 输出:     template<typename T, std::size_t N>
     // 输出:     struct FixedArray {
     // 输出:         static_assert(N > 0, "Array size must be positive");
-    // 输出:         static_assert(N <= 1024, "Array size too large (max 1024)");
+    // 输出:         static_assert(N <= 1024, "Array size too large: max 1024");
     // 输出: 
     // 输出:         std::array<T, N> data;
     // 输出:     };
@@ -3649,1008 +3680,560 @@ int main() {
 
 ```cpp
 #include <iostream>
+#include <string>
 #include <tuple>
-#include <optional>
+#include <utility>
 
-// 更多无名称占位符的示例
-
+// 更多无名称占位符的示例（P2169，C++26）
 
 int main() {
-    std::cout << "========================================" << std::endl;
-    std::cout << "无名称占位符的更多示例" << std::endl;
-    std::cout << "========================================" << std::endl;
-    std::cout << std::endl;
-    
-    // 场景1：tuple解包
-    std::cout << "场景1：tuple解包" << std::endl;
-    std::cout << R"(
+    // 场景1：tuple 解包，忽略中间那个值
     auto result = std::make_tuple(1, "hello", 3.14);
-auto [first, , third] = result;  // 第一个和第三个值，忽略中间�?    // first = 1, third = 3.14
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    // 场景2：函数返回多个�?    std::cout << "场景2：函数返回多个�? << std::endl;
-    std::cout << R"(
-    std::pair<int, std::string> getUserInfo();
-    
-    auto [, username] = getUserInfo();  // 只取用户名，忽略id
-    )" << std::endl;
-    std::cout << std::endl;
-    
+    auto [id, _, value] = result;      // '_' 是占位符，不是变量名
+    std::cout << "场景1: id=" << id << ", value=" << value << '\n';
+    // 输出: 场景1: id=1, value=3.14
+
+    // 场景2：只取第二个值
+    std::pair<int, std::string> user{7, "alice"};
+    auto [_, name] = user;
+    std::cout << "场景2: name=" << name << '\n';
+    // 输出: 场景2: name=alice
+
     // 场景3：嵌套结构化绑定
-    std::cout << "场景3：嵌套结构化绑定" << std::endl;
-    std::cout << R"(
     struct Response { int code; std::string msg; };
     struct Data { Response resp; int value; };
-    
-    Data d = getData();
-    auto [resp, ] = d;  // 忽略第一个值，只取Data
-    // 或者：
-    auto [, value] = d;  // 忽略第二个值，只取Response
-    )" << std::endl;
-    
-    std::cout << std::endl;
-    std::cout << "Unnamed placeholder variables in C++26" << std::endl;
-    // 输出: ========================================
-    // 输出: 无名称占位符的更多示�?    // 输出: ========================================
-    // 输出: 
-    // 输出: 场景1：tuple解包
-    // 输出: 
-    // 输出:     auto result = std::make_tuple(1, "hello", 3.14);
-    // 输出:     auto [first, , third] = result;  // 第一个和第三个值，忽略中间�?    // 输出:     // first = 1, third = 3.14
-    // 输出: 
-    // 输出: 场景2：函数返回多个�?    // 输出: 
-    // 输出:     std::pair<int, std::string> getUserInfo();
-    // 输出:     
-    // 输出:     auto [, username] = getUserInfo();  // 只取用户名，忽略id
-    // 输出: 
-    // 输出: 场景3：嵌套结构化绑定
-    // 输出: 
-    // 输出:     struct Response { int code; std::string msg; };
-    // 输出:     struct Data { Response resp; int value; };
-    // 输出:     
-    // 输出:     Data d = getData();
-    // 输出:     auto [resp, ] = d;  // 忽略第一个值，只取Data
-    // 输出:     // 或者：
-    // 输出:     auto [, value] = d;  // 忽略第二个值，只取Response
-    
-    return 0;
+    Data d{{200, "OK"}, 42};
+    auto [_, v] = d;                   // 只要 value
+    std::cout << "场景3: value=" << v << '\n';
+    // 输出: 场景3: value=42
+
+    // 场景4：同一个作用域里可以有多个 '_'
+    auto [_, first]  = std::pair{1, 2};
+    auto [_, second] = std::pair{3, 4};
+    std::cout << "场景4: " << first << ", " << second << '\n';
+    // 输出: 场景4: 2, 4
 }
+```
+
+> **小心一个细节**：`_` 是**占位符**，不是普通变量名。C++26 允许在同一个作用域中多次声明 `_`（见上面的"场景4"），但**不能在表达式里读它**：
+>
+> ```cpp
+> int _ = 5;
+> int _ = 6;
+> (void)_;   // error: ambiguous reference to placeholder '_', which is defined multiple times
+> ```
+>
+> 这条报错正是"占位符不该被使用"在语法层面的体现。
 
 > **无名称占位符让代码更清晰**：再也不用担心`unused_variable`警告了！无名称占位符`[, result]`清晰地表达了我的意图：我不需要第一个值，而不是我需要第一个值但给它起了个难听的名字"unused"。
-## 29.16 求值字符串
+## 29.16 求值字符串：一个没有被采纳的提案
 
-### 什么是求值字符串？
-**求值字符串（Evaluation String）** 听起来像是某种神秘的黑魔法，但实际上它是C++26计划引入的一个非常有趣但也有些争议的特性。
-这个特性的核心思想是：允许在运行时**动态执行字符串形式的代码**。
-对，你没看错，就是像`eval("int x = 42;")`这样动态执行代码！
+### 提案的设想
 
-### 其他语言早就有了？
-实际上，很多动态语言早就支持这种特性了：
-```python
+**求值字符串（Evaluated Strings）** 听起来像是某种神秘的黑魔法。它的核心思想是：允许在运行时**动态执行字符串形式的代码**。
+
+提案草稿里的用法大致长这样（注意：下面这段**在 C++26 里写不出来**）：
+
+```text
+auto x = std::eval("2 + 3");     // 也许返回 5？
+int y = 10;
+auto z = std::eval("y * 2");     // 能引用外部变量吗？
+```
+
+其他语言早就有了类似能力，这也是这个提案的"灵感来源"：
+
+```text
 # Python
-eval("2 + 3")  # 返回 5
-exec("x = 42")  # 执行语句
+eval("2 + 3")                    # 5
 
-# JavaScript
-eval("2 + 3")  // 返回 5
+// JavaScript
+eval("2 + 3")                    // 5
 
 # Ruby
-eval("2 + 3")  # 返回 5
+eval("2 + 3")                    # 5
 ```
 
-但在C++这种静态编译语言中，这一直是个禁区。为什么？
+### 为什么委员会没有采纳
 
-1. C++是静态类型的，字符串里的代码编译器无法检查
-2. C++需要编译，动态解释执行违背了C++的设计哲学
-3. 安全性问题：动态执行用户输入的代码可能导致严重的安全漏洞
-### C++26的求值字符串提案
+委员会对"把代码当数据执行"这件事非常谨慎，主要顾虑有四条：
+
+| 顾虑 | 具体说明 |
+|---|---|
+| **安全性** | 动态执行用户输入 = 代码注入漏洞。`eval` 是各大语言安全公告里的常客 |
+| **可移植性** | 要么把编译器塞进运行时（体积巨大），要么在标准里定义一个新解释器（工作量巨大） |
+| **可静态分析性** | 字符串里的代码无法被类型检查、审计、形式化验证，C++ 的整个工具链生态会失效 |
+| **语言设计代价** | 需要在标准里规定"字符串里允许写哪些语言子集""作用域怎么算""错误怎么报告" |
+
+这一提案在委员会里以不同形式被反复讨论过，但**截至 C++26 定稿都没有被采纳**。如果你在网上看到"C++26 可以用 `std::eval` 执行字符串代码"，那是把**提案**当成了**标准**——这是本章最容易踩的坑，我们在 29.16 结尾的"辨别方法"里再总结一次。
+
+> **📌 辨别方法**：判断一个"C++ 新特性"是否真的进了标准，最快的办法是查《工作草案》里有没有对应的**语法产生式和章节号**（比如 `[expr.reflect]`），而只看：
+> 1. 有没有提案编号（`Pxxxx`）→ 有编号只说明"有人在提"；
+> 2. 有没有被采纳（adopted）→ 会议纪要里能查到；
+> 3. 有没有写进草案 → 目录里能搜到章节锚点。
+>
+> 三条都满足，才算"真的进来了"。
+
+### ✅ 真正进入 C++26 的"近亲"：未求值字符串
+
+C++26 里确实有一件和"字符串 + 编译期"有关的事，叫**未求值字符串（unevaluated string）**，见 `[lex.string.uneval]`。它的作用不是执行代码，而是**给 `static_assert` 这类地方提供一个"不需要求值"的字符串**，好让诊断消息可以由 `consteval` 函数生成（详见 29.14）。
+
+规则很短：
+
+1. **不允许有编码前缀**（`u8"..."`、`L"..."`、`u"..."` 都不行）
+2. `\u4E2D`、`\u{...}` 这类通用字符名，以及 `\n`、`\'` 这类简单转义，会被替换成对应的字符
+3. 出现**数值转义**（`\x41`、`\101`）或**条件转义**（`\N{...}`）就是非良构的
+
+实测（Apple clang 21，`-std=c++26`）：
 
 ```cpp
-#include <iostream>
-#include <string>
+// ✅ 可以：普通字符串、通用字符名、大括号
+static_assert(sizeof(int) == 4, "CJK: \u4E2D");
+static_assert(sizeof(int) == 4, "包含 {大括号} 也没问题");
 
-// C++26: 求值字符串（eval string）
-// std::string code = R"(int x = 42;)";
-// std::eval(code);  // 动态执行代码
+// ❌ 不行：数值转义
+static_assert(sizeof(int) == 4, "hex: \x41");
+// error: invalid escape sequence '\x41' in an unevaluated string literal
 
-int main() {
-    std::cout << "========================================" << std::endl;
-    std::cout << "C++26 求值字符串" << std::endl;
-    std::cout << "========================================" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "其他语言早就有了？" << std::endl;
-    std::cout << R"(
-    // Python:
-    eval("2 + 3")  // 返回 5
-    
-    // JavaScript:
-    eval("2 + 3")  // 返回 5
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "C++26的求值字符串" << std::endl;
-    std::cout << R"(
-    std::string code = R"(int x = 42;)";
-    std::eval(code);  // 动态执行代码
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "可能的应用场景：" << std::endl;
-    std::cout << "  - 脚本引擎集成" << std::endl;
-    std::cout << "  - 动态代码生成和执行" << std::endl;
-    std::cout << "  - 模板元编程的运行时补充" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "但也有担忧：" << std::endl;
-    std::cout << "  - 安全性：动态执行用户输入可能导致代码注入？" << std::endl;
-    std::cout << "  - 性能：解释执行比编译执行慢？" << std::endl;
-    std::cout << "  - 可维护性：动态代码难以调试和维护" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "Evaluation strings in C++26" << std::endl;
-    // 输出: ========================================
-    // 输出: C++26 求值字符串
-    // 输出: ========================================
-    // 输出: 
-    // 输出: 其他语言早就有了�?    // 输出: 
-    // 输出:     // Python:
-    // 输出:     eval("2 + 3")  // 返回 5
-    // 输出:     
-    // 输出:     // JavaScript:
-    // 输出:     eval("2 + 3")  // 返回 5
-    // 输出: 
-    // 输出: C++26的求值字符串�?    // 输出: 
-    // 输出:     std::string code = R"(int x = 42;)";
-    // 输出:     std::eval(code);  // 动态执行代�?    // 输出: 
-    // 输出: 可能的应用场景：
-    // 输出:   - 脚本引擎集成
-    // 输出:   - 动态代码生成和执行
-    // 输出:   - 模板元编程的运行时补�?    // 输出: 
-    // 输出: 但也有担忧：
-    // 输出:   - 安全性：动态执行用户输入可能导致代码注�?    // 输出:   - 性能：解释执行比编译执行�?    // 输出:   - 可维护性：动态代码难以调试和维护
-    // 输出: 
-    // 输出: Evaluation strings in C++26
-    
-    return 0;
-}
+// ❌ 不行：带编码前缀
+static_assert(sizeof(int) == 4, u8"prefix");
+// error: an unevaluated string literal cannot have an encoding prefix
 ```
 
-### 求值字符串的实现方�?
-```cpp
-#include <iostream>
-#include <string>
-#include <variant>
+> **一句话总结**：C++26 **没有**"运行时执行字符串代码"，但确实让 `static_assert` 的消息更灵活了。
 
-// 求值字符串可能有几种实现方�?
+## 29.17 标识符的 Unicode 扩展（不是 @、$、反引号）
 
-int main() {
-    std::cout << "========================================" << std::endl;
-    std::cout << "求值字符串的实现方�? << std::endl;
-    std::cout << "========================================" << std::endl;
-    std::cout << std::endl;
-    
-    // 方式1：嵌入式编译�?    std::cout << "方式1：嵌入式编译�? << std::endl;
-    std::cout << R"(
-    // 使用编译器基础设施（如LLVM）来即时编译执行
-    std::string code = "int add(int a, int b) { return a + b; }";
-    auto compiled = std::eval_compile(code);  // 编译但不执行
-    int result = compiled.call<int>(1, 2);   // 调用编译后的函数
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    // 方式2：解释器
-    std::cout << "方式2：轻量级解释�? << std::endl;
-    std::cout << R"(
-    // 只支持简单的C++子集
-    std::string code = "x + y";
-    int x = 10, y = 20;
-    int result = std::eval(code, x, y);  // 传入上下�?    )" << std::endl;
-    std::cout << std::endl;
-    
-    // 方式3：表达式模板
-    std::cout << "方式3：表达式模板求�? << std::endl;
-    std::cout << R"(
-    // 在编译期解析表达式字符串，生成优化后的代�?    constexpr auto result = std::eval("2 + 3 * 4");  // 编译期求值！
-    )" << std::endl;
-    
-    std::cout << std::endl;
-    std::cout << "Evaluation strings in C++26" << std::endl;
-    // 输出: ========================================
-    // 输出: 求值字符串的实现方�?    // 输出: ========================================
-    // 输出: 
-    // 输出: 方式1：嵌入式编译�?    // 输出: 
-    // 输出:     // 使用编译器基础设施（如LLVM）来即时编译执行
-    // 输出:     std::string code = "int add(int a, int b) { return a + b; }";
-    // 输出:     auto compiled = std::eval_compile(code);  // 编译但不执行
-    // 输出:     int result = compiled.call<int>(1, 2);   // 调用编译后的函数
-    // 输出: 
-    // 输出: 方式2：轻量级解释�?    // 输出: 
-    // 输出:     // 只支持简单的C++子集
-    // 输出:     std::string code = "x + y";
-    // 输出:     int x = 10, y = 20;
-    // 输出:     int result = std::eval(code, x, y);  // 传入上下�?    // 输出: 
-    // 输出: 方式3：表达式模板求�?    // 输出: 
-    // 输出:     // 在编译期解析表达式字符串，生成优化后的代�?    // 输出:     constexpr auto result = std::eval("2 + 3 * 4");  // 编译期求值！
-    // 输出: 
-    // 输出: Evaluation strings in C++26
-    
-    return 0;
-}
-```
+### 一个流传很广的误会
 
-### 争议与讨�?
+网上流传着一种说法：C++26 会把 `@`、`$`、反引号加入基本字符集，以后可以写 `int $max` 了。
+
+**这是假的。** 真实的变化在 `[lex.name]`（标识符）里：C++26 允许标识符中使用**具有 Unicode `XID_Start` / `XID_Continue` 属性的字符**。这组属性由 Unicode 标准的 UAX #44 定义，UAX #31 给出了"哪些字符能当标识符"的通用规则。
+
+换句话说：
+
+- **`@`、`$`、`` ` `` 并没有被加进来**——它们是标点符号，不属于 XID 字符
+- 被加进来的是**字母/文字类字符**：中日韩文字、希腊字母、西里尔字母、带声调的拉丁字母等
+
 ```mermaid
 graph TD
-    A["求值字符串提案"] --> B["支持�?]
-    A --> C["反对�?]
-    
-    B --> B1["动态语言的灵活�?]
-    B --> B2["脚本引擎集成"]
-    B --> B3["快速原型开�?]
-    
-    C --> C1["安全性风�?]
-    C --> C2["违背C++哲学"]
-    C --> C3["性能开销"]
-    C --> C4["调试困难"]
-    
-    style A fill:#ffffcc
-    style B fill:#ccffcc
-    style C fill:#ffcccc
+    A["C++23 及以前<br/>标识符 = A-Z a-z 0-9 _"] --> B["C++26 标识符"]
+    B --> C["ASCII 字母数字下划线"]
+    B --> D["XID_Start / XID_Continue<br/>（Unicode 文字类字符）"]
+    B --> E["必须满足 NFC 规范化"]
+    F["@  $  `"] --> G["❌ 仍然不是合法标识符字符"]
+
+    style D fill:#ccffcc
+    style E fill:#ffffcc
+    style G fill:#ffcccc
 ```
 
-> **这个提案有争议。*：C++社区对这个特性的反应可以说是"爱恨交织"。有人认为这是C++向动态语言靠拢的重要一步，有人则认为这违背了C++的设计哲学。你怎么看？
+### 规则原文（简化版）
 
-## 29.17 基本字符集扩展（@、$、`）
-### 什么是基本字符集？
+```text
+identifier-start    : nondigit
+                    | 具有 XID_Start 或 ID_Compat_Math_Start 属性的字符
+identifier-continue : digit | nondigit
+                    | 具有 XID_Continue 或 ID_Compat_Math_Continue 属性的字符
+```
 
-在C++中，**基本字符集（Basic Character Set）** 是指那些保证在任何实现中都可用的字符。它们包括：
+外加一条容易被忽略的规定：**标识符必须符合 Unicode 的 Normalization Form C（NFC）**，否则程序是非良构的。
 
-- **字符**：52个拉丁字母（A-Z, a-z）、10个数字（0-9）、29个标点符号
-- **转义序列**：\n、\t、\0等
+### 实测
 
-这些字符是C++代码的"官方语言"，无论你用什么编译器、在什么平台、用什么语言环境，它们都有确切的含义。
-
-### 为什么要扩展？
-C++的基本字符集从C89时代就没怎么变过。但随着编程语言的发展，有些字符在其他语言和领域中使用广泛，但在C++里却不能用作标识符：
-
-- **@**：在很多语言中用作装饰器（decorator�?- **$**：在很多语言中用作变量名的一部分
-- **`（反引号�?*：在某些系统中用作特殊用�?
-C++26计划将这些字符加入基本字符集�?
 ```cpp
-#include <iostream>
-
-// C++26: 基本字符集扩�?// 增加@�?、`符号
-
+#include <cstdio>
 
 int main() {
-    std::cout << "========================================" << std::endl;
-    std::cout << "C++26 基本字符集扩展。 << std::endl;
-    std::cout << "========================================" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "C++26之前，标识符只能包含： << std::endl;
-    std::cout << "  - A-Z, a-z�?2个字母）" << std::endl;
-    std::cout << "  - 0-9（数字，但不能开头）" << std::endl;
-    std::cout << "  - 下划线_" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "C++26新增的字符：" << std::endl;
-    std::cout << "  - @（at符号。 << std::endl;
-    std::cout << "  - $（美元符号）" << std::endl;
-    std::cout << "  - `（反引号。 << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "C++26可以这样写：" << std::endl;
-    std::cout << R"(
-    int $price = 100;    // 美元价格
-    int @count = 50;     // 数量
-    int `value` = 42;    // 使用反引号包�?    
-    // 这些现在都是合法的标识符�?    )" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "为什么需要这些字符？" << std::endl;
-    std::cout << R"(
-    // 1. 与其他编程语言保持一�?    //    let $x = 10;  // JavaScript, PHP, Ruby...
-    
-    // 2. 更好地与特定领域语言（DSL）集�?    //    @attribute  // 装饰器语�?    
-    // 3. 特定平台的需�?    //    $ 在某些系统上是有效的文件�?    )" << std::endl;
-    
-    std::cout << std::endl;
-    std::cout << "Extended basic character set in C++26 (@, $, `)" << std::endl;
-    // 输出: ========================================
-    // 输出: C++26 基本字符集扩�?    // 输出: ========================================
-    // 输出: 
-    // 输出: C++26之前，标识符只能包含�?    // 输出:   - A-Z, a-z�?2个字母）
-    // 输出:   - 0-9（数字，但不能开头）
-    // 输出:   - 下划线_
-    // 输出: 
-    // 输出: C++26新增的字符：
-    // 输出:   - @（at符号�?    // 输出:   - $（美元符号）
-    // 输出:   - `（反引号�?    // 输出: 
-    // 输出: C++26可以这样写：
-    // 输出: 
-    // 输出:     int $price = 100;    // 美元价格
-    // 输出:     int @count = 50;     // 数量
-    // 输出:     int `value` = 42;    // 使用反引号包�?    // 输出: 
-    // 输出:     // 这些现在都是合法的标识符�?    // 输出: 
-    // 输出: 为什么需要这些字符？
-    // 输出: 
-    // 输出:     // 1. 与其他编程语言保持一�?    // 输出:     //    let $x = 10;  // JavaScript, PHP, Ruby...
-    // 输出: 
-    // 输出:     // 2. 更好地与特定领域语言（DSL）集�?    // 输出:     //    @attribute  // 装饰器语�?    // 输出: 
-    // 输出:     // 3. 特定平台的需�?    // 输出:     //    $ 在某些系统上是有效的文件�?    
-    return 0;
+    int 数值 = 42;        // 中文
+    double π = 3.14159;    // 希腊字母
+    int café = 1;          // 带声调的拉丁字母
+    int привет = 2;        // 西里尔字母
+    std::printf("%d %.2f %d %d\n", 数值, π, café, привет);
 }
 ```
 
-### 潜在用�?
-```cpp
-#include <iostream>
-#include <string>
-
-// 基本字符集扩展的潜在用�?
-
-int main() {
-    std::cout << "========================================" << std::endl;
-    std::cout << "基本字符集扩展的潜在用途。 << std::endl;
-    std::cout << "========================================" << std::endl;
-    std::cout << std::endl;
-    
-    // 用�?：货币处�?    std::cout << "用�?：货币处理。 << std::endl;
-    std::cout << R"(
-    double $usd = 100.50;
-    double €eur = 89.99;  // 假设€也在考虑范围�?    double ¥cny = 698.50;
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    // 用�?：装饰器/属�?    std::cout << "用�?：装饰器语法" << std::endl;
-    std::cout << R"(
-    @deprecated
-    void oldFunction() { }
-    
-    @inline
-    void hotPath() { }
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    // 用�?：避免与宏冲�?    std::cout << "用�?：避免与系统宏冲突。 << std::endl;
-    std::cout << R"(
-    // 在Windows上，max可能被定义为�?    int $max = 100;  // 绕过max�?    
-    // 或�?    int `@max` = 100;
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    // 用�?：特殊含义的变量�?    std::cout << "用�?：语义化变量名。 << std::endl;
-    std::cout << R"(
-    class User {
-    public:
-        int $id;           // 用户ID
-        std::string $name; // 用户�?        // ...
-    };
-    )" << std::endl;
-    
-    std::cout << std::endl;
-    std::cout << "Extended basic character set in C++26 (@, $, `)" << std::endl;
-    // 输出: ========================================
-    // 输出: 基本字符集扩展的潜在用�?    // 输出: ========================================
-    // 输出: 
-    // 输出: 用�?：货币处�?    // 输出: 
-    // 输出:     double $usd = 100.50;
-    // 输出:     double €eur = 89.99;  // 假设€也在考虑范围�?    // 输出:     double ¥cny = 698.50;
-    // 输出: 
-    // 输出: 用�?：装饰器语法
-    // 输出: 
-    // 输出:     @deprecated
-    // 输出:     void oldFunction() { }
-    // 输出:     
-    // 输出:     @inline
-    // 输出:     void hotPath() { }
-    // 输出: 
-    // 输出: 用�?：避免与宏冲�?    // 输出: 
-    // 输出:     // 在Windows上，max可能被定义为�?    // 输出:     int $max = 100;  // 绕过max�?    // 输出:     
-    // 输出:     // 或�?    // 输出:     int `@max` = 100;
-    // 输出: 
-    // 输出: 用�?：语义化变量�?    // 输出: 
-    // 输出:     class User {
-    // 输出:     public:
-    // 输出:         int $id;           // 用户ID
-    // 输出:         std::string $name; // 用户�?    // 输出:         // ...
-    // 输出:     };
-    // 输出: 
-    // 输出: Extended basic character set in C++26 (@, $, `)
-    
-    return 0;
-}
+```text
+$ clang++ -std=c++26 ids.cpp && ./a.out
+42 3.14 1 2
 ```
 
-> **注意**：这个提案目前仍在讨论中，具体的语法和语义可能会有所变化。另外，不同平台和文件系统对这些字符的支持也不同，所以在使用时要考虑可移植性�?
-## 29.18 废弃数组比较
+### 使用时的注意事项
 
-### 数组比较的历史遗留问�?
-在C++中，数组比较曾经是一�?�?。让我们看看这个经典的陷阱：
+- **源文件编码**：必须是 UTF-8（或编译器按 `-finput-charset` 认得出来的编码）。
+- **NFC 是个隐藏的坑**：`é` 有"单个码位（U+00E9）"和"`e` + 组合重音（U+0065 U+0301）"两种写法。后者**不是** NFC，作为标识符会直接报错——而这两种写法在很多编辑器里**长得一模一样**。所以不要在标识符里使用可组合的变音符号。
+- **emoji 不行**：绝大多数 emoji 没有 `XID_Start` 属性。
+- **可移植性与协作成本**：混排多种文字会让代码难以维护，也会让某些工具链、编辑器、代码搜索失效。**推荐的做法仍然是"注释和字符串里用中文，标识符用英文"**。
+- **实现进度**：Apple clang 21 已支持（上面的代码实测通过）；越老的编译器越可能不支持。
+
+### 顺带一提：具有特殊含义的标识符
+
+C++26 更新了"具有特殊含义的标识符"列表（`[lex.name]` Table 4）。除了大家熟悉的 `final`、`import`、`module`、`override`，还新增了 **`pre`、`post`**（供契约使用）。
+
+这些名字出现在特定上下文时会被特殊解释，而且**不能用作宏名**。所以给变量起名时，避开 `pre`、`post` 是明智的。
+
+## 29.18 数组比较：从"废弃"到"错误"
+
+### 经典陷阱
 
 ```cpp
 int a[3] = {1, 2, 3};
 int b[3] = {1, 2, 3};
 
-if (a == b) {  // 这不是比较数组内容！
-    // 实际上比较的是指针！
+if (a == b) {      // 你以为在比较内容？
+    // ...
 }
 ```
 
-你可能以为`a == b`会逐元素比较两个数组，但实际上它比较的是两个数�?*退�?*成指针后的地址！因为数组在大多数表达式中会"退�?成指向其首元素的指针�?
-### C++26的决定：废弃数组比较
+这里 `a` 和 `b` 会**退化（decay）成指向各自首元素的指针**，所以比较的是**地址**。因为 `a`、`b` 是两个不同的数组，结果**恒为 `false`**（当时大多数编译器还会顺手给你一个 `-Wtautological-compare` 警告）。
 
-C++26决定正式**废弃（deprecate�?*这种隐式的数组比较，并建议编译器给出警告�?
-```cpp
-#include <iostream>
+### C++ 的"两步走"
 
-// C++26: 废弃数组比较
-// int a[3], b[3];
-// a == b;  // 废弃警告
+| 标准版本 | 状态 | 编译器行为 |
+|---|---|---|
+| C++17 及以前 | 合法 | 静默比较指针（最常见的 bug 来源之一） |
+| C++20 | **废弃（deprecated）** | 警告 `-Wdeprecated-array-compare` |
+| **C++26** | **非良构（ill-formed）** | **错误**（clang 报 `-Warray-compare-cxx26`） |
 
+注意最后一行：C++26 **不是**"继续废弃"，而是直接**变成错误**。这是"废弃 → 删除"两步走里第二步真正落地的一个例子。
 
-int main() {
-    std::cout << "========================================" << std::endl;
-    std::cout << "C++26 废弃数组比较" << std::endl;
-    std::cout << "========================================" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "陷阱：数组比较实际上比较的是指针！" << std::endl;
-    std::cout << R"(
-    int a[3] = {1, 2, 3};
-    int b[3] = {1, 2, 3};
-    
-    if (a == b) {  // 实际上比较的是&a[0] 和&b[0]的地址！
-        // ...
-    }
-    
-    // a 和b 是不同的数组，所以地址不同，结果总是 false
-    // 即使内容完全相同也不会相等！
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "C++26的行为：" << std::endl;
-    std::cout << R"(
-    // int a[3], b[3];
-    // a == b;  // 编译警告！
-    // warning: deprecated array comparison
-    
-    // 推荐做法：使用std::array或std::vector
-    std::array<int, 3> arr1 = {1, 2, 3};
-    std::array<int, 3> arr2 = {1, 2, 3};
-    
-    if (arr1 == arr2) {  // 正确比较数组内容！
-        // arr1 和arr2 相等，因为内容相同！
-    }
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "为什么数组比较会退化成指针？" << std::endl;
-    std::cout << "这是C语言的历史遗留问题。在C中，数组和指针关系密切，" << std::endl;
-    std::cout << "这种设计在C++中保留了下来，但导致了上述陷阱！" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "Deprecated array comparison in C++26" << std::endl;
-    
-    return 0;
-}
+实测（Apple clang 21）：
+
+```text
+$ clang++ -std=c++23 -fsyntax-only arraycmp.cpp
+arraycmp.cpp:2:25: warning: comparison between two arrays is deprecated;
+    to compare array addresses, use unary '+' to decay operands to pointers
+                     [-Wdeprecated-array-compare]
+
+$ clang++ -std=c++26 -fsyntax-only arraycmp.cpp
+arraycmp.cpp:2:25: error: comparison between two arrays is ill-formed in C++26;
+    to compare array addresses, use unary '+' to decay operands to pointers
+                     [-Warray-compare-cxx26]
 ```
 
-### 正确的比较方�?
+### 那我想比较地址怎么办？
+
+其实**根本不该**这样写。真要比较地址，就把"我在比较指针"这件事**明确写出来**：
+
 ```cpp
-#include <iostream>
+if (&a[0] == &b[0]) { }   // 明确：比较两个数组首元素的地址
+if (+a == +b) { }          // 一元 + 触发退化，明确表达"我要退化后的地址"
+```
+
+编译器自己的提示里推荐的就是第二种写法（`unary '+' to decay operands to pointers`）。
+
+### 正确比较内容的方式
+
+```cpp
+#include <algorithm>
 #include <array>
 #include <cstring>
-
-// 正确的数组比较方�?
+#include <iostream>
+#include <iterator>
+#include <vector>
 
 int main() {
-    std::cout << "========================================" << std::endl;
-    std::cout << "正确的数组比较方式。 << std::endl;
-    std::cout << "========================================" << std::endl;
-    std::cout << std::endl;
-    
-    // 方式1：std::array
-    std::cout << "方式1：使用std::array" << std::endl;
-    std::cout << R"(
-    std::array<int, 3> a = {1, 2, 3};
-    std::array<int, 3> b = {1, 2, 3};
-    
-    if (a == b) {  // OK! 正确比较内容
-        std::cout << "数组相等" << std::endl;
-    }
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    // 方式2：std::vector
-    std::cout << "方式2：使用std::vector" << std::endl;
-    std::cout << R"(
-    std::vector<int> a = {1, 2, 3};
-    std::vector<int> b = {1, 2, 3};
-    
-    if (a == b) {  // OK! std::vector重载�?=
-        std::cout << "向量相等" << std::endl;
-    }
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    // 方式3：std::memcmp（不推荐用于复杂类型�?    std::cout << "方式3：使用std::memcmp" << std::endl;
-    std::cout << R"(
-    int a[3] = {1, 2, 3};
-    int b[3] = {1, 2, 3};
-    
-    if (std::memcmp(a, b, sizeof(a)) == 0) {  // 逐字节比�?        std::cout << "数组相等" << std::endl;
-    }
-    // 注意：memcmp对浮点数可能有精度问�?    )" << std::endl;
-    std::cout << std::endl;
-    
-    // 方式4：自定义比较函数
-    std::cout << "方式4：自定义比较" << std::endl;
-    std::cout << R"(
-    template<typename T, std::size_t N>
-    bool arrayEqual(const T (&a)[N], const T (&b)[N]) {
-        for (std::size_t i = 0; i < N; ++i) {
-            if (a[i] != b[i]) return false;
-        }
-        return true;
-    }
-    
-    int a[3] = {1, 2, 3};
-    int b[3] = {1, 2, 3};
-    
-    if (arrayEqual(a, b)) {  // 安全且正�?        std::cout << "数组相等" << std::endl;
-    }
-    )" << std::endl;
-    
-    std::cout << std::endl;
-    std::cout << "Deprecated array comparison in C++26" << std::endl;
-    // 输出: ========================================
-    // 输出: 正确的数组比较方�?    // 输出: ========================================
-    // 输出: 
-    // 输出: 方式1：使用std::array
-    // 输出: 
-    // 输出:     std::array<int, 3> a = {1, 2, 3};
-    // 输出:     std::array<int, 3> b = {1, 2, 3};
-    // 输出:     
-    // 输出:     if (a == b) {  // OK! 正确比较内容
-    // 输出:         std::cout << "数组相等" << std::endl;
-    // 输出:     }
-    // 输出: 
-    // 输出: 方式2：使用std::vector
-    // 输出: 
-    // 输出:     std::vector<int> a = {1, 2, 3};
-    // 输出:     std::vector<int> b = {1, 2, 3};
-    // 输出:     
-    // 输出:     if (a == b) {  // OK! std::vector重载�?=
-    // 输出:         std::cout << "向量相等" << std::endl;
-    // 输出:     }
-    // 输出: 
-    // 输出: 方式3：使用std::memcmp
-    // 输出: 
-    // 输出:     int a[3] = {1, 2, 3};
-    // 输出:     int b[3] = {1, 2, 3};
-    // 输出:     
-    // 输出:     if (std::memcmp(a, b, sizeof(a)) == 0) {  // 逐字节比�?    // 输出:         std::cout << "数组相等" << std::endl;
-    // 输出:     }
-    // 输出:     // 注意：memcmp对浮点数可能有精度问�?    // 输出: 
-    // 输出: 方式4：自定义比较函数
-    // 输出: 
-    // 输出:     template<typename T, std::size_t N>
-    // 输出:     bool arrayEqual(const T (&a)[N], const T (&b)[N]) {
-    // 输出:         for (std::size_t i = 0; i < N; ++i) {
-    // 输出:             if (a[i] != b[i]) return false;
-    // 输出:         }
-    // 输出:         return true;
-    // 输出:     }
-    // 输出:     
-    // 输出:     int a[3] = {1, 2, 3};
-    // 输出:     int b[3] = {1, 2, 3};
-    // 输出:     
-    // 输出:     if (arrayEqual(a, b)) {  // 安全且正�?    // 输出:         std::cout << "数组相等" << std::endl;
-    // 输出:     }
-    // 输出: 
-    // 输出: Deprecated array comparison in C++26
-    
-    return 0;
+    int a[3]{1, 2, 3};
+    int b[3]{1, 2, 3};
+
+    // ✅ 方式1：std::array —— 有 == 重载，逐元素比较
+    std::array<int, 3> x{1, 2, 3}, y{1, 2, 3};
+    std::cout << std::boolalpha << (x == y) << '\n';   // true
+
+    // ✅ 方式2：std::vector —— 同样逐元素比较
+    std::vector<int> p{1, 2, 3}, q{1, 2, 3};
+    std::cout << (p == q) << '\n';                     // true
+
+    // ✅ 方式3：std::equal —— 用于裸数组（注意长度要自己保证一致）
+    std::cout << std::equal(std::begin(a), std::end(a), std::begin(b)) << '\n';  // true
+
+    // ⚠️ 方式4：std::memcmp —— 只对"平凡可拷贝、且没有填充字节"的类型安全
+    std::cout << (std::memcmp(a, b, sizeof a) == 0) << '\n';   // true
 }
 ```
 
-> **小贴士*：：这个废弃警告可能会让很多遗留代码产生大量警告。如果你有大量的老代码使用数组比较，可以考虑逐渐迁移到`std::array`，或者使用一个简单的辅助函数来消除警告�?
-## 29.19 牛津逗号变参
+关于 `std::memcmp` 的三个坑：
 
-### 什么是牛津逗号？
-**牛津逗号（Oxford Comma）**，也叫序列逗号（Serial Comma），是在列举多个元素时，在最后一个元素前（即"和"或"以及"）之前添加的逗号。
-看这个例子：
-- **没有牛津逗号**：红色、绿色和蓝色
-- **有牛津逗号**：红色、绿色、和蓝色
+1. **结构体的填充字节**内容是不确定的，`memcmp` 可能对"逻辑上相等"的两个对象返回非零；
+2. **浮点数**里 `+0.0` 和 `-0.0` 数值相等但位模式不同，而 `NaN != NaN` 在位模式相同时也能"相等"；
+3. `memcmp` 比较的是**字节**，对包含指针、`std::string` 等成员的类型毫无意义。
 
-等等，这个比喻好像不太对。让我们用编程的方式解释：
-在打印函数参数时，你可能会这样写：
+所以顺序建议是：`std::array` / `std::vector` > `std::equal` > `std::memcmp`（仅限平凡类型）。
+
+> **记住这条**：看到 `if (arr1 == arr2)` 就当作 bug。这也正是现代 C++ 代码里更推荐 `std::array` 而不是裸数组的原因之一。
+
+## 29.19 省略号参数：逗号的问题
+
+### 先分清楚两件事
+
+C++ 里有两种"点点点"，它们完全不同：
+
+| 写法 | 名字 | 含义 |
+|---|---|---|
+| `template<class... Ts>` / `auto... args` | 参数包（parameter pack） | 模板/函数参数包，类型安全，可用 `sizeof...(Ts)` |
+| `void f(const char* fmt, ...)` | 省略号参数（ellipsis parameter，C 风格变参） | 交给 `va_start` / `va_arg` 手工解析，**没有类型安全** |
+
+C++26 的改动只和**第二种**有关，见 Annex D 的 D.5 `[depr.ellipsis.comma]`：**Non-comma-separated ellipsis parameters（省略号前面没写逗号）**。
+
+### 改了什么
+
+**省略号前面必须有逗号**；没有逗号的写法被废弃了：
+
 ```cpp
-print("A", "B", "C");  // 输出: A, B, C
+void f(int ...);    // ⚠️ 被废弃：省略号紧跟在 int 后面
+void f(int, ...);   // ✅ 正确：省略号是一个独立参数，前面有逗号
 ```
 
-这里的逗号就是分隔符。但最后一个逗号后面是什么？是`C`。而牛津逗号变参特性关心的是：**能不能在最后一个参数后也加个逗号？**
+参数包后面再跟一个省略号参数时，同样要求逗号：
 
-### 牛津逗号变参是什么？
+```cpp
+void h(auto, ...);   // ✅ 参数包 + 省略号参数，中间有逗号
+void h(auto ...);    // 这是参数包，不是省略号参数
+void h(auto......);  // ⚠️ 被废弃：参数包 + 省略号参数，缺逗号
+```
 
-**牛津逗号变参（Oxford Comma Parameter Packs）** 是C++26引入的一个小特性，它允许在**展开参数包时**在中间插入分隔符。
-等等，听起来有点抽象。让我用代码解释：
+实测（Apple clang 21，`-std=c++26`）：
+
+```text
+$ clang++ -std=c++26 -Wall -fsyntax-only varargs.cpp
+varargs.cpp:2:32: warning: declaration of a variadic function without a comma
+    before '...' is deprecated [-Wdeprecated-missing-comma-variadic-parameter]
+varargs.cpp:3:32: warning: '...' in this location creates a C-style varargs function
+                     [-Wambiguous-ellipsis]
+```
+
+### 为什么会有这个改动
+
+`int, ...` 里的那个逗号是一个**视觉线索**：它告诉你"省略号是一个独立的参数，而且必须是最后一个"。缺了这个逗号，`int ...` 既容易被读成"某个类型后面跟着一堆点"，也容易和**参数包**（`auto...`）混淆——这两种东西的语义差别可太大了。
+
+这也是委员会一贯的做法：**先废弃，再（若干年后）删除**。
+
+### 正确写法示例
+
+```cpp
+#include <cstdarg>
+#include <cstdio>
+
+// ✅ 省略号前面有逗号
+int sum(int count, ...) {
+    va_list args;
+    va_start(args, count);
+    int total = 0;
+    for (int i = 0; i < count; ++i) {
+        total += va_arg(args, int);
+    }
+    va_end(args);
+    return total;
+}
+
+int main() {
+    std::printf("%d\n", sum(3, 1, 2, 3));   // 6
+}
+```
+
+> **实战建议**：能用**参数包**、可变参数模板或 `std::format`，就不要用 C 风格省略号。省略号参数唯一的"优势"是不需要模板，代价却是**完全没有类型检查**——传错类型就是未定义行为。
+>
+> 顺带一提，`printf` 家族之所以还能用，靠的是编译器的 `-Wformat` **特判**（它认得格式串），而不是语言的类型保证。
+
+### 常见误解：`std::format` 的 `{:L, }`
+
+有些资料说 C++26 的 `std::format` 支持 `{:L, }` 这种"分隔符"格式说明符，用来打印参数列表。**没有这回事。**
+
+- `L` 是**本地化（locale-specific）**标记：`std::format("{:L}", 1234567)` 会按当前 locale 加千位分隔符；
+- 逗号后面必须继续是**合法的格式说明符**，`{:L, }` 会被格式串解析器直接拒绝。
+
+实测（Apple clang 21，`-std=c++26`）：
+
+```text
+$ clang++ -std=c++26 -fsyntax-only fmt.cpp
+error: call to consteval function 'std::basic_format_string<...>::basic_format_string' is not a constant expression
+note: std::__throw_format_error("The format specifier should consume the input or end with a '}'")
+```
+
+想打印"带分隔符的列表"，老老实实用折叠表达式：
+
 ```cpp
 #include <iostream>
 #include <string>
 
-// C++26: 牛津逗号变参（Oxford comma parameter packs�?// 
-// template<typename T, typename... Ts>
-// void print(T first, Ts... rest) {
-//     std::cout << first;
-//     if constexpr (sizeof...(rest) > 0) {
-//         std::cout << ", ";
-//     }
-//     print(rest...);
-// }
-
+template <class... Ts>
+void print_joined(const Ts&... xs) {
+    bool first = true;
+    ((std::cout << (first ? (first = false, "") : ", ") << xs), ...);
+}
 
 int main() {
-    std::cout << "========================================" << std::endl;
-    std::cout << "C++26 牛津逗号变参" << std::endl;
-    std::cout << "========================================" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "问题：如何优雅地打印参数列表？ << std::endl;
-    std::cout << R"(
-    // 我们想输出：A, B, C, D
-    
-    template<typename... Args>
-    void print(Args... args) {
-        // 传统方式：使用参数包展开
-        (std::cout << ... << args);  // 输出: ABCD（没有分隔符�?        
-        // 或者用初始化列表：
-        bool first = true;
-        (void)std::initializer_list<int>{
-            (std::cout << (first ? (first = false, "") : ", ") << args, 0)...
-        };
-        // 输出: A, B, C, D （但语法很丑陋）
-    }
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "C++26的解决方案：" << std::endl;
-    std::cout << R"(
-    template<typename T, typename... Ts>
-    void print(T first, Ts... rest) {
-        std::cout << first;
-        if constexpr (sizeof...(rest) > 0) {
-            std::cout << ", ";  // 牛津逗号分隔�?        }
-        print(rest...);  // 递归处理剩余参数
-    }
-    
-    // 或者更优雅的方式：
-    template<typename... Args>
-    void printOxford(Args... args) {
-        // 使用新的展开语法
-        std::print("{:L, }", args...);  // {:L, } 表示�?, "分隔
-    }
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "为什么叫"牛津逗号"？ << std::endl;
-    std::cout << "因为它模拟了英语中的牛津逗号用法。 << std::endl;
-    std::cout << "  'A, B, C, and D'  �?注意C后面的逗号" << std::endl;
-    std::cout << "   ↑↑" << std::endl;
-    std::cout << "   牛津逗号" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "Oxford comma parameter packs in C++26" << std::endl;
-    // 输出: ========================================
-    // 输出: C++26 牛津逗号变参
-    // 输出: ========================================
-    // 输出: 
-    // 输出: 问题：如何优雅地打印参数列表�?    // 输出: 
-    // 输出:     // 我们想输出：A, B, C, D
-    // 输出:     
-    // 输出:     template<typename... Args>
-    // 输出:     void print(Args... args) {
-    // 输出:         // 传统方式：使用参数包展开
-    // 输出:         (std::cout << ... << args);  // 输出: ABCD（没有分隔符�?    // 输出:         
-    // 输出:         // 或者用初始化列表：
-    // 输出:         bool first = true;
-    // 输出:         (void)std::initializer_list<int>{
-    // 输出:             (std::cout << (first ? (first = false, "") : ", ") << args, 0)...
-    // 输出:         };
-    // 输出:         // 输出: A, B, C, D （但语法很丑陋）
-    // 输出:     }
-    // 输出: 
-    // 输出: C++26的解决方案：
-    // 输出: 
-    // 输出:     template<typename T, typename... Ts>
-    // 输出:     void print(T first, Ts... rest) {
-    // 输出:         std::cout << first;
-    // 输出:         if constexpr (sizeof...(rest) > 0) {
-    // 输出:             std::cout << ", ";  // 牛津逗号分隔�?    // 输出:         }
-    // 输出:         print(rest...);  // 递归处理剩余参数
-    // 输出:     }
-    // 输出:     
-    // 输出:     // 或者更优雅的方式：
-    // 输出:     template<typename... Args>
-    // 输出:     void printOxford(Args... args) {
-    // 输出:         // 使用新的展开语法
-    // 输出:         std::print("{:L, }", args...);  // {:L, } 表示�?, "分隔
-    // 输出:     }
-    // 输出: 
-    // 输出: 为什么叫'牛津逗号'�?    // 输出:     // 因为它模拟了英语中的牛津逗号用法�?    // 输出:     //   'A, B, C, and D'  �?注意C后面的逗号
-    // 输出:     //    ↑↑�?    // 输出:     //    牛津逗号
-    
-    return 0;
+    print_joined(1, "hello", 3.14);   // 1, hello, 3.14
 }
 ```
 
-### 更多应用场景
+## 29.20 其他已确认进入 C++26 的特性
+
+除了前面详细介绍的那些，C++26 还有一批"确定会来"的特性。下表按**《工作草案》里的章节位置**给出，方便你按图索骥。
+
+表里的"实现进度"是**在 Apple clang 21（libc++）上用 `-std=c++26` 实测**的结果。请务必记住：**标准说"有" != 编译器说"有"**。不同编译器、不同标准库的进度差别很大，同一台机器上换个编译器结论就可能完全不同。
+
+| 特性 | 草案位置 | Apple clang 21 实测 |
+|---|---|---|
+| 契约断言 `contract_assert` | `[basic.contract]` | ❌ 未实现 |
+| 反射运算符 `^^` 与 `<meta>` | `[expr.reflect]`、`[meta]` | ❌ 未实现 |
+| `#embed` 资源包含 | `[cpp.embed]` | ❌ 未实现 |
+| 包索引 `vs...[0]` | `[expr.prim.pack.index]` | ✅ 通过 |
+| 结构化绑定作为条件 | P0963 | ✅ 通过 |
+| 结构化绑定引入包 | P1061 | ✅ 通过 |
+| 无名称占位符 `_` | P2169 | ✅ 通过 |
+| `= delete("理由")` | P2571 | ✅ 通过 |
+| `[[indeterminate]]` | P2795 | ⚠️ 属性被忽略（无效果） |
+| constexpr 里构造异常对象 | `[expr.const]` | ❌ 未实现 |
+| constexpr placement new | `[expr.const]` | ❌ 未实现 |
+| 用户生成的 `static_assert` 消息 | P2741 | ✅ 通过（避开 `std::to_string`） |
+| 变量模板作为模板模板参数 | `[temp.arg.template]` | 见 29.10 |
+| Unicode 标识符 | `[lex.name]` | ✅ 通过 |
+| 数组比较变成错误 | `[expr.eq]` | ✅ 生效 |
+| `std::optional<T&>` | `[optional]` | ✅ 通过 |
+| `std::out_ptr` | `[out.ptr]` | ✅ 通过 |
+| `<flat_map>` / `<flat_set>` | `[flat.map]` / `[flat.set]` | ✅ 头文件可用 |
+| `<execution>`（sender/receiver） | `[exec]` | ✅ 头文件可用 |
+| `std::print` / `std::println` | `[print]` | ✅ 可用 |
+| `<hive>` | `[hive]` | ❌ 无此头文件 |
+| `<inplace_vector>` | `[inplace.vector]` | ❌ 无此头文件 |
+| `<generator>` | `[generator]` | ❌ 无此头文件 |
+| `<simd>` 数据并行类型 | `[simd]` | ❌ 无此头文件 |
+| `<text_encoding>` | `[text.encoding]` | ❌ 无此头文件 |
+| `std::function_ref` | `[func.wrap.ref]` | ❌ 未实现 |
+| `std::move_only_function`（C++23） | `[func.wrap.func]` | ❌ 未实现 |
+
+### 两个"看起来反直觉"的实测结果
+
+**1. `[[indeterminate]]` 只是被忽略了。**
 
 ```cpp
-#include <iostream>
-#include <sstream>
-
-// 牛津逗号变参的更多应�?
-
-int main() {
-    std::cout << "========================================" << std::endl;
-    std::cout << "牛津逗号变参的应�? << std::endl;
-    std::cout << "========================================" << std::endl;
-    std::cout << std::endl;
-    
-    // 场景1：构建SQL查询
-    std::cout << "场景1：构建SQL查询" << std::endl;
-    std::cout << R"(
-    template<typename... Cols>
-    std::string select(Cols... cols) {
-        std::string result = "SELECT ";
-        bool first = true;
-        ((result += (first ? (first = false, "") : ", ") + cols), ...);
-        result += " FROM table";
-        return result;
-    }
-    
-    // select("name", "age", "email")
-    // 返回: "SELECT name, age, email FROM table"
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    // 场景2：字符串拼接
-    std::cout << "场景2：字符串拼接" << std::endl;
-    std::cout << R"(
-    template<typename... Strings>
-    std::string join(const Strings&... parts) {
-        std::ostringstream oss;
-        bool first = true;
-        ((oss << (first ? (first = false, "") : "-") << parts), ...);
-        return oss.str();
-    }
-    
-    // join("A", "B", "C")
-    // 返回: "A-B-C"
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    // 场景3：函数调�?    std::cout << "场景3：函数调�? << std::endl;
-    std::cout << R"(
-    template<typename F, typename... Args>
-    void callWithOxford(F f, Args... args) {
-        bool first = true;
-        ((f(first ? (first = false, "") : ", ", args)), ...);
-    }
-    
-    auto printItem = [](const char* sep, auto value) {
-        std::cout << sep << value;
-    };
-    
-    // callWithOxford(printItem, 1, "hello", 3.14);
-    // 输出: 1, hello, 3.14
-    )" << std::endl;
-    
-    std::cout << std::endl;
-    std::cout << "Oxford comma parameter packs in C++26" << std::endl;
-    // 输出: ========================================
-    // 输出: 牛津逗号变参的应�?    // 输出: ========================================
-    // 输出: 
-    // 输出: 场景1：构建SQL查询
-    // 输出: 
-    // 输出:     template<typename... Cols>
-    // 输出:     std::string select(Cols... cols) {
-    // 输出:         std::string result = "SELECT ";
-    // 输出:         bool first = true;
-    // 输出:         ((result += (first ? (first = false, "") : ", ") + cols), ...);
-    // 输出:         result += " FROM table";
-    // 输出:         return result;
-    // 输出:     }
-    // 输出:     
-    // 输出:     // select("name", "age", "email")
-    // 输出:     // 返回: "SELECT name, age, email FROM table"
-    // 输出: 
-    // 输出: 场景2：字符串拼接
-    // 输出: 
-    // 输出:     template<typename... Strings>
-    // 输出:     std::string join(const Strings&... parts) {
-    // 输出:         std::ostringstream oss;
-    // 输出:         bool first = true;
-    // 输出:         ((oss << (first ? (first = false, "") : "-") << parts), ...);
-    // 输出:         return oss.str();
-    // 输出:     }
-    // 输出:     
-    // 输出:     // join("A", "B", "C")
-    // 输出:     // 返回: "A-B-C"
-    // 输出: 
-    // 输出: 场景3：函数调�?    // 输出: 
-    // 输出:     template<typename F, typename... Args>
-    // 输出:     void callWithOxford(F f, Args... args) {
-    // 输出:         bool first = true;
-    // 输出:         ((f(first ? (first = false, "") : ", ", args)), ...);
-    // 输出:     }
-    // 输出:     
-    // 输出:     auto printItem = [](const char* sep, auto value) {
-    // 输出:         std::cout << sep << value;
-    // 输出:     };
-    // 输出:     
-    // 输出:     // callWithOxford(printItem, 1, "hello", 3.14);
-    // 输出:     // 输出: 1, hello, 3.14
-    
-    return 0;
+void f(bool c) {
+    int x [[indeterminate]];   // warning: unknown attribute 'indeterminate' ignored
+    if (c) x = 1;
+    (void)x;
 }
 ```
 
-### std::format的进�?
+编译器不报错，但**也不起作用**。属性类特性最容易出现这种情况：语法通过了，语义没实现，结果"看着能编过，其实没生效"。
+
+**2. 用户生成的 `static_assert` 消息能不能用，取决于标准库那一半。**
+
 ```cpp
-#include <iostream>
-#include <format>
+#include <string>
 
-// std::format的分隔符支持
-
-
-int main() {
-    std::cout << "========================================" << std::endl;
-    std::cout << "std::format的分隔符支持" << std::endl;
-    std::cout << "========================================" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "C++20的std::format已经支持基本的格式化功能。 << std::endl;
-    std::cout << R"(
-    std::cout << std::format("Hello {}!", "World") << std::endl;
-    // 输出: Hello World!
-    
-    std::cout << std::format("{} + {} = {}", 1, 2, 3) << std::endl;
-    // 输出: 1 + 2 = 3
-    )" << std::endl;
-    std::cout << std::endl;
-    
-    std::cout << "C++26可能会支持更强大的分隔符支持。 << std::endl;
-    std::cout << R"(
-    // C++26（假设语法）
-    std::cout << std::format("{:L, }", 1, 2, 3, 4) << std::endl;
-    // 输出: 1, 2, 3, 4
-    
-    std::cout << std::format("{:L, and }", "A", "B", "C") << std::endl;
-    // 输出: A, B, and C
-    
-    std::cout << std::format("{:L\n}", "line1", "line2", "line3") << std::endl;
-    // 输出:
-    // line1
-    // line2
-    // line3
-    )" << std::endl;
-    
-    std::cout << std::endl;
-    std::cout << "Oxford comma parameter packs in C++26" << std::endl;
-    // 输出: ========================================
-    // 输出: std::format的分隔符支持
-    // 输出: ========================================
-    // 输出: 
-    // 输出: C++20的std::format已经支持基本的格式化�?    // 输出: 
-    // 输出:     std::cout << std::format("Hello {}!", "World") << std::endl;
-    // 输出:     // 输出: Hello World!
-    // 输出:     
-    // 输出:     std::cout << std::format("{} + {} = {}", 1, 2, 3) << std::endl;
-    // 输出:     // 输出: 1 + 2 = 3
-    // 输出: 
-    // 输出: C++26可能会支持更强大的分隔符�?    // 输出: 
-    // 输出:     // C++26（假设语法）
-    // 输出:     std::cout << std::format("{:L, }", 1, 2, 3, 4) << std::endl;
-    // 输出:     // 输出: 1, 2, 3, 4
-    // 输出:     
-    // 输出:     std::cout << std::format("{:L, and }", "A", "B", "C") << std::endl;
-    // 输出:     // 输出: A, B, and C
-    // 输出:     
-    // 输出:     std::cout << std::format("{:L\n}", "line1", "line2", "line3") << std::endl;
-    // 输出:     // 输出:
-    // 输出:     // line1
-    // 输出:     // line2
-    // 输出:     // line3
-    
-    return 0;
+consteval std::string make_msg() {
+    std::string s = "size=";
+    s += char('0' + sizeof(int));
+    return s;
 }
+
+static_assert(sizeof(int) == 8, make_msg());
+// error: static assertion failed ... : size=4
 ```
 
-> **虽然是小特性，但很实用**：牛津逗号变参看起来是个小改进，但它解决了一个实际的问题——优雅地格式化参数列表。在打印日志、调试输出、生成SQL等场景中都非常有用�?
+消息**成功打印出来了**（`size=4`），说明 P2741 的语言部分可用了。但如果你手痒写成 `std::to_string(sizeof(int))`，就会失败——因为 libc++ 里 `std::to_string` **还不是 `constexpr`**：
+
+```text
+error: the message in a static assertion must be produced by a constant expression
+note: non-constexpr function 'to_string' cannot be used in a constant expression
+```
+
+所以：**"语言特性支持"和"标准库实现"是两条独立的进度线**，遇到怪错误时先分清是哪一条没跟上。
+
 ---
 
 ## 本章小结
 
-本章我们一起探索了C++26可能带来的众多新特性，这些特性涵盖了语言核心、模板元编程、标准库扩展等多个方面。让我们来回顾一下这些令人兴奋的提案�?
-### 核心语言特�?
-| 特�?| 描述 | 状�?|
-|------|------|------|
-| **反射（Reflection�?* | 运行时获取类型信息，告别手写序列化代�?| 提案进行�?|
-| **契约（Contracts�?* | 设计契约，让函数的前�?后置条件成为语言特�?| 提案进行�?|
-| **模式匹配（Pattern Matching�?* | 像函数式语言一样匹配数据结�?| 提案进行�?|
-| **基本字符集扩展（@�?、`�?* | 标识符可以使用的字符更多�?| 提案进行�?|
+本章我们一起探索了 C++26 带来的众多新特性，它们涵盖了语言核心、模板元编程、标准库扩展等多个方面。
 
-### 模板和元编程
-
-| 特�?| 描述 | 状�?|
-|------|------|------|
-| **包索引（Pack Indexing�?* | 用`args[N]`直接访问参数包元�?| 提案进行�?|
-| **结构化绑定作为条�?* | `if (auto [a, b] = func(); condition)` | 提案进行�?|
-| **结构化绑定引入包** | `auto [...vals] = tuple`展开成包 | 提案进行�?|
-| **变量模板模板参数** | `template<template<auto V> class T>` | 提案进行�?|
-| **用户生成的static_assert消息** | 编译期动态生成错误消�?| 提案进行�?|
-| **无名称占位符变量** | 结构化绑定中丢弃不需要的�?| 提案进行�?|
-| **牛津逗号变参** | 更优雅的参数列表分隔�?| 提案进行�?|
-
-### 编译期计算（constexpr�?
-| 特�?| 描述 | 状�?|
-|------|------|------|
-| **constexpr异常** | constexpr函数中可以使用try-catch | 提案进行�?|
-| **constexpr placement new** | 编译期动态内存分�?| 提案进行�?|
-
-### 标准和库扩展
-
-| 特�?| 描述 | 状�?|
-|------|------|------|
-| **#embed预处理器指令** | 原生支持嵌入二进制数�?| 提案进行�?|
-| **平凡可重定位�?* | 标准保证memcpy移动的合法�?| 提案进行�?|
-| **删除原因说明** | `=delete("reason")`更友好的错误信息 | 提案进行�?|
-| **未初始化读取错误行为** | [[indeterminate]]属性和更严格的检�?| 提案进行�?|
-| **求值字符串** | 动态执行代码字符串 | 提案有争�?|
-| **废弃数组比较** | 数组`==`比较给出警告 | 已废�?|
-
-### 特性关系图
+但比"记住哪些新特性"更重要的，是学会**如何判断一个新特性的真实状态**。本章做了三种状态的严格区分：
 
 ```mermaid
 graph TD
-    A["C++26新特性] --> B["语法增强"]
-    A --> C["类型系统"]
-    A --> D["编译期计�?]
-    A --> E["库支�?]
-    
-    B --> B1["模式匹配"]
-    B --> B2["结构化绑定增�?]
-    B --> B3["基本字符�?]
-    B --> B4["无名称占位符"]
-    
-    C --> C1["反射"]
-    C --> C2["契约"]
-    C --> C3["包索�?]
-    C --> C4["删除原因"]
-    
-    D --> D1["constexpr异常"]
-    D --> D2["constexpr placement new"]
-    D --> D3["static_assert消息"]
-    
-    E --> E1["#embed"]
-    E --> E2["求值字符串"]
-    E --> E3["平凡可重定位"]
+    A["某个 C++26 特性"] --> B{"写进工作草案了吗？"}
+    B -->|没有| C["未采纳提案<br/>（本章 29.3 模式匹配<br/>29.11 平凡可重定位<br/>29.16 求值字符串）"]
+    B -->|有| D["已采纳，属于 C++26"]
+    D --> E{"你的编译器实现了吗？"}
+    E -->|实现| F["可以放心使用"]
+    E -->|未实现| G["语法可能能通过，也可能报错<br/>必须实测确认"]
+
+    style C fill:#ffcccc
+    style F fill:#ccffcc
+    style G fill:#ffffcc
 ```
+
+### 核心语言特性
+
+| 特性 | 说明 | 状态 |
+|---|---|---|
+| 反射（Reflection） | `^^` 运算符 + `<meta>`，编译期取类型/成员信息 | ✅ 已采纳，编译器未实现 |
+| 契约（Contracts） | `pre` / `post` / `contract_assert` | ✅ 已采纳，编译器未实现 |
+| 包索引 | 直接用 `vs...[0]` 访问参数包 | ✅ 已采纳，实测可用 |
+| 结构化绑定作为条件 | `if (auto [x, y] = p; 条件)` | ✅ 已采纳，实测可用 |
+| 结构化绑定引入包 | `auto [x, ...rest] = t;` | ✅ 已采纳，实测可用 |
+| constexpr 异常 | constexpr 函数里可以构造异常对象 | ✅ 已采纳，编译器未实现 |
+| constexpr placement new | 编译期也能 placement new | ✅ 已采纳，编译器未实现 |
+| `= delete("理由")` | 删除函数时给出可读的诊断 | ✅ 已采纳，实测可用 |
+| `[[indeterminate]]` | 声明"这个值我是故意不初始化的" | ✅ 已采纳，编译器暂时忽略 |
+| 无名称占位符 `_` | `auto [first, _, third] = t;` | ✅ 已采纳，实测可用 |
+| Unicode 标识符 | 标识符可使用 XID 字符（**不是** `@`、`$`） | ✅ 已采纳，实测可用 |
+| 数组比较变成错误 | `a == b`（两个数组）直接不合法 | ✅ C++26 起为错误 |
+| 省略号参数的逗号 | `void f(int ...)` 被废弃 | ✅ 已采纳 |
+
+### 模板和元编程
+
+| 特性 | 说明 | 状态 |
+|---|---|---|
+| 变量模板作为模板模板参数 | `template<template<auto> auto X>` 这类写法 | ✅ 已采纳 |
+| 包索引表达式 | `[expr.prim.pack.index]` | ✅ 已采纳 |
+
+### 编译期计算与预处理器
+
+| 特性 | 说明 | 状态 |
+|---|---|---|
+| 用户生成的 `static_assert` 消息 | 消息由 `consteval` 函数生成 | ✅ 已采纳，实测可用 |
+| 未求值字符串 | `static_assert` 消息不必是"合法"字符串 | ✅ 已采纳，实测可用 |
+| `#embed` | 把二进制文件直接嵌进程序 | ✅ 已采纳，编译器未实现 |
+
+### 标准和库扩展
+
+| 头文件 / 组件 | 说明 | 状态 |
+|---|---|---|
+| `<meta>` | 反射库 | ✅ 已采纳，未实现 |
+| `<hive>` | 保序、允许擦除后重用的容器 | ✅ 已采纳，本机无此头文件 |
+| `<inplace_vector>` | 定容、栈上分配的动态数组 | ✅ 已采纳，本机无此头文件 |
+| `<flat_map>` / `<flat_set>` | 基于连续存储的关联容器 | ✅ 已采纳，实测可用 |
+| `<generator>` | 同步协程生成器 | ✅ 已采纳，本机无此头文件 |
+| `<simd>` | 数据并行类型 | ✅ 已采纳，本机无此头文件 |
+| `<execution>` | sender/receiver 异步模型 | ✅ 已采纳，实测可用 |
+| `std::optional<T&>` | 引用版本的可选值 | ✅ 已采纳，实测可用 |
+| `std::function_ref` | 非拥有、轻量的函数引用 | ✅ 已采纳，未实现 |
 
 ### 展望
 
-C++26的这些提案显示了C++语言持续进化的决心。从反射到模式匹配，从编译期计算增强到库支持扩展，每一个特性都是为了解决实际编程中的痛点�?
-当然，这些提案最终能否进入C++26标准还是未知数。标准委员会会仔细评估每个提案的可行性、兼容性和实用性。但无论如何，了解这些前沿提案可以让我们对未来C++的发展方向有更清晰的认识�?
-> **温馨提示**：本章涉及的所有代码示例都是基于当前提案的预期语法，实际语法可能会有所不同。在使用这些特性之前，请务必查阅最新的C++26标准或编译器文档�?
+C++26 给人的感觉是"**把过去几十年想做但不敢做的事，一次做掉一批**"：
+
+- **反射**让编译期元编程从"模板黑魔法"走向"能用人的语言描述需求"；
+- **契约**把"调用方必须满足什么、我应该保证什么"写进函数签名；
+- **Unicode 标识符**和 **`#embed`** 这类改动，则让 C++ 更贴近真实世界的工程需求。
+
+同时也要记住本章反复强调的两件事：
+
+1. **提案不等于标准。** 模式匹配、平凡可重定位、求值字符串都还在路上，C++26 里没有它们。
+2. **标准不等于实现。** 反射、契约、`#embed` 已经在标准里了，但你的编译器可能还没跟上。写代码前先实测。
+
 ### 继续学习
 
-如果你对C++26的某个特定特性感兴趣，建议：
-1. 关注C++标准委员会的工作论文（Working Papers�?2. 阅读提案论文（Papers）了解详细设�?3. 尝试在支持实验性特性的编译器中运行示例代码
-4. 参与C++社区的讨�?
-C++是一门不断进化的语言，C++26正在路上！让我们拭目以待，期待这些特性能够最终落地，为C++程序员带来更好的编程体验�?
+如果你对 C++26 的某个特性感兴趣，建议：
+
+1. **读《工作草案》原文**。它比任何二手资料都准，章节号（如 `[expr.reflect]`）是唯一的"身份证"。
+2. **查提案论文（Papers）**，了解设计动机、被否决的替代方案，以及"为什么最后长成这个样子"。
+3. **在你的编译器上亲自跑一遍**。本章所有"实测"结论都来自 Apple clang 21，换一台机器结论可能不同：
+
+   ```text
+   $ clang++ -std=c++26 -fsyntax-only 你的示例.cpp
+   $ g++ -std=c++26 -fsyntax-only 你的示例.cpp
+   ```
+4. **参与社区讨论**。C++ 的演进是公开的，你的使用反馈（尤其是"这个特性不好用"）最终会反映到标准里。
+
+C++ 是一门不断进化的语言，C++26 正在路上。而比"C++26 有什么"更值得带走的，是本章教给你的那套**验证方法**。

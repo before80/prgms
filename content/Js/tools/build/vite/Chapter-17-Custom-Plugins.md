@@ -11,7 +11,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-17-Custom-Plugins
 
 # 第17章：编写自定义插件
 

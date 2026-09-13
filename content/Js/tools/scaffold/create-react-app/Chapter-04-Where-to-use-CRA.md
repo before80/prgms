@@ -282,7 +282,7 @@ flowchart TD
 
 #### CRA 已经停止维护
 
-**2026 年，Create React App 官方宣布停止维护**。
+**2025 年 2 月，React 官方宣布废弃 Create React App**，并建议新项目使用框架，或者迁移到 Vite、Parcel、Rsbuild 等构建工具。CRA 仍会以维护模式继续工作，但不再有活跃维护者。
 
 这意味着：
 
@@ -384,4 +384,3 @@ npm create vite@latest my-app -- --template react
   - 维护现有 CRA 项目：继续用，但不要再增加 CRA 的技术债
 
 工具是为人服务的，不是来绑架你的。选择什么工具，取决于你要解决什么问题。
-

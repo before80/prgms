@@ -698,6 +698,10 @@ int main() {
 ```cpp
 #include <iostream>
 #include <functional>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <iterator>
 
 // 演示用的普通函数
 int multiply(int a, int b) {
@@ -872,52 +876,45 @@ int main() {
 ```cpp
 #include <iostream>
 #include <functional>
+#include <string>
 
 int main() {
-    // std::bind_back是C++23的新特性
-    // 编译需要：g++ -std=c++23 或 cl /std:c++latest
-    
-    std::cout << "std::bind_back是C++23的新特性" << std::endl;
-    std::cout << "用于绑定尾部的参数，而不是前部的参数" << std::endl;
-    
-    // 对比说明：
-    // 假设有一个函数: f(a, b, c)
-    
-    // std::bind(f, 1, _1, _2)  生成: f(1, x, y)  ——绑定前面的
-    // std::bind_back(f, 3, _1, _2) 生成: f(x, y, 3) ——绑定后面的！
-    
-    // 这个特性让代码更直观，特别是当你想固定"最后一个参数"时
-    
-    return 0;
-}
-```
+    // std::bind_back 是 C++23 的新特性（需要 -std=c++23）
 
-```cpp
-// 完整的std::bind_back示例（C++23）
-#include <iostream>
-#include <functional>
+    // ========== 对比：bind 绑前面，bind_back 绑后面 ==========
+    auto f = [](int a, int b, int c) { return a * 100 + b * 10 + c; };
 
-int main() {
-    // 注意：这是概念性示例，实际运行需要C++23编译器
-    
-    // 假设我们有这样一个函数
-    auto printAll = [](int a, int b, int c) {
-        std::cout << a << ", " << b << ", " << c << std::endl;
+    // std::bind(f, 1, _1, _2)：第一个参数固定为 1，剩下两个由调用者提供
+    auto front = std::bind(f, 1, std::placeholders::_1, std::placeholders::_2);
+    std::cout << "bind(f,1,_1,_2)(2,3) = " << front(2, 3) << std::endl;  // 输出: 123
+
+    // std::bind_back(f, 3)：最后一个参数固定为 3，前面两个由调用者提供
+    auto back = std::bind_back(f, 3);
+    std::cout << "bind_back(f,3)(1,2)  = " << back(1, 2) << std::endl;   // 输出: 123
+
+    // ========== 实用场景：固定"最后一个参数" ==========
+    // 日志函数：级别放在最后，方便用一个包装器固定住
+    auto log = [](const std::string& msg, int level) {
+        std::cout << "[level " << level << "] " << msg << std::endl;
     };
-    
-    // 旧方法：用std::bind绑定前部
-    // auto bound = std::bind(printAll, 1, std::placeholders::_1, std::placeholders::_2);
-    // bound(2, 3); // 输出: 1, 2, 3
-    
-    // 新方法：用std::bind_back绑定尾部（更直观！）
-    // auto bound = std::bind_back(printAll, 3, std::placeholders::_1, std::placeholders::_2);
-    // bound(1, 2); // 输出: 1, 2, 3  —— 语义更清晰：前两个参数，后面那个固定
-    
-    std::cout << "需要C++23编译器才能运行完整示例" << std::endl;
-    
+
+    auto log_warn = std::bind_back(log, 2);  // 只固定最后的 level，消息仍由调用者给
+    log_warn("磁盘空间不足");
+
     return 0;
 }
 ```
+
+```text
+bind(f,1,_1,_2)(2,3) = 123
+bind_back(f,3)(1,2)  = 123
+[level 2] 磁盘空间不足
+```
+
+> 📎 **可用性提醒**：`std::bind_back` / `std::bind_front` 都在 `<functional>` 里。
+> 常见编译器对该特性的支持：GCC 12+、Clang 16+（配合 libc++ 16+）、MSVC 19.34+ 均可用。
+> 另外，**不要在 `bind_back` 的绑定参数里混用 `_1`、`_2` 占位符**——当前 libc++ 会直接编译失败；
+> 需要占位符的组合请用 `std::bind` 或 lambda。上面这种"只固定尾部具体值"的写法才是 `bind_back` 的设计初衷。
 
 ## 21.6 std::invoke（C++17）
 
@@ -1024,19 +1021,23 @@ graph TD
 #include <iostream>
 #include <functional>
 #include <vector>
-#include <memory>
+#include <string>
+#include <utility>
 
-struct Button {
-    std::function<void()> onClick;
-};
+// 一个普通函数
+int add(int a, int b) {
+    return a + b;
+}
 
-struct Label {
-    std::string text;
-    std::function<void(const std::string&)> onChange;
+// 一个带成员函数和成员变量的类
+struct Widget {
+    int value = 42;
+
+    int plus(int x) { return value + x; }  // 成员函数
 };
 
 int main() {
-    // 场景：实现一个通用的"调用任何成员函数"的机制
+    // 场景：实现一个通用的"调用任何可调用对象/成员函数"的机制
     
     auto callMemberFunction = []<typename T, typename MemFn, typename... Args>(
         T& obj, MemFn memFn, Args&&... args) {
@@ -1044,7 +1045,11 @@ int main() {
     };
     
     Widget w;
-    std::cout << "通用调用: " << callMemberFunction(w, &Widget::method, 100) << std::endl;  // 输出: 142
+    // 调用成员函数 w.plus(100)，即 42 + 100
+    std::cout << "通用调用: " << callMemberFunction(w, &Widget::plus, 100) << std::endl;  // 输出: 142
+
+    // std::invoke 同样能直接调用普通函数
+    std::cout << "普通函数: " << std::invoke(add, 1, 2) << std::endl;  // 输出: 3
     
     // 更实际的例子：实现类似Python的getattr/setattr
     // 这在某些框架中很有用
@@ -1067,47 +1072,39 @@ int main() {
 ```cpp
 #include <iostream>
 #include <functional>
+#include <string>
 
 int main() {
-    // std::invoke_r是C++23的新特性
-    // 需要编译器支持C++23标准
-    
-    std::cout << "std::invoke_r是C++23的新特性" << std::endl;
-    std::cout << "功能：指定返回类型的invoke" << std::endl;
-    
-    // 概念说明：
-    // std::invoke(fn, args...) -> 自动推断返回类型
-    // std::invoke_r<R>(fn, args...) -> 强制返回类型为R
-    
-    // 使用场景：
-    // 1. 确保返回特定类型，避免隐式转换开销
-    // 2. 在模板代码中明确指定返回类型
-    // 3. 强制转换返回值（比如void）
-    
+    // std::invoke_r 是 C++23 的新特性（需要 -std=c++23）
+    // std::invoke(fn, args...)    -> 自动推断返回类型
+    // std::invoke_r<R>(fn, args...) -> 强制返回类型为 R
+
+    // 场景1：拿到明确类型的返回值（这里从 int 42 变成 double 42.0）
+    auto getAnswer = [] { return 42; };
+    double d = std::invoke_r<double>(getAnswer);
+    std::cout << "invoke_r<double> = " << d << std::endl;  // 输出: 42
+
+    // 场景2：强制丢弃返回值——比 (void) 强转更明确
+    std::invoke_r<void>([&] { std::cout << "invoke_r<void> 只为了副作用" << std::endl; });
+
+    // 场景3：在泛型代码里统一调用成员函数并固定返回类型
+    struct Widget { std::string name() const { return "widget-01"; } };
+    Widget w;
+    std::string s = std::invoke_r<std::string>(&Widget::name, w);
+    std::cout << "成员函数返回值: " << s << std::endl;   // 输出: widget-01
+
     return 0;
 }
 ```
 
-```cpp
-// 完整的std::invoke_r示例（C++23）
-#include <iostream>
-#include <functional>
-
-int main() {
-    // 注意：这是概念性示例，实际运行需要C++23编译器
-    
-    // std::invoke_r<double> 确保返回double类型
-    // auto result = std::invoke_r<double>([]() { return 42; });
-    // result 将是 42.0，而不是 42
-    
-    // 强制返回void
-    // std::invoke_r<void>([]() { std::cout << "Hello"; });
-    
-    std::cout << "需要C++23编译器才能运行完整示例" << std::endl;
-    
-    return 0;
-}
+```text
+invoke_r<double> = 42
+invoke_r<void> 只为了副作用
+成员函数返回值: widget-01
 ```
+
+> 📎 **可用性提醒**：`std::invoke_r` 在 GCC 12+、Clang 16+ 配合 libc++ 16+、MSVC 19.34+ 中均可用，
+> 可以用 `<version>` 里的宏 `__cpp_lib_invoke_r` 做特性检测。
 
 ## 21.8 std::mem_fn（C++11）
 
@@ -1120,6 +1117,8 @@ int main() {
 ```cpp
 #include <iostream>
 #include <functional>
+#include <string>
+#include <vector>
 
 struct Widget {
     // 无参成员函数
@@ -1142,14 +1141,19 @@ int main() {
     
     // ========== std::mem_fn的基本用法 ==========
     
-    // 生成成员函数的"包装器"
-    auto mem1 = std::mem_fn(&Widget::method);
-    
+    // ⚠️ 注意：method 是重载函数（无参版和有参版），
+    //    直接写 &Widget::method 编译器不知道该取哪一个，会报二义性错误。
+    //    必须先用强制类型转换明确指定签名：
+    using NoArg = void (Widget::*)();
+    using WithArg = int (Widget::*)(int);
+    auto memNoArg  = std::mem_fn(static_cast<NoArg>(&Widget::method));
+    auto memWithArg = std::mem_fn(static_cast<WithArg>(&Widget::method));
+
     // 调用无参版本
-    mem1(w);  // 输出: Widget::method() 被调用
-    
-    // 调用有参版本（通过同一个mem1，因为有重载）
-    mem1(w, 42);  // 输出: Widget::method(42) 被调用
+    memNoArg(w);  // 输出: Widget::method() 被调用
+
+    // 调用有参版本
+    memWithArg(w, 42);  // 输出: Widget::method(42) 被调用
     
     // ========== 访问成员变量 ==========
     
@@ -1166,7 +1170,7 @@ int main() {
     
     // 对所有Widget调用method()
     for (auto& wgt : widgets) {
-        std::mem_fn(&Widget::method)(wgt);  // 调用无参版本
+        memNoArg(wgt);  // 复用上面取好的无参版本
     }
     
     // ========== 对比Lambda和std::mem_fn ==========
@@ -1176,8 +1180,7 @@ int main() {
     lambdaCall(w);  // 输出: Widget::method() 被调用
     
     // 用std::mem_fn
-    auto memFnCall = std::mem_fn(&Widget::method);
-    memFnCall(w);   // 输出: Widget::method() 被调用
+    memNoArg(w);    // 输出: Widget::method() 被调用
     
     // 两者效果一样，但std::mem_fn更"官方"，语义更清晰
     
@@ -1197,6 +1200,7 @@ int main() {
 ```cpp
 #include <iostream>
 #include <functional>
+#include <string>
 
 struct Dog {
     void bark() { std::cout << "汪汪！" << std::endl; }
@@ -1217,18 +1221,22 @@ int main() {
     lambda2(d, 3);
     
     // 方式2：std::mem_fn（专门为成员函数设计）
-    auto memFn1 = std::mem_fn(&Dog::bark);
+    // bark 有重载，所以要先 static_cast 指明要取哪个签名
+    using NoArg   = void (Dog::*)();
+    using WithArg = void (Dog::*)(int);
+    auto memFn1 = std::mem_fn(static_cast<NoArg>(&Dog::bark));
+    auto memFn2 = std::mem_fn(static_cast<WithArg>(&Dog::bark));
     memFn1(d);      // 无参
-    memFn1(d, 5);   // 有参
+    memFn2(d, 5);   // 有参
     
     auto memName = std::mem_fn(&Dog::name);
     std::cout << "名字: " << memName(d) << std::endl;  // 输出: 名字: 旺财
     
     // 方式3：std::bind（较老的方式）
-    auto bind1 = std::bind(&Dog::bark, std::placeholders::_1);
+    auto bind1 = std::bind(static_cast<NoArg>(&Dog::bark), std::placeholders::_1);
     bind1(d);
     
-    auto bind2 = std::bind(&Dog::bark, std::placeholders::_1, std::placeholders::_2);
+    auto bind2 = std::bind(static_cast<WithArg>(&Dog::bark), std::placeholders::_1, std::placeholders::_2);
     bind2(d, 2);
     
     return 0;
@@ -1252,53 +1260,43 @@ int main() {
 ```cpp
 #include <iostream>
 #include <functional>
+#include <memory>    // std::make_unique
+#include <string>
 
 int main() {
-    // std::move_only_function是C++23的新特性
-    // 编译需要支持C++23的编译器
-    
-    std::cout << "std::move_only_function是C++23的新特性" << std::endl;
-    std::cout << "特点：只能移动，不能复制" << std::endl;
-    
-    // 对比：
-    // std::function<int(int)> f1 = ...;  // 可以拷贝
-    // std::move_only_function<int(int)> f2 = ...;  // 只能移动！
-    
-    // std::move_only_function的优势：
-    // 1. 节省拷贝开销（大型Lambda很有用）
-    // 2. 语义更清晰（API明确表示"我会吃掉你的函数"）
-    // 3. 避免意外共享状态
-    
+    // std::move_only_function 是 C++23 的新特性，需要 -std=c++23
+
+#if defined(__cpp_lib_move_only_function)
+    // 一个"只能移动"的捕获：捕获了 unique_ptr，所以 Lambda 本身不可复制
+    auto makeCounter = [counter = std::make_unique<int>(0)](int step) {
+        *counter += step;
+        return *counter;
+    };
+
+    // std::function 装不下它（因为 std::function 要求可复制），
+    // std::move_only_function 正好适合这种对象：
+    std::move_only_function<int(int)> f = std::move(makeCounter);
+    std::cout << "f(1) = " << f(1) << std::endl;   // 输出: 1
+    std::cout << "f(4) = " << f(4) << std::endl;   // 输出: 5
+
+    // 只能移动，不能复制：
+    // std::move_only_function<int(int)> bad = f;   // ❌ 编译错误
+    auto g = std::move(f);                          // ✅ 移动是允许的
+    std::cout << "移动后 g(5) = " << g(5) << std::endl;   // 输出: 10
+#else
+    std::cout << "当前标准库尚未提供 std::move_only_function。\n"
+                 "（libc++ 到 19 还没实现；GCC 12+ 的 libstdc++ 和 MSVC 19.34+ 已支持。）\n"
+                 "可以用 <version> 里的 __cpp_lib_move_only_function 做特性检测。\n";
+#endif
+
     return 0;
 }
 ```
 
-```cpp
-// 完整的std::move_only_function示例（C++23）
-#include <iostream>
-#include <functional>
-
-int main() {
-    // 注意：这是概念性示例，实际运行需要C++23编译器
-    
-    // 创建一个move_only_function
-    // std::move_only_function<int(int)> f = [](int x) { return x * 2; };
-    
-    // 可以移动
-    // auto f2 = std::move(f);  // OK，f变为空
-    
-    // 不能复制！
-    // auto f3 = f;  // 编译错误！
-    // auto f3 = f2; // 编译错误！
-    
-    // 调用
-    // std::cout << f2(21) << std::endl;  // 输出: 42
-    
-    std::cout << "需要C++23编译器才能运行完整示例" << std::endl;
-    
-    return 0;
-}
-```
+> 💡 **什么时候该用谁**：
+> - 需要**复制**函数对象（存进容器、分发给多个回调）→ 用 `std::function`
+> - 只需要**移动**，且要装下不可复制的可调用对象（捕获了 `unique_ptr`、`mutex`、`promise` 等）→ 用 `std::move_only_function`
+> - 只是想"按值捕获一个只能移动的对象" → 直接用 `auto` 存 Lambda，不必包一层
 
 ## 21.10 std::forward_like（C++23）
 
@@ -1313,68 +1311,56 @@ int main() {
 
 ```cpp
 #include <iostream>
-#include <functional>
+#include <utility>       // std::forward_like, std::move
+#include <type_traits>   // std::is_lvalue_reference_v ...
+#include <string>
 
+// std::forward_like 是 C++23 的新特性，需要 -std=c++23
+
+// 最典型的用法：让成员函数"继承"调用者的值类别
 struct Widget {
-    int value = 42;
-};
+    std::string name = "widget-01";
 
-int main() {
-    // std::forward_like是C++23的新特性
-    
-    std::cout << "std::forward_like是C++23的新特性" << std::endl;
-    std::cout << "功能：根据参数的值类别转发另一个参数" << std::endl;
-    
-    // 使用场景：模板元编程中，需要"模仿"某个参数的值类别
-    // 
-    // 比如：
-    // template<typename T>
-    // void process(T&& x) {
-    //     auto y = std::forward_like<T>(some_member);
-    //     // 如果T是左值引用，y也是左值引用
-    //     // 如果T是右值引用，y也是右值引用
-    // }
-    
-    return 0;
-}
-```
-
-```cpp
-// std::forward_like的典型应用（C++23）
-#include <iostream>
-#include <functional>
-#include <utility>
-
-struct Widget {
-    int data = 100;
-    
-    // 模拟std::forward_like的行为
-    template<typename T>
-    auto forward_like(T&& x) -> decltype(auto) {
-        // 如果x是左值，data也会变成左值引用
-        // 如果x是右值，data也会变成右值引用（实际上是const右值）
-        return static_cast<decltype(x)>(data);
+    // C++23 显式对象参数（this Self&&）：Self 会带上调用者的值类别
+    template<typename Self>
+    auto&& name_of(this Self&& self) {
+        // 如果 self 是左值 → 返回左值引用
+        // 如果 self 是右值 → 返回右值引用
+        // 如果 self 是 const 左值 → 返回 const 左值引用
+        return std::forward_like<Self>(self.name);
     }
 };
 
 int main() {
     Widget w;
-    
-    // 注意：这是概念性示例，实际运行需要C++23编译器
-    
-    // 左值情况
-    // Widget& lv = w;
-    // auto result1 = std::forward_like<Widget&>(w.data);  // 返回左值引用
-    
-    // 右值情况
-    // Widget&& rv = std::move(w);
-    // auto result2 = std::forward_like<Widget&&>(w.data);  // 返回右值引用
-    
-    std::cout << "需要C++23编译器才能运行完整示例" << std::endl;
-    
+    const Widget cw;
+
+    std::cout << "左值调用:   " << w.name_of() << std::endl;   // 输出: widget-01
+    std::cout << "const调用:  " << cw.name_of() << std::endl; // 输出: widget-01
+
+    // 用类型系统证明"值类别被保留了"——这些断言在编译期就检查完毕
+    static_assert(std::is_lvalue_reference_v<decltype(w.name_of())>);
+    static_assert(std::is_lvalue_reference_v<decltype(cw.name_of())>);
+    static_assert(std::is_const_v<std::remove_reference_t<decltype(cw.name_of())>>);
+    static_assert(!std::is_lvalue_reference_v<decltype(std::move(w).name_of())>);
+
+    // 左值调用可以直接改成员；const 调用只能读
+    w.name_of() = "widget-02";
+    std::cout << "改名之后:   " << w.name_of() << std::endl;   // 输出: widget-02
+
     return 0;
 }
 ```
+
+```text
+左值调用:   widget-01
+const调用:  widget-01
+改名之后:   widget-02
+```
+
+> 📎 **可用性提醒**：`std::forward_like` 需要 C++23（`<utility>`，特性宏 `__cpp_lib_forward_like`），
+> 同时也需要编译器支持 C++23 的"显式对象参数"（`this Self&&`）——GCC 13+、Clang 18+、MSVC 19.34+ 均可。
+> 如果你只能用 C++20，可以手写 `static_cast<decltype(x)>(member)` 来达到类似效果。
 
 ## 本章小结
 

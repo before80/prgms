@@ -20,7 +20,7 @@ Bun 团队在设计 Bun 时有五大核心原则，这些原则指导着 Bun 的
 
 Bun 的首要目标就是**快**。JavaScript 工具链的每一个环节——安装包、运行脚本、打包代码、跑测试——都要比现有工具快一个数量级。
 
-JavaScriptCore 引擎 + Zig 语言优化的组合拳，让 Bun 在多个维度都显著快于 Node.js：**进程启动快 4 倍**，**HTTP 吞吐量高 2-3 倍**，**包安装快 30 倍**。这三个数字来自 Bun 官方 benchmark，不是我们拍脑袋编的。
+JavaScriptCore 引擎 + Rust（1.4+；早期为 Zig）底层优化的组合拳，让 Bun 在多个维度都显著快于 Node.js：官方 benchmark 中，Bun 的进程启动、HTTP 吞吐和包安装都明显领先。具体倍数会随版本、硬件和基准场景变化，不应把某个单一数字当成固定承诺。
 
 ### TypeScript & JSX 无需配置
 
@@ -417,18 +417,15 @@ bun init --react      # React 项目
 bun init --library    # 类库项目
 ```
 
-### bun fmt - 代码格式化
+### 代码格式化：通过 bunx 运行 Prettier
 
 ```bash
-bun fmt              # 格式化当前目录
-bun fmt ./src         # 格式化指定目录
+bunx prettier --write .        # 格式化当前目录
+bunx prettier --write ./src    # 格式化指定目录
+bunx eslint .                  # 运行 ESLint
 ```
 
-### bun lint - 代码检查
-
-```bash
-bun lint
-```
+> ⚠️ Bun 并不是必须内置 Prettier/ESLint 的替代品；“`bun fmt`”和“`bun lint`”不是 Bun 的官方内置命令。使用 `bunx` 运行生态里的 formatter/linter 更准确。
 
 ---
 

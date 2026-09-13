@@ -1,0 +1,1615 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift open source project
+//
+// Copyright (c) 2014-2017 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See http://swift.org/LICENSE.txt for license information
+// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
+@_spi(ProcessEnvironmentBlockShim)
+import Basics
+@testable import SourceControl
+import _InternalTestSupport
+import XCTest
+
+import struct TSCBasic.ByteString
+import struct TSCBasic.FileSystemError
+import func TSCBasic.makeDirectories
+import class Basics.AsyncProcess
+import Foundation
+
+import enum TSCUtility.Git
+
+class GitRepositoryTests: XCTestCase {
+
+    override func setUp() {
+        // needed for submodule tests
+        Git.environmentBlock = ["GIT_ALLOW_PROTOCOL": "file"]
+    }
+
+    override func tearDown() {
+        Git.environmentBlock = .init(Environment.current)
+    }
+
+    /// Points git at a temporary global config that sets `safe.bareRepository=explicit`, mirroring
+    /// a user who has opted into the bare-repository protection globally. `additionalGlobalConfig`
+    /// is appended because `GIT_CONFIG_GLOBAL` replaces the user's global config wholesale (e.g. the
+    /// `filter.lfs.*` registration must be re-added for LFS tests). Restored by `tearDown`.
+    private func enableSafeBareRepositoryExplicit(
+        in directory: AbsolutePath,
+        additionalGlobalConfig: String = ""
+    ) throws {
+        let globalConfigPath = directory.appending("gitconfig")
+        try localFileSystem.writeFileContents(
+            globalConfigPath,
+            string: "[safe]\n\tbareRepository = explicit\n" + additionalGlobalConfig
+        )
+        var environment = Git.environmentBlock
+        environment["GIT_CONFIG_GLOBAL"] = globalConfigPath.pathString
+        environment["GIT_CONFIG_SYSTEM"] = "/dev/null"
+        environment["GIT_ALLOW_PROTOCOL"] = "file"
+        Git.environmentBlock = environment
+    }
+
+    private func requireGitLFS() async throws {
+        Git.environmentBlock = .init(Environment.current)
+        var environment = Git.environmentBlock
+        environment["GIT_ALLOW_PROTOCOL"] = "file"
+        Git.environmentBlock = environment
+
+        do {
+            try await AsyncProcess.checkNonZeroExit(
+                args: Git.tool, "lfs", "version",
+                environment: .init(Git.environmentBlock)
+            )
+        } catch {
+            throw XCTSkip("git-lfs not accessible to SPM's git binary, skipping test")
+        }
+    }
+
+    private func addLFSTrackedBinaryFile(
+        to repositoryPath: AbsolutePath,
+        fileName: String = "test.bin",
+        tag: String = "1.0.0"
+    ) async throws -> Data {
+        try await AsyncProcess.checkNonZeroExit(
+            args: Git.tool, "-C", repositoryPath.pathString, "lfs", "install", "--local", "--force",
+            environment: .init(Git.environmentBlock)
+        )
+        try await AsyncProcess.checkNonZeroExit(
+            args: Git.tool, "-C", repositoryPath.pathString, "lfs", "track", "*.bin",
+            environment: .init(Git.environmentBlock)
+        )
+
+        let binaryData = Data([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46])
+        try localFileSystem.writeFileContents(
+            repositoryPath.appending(fileName),
+            bytes: ByteString(binaryData)
+        )
+
+        let repository = GitRepository(path: repositoryPath)
+        try repository.stageEverything()
+        try repository.commit(message: "Add binary file tracked by LFS")
+        try repository.tag(name: tag)
+
+        return binaryData
+    }
+
+    private func createLFSRepository(
+        at repositoryPath: AbsolutePath,
+        tag: String = "1.0.0"
+    ) async throws -> Data {
+        try makeDirectories(repositoryPath)
+        initGitRepo(repositoryPath)
+        return try await self.addLFSTrackedBinaryFile(to: repositoryPath, tag: tag)
+    }
+
+    private func assertFileIsLFSPointer(
+        _ path: AbsolutePath,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let contents = try localFileSystem.readFileContents(path).description
+        XCTAssertTrue(
+            contents.contains("version https://git-lfs.github.com/spec/"),
+            "Expected LFS pointer at \(path)",
+            file: file,
+            line: line
+        )
+    }
+
+    private func assertFileMatchesBinaryData(
+        _ path: AbsolutePath,
+        expected: Data,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        XCTAssertEqual(
+            try localFileSystem.readFileContents(path),
+            ByteString(expected),
+            file: file,
+            line: line
+        )
+    }
+
+    /// Test the basic provider functions.
+    func testRepositorySpecifier() {
+        do {
+            let s1 = RepositorySpecifier(url: "a")
+            let s2 = RepositorySpecifier(url: "a")
+            let s3 = RepositorySpecifier(url: "b")
+
+            XCTAssertEqual(s1, s1)
+            XCTAssertEqual(s1, s2)
+            XCTAssertEqual(Set([s1]), Set([s2]))
+            XCTAssertNotEqual(s1, s3)
+            XCTAssertNotEqual(s2, s3)
+        }
+
+        do {
+            let s1 = RepositorySpecifier(path: "/A")
+            let s2 = RepositorySpecifier(path: "/A")
+            let s3 = RepositorySpecifier(path: "/B")
+
+            XCTAssertEqual(s1, s1)
+            XCTAssertEqual(s1, s2)
+            XCTAssertEqual(Set([s1]), Set([s2]))
+            XCTAssertNotEqual(s1, s3)
+            XCTAssertNotEqual(s2, s3)
+        }
+    }
+
+    /// Test the basic provider functions.
+    func testProvider() async throws {
+        // Skipping all tests that call git on Windows.
+        // We have a test stall in CI when running in parallel.
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            let testRepoPath = path.appending("test-repo")
+            try! makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath, tag: "1.2.3")
+
+            // Test the provider.
+            let testCheckoutPath = path.appending("checkout")
+            let provider = GitRepositoryProvider()
+            XCTAssertTrue(try provider.workingCopyExists(at: testRepoPath))
+            let repoSpec = RepositorySpecifier(path: testRepoPath)
+            try await provider.fetch(repository: repoSpec, to: testCheckoutPath)
+
+            // Verify the checkout was made.
+            XCTAssertDirectoryExists(testCheckoutPath)
+
+            // Test the repository interface.
+            let repository = provider.open(repository: repoSpec, at: testCheckoutPath)
+            let tags = try repository.getTags()
+            XCTAssertEqual(try repository.getTags(), ["1.2.3"])
+
+            let revision = try repository.resolveRevision(tag: tags.first ?? "<invalid>")
+            // FIXME: It would be nice if we had a deterministic hash here...
+            let testRepoRevParsed = try await AsyncProcess.popen(args: Git.tool, "-C", testRepoPath.pathString, "rev-parse", "--verify", "1.2.3")
+                .utf8Output()
+                .spm_chomp()
+            XCTAssertEqual(revision.identifier, testRepoRevParsed)
+
+            if let revision = try? repository.resolveRevision(tag: "<invalid>") {
+                XCTFail("unexpected resolution of invalid tag to \(revision)")
+            }
+
+            let main = try repository.resolveRevision(identifier: "main")
+            let mainRevParsed = try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", testRepoPath.pathString, "rev-parse", "--verify", "main")
+                .spm_chomp()
+            XCTAssertEqual(main.identifier, mainRevParsed)
+
+            // Check that git hashes resolve to themselves.
+            let mainIdentifier = try repository.resolveRevision(identifier: main.identifier)
+            XCTAssertEqual(main.identifier, mainIdentifier.identifier)
+
+            // Check that invalid identifier doesn't resolve.
+            if let revision = try? repository.resolveRevision(identifier: "invalid") {
+                XCTFail("unexpected resolution of invalid identifier to \(revision)")
+            }
+        }
+    }
+
+    /// Check hash validation.
+    func testGitRepositoryHash() throws {
+        let validHash = "0123456789012345678901234567890123456789"
+        XCTAssertNotEqual(GitRepository.Hash(validHash), nil)
+
+        let invalidHexHash = validHash + "1"
+        XCTAssertEqual(GitRepository.Hash(invalidHexHash), nil)
+
+        let invalidNonHexHash = "012345678901234567890123456789012345678!"
+        XCTAssertEqual(GitRepository.Hash(invalidNonHexHash), nil)
+    }
+
+    /// Check raw repository facilities.
+    ///
+    /// In order to be stable, this test uses a static test git repository in
+    /// `Inputs`, which has known commit hashes. See the `construct.sh` script
+    /// contained within it for more information.
+    func testRawRepository() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8385: test repository has non-portable file names")
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+
+        try await testWithTemporaryDirectory { path in
+            // Unarchive the static test repository.
+            let inputArchivePath = AbsolutePath(#file).parentDirectory.appending(components: "Inputs", "TestRepo.tgz")
+#if os(Windows)
+            try await AsyncProcess.checkNonZeroExit(args: "tar.exe", "-x", "-v", "-C", path.pathString, "-f", inputArchivePath.pathString)
+#else
+            try await AsyncProcess.checkNonZeroExit(args: "tar", "--no-same-owner", "-x", "-v", "-C", path.pathString, "-f", inputArchivePath.pathString)
+#endif
+            let testRepoPath = path.appending("TestRepo")
+
+            // Check hash resolution.
+            let repo = GitRepository(path: testRepoPath)
+            XCTAssertEqual(
+                try repo.resolveHash(treeish: "1.0", type: "commit"),
+                try repo.resolveHash(treeish: "main"),
+            )
+
+            // Get the initial commit.
+            let initialCommitHash = try repo.resolveHash(treeish: "a8b9fcb")
+            XCTAssertEqual(initialCommitHash, GitRepository.Hash("a8b9fcbf893b3b02c0196609059ebae37aeb7f0b"))
+
+            // Check commit loading.
+            let initialCommit = try repo.readCommit(hash: initialCommitHash)
+            XCTAssertEqual(initialCommit.hash, initialCommitHash)
+            XCTAssertEqual(initialCommit.tree, GitRepository.Hash("9d463c3b538619448c5d2ecac379e92f075a8976"))
+
+            // Check tree loading.
+            let initialTree = try repo.readTree(hash: initialCommit.tree)
+            guard case .hash(let initialTreeHash) = initialTree.location else {
+                return XCTFail("wrong pointer")
+            }
+            XCTAssertEqual(initialTreeHash, initialCommit.tree)
+            XCTAssertEqual(initialTree.contents.count, 1)
+            guard let readmeEntry = initialTree.contents.first else { return XCTFail() }
+            guard case .hash(let readmeEntryHash) = readmeEntry.location else {
+                return XCTFail("wrong pointer")
+            }
+            XCTAssertEqual(readmeEntryHash, GitRepository.Hash("92513075b3491a54c45a880be25150d92388e7bc"))
+            XCTAssertEqual(readmeEntry.type, .blob)
+            XCTAssertEqual(readmeEntry.name, "README.txt")
+
+            // Check loading of odd names.
+            //
+            // This is a commit which has a subdirectory 'funny-names' with
+            // paths with special characters.
+            let funnyNamesCommit = try repo.readCommit(hash: repo.resolveHash(treeish: "a7b19a7"))
+            let funnyNamesRoot = try repo.readTree(hash: funnyNamesCommit.tree)
+            XCTAssertEqual(funnyNamesRoot.contents.map{ $0.name }, ["README.txt", "funny-names", "subdir"])
+            guard funnyNamesRoot.contents.count == 3 else { return XCTFail() }
+
+            // FIXME: This isn't yet supported.
+            let funnyNamesSubdirEntry = funnyNamesRoot.contents[1]
+            XCTAssertEqual(funnyNamesSubdirEntry.type, .tree)
+            if let _ = try? repo.readTree(location: funnyNamesSubdirEntry.location) {
+                XCTFail("unexpected success reading tree with funny names")
+            }
+       }
+    }
+
+    func testSubmoduleRead() throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try testWithTemporaryDirectory { path in
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath)
+
+            let repoPath = path.appending("repo")
+            try makeDirectories(repoPath)
+            initGitRepo(repoPath)
+
+            try AsyncProcess.checkNonZeroExit(
+                args: Git.tool, "-C", repoPath.pathString, "submodule", "add", testRepoPath.pathString,
+                environment: .init(Git.environmentBlock)
+            )
+            let repo = GitRepository(path: repoPath)
+            try repo.stageEverything()
+            try repo.commit()
+            // We should be able to read a repo which as a submdoule.
+            _ = try repo.readTree(hash: try repo.resolveHash(treeish: "main"))
+        }
+    }
+
+    /// Test the Git file system view.
+    func testGitFileView() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath)
+
+            // Add a few files and a directory.
+            let test1FileContents = "Hello, world!"
+            let test2FileContents = "Hello, happy world!"
+            let test3FileContents = """
+                #!/bin/sh
+                set -e
+                exit 0
+                """
+            try localFileSystem.writeFileContents(testRepoPath.appending("test-file-1.txt"), string: test1FileContents)
+            try localFileSystem.createDirectory(testRepoPath.appending("subdir"))
+            try localFileSystem.writeFileContents(testRepoPath.appending(components: "subdir", "test-file-2.txt"), string: test2FileContents)
+            try localFileSystem.writeFileContents(testRepoPath.appending("test-file-3.sh"), string: test3FileContents)
+            try localFileSystem.chmod(.executable, path: testRepoPath.appending("test-file-3.sh"), options: [])
+            let testRepo = GitRepository(path: testRepoPath)
+            try testRepo.stage(files: "test-file-1.txt", "subdir/test-file-2.txt", "test-file-3.sh")
+            try testRepo.commit()
+            try testRepo.tag(name: "test-tag")
+
+            // Get the the repository via the provider. the provider.
+            let testClonePath = path.appending("clone")
+            let provider = GitRepositoryProvider()
+            let repoSpec = RepositorySpecifier(path: testRepoPath)
+            try await provider.fetch(repository: repoSpec, to: testClonePath)
+            let repository = provider.open(repository: repoSpec, at: testClonePath)
+
+            // Get and test the file system view.
+            let view = try repository.openFileView(revision: repository.resolveRevision(tag: "test-tag"))
+
+            // Check basic predicates.
+            XCTAssert(view.isDirectory("/"))
+            XCTAssert(view.isDirectory("/subdir"))
+            XCTAssert(!view.isDirectory("/does-not-exist"))
+            XCTAssert(view.exists("/test-file-1.txt"))
+            XCTAssert(!view.exists("/does-not-exist"))
+            XCTAssert(view.isFile("/test-file-1.txt"))
+            XCTAssert(!view.isSymlink("/test-file-1.txt"))
+            XCTAssert(!view.isExecutableFile("/does-not-exist"))
+#if !os(Windows)
+            XCTAssert(view.isExecutableFile("/test-file-3.sh"))
+#endif
+
+            // Check read of a directory.
+            let subdirPath = AbsolutePath("/subdir")
+            XCTAssertEqual(try view.getDirectoryContents(AbsolutePath("/")).sorted(), ["file.swift", "subdir", "test-file-1.txt", "test-file-3.sh"])
+            XCTAssertEqual(try view.getDirectoryContents(subdirPath).sorted(), ["test-file-2.txt"])
+            XCTAssertThrows(FileSystemError(.isDirectory, subdirPath)) {
+                _ = try view.readFileContents(subdirPath)
+            }
+
+            // Check read versus root.
+            XCTAssertThrows(FileSystemError(.isDirectory, AbsolutePath.root)) {
+                _ = try view.readFileContents(.root)
+            }
+
+            // Check read through a non-directory.
+            let notDirectoryPath1 = AbsolutePath("/test-file-1.txt")
+            XCTAssertThrows(FileSystemError(.notDirectory, notDirectoryPath1)) {
+                _ = try view.getDirectoryContents(notDirectoryPath1)
+            }
+            let notDirectoryPath2 = AbsolutePath("/test-file-1.txt/thing")
+            XCTAssertThrows(FileSystemError(.notDirectory, notDirectoryPath2)) {
+                _ = try view.readFileContents(notDirectoryPath2)
+            }
+
+            // Check read/write into a missing directory.
+            let noEntryPath1 = AbsolutePath("/does-not-exist")
+            XCTAssertThrows(FileSystemError(.noEntry, noEntryPath1)) {
+                _ = try view.getDirectoryContents(noEntryPath1)
+            }
+            let noEntryPath2 = AbsolutePath("/does/not/exist")
+            XCTAssertThrows(FileSystemError(.noEntry, noEntryPath2)) {
+                _ = try view.readFileContents(noEntryPath2)
+            }
+
+            // Check read of a file.
+            XCTAssertEqual(try view.readFileContents("/test-file-1.txt"), test1FileContents)
+            XCTAssertEqual(try view.readFileContents("/subdir/test-file-2.txt"), test2FileContents)
+            XCTAssertEqual(try view.readFileContents("/test-file-3.sh"), test3FileContents)
+        }
+    }
+
+    /// Verifies that operations that the git-backed `FileSystem` view cannot
+    /// support throw rather than crashing the process. Regression test for the
+    /// `fatalError` chain inside `GitFileSystemView` — see rdar://177668882,
+    /// where a remote package manifest containing `.package(path: "~/...")`
+    /// crashed Xcode because `homeDirectory` aborted instead of throwing.
+    func testGitFileViewUnsupportedOperationsThrow() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            let testRepoPath = path.appending("test-repo")
+            try localFileSystem.createDirectory(testRepoPath)
+            initGitRepo(testRepoPath, tag: "test-tag")
+
+            let testClonePath = path.appending("clone")
+            let provider = GitRepositoryProvider()
+            let repoSpec = RepositorySpecifier(path: testRepoPath)
+            try await provider.fetch(repository: repoSpec, to: testClonePath)
+            let repository = provider.open(repository: repoSpec, at: testClonePath)
+            let view = try repository.openFileView(revision: repository.resolveRevision(tag: "test-tag"))
+
+            // `homeDirectory` and `tempDirectory` are now `get throws`.
+            XCTAssertThrowsError(try view.homeDirectory) { error in
+                XCTAssertEqual((error as? FileSystemError)?.kind, .unsupported)
+            }
+            XCTAssertThrowsError(try view.tempDirectory) { error in
+                XCTAssertEqual((error as? FileSystemError)?.kind, .unsupported)
+            }
+
+            // `cachesDirectory` is optional; absence is signalled with `nil`.
+            XCTAssertNil(view.cachesDirectory)
+
+            // `copy` and `move` previously fatal-errored; they now throw.
+            XCTAssertThrowsError(try view.copy(from: AbsolutePath("/a"), to: AbsolutePath("/b"))) { error in
+                XCTAssertEqual((error as? FileSystemError)?.kind, .unsupported)
+            }
+            XCTAssertThrowsError(try view.move(from: AbsolutePath("/a"), to: AbsolutePath("/b"))) { error in
+                XCTAssertEqual((error as? FileSystemError)?.kind, .unsupported)
+            }
+        }
+    }
+
+    /// Test the handling of local checkouts.
+    func testCheckouts() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            // Create a test repository.
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath, tag: "initial")
+            let initialRevision = try await GitRepository(path: testRepoPath).getCurrentRevision()
+
+            // Add a couple files and a directory.
+            try localFileSystem.writeFileContents(testRepoPath.appending("test.txt"), bytes: "Hi")
+            let testRepo = GitRepository(path: testRepoPath)
+            try testRepo.stage(file: "test.txt")
+            try testRepo.commit()
+            try testRepo.tag(name: "test-tag")
+            let currentRevision = try await GitRepository(path: testRepoPath).getCurrentRevision()
+
+            // Fetch the repository using the provider.
+            let testClonePath = path.appending("clone")
+            let provider = GitRepositoryProvider()
+            let repoSpec = RepositorySpecifier(path: testRepoPath)
+            try await provider.fetch(repository: repoSpec, to: testClonePath)
+
+            // Clone off a checkout.
+            let checkoutPath = path.appending("checkout")
+            _ = try await provider.createWorkingCopy(repository: repoSpec, sourcePath: testClonePath, at: checkoutPath, editable: false)
+            // The remote of this checkout should point to the clone.
+            XCTAssertEqual(try GitRepository(path: checkoutPath).remotes()[0].url, testClonePath.pathString)
+
+            let editsPath = path.appending("edit")
+            _ = try await provider.createWorkingCopy(repository: repoSpec, sourcePath: testClonePath, at: editsPath, editable: true)
+            // The remote of this checkout should point to the original repo.
+            XCTAssertEqual(try GitRepository(path: editsPath).remotes()[0].url, testRepoPath.pathString)
+
+            // Check the working copies.
+            for path in [checkoutPath, editsPath] {
+                let workingCopy = try provider.openWorkingCopy(at: path)
+                try workingCopy.checkout(tag: "test-tag")
+                XCTAssertEqual(try workingCopy.getCurrentRevision(), currentRevision)
+                XCTAssertFileExists(path.appending("test.txt"))
+                try workingCopy.checkout(tag: "initial")
+                XCTAssertEqual(try workingCopy.getCurrentRevision(), initialRevision)
+                XCTAssertNoSuchPath(path.appending("test.txt"))
+            }
+        }
+    }
+
+    func testFetch() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            // Create a repo.
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath, tag: "1.2.3")
+            let repo = GitRepository(path: testRepoPath)
+            let tags1 = try await repo.getTags()
+            XCTAssertEqual(tags1, ["1.2.3"])
+
+            // Clone it somewhere.
+            let testClonePath = path.appending("clone")
+            let provider = GitRepositoryProvider()
+            let repoSpec = RepositorySpecifier(path: testRepoPath)
+            try await provider.fetch(repository: repoSpec, to: testClonePath)
+            let clonedRepo = provider.open(repository: repoSpec, at: testClonePath)
+            XCTAssertEqual(try clonedRepo.getTags(), ["1.2.3"])
+
+            // Clone off a checkout.
+            let checkoutPath = path.appending("checkout")
+            let checkoutRepo = try await provider.createWorkingCopy(repository: repoSpec, sourcePath: testClonePath, at: checkoutPath, editable: false)
+            XCTAssertEqual(try checkoutRepo.getTags(), ["1.2.3"])
+
+            // Add a new file to original repo.
+            try localFileSystem.writeFileContents(testRepoPath.appending("test.txt"), bytes: "Hi")
+            let testRepo = GitRepository(path: testRepoPath)
+            try testRepo.stage(file: "test.txt")
+            try testRepo.commit()
+            try testRepo.tag(name: "2.0.0")
+
+            // Update the cloned repo.
+            try clonedRepo.fetch()
+            XCTAssertEqual(try clonedRepo.getTags().sorted(), ["1.2.3", "2.0.0"])
+
+            // Update the checkout.
+            try checkoutRepo.fetch()
+            XCTAssertEqual(try checkoutRepo.getTags().sorted(), ["1.2.3", "2.0.0"])
+        }
+    }
+
+    func testCheckoutToleratesDanglingRemoteTrackingRef() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            // Build an upstream repo with two release tags plus a "feature" branch whose tip
+            // commit is unique to that branch, so the tip becomes unreachable once the branch
+            // is deleted.
+            let originPath = path.appending("origin")
+            try makeDirectories(originPath)
+            initGitRepo(originPath, tag: "1.0.0")
+            let origin = GitRepository(path: originPath)
+            let defaultBranch = try origin.currentBranch()
+
+            try localFileSystem.writeFileContents(originPath.appending("release.txt"), bytes: "release")
+            try origin.stage(file: "release.txt")
+            try origin.commit()
+            try origin.tag(name: "1.1.0")
+
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", originPath.pathString, "checkout", "-b", "feature")
+            try localFileSystem.writeFileContents(originPath.appending("feature.txt"), bytes: "feature")
+            try origin.stage(file: "feature.txt")
+            try origin.commit()
+            let featureTip = try await origin.getCurrentRevision()
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", originPath.pathString, "checkout", defaultBranch)
+
+            // Fetch into the cache as a bare mirror, exactly as SwiftPM does.
+            let provider = GitRepositoryProvider()
+            let repoSpec = RepositorySpecifier(path: originPath)
+            let mirrorPath = path.appending("mirror")
+            try await provider.fetch(repository: repoSpec, to: mirrorPath)
+
+            // Create a working copy that shares the mirror's object store while the feature
+            // branch still exists, then resolve it to a tag so HEAD is detached. This mirrors a
+            // working copy that has already been resolved to a version.
+            let checkoutPath = path.appending("checkout")
+            let workingCopy = try await provider.createWorkingCopy(
+                repository: repoSpec,
+                sourcePath: mirrorPath,
+                at: checkoutPath,
+                editable: false
+            )
+            try workingCopy.checkout(revision: try origin.resolveRevision(tag: "1.1.0"))
+
+            // Upstream deletes the feature branch; the mirror prunes the ref and garbage
+            // collects the now-unreachable tip commit. The working copy is left holding a
+            // dangling refs/remotes/origin/feature that points at a missing object.
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", mirrorPath.pathString, "update-ref", "-d", "refs/heads/feature")
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", mirrorPath.pathString, "reflog", "expire", "--all", "--expire=now")
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", mirrorPath.pathString, "gc", "--prune=now")
+            XCTAssertFalse(workingCopy.exists(revision: featureTip), "test setup: feature tip should be unreachable")
+
+            // Re-resolving to a different tag must still succeed. Previously this failed with
+            // "fatal: bad object refs/remotes/origin/feature" because git's detached-HEAD
+            // orphan-commit check walks every ref, including the dangling one.
+            let v100 = try origin.resolveRevision(tag: "1.0.0")
+            try workingCopy.checkout(revision: v100)
+            XCTAssertEqual(try workingCopy.getCurrentRevision(), v100)
+        }
+    }
+
+    func testHasUnpushedCommits() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            // Create a repo.
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath)
+
+            // Create a bare clone it somewhere because we want to later push into the repo.
+            let testBareRepoPath = path.appending("test-repo-bare")
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "clone", "--bare", testRepoPath.pathString, testBareRepoPath.pathString)
+
+            // Clone it somewhere.
+            let testClonePath = path.appending("clone")
+            let provider = GitRepositoryProvider()
+            let repoSpec = RepositorySpecifier(path: testBareRepoPath)
+            try await provider.fetch(repository: repoSpec, to: testClonePath)
+
+            // Clone off a checkout.
+            let checkoutPath = path.appending("checkout")
+            let checkoutRepo = try await provider.createWorkingCopy(repository: repoSpec, sourcePath: testClonePath, at: checkoutPath, editable: true)
+
+            XCTAssertFalse(try checkoutRepo.hasUnpushedCommits())
+            // Add a new file to checkout.
+            try localFileSystem.writeFileContents(checkoutPath.appending("test.txt"), bytes: "Hi")
+            let checkoutTestRepo = GitRepository(path: checkoutPath)
+            try checkoutTestRepo.stage(file: "test.txt")
+            try checkoutTestRepo.commit()
+
+            // We should have commits which are not pushed.
+            XCTAssert(try checkoutRepo.hasUnpushedCommits())
+            // Push the changes and check again.
+            try checkoutTestRepo.push(remote: "origin", branch: "main")
+            XCTAssertFalse(try checkoutRepo.hasUnpushedCommits())
+        }
+    }
+
+    func testResolvesRevisionWhenSafeBareRepositoryIsExplicit() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            // Create a repo with a tag, then make the bare mirror that SwiftPM caches.
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath, tag: "1.0.0")
+
+            let bareRepoPath = path.appending("test-repo-bare")
+            let provider = GitRepositoryProvider()
+            let repoSpec = RepositorySpecifier(path: testRepoPath)
+            try await provider.fetch(repository: repoSpec, to: bareRepoPath)
+
+            // Opt into the `explicit` bare-repository protection, mirroring a user who has set
+            // `safe.bareRepository=explicit` globally.
+            try self.enableSafeBareRepositoryExplicit(in: path)
+
+            // Confirm the bug is reproducible in this environment: a discovery-based
+            // invocation without the override is rejected by `explicit`. Older git
+            // versions that predate `safe.bareRepository` ignore the setting, in which
+            // case the bug cannot be reproduced and the assertion below is skipped.
+            let unguarded = try await AsyncProcess.popen(
+                arguments: [Git.tool, "-C", bareRepoPath.pathString, "rev-parse", "--verify", "1.0.0^{commit}"],
+                environment: .init(Git.environmentBlock)
+            )
+            try XCTSkipUnless(
+                unguarded.exitStatus != .terminated(code: 0),
+                "git does not honor safe.bareRepository here; cannot reproduce the bug"
+            )
+
+            // SwiftPM addresses its bare cache repositories explicitly via `--git-dir`
+            // instead of relying on discovery, so resolving against the bare cache
+            // repository succeeds despite the user's `explicit` setting.
+            let repository = provider.open(repository: repoSpec, at: bareRepoPath)
+            let revision = try repository.resolveRevision(tag: "1.0.0")
+            XCTAssertFalse(revision.identifier.isEmpty)
+
+            // The resolution cache fast-path validates the bare cache repository via
+            // `isValidDirectory`; both variants must also keep working under `explicit`.
+            let isValidBareRepo = try provider.isValidDirectory(bareRepoPath)
+            XCTAssertTrue(isValidBareRepo)
+            let isValidBareRepoForSpec = try provider.isValidDirectory(bareRepoPath, for: repoSpec)
+            XCTAssertTrue(isValidBareRepoForSpec)
+        }
+    }
+
+    func testSetRemote() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            // Create a repo.
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath)
+            let repo = GitRepository(path: testRepoPath)
+
+            // There should be no remotes currently.
+            XCTAssert(try repo.remotes().isEmpty)
+
+            // Add a remote via git cli.
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", testRepoPath.pathString, "remote", "add", "origin", "../foo")
+            // Test if it was added.
+            XCTAssertEqual(Dictionary(uniqueKeysWithValues: try repo.remotes().map { ($0.0, $0.1) }), ["origin": "../foo"])
+            // Change remote.
+            try repo.setURL(remote: "origin", url: "../bar")
+            XCTAssertEqual(Dictionary(uniqueKeysWithValues: try repo.remotes().map { ($0.0, $0.1) }), ["origin": "../bar"])
+            // Try changing remote of non-existent remote.
+            do {
+                try repo.setURL(remote: "fake", url: "../bar")
+                XCTFail("unexpected success (shouldn’t have been able to set URL of missing remote)")
+            }
+            catch let error as GitRepositoryError {
+                XCTAssertEqual(error.path, testRepoPath)
+                XCTAssertNotNil(error.diagnosticLocation)
+            }
+        }
+    }
+
+    func testUncommittedChanges() throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try testWithTemporaryDirectory { path in
+            // Create a repo.
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath)
+
+            // Create a file (which we will modify later).
+            try localFileSystem.writeFileContents(testRepoPath.appending("test.txt"), bytes: "Hi")
+            let repo = GitRepository(path: testRepoPath)
+
+            XCTAssert(repo.hasUncommittedChanges())
+
+            try repo.stage(file: "test.txt")
+
+            XCTAssert(repo.hasUncommittedChanges())
+
+            try repo.commit()
+
+            XCTAssertFalse(repo.hasUncommittedChanges())
+
+            // Modify the file in the repo.
+            try localFileSystem.writeFileContents(repo.path.appending("test.txt"), bytes: "Hello")
+            XCTAssert(repo.hasUncommittedChanges())
+        }
+    }
+
+    func testBranchOperations() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            // Create a repo.
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath)
+
+            let repo = GitRepository(path: testRepoPath)
+            var currentRevision = try await repo.getCurrentRevision()
+            // This is the default branch of a new repo.
+            XCTAssertTrue(repo.exists(revision: Revision(identifier: "main")))
+            // Check a non existent revision.
+            XCTAssertFalse(repo.exists(revision: Revision(identifier: "nonExistent")))
+            // Checkout a new branch using command line.
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", testRepoPath.pathString, "checkout", "-b", "TestBranch1")
+            XCTAssertTrue(repo.exists(revision: Revision(identifier: "TestBranch1")))
+            let revAfterBranch1 = try await repo.getCurrentRevision()
+            XCTAssertEqual(revAfterBranch1, currentRevision)
+
+            // Make sure we're on the new branch right now.
+            XCTAssertEqual(try repo.currentBranch(), "TestBranch1")
+
+            // Checkout new branch using our API.
+            currentRevision = try await repo.getCurrentRevision()
+            try repo.checkout(newBranch: "TestBranch2")
+            XCTAssert(repo.exists(revision: Revision(identifier: "TestBranch2")))
+            let revAfterBranch2 = try await repo.getCurrentRevision()
+            XCTAssertEqual(revAfterBranch2, currentRevision)
+            XCTAssertEqual(try repo.currentBranch(), "TestBranch2")
+        }
+    }
+
+    func testRevisionOperations() throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try testWithTemporaryDirectory { path in
+            // Create a repo.
+            let repositoryPath = path.appending("test-repo")
+            try makeDirectories(repositoryPath)
+            initGitRepo(repositoryPath)
+
+            let repo = GitRepository(path: repositoryPath)
+
+            do {
+                let revision = try repo.getCurrentRevision()
+                XCTAssertTrue(repo.exists(revision: revision))
+            }
+
+            do {
+                XCTAssertFalse(repo.exists(revision: Revision(identifier: UUID().uuidString)))
+
+                let tag = UUID().uuidString
+                try repo.tag(name: tag)
+                let revision = try repo.resolveRevision(tag: tag)
+                XCTAssertTrue(repo.exists(revision: revision))
+            }
+        }
+    }
+
+    func testCheckoutRevision() throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try testWithTemporaryDirectory { path in
+            // Create a repo.
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath)
+            let repo = GitRepository(path: testRepoPath)
+
+            func createAndStageTestFile() throws {
+                try localFileSystem.writeFileContents(testRepoPath.appending("test.txt"), bytes: "Hi")
+                try repo.stage(file: "test.txt")
+            }
+
+            try repo.checkout(revision: Revision(identifier: "main"))
+            // Current branch must be main.
+            XCTAssertEqual(try repo.currentBranch(), "main")
+            // Create a new branch.
+            try repo.checkout(newBranch: "TestBranch")
+            XCTAssertEqual(try repo.currentBranch(), "TestBranch")
+            // Create some random file.
+            try createAndStageTestFile()
+            XCTAssert(repo.hasUncommittedChanges())
+            // Checkout current revision again, the test file should go away.
+            let currentRevision = try repo.getCurrentRevision()
+            try repo.checkout(revision: currentRevision)
+            XCTAssertFalse(repo.hasUncommittedChanges())
+            // We should be on detached head.
+            XCTAssertEqual(try repo.currentBranch(), "HEAD")
+
+            // Try again and checkout to a previous branch.
+            try createAndStageTestFile()
+            XCTAssert(repo.hasUncommittedChanges())
+            try repo.checkout(revision: Revision(identifier: "TestBranch"))
+            XCTAssertFalse(repo.hasUncommittedChanges())
+            XCTAssertEqual(try repo.currentBranch(), "TestBranch")
+
+            do {
+                try repo.checkout(revision: Revision(identifier: "nonExistent"))
+                XCTFail("Unexpected checkout success on non existent branch")
+            } catch {}
+        }
+    }
+
+    func testGitObjectStoreCorruptionDetection() {
+        // Outputs that indicate the local object store is incomplete/corrupt — purging the
+        // repository and re-fetching from the origin can recover these.
+        let recoverable = [
+            "fatal: unable to read tree (0e71ce1f3149e7c6093f0fc571ba3ad50dcc1a3b)",
+            "fatal: unable to read tree 0e71ce1f3149e7c6093f0fc571ba3ad50dcc1a3b",
+            "fatal: not a tree object",
+            "fatal: Not a valid object name 8aa586f08e81064ee56a2eb8816a6443a4d86746",
+            "fatal: bad object refs/remotes/origin/some-deleted-branch",
+            "error: object file .git/objects/0e/71ce is empty\nfatal: loose object 0e71ce is corrupt",
+            "fatal: missing blob object 'abc123'",
+            // Wrapped form: the underlying git message is preserved in a higher-level error's description.
+            "the package at '/' cannot be accessed (Couldn’t read '1.0.0': fatal: not a tree object)",
+        ]
+        for output in recoverable {
+            XCTAssertTrue(
+                gitOutputIndicatesObjectStoreCorruption(output),
+                "expected object-store-corruption to be detected in: \(output)"
+            )
+        }
+
+        // Outputs that are NOT object-store corruption — re-fetching would not help, so we must
+        // not trigger a wasteful purge-and-reclone for these.
+        let notRecoverable = [
+            "error: pathspec 'nonExistent' did not match any file(s) known to git",
+            "fatal: Authentication failed for 'https://example.com/repo.git'",
+            "fatal: could not read Username for 'https://example.com': terminal prompts disabled",
+            "fatal: unable to read current working directory",
+            "error: Permission denied",
+            "Updating files: 100% (3/3), done.",
+        ]
+        for output in notRecoverable {
+            XCTAssertFalse(
+                gitOutputIndicatesObjectStoreCorruption(output),
+                "did not expect object-store-corruption to be detected in: \(output)"
+            )
+        }
+    }
+
+    func testSubmodules() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            let provider = GitRepositoryProvider()
+
+            // Create repos: foo and bar, foo will have bar as submodule and then later
+            // the submodule ref will be updated in foo.
+            let fooPath = path.appending("foo-original")
+            let fooSpecifier = RepositorySpecifier(path: fooPath)
+            let fooRepoPath = path.appending("foo-repo")
+            let fooWorkingPath = path.appending("foo-working")
+            let barPath = path.appending("bar-original")
+            let bazPath = path.appending("baz-original")
+            // Create the repos and add a file.
+            for path in [fooPath, barPath, bazPath] {
+                try makeDirectories(path)
+                initGitRepo(path)
+                try localFileSystem.writeFileContents(path.appending("hello.txt"), bytes: "hello")
+                let repo = GitRepository(path: path)
+                try repo.stageEverything()
+                try repo.commit()
+            }
+            let foo = GitRepository(path: fooPath)
+            let bar = GitRepository(path: barPath)
+            // The tag 1.0.0 does not contain the submodule.
+            try foo.tag(name: "1.0.0")
+
+            // Fetch and clone repo foo.
+            try await provider.fetch(repository: fooSpecifier, to: fooRepoPath)
+            _ = try await provider.createWorkingCopy(repository: fooSpecifier, sourcePath: fooRepoPath, at: fooWorkingPath, editable: false)
+
+            let fooRepo = GitRepository(path: fooRepoPath, isWorkingRepo: false)
+            let fooWorkingRepo = GitRepository(path: fooWorkingPath)
+
+            // Checkout the first tag which doesn't has submodule.
+            try fooWorkingRepo.checkout(tag: "1.0.0")
+            XCTAssertNoSuchPath(fooWorkingPath.appending("bar"))
+
+            // Add submodule to foo and tag it as 1.0.1
+            try foo.checkout(newBranch: "submodule")
+            try await AsyncProcess.checkNonZeroExit(
+                args: Git.tool, "-C", fooPath.pathString, "submodule", "add", barPath.pathString, "bar",
+                environment: .init(Git.environmentBlock)
+            )
+
+            try foo.stageEverything()
+            try foo.commit()
+            try foo.tag(name: "1.0.1")
+
+            // Update our bare and working repos.
+            try await fooRepo.fetch()
+            try await fooWorkingRepo.fetch()
+            // Checkout the tag with submodule and expect submodules files to be present.
+            try fooWorkingRepo.checkout(tag: "1.0.1")
+            XCTAssertFileExists(fooWorkingPath.appending(components: "bar", "hello.txt"))
+            // Checkout the tag without submodule and ensure that the submodule files are gone.
+            try fooWorkingRepo.checkout(tag: "1.0.0")
+            XCTAssertNoSuchPath(fooWorkingPath.appending(components: "bar"))
+
+            // Add something to bar.
+            try localFileSystem.writeFileContents(barPath.appending("bar.txt"), bytes: "hello")
+            // Add a submodule too to check for recursive submodules.
+            try await AsyncProcess.checkNonZeroExit(
+                args: Git.tool, "-C", barPath.pathString, "submodule", "add", bazPath.pathString, "baz",
+                environment: .init(Git.environmentBlock)
+            )
+
+            try bar.stageEverything()
+            try bar.commit()
+
+            // Update the ref of bar in foo and tag as 1.0.2
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", fooPath.appending("bar").pathString, "pull")
+            try foo.stageEverything()
+            try foo.commit()
+            try foo.tag(name: "1.0.2")
+
+            try await fooRepo.fetch()
+            try await fooWorkingRepo.fetch()
+            // We should see the new file we added in the submodule.
+            try fooWorkingRepo.checkout(tag: "1.0.2")
+            XCTAssertFileExists(fooWorkingPath.appending(components: "bar", "hello.txt"))
+            XCTAssertFileExists(fooWorkingPath.appending(components: "bar", "bar.txt"))
+            XCTAssertFileExists(fooWorkingPath.appending(components: "bar", "baz", "hello.txt"))
+
+            // Double check.
+            try fooWorkingRepo.checkout(tag: "1.0.0")
+            XCTAssertNoSuchPath(fooWorkingPath.appending(components: "bar"))
+        }
+    }
+
+    func testAlternativeObjectStoreValidation() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            // Create a repo.
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath, tag: "1.2.3")
+            let repo = GitRepository(path: testRepoPath)
+            let tagsA = try await repo.getTags()
+            XCTAssertEqual(tagsA, ["1.2.3"])
+
+            // Clone it somewhere.
+            let testClonePath = path.appending("clone")
+            let provider = GitRepositoryProvider()
+            let repoSpec = RepositorySpecifier(path: testRepoPath)
+            try await provider.fetch(repository: repoSpec, to: testClonePath)
+            let clonedRepo = provider.open(repository: repoSpec, at: testClonePath)
+            XCTAssertEqual(try clonedRepo.getTags(), ["1.2.3"])
+
+            // Clone off a checkout.
+            let checkoutPath = path.appending("checkout")
+            let checkoutRepo = try await provider.createWorkingCopy(repository: repoSpec, sourcePath: testClonePath, at: checkoutPath, editable: false)
+
+            // The object store should be valid.
+            XCTAssertTrue(checkoutRepo.isAlternateObjectStoreValid(expected: testClonePath))
+
+            // Wrong path
+            XCTAssertFalse(checkoutRepo.isAlternateObjectStoreValid(expected: testClonePath.appending(UUID().uuidString)))
+
+            // Delete the clone (alternative object store).
+            try localFileSystem.removeFileTree(testClonePath)
+            XCTAssertFalse(checkoutRepo.isAlternateObjectStoreValid(expected: testClonePath))
+        }
+    }
+
+    func testAreIgnored() throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try testWithTemporaryDirectory { path in
+            // Create a repo.
+            let testRepoPath = path.appending("test_repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath)
+            let repo = GitRepository(path: testRepoPath)
+
+            // Add a .gitignore
+            try localFileSystem.writeFileContents(testRepoPath.appending(".gitignore"), bytes: "ignored_file1\nignored file2")
+
+            let ignored = try repo.areIgnored([testRepoPath.appending("ignored_file1"), testRepoPath.appending("ignored file2"), testRepoPath.appending("not ignored")])
+            XCTAssertTrue(ignored[0])
+            XCTAssertTrue(ignored[1])
+            XCTAssertFalse(ignored[2])
+
+            let notIgnored = try repo.areIgnored([testRepoPath.appending("not_ignored")])
+            XCTAssertFalse(notIgnored[0])
+        }
+    }
+
+    func testAreIgnoredWithSpaceInRepoPath() throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try testWithTemporaryDirectory { path in
+            // Create a repo.
+            let testRepoPath = path.appending("test repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath)
+            let repo = GitRepository(path: testRepoPath)
+
+            // Add a .gitignore
+            try localFileSystem.writeFileContents(testRepoPath.appending(".gitignore"), bytes: "ignored_file1")
+
+            let ignored = try repo.areIgnored([testRepoPath.appending("ignored_file1")])
+            XCTAssertTrue(ignored[0])
+        }
+    }
+
+    func testMissingDefaultBranch() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            // Create a repository.
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath)
+            let repo = GitRepository(path: testRepoPath)
+
+            // Create a `newMain` branch and remove `main`.
+            try repo.checkout(newBranch: "newMain")
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", testRepoPath.pathString, "branch", "-D", "main")
+
+            // Change the branch name to something non-existent.
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", testRepoPath.pathString, "symbolic-ref", "HEAD", "refs/heads/_non_existent_branch_")
+
+            // Clone it somewhere.
+            let testClonePath = path.appending("clone")
+            let provider = GitRepositoryProvider()
+            let repoSpec = RepositorySpecifier(path: testRepoPath)
+            try await provider.fetch(repository: repoSpec, to: testClonePath)
+            let clonedRepo = provider.open(repository: repoSpec, at: testClonePath)
+            XCTAssertEqual(try clonedRepo.getTags(), [])
+
+            // Clone off a checkout.
+            let checkoutPath = path.appending("checkout")
+            let checkoutRepo = try await provider.createWorkingCopy(repository: repoSpec, sourcePath: testClonePath, at: checkoutPath, editable: false)
+            XCTAssertNoSuchPath(checkoutPath.appending("file.swift"))
+
+            // Try to check out the `main` branch.
+            try checkoutRepo.checkout(revision: Revision(identifier: "newMain"))
+            XCTAssertFileExists(checkoutPath.appending("file.swift"))
+
+            // The following will throw if HEAD was set incorrectly and we didn't do a no-checkout clone.
+            XCTAssertNoThrow(try checkoutRepo.getCurrentRevision())
+        }
+    }
+
+    func testValidDirectoryLocalRelativeOrigin() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { tmpDir in
+            // Create a repository.
+            let packageDir = tmpDir.appending("SomePackage")
+            try localFileSystem.createDirectory(packageDir)
+
+            // Create a repository manager for it.
+            let repoProvider = GitRepositoryProvider()
+            let repositoryManager = RepositoryManager(
+                fileSystem: localFileSystem,
+                path: packageDir,
+                provider: repoProvider,
+                delegate: .none
+            )
+
+            let customRemote = "../OriginOfSomePackage.git"
+
+            // Before initializing the directory with a git repo, it is never valid.
+            XCTAssertThrowsError(try repositoryManager.isValidDirectory(packageDir))
+            XCTAssertThrowsError(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(packageDir.pathString))))
+            XCTAssertThrowsError(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(customRemote))))
+
+            initGitRepo(packageDir)
+            // Set the remote.
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", packageDir.pathString, "remote", "add", "origin", customRemote)
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir))
+
+            let customRemoteWithoutPathExtension = (customRemote as NSString).deletingPathExtension
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(customRemote))))
+            // We consider the directory valid even if the remote does not have the same path extension - in this case we expected '.git'.
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(customRemoteWithoutPathExtension))))
+            // We consider the directory valid even if the remote does not have the same path extension - in this case we expected '.git'.
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir, for:  RepositorySpecifier(url: SourceControlURL((customRemote as NSString).deletingPathExtension + "/"))))
+
+            // The following ensure that are actually checking the remote's origin.
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(path: AbsolutePath(validating: "/"))))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL("/"))))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(path: packageDir)))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(packageDir.pathString))))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(path: packageDir.appending(extension: "git"))))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(packageDir.pathString.appending(".git")))))
+
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL("https://mycustomdomain/some-package.git"))))
+        }
+    }
+
+    func testValidDirectoryLocalAbsoluteOrigin() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { tmpDir in
+            // Create a repository.
+            let packageDir = tmpDir.appending("SomePackage")
+            try localFileSystem.createDirectory(packageDir)
+
+            // Create a repository manager for it.
+            let repoProvider = GitRepositoryProvider()
+            let repositoryManager = RepositoryManager(
+                fileSystem: localFileSystem,
+                path: packageDir,
+                provider: repoProvider,
+                delegate: .none
+            )
+
+            let customRemote = tmpDir.appending("OriginOfSomePackage.git")
+
+            // Before initializing the directory with a git repo, it is never valid.
+            XCTAssertThrowsError(try repositoryManager.isValidDirectory(packageDir))
+            XCTAssertThrowsError(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(packageDir.pathString))))
+            XCTAssertThrowsError(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(customRemote.pathString))))
+
+            initGitRepo(packageDir)
+            // Set the remote.
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", packageDir.pathString, "remote", "add", "origin", customRemote.pathString)
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir))
+
+            let customRemotePath = customRemote.pathString
+            let customRemotePathWithoutPathExtension = (customRemotePath as NSString).deletingPathExtension
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(path: customRemote)))
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(customRemotePath))))
+            // We consider the directory valid even if the remote does not have the same path extension - in this case we expected '.git'.
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(path: try AbsolutePath(validating: customRemotePathWithoutPathExtension))))
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(customRemotePathWithoutPathExtension))))
+            // We consider the directory valid even if the remote does not have the same path extension - in this case we expected '.git'.
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir, for:  RepositorySpecifier(path: try AbsolutePath(validating: customRemotePathWithoutPathExtension + "/"))))
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir, for:  RepositorySpecifier(url: SourceControlURL((customRemotePath as NSString).deletingPathExtension + "/"))))
+
+            // The following ensure that are actually checking the remote's origin.
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(path: AbsolutePath(validating: "/"))))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL("/"))))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(path: packageDir)))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(packageDir.pathString))))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(path: packageDir.appending(extension: "git"))))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(packageDir.pathString.appending(".git")))))
+
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL("https://mycustomdomain/some-package.git"))))
+        }
+    }
+
+    func testValidDirectoryRemoteOrigin() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { tmpDir in
+            // Create a repository.
+            let packageDir = tmpDir.appending("SomePackage")
+            try localFileSystem.createDirectory(packageDir)
+
+            // Create a repository manager for it.
+            let repoProvider = GitRepositoryProvider()
+            let repositoryManager = RepositoryManager(
+                fileSystem: localFileSystem,
+                path: packageDir,
+                provider: repoProvider,
+                delegate: .none
+            )
+
+            let customRemote = try XCTUnwrap(URL(string: "https://mycustomdomain/some-package.git"))
+
+            // Before initializing the directory with a git repo, it is never valid.
+            XCTAssertThrowsError(try repositoryManager.isValidDirectory(packageDir))
+            XCTAssertThrowsError(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(customRemote))))
+
+            initGitRepo(packageDir)
+            // Set the remote.
+            try await AsyncProcess.checkNonZeroExit(args: Git.tool, "-C", packageDir.pathString, "remote", "add", "origin", customRemote.absoluteString)
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir))
+
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(customRemote))))
+            // We consider the directory valid even if the remote does not have the same path extension - in this case we expected '.git'.
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL("https://mycustomdomain/some-package"))))
+            // We consider the directory valid even if the remote does not have the same path extension - in this case we expected '.git'.
+            XCTAssertTrue(try repositoryManager.isValidDirectory(packageDir, for:  RepositorySpecifier(url: SourceControlURL("https://mycustomdomain/some-package/"))))
+
+            // The following ensure that are actually checking the remote's origin.
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(path: AbsolutePath(validating: "/"))))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL("/"))))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(path: packageDir)))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(packageDir.pathString))))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(path: packageDir.appending(extension: "git"))))
+            XCTAssertFalse(try repositoryManager.isValidDirectory(packageDir, for: RepositorySpecifier(url: SourceControlURL(packageDir.pathString.appending(".git")))))
+        }
+    }
+
+    // MARK: - Git LFS Tests
+
+    /// Test LFS detection when repository has .gitattributes with filter=lfs
+    func testHasLFSTrackedFiles() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            // Create a repo without LFS
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath)
+
+            let repo = GitRepository(path: testRepoPath)
+
+            // Repository without .gitattributes should not have LFS tracked files
+            XCTAssertFalse(try repo.hasLFSTrackedFiles())
+
+            // Add a .gitattributes file without LFS
+            try localFileSystem.writeFileContents(testRepoPath.appending(".gitattributes"), string: "*.txt text\n")
+            try repo.stage(file: ".gitattributes")
+            try repo.commit()
+
+            // Clear cache to re-detect
+            repo.clearLFSCache()
+
+            // Should still not have LFS tracked files
+            XCTAssertFalse(try repo.hasLFSTrackedFiles())
+
+            // Add .gitattributes with filter=lfs in a comment (should be ignored)
+            try localFileSystem.writeFileContents(
+                testRepoPath.appending(".gitattributes"),
+                string: "# This file uses filter=lfs for large files\n*.txt text\n"
+            )
+            try repo.stage(file: ".gitattributes")
+            try repo.commit()
+
+            // Clear cache to re-detect
+            repo.clearLFSCache()
+
+            // Should still not have LFS tracked files (comment should be ignored)
+            XCTAssertFalse(try repo.hasLFSTrackedFiles())
+
+            // Now add actual LFS tracking
+            try localFileSystem.writeFileContents(
+                testRepoPath.appending(".gitattributes"),
+                string: "*.bin filter=lfs diff=lfs merge=lfs -text\n"
+            )
+            try repo.stage(file: ".gitattributes")
+            try repo.commit()
+
+            // Clear cache to re-detect
+            repo.clearLFSCache()
+
+            // Should now detect LFS tracked files
+            XCTAssertTrue(try repo.hasLFSTrackedFiles())
+        }
+    }
+
+    /// Test that LFS detection results are cached
+    func testLFSDetectionCaching() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await testWithTemporaryDirectory { path in
+            // Create a repo with LFS
+            let testRepoPath = path.appending("test-repo")
+            try makeDirectories(testRepoPath)
+            initGitRepo(testRepoPath)
+
+            // Add .gitattributes with LFS
+            try localFileSystem.writeFileContents(
+                testRepoPath.appending(".gitattributes"),
+                string: "*.bin filter=lfs diff=lfs merge=lfs -text\n"
+            )
+            let repo = GitRepository(path: testRepoPath)
+            try repo.stage(file: ".gitattributes")
+            try repo.commit()
+
+            // First call should detect LFS
+            XCTAssertTrue(try repo.hasLFSTrackedFiles())
+
+            // Second call should return cached result (same value)
+            XCTAssertTrue(try repo.hasLFSTrackedFiles())
+
+            // Clear cache
+            repo.clearLFSCache()
+
+            // After clearing, it should still detect correctly
+            XCTAssertTrue(try repo.hasLFSTrackedFiles())
+        }
+    }
+
+    /// Test GitLFSError descriptions
+    func testGitLFSErrorDescription() {
+        // Test notInstalled error
+        let notInstalledError = GitLFSError.notInstalled
+        XCTAssertTrue(notInstalledError.description.contains("Git LFS is not installed"))
+        XCTAssertTrue(notInstalledError.description.contains("brew install git-lfs"))
+
+        // Test fetchFailed error
+        let fetchError = GitLFSError.fetchFailed(underlyingError: NSError(domain: "test", code: 1, userInfo: [NSLocalizedDescriptionKey: "fetch failed"]))
+        XCTAssertTrue(fetchError.description.contains("Git LFS fetch failed"))
+
+        // Test pullFailed error
+        let pullError = GitLFSError.pullFailed(underlyingError: NSError(domain: "test", code: 1, userInfo: [NSLocalizedDescriptionKey: "pull failed"]))
+        XCTAssertTrue(pullError.description.contains("Git LFS pull failed"))
+    }
+
+    /// Test that provider fetches LFS objects into the bare cache so working copies
+    /// can still materialize files even after the original remote is gone.
+    func testGitRepositoryProviderWithLFS() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await self.requireGitLFS()
+        try await testWithTemporaryDirectory { path in
+            let testRepoPath = path.appending("test-repo")
+            let binaryData = try await self.createLFSRepository(at: testRepoPath)
+            let provider = GitRepositoryProvider()
+            let testClonePath = path.appending("clone")
+            let repoSpec = RepositorySpecifier(path: testRepoPath)
+            try await provider.fetch(repository: repoSpec, to: testClonePath)
+
+            // If the bare cache did not fetch LFS objects, checkout can no longer
+            // materialize the file once the original repository disappears.
+            try localFileSystem.removeFileTree(testRepoPath)
+
+            let checkoutPath = path.appending("checkout")
+            let workingCopy = try await provider.createWorkingCopy(
+                repository: repoSpec,
+                sourcePath: testClonePath,
+                at: checkoutPath,
+                editable: false
+            )
+
+            try workingCopy.checkout(tag: "1.0.0")
+
+            let binaryFilePath = checkoutPath.appending("test.bin")
+            XCTAssertFileExists(binaryFilePath)
+            try self.assertFileMatchesBinaryData(binaryFilePath, expected: binaryData)
+        }
+    }
+
+    /// Test that fetching an LFS repository into the bare cache still populates LFS
+    /// objects when the user has set `safe.bareRepository=explicit`. The bare-cache
+    /// `git lfs fetch` is addressed via `--git-dir`; if that failed under `explicit`,
+    /// the objects would be missing and the checkout below could not materialize the
+    /// binary file once the source repository is removed.
+    func testGitLFSFetchIntoBareCacheUnderSafeBareRepositoryExplicit() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await self.requireGitLFS()
+        try await testWithTemporaryDirectory { path in
+            let testRepoPath = path.appending("test-repo")
+            let binaryData = try await self.createLFSRepository(at: testRepoPath)
+            let provider = GitRepositoryProvider()
+            let testClonePath = path.appending("clone")
+            let repoSpec = RepositorySpecifier(path: testRepoPath)
+
+            // Opt into the `explicit` bare-repository protection for all of SwiftPM's git
+            // invocations. Because GIT_CONFIG_GLOBAL replaces the user's global config wholesale,
+            // also carry the `filter.lfs.*` registration that `git lfs install` normally writes
+            // there, otherwise the smudge filter would not run on checkout.
+            try self.enableSafeBareRepositoryExplicit(in: path, additionalGlobalConfig: """
+                [filter "lfs"]
+                \tclean = git-lfs clean -- %f
+                \tsmudge = git-lfs smudge -- %f
+                \tprocess = git-lfs filter-process
+                \trequired = true
+
+                """)
+
+            // Fetches into the bare cache and, since the repo uses LFS, runs
+            // `git --git-dir=<bare> lfs fetch` against it.
+            try await provider.fetch(repository: repoSpec, to: testClonePath)
+
+            // If the bare cache did not fetch LFS objects, checkout can no longer
+            // materialize the file once the original repository disappears.
+            try localFileSystem.removeFileTree(testRepoPath)
+
+            let checkoutPath = path.appending("checkout")
+            let workingCopy = try await provider.createWorkingCopy(
+                repository: repoSpec,
+                sourcePath: testClonePath,
+                at: checkoutPath,
+                editable: false
+            )
+            try workingCopy.checkout(tag: "1.0.0")
+
+            let binaryFilePath = checkoutPath.appending("test.bin")
+            XCTAssertFileExists(binaryFilePath)
+            try self.assertFileMatchesBinaryData(binaryFilePath, expected: binaryData)
+        }
+    }
+
+    /// Test that a checkout created before SwiftPM knew about LFS gets fixed on a
+    /// subsequent checkout without recloning the cache or the working copy.
+    func testGitLFSUpgradePathPullsObjectsIntoExistingCheckout() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await self.requireGitLFS()
+
+        try await testWithTemporaryDirectory { path in
+            let lfsRepoPath = path.appending("lfs-repo")
+            let binaryData = try await self.createLFSRepository(at: lfsRepoPath)
+
+            let bareClonePath = path.appending("bare-clone")
+            try await AsyncProcess.checkNonZeroExit(
+                args: Git.tool, "clone", "--mirror", lfsRepoPath.pathString, bareClonePath.pathString,
+                environment: .init(Git.environmentBlock)
+            )
+
+            let checkoutPath = path.appending("checkout")
+            try await AsyncProcess.checkNonZeroExit(
+                args: Git.tool, "clone", "--shared", "--no-checkout", bareClonePath.pathString, checkoutPath.pathString,
+                environment: .init(Git.environmentBlock)
+            )
+
+            var skipSmudgeEnvironment = Git.environmentBlock
+            skipSmudgeEnvironment["GIT_LFS_SKIP_SMUDGE"] = "1"
+            try await AsyncProcess.checkNonZeroExit(
+                args: Git.tool, "-C", checkoutPath.pathString, "checkout", "-f", "1.0.0",
+                environment: .init(skipSmudgeEnvironment)
+            )
+
+            let binaryFilePath = checkoutPath.appending("test.bin")
+            XCTAssertFileExists(binaryFilePath)
+            try self.assertFileIsLFSPointer(binaryFilePath)
+
+            let revision = try GitRepository(path: lfsRepoPath).resolveRevision(tag: "1.0.0")
+            let workingCopy = GitRepository(path: checkoutPath)
+            try workingCopy.checkout(revision: revision)
+
+            try self.assertFileMatchesBinaryData(binaryFilePath, expected: binaryData)
+        }
+    }
+
+    func testGitLFSCheckoutRespectsSkipSmudge() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await self.requireGitLFS()
+
+        try await testWithTemporaryDirectory { path in
+            let lfsRepoPath = path.appending("lfs-repo")
+            _ = try await self.createLFSRepository(at: lfsRepoPath)
+
+            let provider = GitRepositoryProvider()
+            let repoSpec = RepositorySpecifier(path: lfsRepoPath)
+            let clonePath = path.appending("clone")
+            try await provider.fetch(repository: repoSpec, to: clonePath)
+
+            let checkoutPath = path.appending("checkout")
+            let workingCopy = try await provider.createWorkingCopy(
+                repository: repoSpec,
+                sourcePath: clonePath,
+                at: checkoutPath,
+                editable: false
+            )
+
+            let originalEnvironment = Git.environmentBlock
+            defer { Git.environmentBlock = originalEnvironment }
+
+            var skipSmudgeEnvironment = originalEnvironment
+            skipSmudgeEnvironment["GIT_LFS_SKIP_SMUDGE"] = "1"
+            Git.environmentBlock = skipSmudgeEnvironment
+
+            try workingCopy.checkout(tag: "1.0.0")
+
+            let binaryFilePath = checkoutPath.appending("test.bin")
+            XCTAssertFileExists(binaryFilePath)
+            try self.assertFileIsLFSPointer(binaryFilePath)
+        }
+    }
+
+    func testGitLFSCheckoutClearsDetectionCacheAcrossRevisions() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await self.requireGitLFS()
+
+        try await testWithTemporaryDirectory { path in
+            let lfsRepoPath = path.appending("lfs-repo")
+            try makeDirectories(lfsRepoPath)
+            initGitRepo(lfsRepoPath, tag: "before-lfs")
+            _ = try await self.addLFSTrackedBinaryFile(to: lfsRepoPath, tag: "after-lfs")
+
+            let provider = GitRepositoryProvider()
+            let repoSpec = RepositorySpecifier(path: lfsRepoPath)
+            let clonePath = path.appending("clone")
+            try await provider.fetch(repository: repoSpec, to: clonePath)
+
+            let checkoutPath = path.appending("checkout")
+            let workingCopy = try await provider.createWorkingCopy(
+                repository: repoSpec,
+                sourcePath: clonePath,
+                at: checkoutPath,
+                editable: false
+            )
+            let gitWorkingCopy = try XCTUnwrap(workingCopy as? GitRepository)
+
+            try gitWorkingCopy.checkout(tag: "before-lfs")
+            let hasLFS1 = try await gitWorkingCopy.hasLFSTrackedFiles()
+            XCTAssertFalse(hasLFS1)
+
+            try gitWorkingCopy.checkout(tag: "after-lfs")
+            let hasLFS2 = try await gitWorkingCopy.hasLFSTrackedFiles()
+            XCTAssertTrue(hasLFS2)
+        }
+    }
+
+    /// Sync and async git operations share one lock, so exercising both concurrently on the
+    /// same instance must serialize on the working tree without deadlocking. A double acquire
+    /// of the non-reentrant lock (e.g. a wrong `WithoutLock` split) would not complete.
+    func testConcurrentSyncAndAsyncGitOperations() async throws {
+        try await testWithTemporaryDirectory { path in
+            let repoPath = path.appending("repo")
+            try makeDirectories(repoPath)
+            initGitRepo(repoPath, tag: "1.0.0")
+
+            let provider = GitRepositoryProvider()
+            let repoSpec = RepositorySpecifier(path: repoPath)
+            let clonePath = path.appending("clone")
+            try await provider.fetch(repository: repoSpec, to: clonePath)
+            let checkoutPath = path.appending("checkout")
+            let workingCopy = try await provider.createWorkingCopy(
+                repository: repoSpec,
+                sourcePath: clonePath,
+                at: checkoutPath,
+                editable: false
+            )
+            let repo = try XCTUnwrap(workingCopy as? GitRepository)
+            try repo.checkout(tag: "1.0.0")
+
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                for _ in 0..<20 {
+                    group.addTask {
+                        _ = try await repo.getTags()
+                        _ = try await repo.getCurrentRevision()
+                        _ = try await repo.hasUncommittedChanges()
+                        _ = try await repo.hasLFSTrackedFiles()
+                        _ = try await repo.getCurrentTag()
+                        try await repo.fetch()
+                    }
+                    group.addTask {
+                        try await Task.detachNewThread {
+                            Result {
+                                _ = try repo.getTags()
+                                _ = try repo.getCurrentRevision()
+                                _ = repo.hasUncommittedChanges()
+                                _ = try repo.hasLFSTrackedFiles()
+                                _ = repo.getCurrentTag()
+                                try repo.fetch()
+                                try repo.checkout(tag: "1.0.0")
+                            }
+                        }.get()
+                    }
+                }
+                try await group.waitForAll()
+            }
+
+            let tags = try await repo.getTags()
+            XCTAssertEqual(tags, ["1.0.0"])
+        }
+    }
+
+    /// Test full Git LFS workflow: fetch LFS objects and verify content is not a pointer.
+    /// This test requires git-lfs to be installed and will skip if unavailable.
+    func testGitLFSFetchAndPull() async throws {
+        try XCTSkipOnWindows(because: "https://github.com/swiftlang/swift-package-manager/issues/8564", skipSelfHostedCI: true)
+        try await self.requireGitLFS()
+
+        try await testWithTemporaryDirectory { path in
+            let lfsRepoPath = path.appending("lfs-repo")
+            let binaryData = try await self.createLFSRepository(at: lfsRepoPath)
+
+            // Create provider (LFS is auto-detected)
+            let provider = GitRepositoryProvider()
+
+            // Fetch to bare clone (this should also fetch LFS objects since repo has .gitattributes)
+            let clonePath = path.appending("clone")
+            let repoSpec = RepositorySpecifier(path: lfsRepoPath)
+            try await provider.fetch(repository: repoSpec, to: clonePath)
+
+            // Create working copy and checkout (this should pull LFS files)
+            let checkoutPath = path.appending("checkout")
+            let workingCopy = try await provider.createWorkingCopy(
+                repository: repoSpec,
+                sourcePath: clonePath,
+                at: checkoutPath,
+                editable: false
+            )
+            try workingCopy.checkout(tag: "1.0.0")
+
+            // Verify the binary file exists
+            let binaryFilePath = checkoutPath.appending("test.bin")
+            XCTAssertFileExists(binaryFilePath)
+            try self.assertFileMatchesBinaryData(binaryFilePath, expected: binaryData)
+        }
+    }
+
+}

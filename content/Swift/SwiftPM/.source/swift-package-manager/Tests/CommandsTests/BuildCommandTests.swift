@@ -1,0 +1,2738 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift open source project
+//
+// Copyright (c) 2014-2021 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See http://swift.org/LICENSE.txt for license information
+// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
+import _InternalTestSupport
+import Basics
+@testable import Commands
+@testable import CoreCommands
+import Foundation
+import PackageGraph
+import PackageLoading
+import PackageModel
+import enum PackageModel.BuildConfiguration
+import SPMBuildCore
+import enum SWBUtil.PropertyList
+import enum SWBUtil.PropertyListItem
+import Testing
+import TSCTestSupport
+import Workspace
+
+struct BuildResult {
+    let binPath: AbsolutePath
+    let stdout: String
+    let stderr: String
+    let binContents: [String]
+    let moduleContents: [String]
+}
+
+@discardableResult
+fileprivate func execute(
+    _ args: [String] = [],
+    environment: Environment? = nil,
+    packagePath: AbsolutePath? = nil,
+    configuration: BuildConfiguration,
+    buildSystem: BuildSystemProvider.Kind,
+    throwIfCommandFails: Bool = true,
+) async throws -> (stdout: String, stderr: String) {
+
+    return try await executeSwiftBuild(
+        packagePath,
+        configuration: configuration,
+        extraArgs: args,
+        env: environment,
+        buildSystem: buildSystem,
+        throwIfCommandFails: throwIfCommandFails,
+    )
+}
+
+fileprivate func build(
+    _ args: [String],
+    packagePath: AbsolutePath? = nil,
+    configuration: BuildConfiguration,
+    cleanAfterward: Bool = true,
+    buildSystem: BuildSystemProvider.Kind,
+) async throws -> BuildResult {
+    do {
+        let (stdout, stderr) = try await execute(args, packagePath: packagePath,configuration: configuration, buildSystem: buildSystem,)
+        defer {
+        }
+        let binPath = try await getBinPath(
+            packagePath,
+            configuration: configuration,
+            buildSystem: buildSystem,
+        )
+        let binContents = try localFileSystem.getDirectoryContents(binPath).filter {
+            guard let contents = try? localFileSystem.getDirectoryContents(binPath.appending(component: $0)) else {
+                return true
+            }
+            // Filter directories which only contain an output file map since we didn't build anything for those which
+            // is what `binContents` is meant to represent.
+            return contents != ["output-file-map.json"]
+        }
+        var moduleContents: [String] = []
+        switch buildSystem {
+            case .native:
+                moduleContents = (try? localFileSystem.getDirectoryContents(binPath.appending(component: "Modules"))) ?? []
+            case .swiftbuild, .xcode:
+                let moduleDirs = (try? localFileSystem.getDirectoryContents(binPath).filter {
+                    $0.contains(".swiftmodule")
+                }) ?? []
+                for dir: String in moduleDirs {
+                    moduleContents +=
+                        (try? localFileSystem.getDirectoryContents(binPath.appending(component: dir)).map { "\(dir)/\($0)" }) ?? []
+                }
+        }
+
+        if cleanAfterward {
+            try await executeSwiftPackage(
+                packagePath,
+                extraArgs: ["clean"],
+                buildSystem: buildSystem
+            )
+        }
+        return BuildResult(
+            binPath: binPath,
+            stdout: stdout,
+            stderr: stderr,
+            binContents: binContents,
+            moduleContents: moduleContents
+        )
+    } catch {
+        if cleanAfterward {
+            try await executeSwiftPackage(
+                packagePath,
+                extraArgs: ["clean"],
+                buildSystem: buildSystem
+            )
+        }
+        throw error
+    }
+}
+
+@Suite(
+    .serializedIfOnWindows,
+    .tags(
+        Tag.TestSize.large,
+        Tag.Feature.Command.Build,
+        .Feature.CommandLineArguments.BuildSystem,
+    ),
+)
+struct BuildCommandTestCases {
+
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func usage(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let stdout = try await execute(["-help"], configuration: .debug, buildSystem: buildSystem).stdout
+        #expect(stdout.contains("USAGE: swift build"))
+    }
+
+    @Test(
+        arguments: [
+            BuildData(buildSystem: .swiftbuild, config: .release),
+        ], ["enable", "disable"],
+    )
+    func testStripProductsGeneratedDoesNotEmitErrorsWhenSupportedBuildSystemAndConfiguration(
+        buildData: BuildData,
+        action: String,
+    ) async throws {
+        let buildSystem = buildData.buildSystem
+        let config = buildData.config
+        let argumentUT = "--\(action)-experimental-strip-products"
+
+        try await fixture(name: "ValidLayouts/SingleModule/Library") { fixturePath in
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                configuration: config,
+                extraArgs: [
+                    argumentUT,
+                    "--verbose",
+                ],
+                buildSystem: buildSystem,
+            )
+
+            let diag = Basics.Diagnostic.unsupportedStripProductsConfigurationFlag(
+                isEnabled: action.lowercased() == "enable",
+                with: buildSystem,
+            )
+
+            #expect(stdout.contains("Build complete!"))
+            #expect(!stderr.contains("\(diag.severity): \(diag.message)"))
+            #expect(!stdout.contains("\(diag.severity): \(diag.message)"))
+        }
+    }
+
+    @Test(
+        .requireHostOS(.macOS),
+        arguments: getBuildData(for: [.xcode]),  ["enable", "disable"],
+    )
+    func testStripProductsGeneratesErrorWhenUsedWithXcodeBuildSystemAndConfiguration(
+        buildData: BuildData,
+        action: String,
+    ) async throws {
+        try await __testImplementationStripProductsGeneratedErrorWhenUsedWithIncorrectBuildSystemAndConfiguration(
+            buildData: buildData,
+            action: action,
+        )
+    }
+
+    @Test(
+        arguments: getBuildData(for: [.native]) + [
+            BuildData(buildSystem: .swiftbuild, config: .debug),
+        ],  ["enable", "disable"],
+    )
+    func testStripProductsGeneratesErrorWhenUsedWithUnsupportedBuildSystemAndConfiguration(
+        buildData: BuildData,
+        action: String
+    ) async throws {
+        try await __testImplementationStripProductsGeneratedErrorWhenUsedWithIncorrectBuildSystemAndConfiguration(
+            buildData: buildData,
+            action: action,
+        )
+    }
+
+
+    private func __testImplementationStripProductsGeneratedErrorWhenUsedWithIncorrectBuildSystemAndConfiguration(
+        buildData: BuildData,
+        action: String,
+    ) async throws {
+        let buildSystem = buildData.buildSystem
+        let config = buildData.config
+
+        let argumentUT = "--\(action)-experimental-strip-products"
+
+        try await fixture(name: "ValidLayouts/SingleModule/Library") { fixturePath in
+
+            await expectThrowsCommandExecutionError(
+                try await executeSwiftBuild(
+                    fixturePath,
+                    configuration: config,
+                    extraArgs: [
+                        argumentUT,
+                    ],
+                    buildSystem: buildSystem,
+                )
+            ) { error in
+                let diag = Basics.Diagnostic.unsupportedStripProductsConfigurationFlag(
+                    isEnabled: action.lowercased() == "enable",
+                    with: buildSystem,
+                )
+                #expect(error.stderr.contains("\(diag.severity): \(diag.message)"))
+            }
+        }
+    }
+
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.ShowBinPath,
+        ),
+        buildDataUsingAllBuildSystemWithTags.tags,
+        arguments: buildDataUsingAllBuildSystemWithTags.buildData,
+    )
+    func binSymlink(
+        buildData: BuildData,
+    ) async throws {
+        let buildSystem = buildData.buildSystem
+        let configuration = buildData.config
+        // Test is not implemented for Xcode build system
+        try await fixture(name: "ValidLayouts/SingleModule/ExecutableNew") { fixturePath in
+            try await withTemporaryDirectory { tempDir in
+                let scratchPath = tempDir.appending("build")
+                let fullPath = try resolveSymlinks(fixturePath)
+                let originalSymlink = scratchPath.appending("\(configuration)")
+                let commonBuildArgs = [
+                    "--scratch-path",
+                    scratchPath.pathString,
+                ]
+                let path = try await execute(
+                    [
+                        "--show-bin-path",
+                    ] + commonBuildArgs,
+                    packagePath: fullPath,
+                    configuration: configuration,
+                    buildSystem: buildSystem,
+                ).stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                // The original symlink should not exists
+                expectFileDoesNotExist(at: originalSymlink)
+
+                // Let's build the package
+                try await executeSwiftBuild(
+                    fullPath,
+                    configuration: configuration,
+                    extraArgs: commonBuildArgs,
+                    buildSystem: buildSystem,
+                )
+
+                try expectSymlink(originalSymlink, pointsTo: AbsolutePath(path))
+            }
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.Help,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func seeAlso(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let stdout = try await execute(
+            ["--help"],
+            configuration: .debug,
+            buildSystem: buildSystem,
+        ).stdout
+        #expect(stdout.contains("SEE ALSO: swift run, swift package, swift test"))
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.Help,
+        ),
+
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func commandDoesNotEmitDuplicateSymbols(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let duplicateSymbolRegex = try #require(duplicateSymbolRegex)
+        let (stdout, stderr) = try await execute(
+            ["--help"],
+            configuration: .debug,
+            buildSystem: buildSystem,
+        )
+        #expect(!stdout.contains(duplicateSymbolRegex))
+        #expect(!stderr.contains(duplicateSymbolRegex))
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.Version,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func version(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let stdout = try await execute(
+            ["--version"],
+            configuration: .debug,
+            buildSystem: buildSystem,
+        ).stdout
+        let expectedRegex = try Regex(#"Swift Package Manager -( \w+ )?\d+.\d+.\d+(-\w+)?"#)
+        #expect(stdout.contains(expectedRegex))
+    }
+
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.ExplicitTargetDependencyImportCheck,
+        ),
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/9620", relationship: .defect),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func importOfMissedDepWarning(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let configuration = BuildConfiguration.debug
+        try await fixture(name: "Miscellaneous/ImportOfMissingDependency") { path in
+            let fullPath = try resolveSymlinks(path)
+            let error = await #expect(throws: SwiftPMError.self ) {
+                try await build(
+                    [
+                        "--explicit-target-dependency-import-check=warn",
+                        "--build-tests",
+                    ],
+                    packagePath: fullPath,
+                    configuration: configuration,
+                    buildSystem: buildSystem,
+                )
+            }
+
+            guard case SwiftPMError.executionFailure(_, let stdout, let stderr) = try #require(error) else {
+                Issue.record("Incorrect error was raised.")
+                return
+            }
+
+            switch buildSystem {
+                case .native, .swiftbuild:
+                    withKnownIssue("https://github.com/swiftlang/swift-package-manager/issues/9620") {
+                        #expect(
+                            stderr.contains("warning: Target A imports another target (B) in the package without declaring it a dependency."),
+                            "got stdout: \(stdout), stderr: \(stderr)",
+                        )
+                    } when: {
+                        buildSystem == .swiftbuild
+                    }
+                case .xcode:
+                    Issue.record("Test expectation have not been implemented")
+                    break
+            }
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.ExplicitTargetDependencyImportCheck,
+        ),
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/9620", relationship: .defect),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func importOfMissedDepWarningVerifyingErrorFlow(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+        try await fixture(name: "Miscellaneous/ImportOfMissingDependency") { path in
+            let fullPath = try resolveSymlinks(path)
+            let error = await #expect(throws: SwiftPMError.self ) {
+                try await build(
+                    [
+                        "--explicit-target-dependency-import-check=error",
+                        "--build-tests",
+                    ],
+                    packagePath: fullPath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+            }
+            guard case SwiftPMError.executionFailure(_, let stdout, let stderr) = try #require(error) else {
+                Issue.record("Expected error did not occur")
+                return
+            }
+
+            switch buildSystem {
+                case .native, .swiftbuild:
+                    withKnownIssue("https://github.com/swiftlang/swift-package-manager/issues/9620") {
+                        #expect(
+                            stderr.contains("error: Target A imports another target (B) in the package without declaring it a dependency."),
+                            "got stdout: \(stdout), stderr: \(stderr)",
+                        )
+                    } when: {
+                        buildSystem == .swiftbuild
+                    }
+                case .xcode:
+                    Issue.record("Test expectatation have not been implemented.")
+            }
+        }
+    }
+
+    @Test(
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/9620", relationship: .defect),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func importOfMissedDepWarningVerifyingDefaultDoesNotRunTheCheck(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+        try await fixture(name: "Miscellaneous/ImportOfMissingDependency") { path in
+            let fullPath = try resolveSymlinks(path)
+            let error = await #expect(throws: SwiftPMError.self ) {
+                try await build(
+                    [
+                        "--build-tests",
+                    ],
+                    packagePath: fullPath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+            }
+            guard case SwiftPMError.executionFailure(_, let stdout, let stderr) = try #require(error) else {
+                Issue.record("Expected error did not occur")
+                return
+            }
+            let mustNotBeMatches: String
+            switch buildSystem {
+                case .native, .swiftbuild:
+                    mustNotBeMatches = "Target A imports another target (B) in the package without declaring it a dependency."
+                case .xcode:
+                    mustNotBeMatches = "make compiler happy"
+                    Issue.record("Test expectation has not been implemented")
+            }
+            #expect(!stderr.contains(mustNotBeMatches))
+            #expect(!stdout.contains(mustNotBeMatches))
+        }
+    }
+
+    @Test(
+        .tags(
+              .Feature.Command.Build,
+              .Feature.TargetType.Executable
+        ),
+        buildDataUsingAllBuildSystemWithTags.tags,
+        arguments: buildDataUsingAllBuildSystemWithTags.buildData,
+    )
+    func buildExistingExecutableProductIsSuccessfull(
+        data: BuildData,
+    ) async throws {
+            try await fixture(name: "Miscellaneous/MultipleExecutables") { fixturePath in
+                let fullPath = try resolveSymlinks(fixturePath)
+
+                let result = try await build(
+                    ["--product", "exec1"],
+                    packagePath: fullPath,
+                    configuration: data.config,
+                    buildSystem: data.buildSystem,
+                )
+                #expect(result.binContents.contains(executableName("exec1")))
+                #expect(!result.binContents.contains("exec2.build"))
+            }
+    }
+
+    @Test(
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/9137", relationship: .defect),
+        .IssueWindowsCannotSaveAttachment,
+        .tags(
+            .Feature.CommandLineArguments.Product,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildExistingLibraryProductIsSuccessfull(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+            try await fixture(name: "Miscellaneous/MultipleExecutables") { fixturePath in
+                let fullPath = try resolveSymlinks(fixturePath)
+
+                let (_, stderr) = try await execute(
+                    ["--product", "lib1"],
+                    packagePath: fullPath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+                switch buildSystem {
+                    case .native:
+                            #expect(
+                                stderr.contains(
+                                    "'--product' cannot be used with the automatic product 'lib1'; building the default target instead"
+                                )
+                            )
+                    case .swiftbuild, .xcode:
+                        // Do nothing.
+                        break
+                }
+            }
+    }
+
+    @Test(
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/9138", relationship: .verifies),
+        .tags(
+            .Feature.CommandLineArguments.Target,
+        ),
+        buildDataUsingAllBuildSystemWithTags.tags,
+        arguments: buildDataUsingAllBuildSystemWithTags.buildData,
+    )
+    func buildExistingTargetIsSuccessfull(
+        data: BuildData,
+    ) async throws {
+        let buildSystem = data.buildSystem
+        try await fixture(name: "Miscellaneous/MultipleExecutables") { fixturePath in
+            let fullPath = try resolveSymlinks(fixturePath)
+
+            let result = try await build(
+                ["--target", "exec2"],
+                packagePath: fullPath,
+                configuration: data.config,
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(result.binContents.contains("exec2.build"))
+                #expect(!result.binContents.contains("exec1.build"))
+            case .swiftbuild, .xcode:
+                #expect(result.binContents.contains(executableName("exec2")))
+                #expect(!result.binContents.contains(executableName("exec1")))
+            }
+
+            await expectThrowsCommandExecutionError(
+                try await build(
+                    ["--target", "notarealtarget"],
+                    packagePath: fullPath,
+                    configuration: data.config,
+                    buildSystem: buildSystem,
+                )
+            ) { error in
+                #expect(error.stderr.contains("Could not find target named 'notarealtarget'") ||
+                        error.stderr.contains("no target named 'notarealtarget'"))
+            }
+        }
+    }
+
+    @Test(
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/10275", relationship: .verifies),
+        .tags(
+            .Feature.CommandLineArguments.Target,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildExistingTestTargetIsSuccessful(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/EmptyTestsPkg") { fixturePath in
+            let fullPath = try resolveSymlinks(fixturePath)
+            _ = try await execute(
+                ["--target", "EmptyTestsPkgTests"],
+                packagePath: fullPath,
+                configuration: .debug,
+                buildSystem: buildSystem,
+            )
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.Product,
+            .Feature.CommandLineArguments.Target,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildProductAndTargetsFailsWithAMutuallyExclusiveMessage(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+        try await fixture(name: "Miscellaneous/MultipleExecutables") { fixturePath in
+            let error = await #expect(throws: SwiftPMError.self ) {
+                try await execute(
+                    ["--product", "exec1", "--target", "exec2"],
+                    packagePath: fixturePath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+            }
+            // THEN I expect a failure
+            guard case SwiftPMError.executionFailure(_, _, let stderr) = try #require(error) else {
+                Issue.record("Incorrect error was raised.")
+                return
+            }
+            #expect(stderr.contains("error: '--product' and '--target' are mutually exclusive"))
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.BuildTests,
+            .Feature.CommandLineArguments.Product,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildProductAndTestsFailsWithAMutuallyExclusiveMessage(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+
+        try await fixture(name: "Miscellaneous/MultipleExecutables") { fixturePath in
+            let error = await #expect(throws: SwiftPMError.self ) {
+                try await execute(
+                    ["--product", "exec1", "--build-tests"],
+                    packagePath: fixturePath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+            }
+            // THEN I expect a failure
+            guard case SwiftPMError.executionFailure(_, _, let stderr) = try #require(error) else {
+                Issue.record("Incorrect error was raised.")
+                return
+            }
+            #expect(stderr.contains("error: '--product' and '--build-tests' are mutually exclusive"))
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.BuildTests,
+            .Feature.CommandLineArguments.Target,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildTargetAndTestsFailsWithAMutuallyExclusiveMessage(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+        try await fixture(name: "Miscellaneous/MultipleExecutables") { fixturePath in
+            let error = await #expect(throws: SwiftPMError.self ) {
+                try await execute(
+                    ["--build-tests", "--target", "exec2"],
+                    packagePath: fixturePath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+            }
+            // THEN I expect a failure
+            guard case SwiftPMError.executionFailure(_, _, let stderr) = try #require(error) else {
+                Issue.record("Incorrect error was raised.")
+                return
+            }
+            #expect(stderr.contains("error: '--target' and '--build-tests' are mutually exclusive"))
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.BuildTests,
+            .Feature.CommandLineArguments.Product,
+            .Feature.CommandLineArguments.Target,
+        ),
+        arguments: getBuildData(for: SupportedBuildSystemOnAllPlatforms),
+    )
+    func buildProductTargetAndTestsFailsWithAMutuallyExclusiveMessage(
+        data: BuildData,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/MultipleExecutables") { fixturePath in
+            let error = await #expect(throws: SwiftPMError.self ) {
+                try await execute(
+                    ["--build-tests", "--target", "exec2", "--product", "exec1"],
+                    packagePath: fixturePath,
+                    configuration: data.config,
+                    buildSystem: data.buildSystem,
+                )
+            }
+            // THEN I expect a failure
+            guard case SwiftPMError.executionFailure(_, _, let stderr) = try #require(error) else {
+                Issue.record("Incorrect error was raised.")
+                return
+            }
+            #expect(stderr.contains("error: '--product', '--target', and '--build-tests' are mutually exclusive"), "stout: \(stdout)")
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.Product,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildUnknownProductFailsWithAppropriateMessage(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+        try await fixture(name: "Miscellaneous/MultipleExecutables") { fixturePath in
+            let productName = "UnknownProduct"
+            let error = await #expect(throws: SwiftPMError.self ) {
+                try await execute(
+                    ["--product", productName],
+                    packagePath: fixturePath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+            }
+            // THEN I expect a failure
+            guard case SwiftPMError.executionFailure(_, let stdout, let stderr) = try #require(error) else {
+                Issue.record("Incorrect error was raised.")
+                return
+            }
+
+            switch buildSystem {
+                case .native:
+                    #expect(stderr.contains("error: no product named '\(productName)'"))
+                case .swiftbuild, .xcode:
+                    let expectedErrorMessageRegex = try Regex("error: Could not find target named '\(productName).*'")
+                    #expect(
+                        stderr.contains(expectedErrorMessageRegex),
+                        "expect log not emitted.\nstdout: '\(stdout)'\n\nstderr: '\(stderr)'",
+                    )
+            }
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.Target,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildUnknownTargetFailsWithAppropriateMessage(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+        try await fixture(name: "Miscellaneous/MultipleExecutables") { fixturePath in
+            let targetName = "UnknownTargetName"
+            let error = await #expect(throws: SwiftPMError.self ) {
+                try await execute(
+                    ["--target", targetName],
+                    packagePath: fixturePath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+            }
+            // THEN I expect a failure
+            guard case SwiftPMError.executionFailure(_, let stdout, let stderr) = try #require(error) else {
+                Issue.record("Incorrect error was raised.")
+                return
+            }
+            let expectedErrorMessage: String
+            switch buildSystem {
+                case .native:
+                    expectedErrorMessage = "error: no target named '\(targetName)'"
+                case .swiftbuild, .xcode:
+                    expectedErrorMessage = "error: Could not find target named '\(targetName)'"
+            }
+            #expect(
+                stderr.contains(expectedErrorMessage),
+                "expect log not emitted.\nstdout: '\(stdout)'\n\nstderr: '\(stderr)'",
+            )
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.Product,
+        ),
+        buildDataUsingAllBuildSystemWithTags.tags,
+        arguments: buildDataUsingAllBuildSystemWithTags.buildData, ["ClangExecSingleFile", "SwiftExecSingleFile", "SwiftExecMultiFile"],
+    )
+    func atMainSupport(
+        data: BuildData,
+        executable: String,
+    ) async throws {
+        let buildSystem = data.buildSystem
+        let config = data.config
+        try await withKnownIssue(
+            "SWBINTTODO: File not found or missing libclang errors on windows platforms. This needs to be investigated",
+            isIntermittent: true,
+        ) {
+            try await fixture(name: "Miscellaneous/AtMainSupport") { fixturePath in
+                let fullPath = try resolveSymlinks(fixturePath)
+                let result = try await build(
+                    ["--product", executable],
+                    packagePath: fullPath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+                #expect(result.binContents.contains(executableName(executable)))
+            }
+        } when: {
+            ProcessInfo.hostOperatingSystem == .windows  && buildSystem == .swiftbuild
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func nonReachableProductsAndTargetsFunctional(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+        try await fixture(name: "Miscellaneous/UnreachableTargets", createGitRepo: true) { fixturePath in
+            let aPath = fixturePath.appending("A")
+
+            let result = try await build(
+                [],
+                packagePath: aPath,
+                configuration: config,
+                buildSystem: buildSystem,
+            )
+            #expect(!result.binContents.contains("bexec"))
+            #expect(!result.binContents.contains("BTarget2.build"))
+            #expect(!result.binContents.contains("cexec"))
+            #expect(!result.binContents.contains("CTarget.build"))
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.Product,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func nonReachableProductsAndTargetsFunctionalWhereDependencyContainsADependentProducts(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+            try await fixture(name: "Miscellaneous/UnreachableTargets", createGitRepo: true) { fixturePath in
+                let aPath = fixturePath.appending("A")
+
+                // Dependency contains a dependent product
+
+                let result = try await build(
+                    ["--product", "bexec"],
+                    packagePath: aPath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+                switch buildSystem {
+                    case .native:
+                    #expect(result.binContents.contains("BTarget2.build"))
+                    case .swiftbuild, .xcode:
+                    break
+                }
+                #expect(result.binContents.contains(executableName("bexec")))
+                #expect(!result.binContents.contains(executableName("aexec")))
+                #expect(!result.binContents.contains("ATarget.build"))
+                #expect(!result.binContents.contains("BLibrary.a"))
+
+
+                #expect(!result.binContents.contains("cexec"))
+                switch buildSystem {
+                    case .native:
+                    // FIXME: We create the modulemap during build planning, hence this ugliness.
+                    let bTargetBuildDir =
+                    ((try? localFileSystem.getDirectoryContents(result.binPath.appending("BTarget1.build"))) ?? [])
+                        .filter { $0 != moduleMapFilename }
+                    #expect(bTargetBuildDir.isEmpty, "bTargetBuildDir should be empty")
+                    #expect(result.binContents.contains("BTarget2.build"))
+                    case .swiftbuild, .xcode:
+                    break
+                }
+                #expect(!result.binContents.contains("CTarget.build"))
+
+                // Also make sure we didn't emit parseable module interfaces
+                // (do this here to avoid doing a second build in
+                // testParseableInterfaces().
+                #expect(!result.moduleContents.contains("ATarget.swiftinterface"))
+                #expect(!result.moduleContents.contains("BTarget.swiftinterface"))
+                #expect(!result.moduleContents.contains("CTarget.swiftinterface"))
+            }
+    }
+
+    @Test(
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/9324", relationship: .verifies),
+        .tags(
+            .Feature.CommandLineArguments.EnableParseableModuleInterfaces,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func parseableInterfaces(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+        try await fixture(name: "Miscellaneous/ParseableInterfaces") { fixturePath in
+                let result = try await build(
+                    ["--enable-parseable-module-interfaces"],
+                    packagePath: fixturePath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+                switch buildSystem {
+                    case .native:
+                        #expect(result.moduleContents.contains("A.swiftinterface"))
+                        #expect(result.moduleContents.contains("B.swiftinterface"))
+                    case .swiftbuild, .xcode:
+                        let moduleARegex = try Regex(#"A[.]swiftmodule[/].*[.]swiftinterface"#)
+                        let moduleBRegex = try Regex(#"B[.]swiftmodule[/].*[.]swiftmodule"#)
+                        #expect(result.moduleContents.contains { $0.contains(moduleARegex) })
+                        #expect(result.moduleContents.contains { $0.contains(moduleBRegex) })
+                }
+        }
+    }
+
+    @Test(
+        .tags(
+            .FunctionalArea.LibraryEvoluton,
+            .Feature.CommandLineArguments.Product,
+            .Feature.CommandLineArguments.BuildTests,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func automaticParseableInterfacesWithLibraryEvolution(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+            try await fixture(name: "Miscellaneous/LibraryEvolution") { fixturePath in
+                let result = try await build(
+                    [],
+                    packagePath: fixturePath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+                switch buildSystem {
+                    case .native:
+                        #expect(result.moduleContents.contains("A.swiftinterface"))
+                        #expect(result.moduleContents.contains("B.swiftinterface"))
+                    case .swiftbuild:
+                        let moduleARegex = try Regex(#"A[.]swiftmodule[/].*[.]swiftmodule"#)
+                        let moduleBRegex = try Regex(#"B[.]swiftmodule[/].*[.]swiftmodule"#)
+                        #expect(result.moduleContents.contains { $0.contains(moduleARegex) })
+                        #expect(result.moduleContents.contains { $0.contains(moduleBRegex) })
+                    case .xcode:
+                        Issue.record("Test configuration error. Build backend is not intended to be tested.")
+                }
+            }
+    }
+
+    @Test
+    func pifManifestFileIsCreatedInTheRootScratchPathDirectory() async throws {
+        try await fixture(name: "Miscellaneous/ParseableInterfaces") { fixturePath in
+            try await withTemporaryDirectory { tmpDir in
+                try await executeSwiftBuild(
+                    fixturePath,
+                    extraArgs: [
+                        "--scratch-path",
+                        tmpDir.pathString,
+                    ],
+                    buildSystem: .swiftbuild
+                )
+                expectFileExists(at: tmpDir.appending("manifest.pif"))
+            }
+        }
+    }
+
+    @Test(
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/10285", relationship: .verifies)
+    )
+    func docCBundleDoesNotEmitUnhandledFilesWarning() async throws {
+        try await fixture(name: "Miscellaneous/LibraryWithDocC") { fixturePath in
+            let (_, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                buildSystem: .swiftbuild
+            )
+
+            #expect(
+                stderr.contains("Documentation.docc") == false,
+                "Unexpected warning for the DocC bundle: \(stderr)"
+            )
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.BuildCache,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildCompleteMessage(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+            try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+                let buildCompleteRegex = try Regex(#"Build complete!\s?(\([0-9]*\.[0-9]*\s*s(econds)?\))?"#)
+                do {
+                    let result = try await execute(
+                        packagePath: fixturePath,
+                        configuration: config,
+                        buildSystem: buildSystem,
+                    )
+                    // This test fails to match the 'Compiling' regex; rdar://101815761
+                    // XCTAssertMatch(result.stdout, .regex("\\[[1-9][0-9]*\\/[1-9][0-9]*\\] Compiling"))
+                    let lines = result.stdout.split(whereSeparator: { $0.isNewline })
+                    let lastLine = try #require(lines.last)
+                    #expect(lastLine.contains(buildCompleteRegex))
+                }
+
+                do {
+                    // test second time, to stabilize the cache
+                    try await execute(
+                        packagePath: fixturePath,
+                        configuration: config,
+                        buildSystem: buildSystem,
+                    )
+                }
+
+                do {
+                    // test third time, to make sure message is presented even when nothing to build (cached)
+                    let result = try await execute(
+                        packagePath: fixturePath,
+                        configuration: config,
+                        buildSystem: buildSystem,
+                    )
+                    // This test fails to match the 'Compiling' regex; rdar://101815761
+                    // XCTAssertNoMatch(result.stdout, .regex("\\[[1-9][0-9]*\\/[1-9][0-9]*\\] Compiling"))
+                    let lines = result.stdout.split(whereSeparator: { $0.isNewline })
+                    let lastLine = try #require(lines.last)
+                    #expect(lastLine.contains(buildCompleteRegex))
+                }
+            }
+    }
+
+    @Test(
+        buildDataUsingAllBuildSystemWithTags.tags,
+        arguments: buildDataUsingAllBuildSystemWithTags.buildData,
+    )
+    func buildStartMessage(
+        data: BuildData,
+    ) async throws {
+        let buildSystem = data.buildSystem
+        let configuration =  data.config
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let result = try await execute([], packagePath: fixturePath, configuration: configuration, buildSystem: buildSystem, throwIfCommandFails: false)
+            switch buildSystem {
+                case .native, .swiftbuild:
+                    #expect(
+                        result.stdout.contains("Building for \(configuration.buildFor)"),
+                        "expect log not emitted.  got stdout: '\(result.stdout)'\n\nstderr '\(result.stderr)'",
+                    )
+                case .xcode:
+                    // Xcode build system does not emit the build started message.
+                    break
+            }
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildSystemDefaultSettings(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+            try await fixture(name: "ValidLayouts/SingleModule/ExecutableNew") { fixturePath in
+                // try await building using XCBuild with default parameters.  This should succeed.  We build verbosely so we get
+                // full command lines.
+                    let output: (stdout: String, stderr: String) = try await execute(
+                        ["-v"],
+                        packagePath: fixturePath,
+                        configuration: config,
+                        buildSystem: buildSystem,
+                    )
+
+    #if os(macOS)
+                // In the case of the native build system check for the cross-compile target, only for macOS
+                if buildSystem == .native {
+                    let targetTripleString = try UserToolchain.default.targetTriple.tripleString(forPlatformVersion: "")
+                    #expect(output.stdout.contains("-target \(targetTripleString)"))
+                }
+    #endif
+
+                // Look for build completion message from the particular build system
+                #expect(output.stdout.contains("Build complete!"))
+            }
+    }
+
+    @Test(
+        .disabled("Disabled for now because it is hitting 'IR generation failure: Cannot read legacy layout file' in CI (rdar://88828632)"),
+        .tags(
+            .Feature.CommandLineArguments.BuildSystem,
+            .Feature.CommandLineArguments.Configuration,
+        ),
+        .tags(
+            .Feature.CommandLineArguments.VeryVerbose,
+            .Feature.CommandLineArguments.Xlinker,
+            .Feature.CommandLineArguments.Xcc,
+            .Feature.CommandLineArguments.Xcxx,
+            .Feature.CommandLineArguments.Xswiftc,
+        ),
+        arguments: [BuildSystemProvider.Kind.swiftbuild, .xcode],
+    )
+    func xcodeBuildSystemWithAdditionalBuildFlags(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let configuration = BuildConfiguration.debug
+        try await fixture(name: "ValidLayouts/SingleModule/ExecutableMixed") { fixturePath in
+            // try await building using XCBuild with additional flags.  This should succeed.  We build verbosely so we get
+            // full command lines.
+            let defaultOutput = try await execute(
+                [
+                    "--very-verbose",
+                    "-Xlinker", "-rpath", "-Xlinker", "/fakerpath",
+                    "-Xcc", "-I/cfakepath",
+                    "-Xcxx", "-I/cxxfakepath",
+                    "-Xswiftc", "-I/swiftfakepath",
+                ],
+                packagePath: fixturePath,
+                configuration: configuration,
+                buildSystem: buildSystem,
+            ).stdout
+
+            // Look for certain things in the output from XCBuild.
+            #expect(defaultOutput.contains("/fakerpath"))
+            #expect(defaultOutput.contains("-I/cfakepath"))
+            #expect(defaultOutput.contains("-I/cxxfakepath"))
+            #expect(defaultOutput.contains("-I/swiftfakepath"))
+        }
+    }
+
+    @Test(
+        .requireHostOS(.macOS),
+        .tags(
+            .Feature.CommandLineArguments.BuildSystem,
+            .Feature.CommandLineArguments.Configuration,
+        ),
+        .tags(
+            .Feature.EnvironmentVariables.SWIFT_EXEC,
+            .Feature.EnvironmentVariables.SWIFT_EXEC_MANIFEST,
+        ),
+    )
+    func buildSystemOverrides() async throws {
+        let config = BuildConfiguration.debug
+        let buildSystem = BuildSystemProvider.Kind.swiftbuild
+        try await fixture(name: "ValidLayouts/SingleModule/ExecutableNew") { fixturePath in
+            let swiftCompilerPath = try UserToolchain.default.swiftCompilerPath
+            // try await building without specifying overrides.  This should succeed, and should use the default
+            // compiler path.
+            let defaultOutput = try await execute(
+                ["--vv"],
+                packagePath: fixturePath,
+                configuration: config,
+                buildSystem: buildSystem,
+            ).stdout
+            #expect(defaultOutput.contains(swiftCompilerPath.pathString))
+
+            // Now try await building while specifying a faulty compiler override.  This should fail.  Note that
+            // we need to set the executable to use for the manifest itself to the default one, since it defaults to
+            // SWIFT_EXEC if not provided.
+            let error = await #expect(throws: SwiftPMError.self ) {
+                try await execute(
+                    ["--vv"],
+                    environment: [
+                        "SWIFT_EXEC": "/usr/bin/false",
+                        "SWIFT_EXEC_MANIFEST": swiftCompilerPath.pathString,
+                    ],
+                    packagePath: fixturePath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+            }
+            // THEN I expect a failure
+            guard case SwiftPMError.executionFailure(_, _, let stderr) = try #require(error) else {
+                Issue.record("Incorrect error was raised.")
+                return
+            }
+            #expect(stderr.contains("/usr/bin/false"))
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.PrintManifestJobGraph,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func printLLBuildManifestJobGraph(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let configuration = BuildConfiguration.debug
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let output = try await execute(
+                ["--print-manifest-job-graph"],
+                packagePath: fixturePath,
+                configuration: configuration,
+                buildSystem: buildSystem,
+            ).stdout
+            #expect(output.hasPrefix("digraph Jobs {"))
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.PrintPIFManifestGraph,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func printPIFManifestGraph(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let configuration = BuildConfiguration.debug
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let output = try await execute(
+                ["--print-pif-manifest-graph"],
+                packagePath: fixturePath,
+                configuration: configuration,
+                buildSystem: buildSystem,
+            ).stdout
+            switch buildSystem {
+                case .native, .xcode:
+                    #expect(!output.hasPrefix("digraph PIF {"))
+                case .swiftbuild:
+                    #expect(output.hasPrefix("digraph PIF {"))
+            }
+        }
+    }
+
+    @Test(
+        .SWBINTTODO("Swift build produces an error building the fixture for this test."),
+        .tags(
+            .Feature.CommandLineArguments.Xswiftc,
+        ),
+        .tags(
+            .Feature.CommandLineArguments.BuildSystem,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func swiftDriverRawOutputGetsNewlines(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+         try await withKnownIssue(
+            "error produced for this fixture",
+            isIntermittent: true,
+        ) {
+            try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+                // Building with `-wmo` should result in a `remark: Incremental compilation has been disabled: it is not
+                // compatible with whole module optimization` message, which should have a trailing newline.  Since that
+                // message won't be there at all when the legacy compiler driver is used, we gate this check on whether the
+                // remark is there in the first place.
+                let result = try await execute(
+                    ["-Xswiftc", "-wmo"],
+                    packagePath: fixturePath,
+                    configuration: .release,
+                    buildSystem: buildSystem,
+                )
+                if result.stdout.contains(
+                    "remark: Incremental compilation has been disabled: it is not compatible with whole module optimization"
+                ) {
+                    #expect(result.stdout.contains("optimization\n"))
+                    #expect(!result.stdout.contains("optimization["))
+                    #expect(!result.stdout.contains("optimizationremark"))
+                }
+            }
+        } when: {
+            ProcessInfo.hostOperatingSystem == .windows && buildSystem == .swiftbuild
+        }
+    }
+
+    @Test(
+        .bug("https://github.com/swiftlang/swift-package-manager/issues/8659", "SWIFT_EXEC override is not working"),
+        .SWBINTTODO("Test fails because the dummy-swiftc used in the test isn't accepted by swift-build. This needs to be investigated"),
+        .tags(
+            .Feature.EnvironmentVariables.SWIFT_EXEC,
+            .Feature.EnvironmentVariables.SWIFT_ORIGINAL_PATH,
+            .Feature.EnvironmentVariables.CUSTOM_SWIFT_VERSION,
+            .Feature.CommandLineArguments.Verbose,
+        ),
+        arguments: BuildConfiguration.allCases,
+    )
+    func swiftGetVersion(
+        config: BuildConfiguration,
+    ) async throws {
+        let buildSystem = BuildSystemProvider.Kind.native
+        try await fixture(name: "Miscellaneous/Simple") { fixturePath in
+            func findSwiftGetVersionFile() throws -> AbsolutePath {
+                let buildArenaPath = fixturePath.appending(components: ".build", "debug")
+                let files = try localFileSystem.getDirectoryContents(buildArenaPath)
+                let filename = try #require(files.first { $0.hasPrefix("swift-version") })
+                return buildArenaPath.appending(component: filename)
+            }
+            let dummySwiftcPath = SwiftPM.xctestBinaryPath(for: "dummy-swiftc")
+            let swiftCompilerPath = try UserToolchain.default.swiftCompilerPath
+
+            var environment: Environment = [
+                "SWIFT_EXEC": dummySwiftcPath.pathString,
+                // Environment variables used by `dummy-swiftc.sh`
+                "SWIFT_ORIGINAL_PATH": swiftCompilerPath.pathString,
+                "CUSTOM_SWIFT_VERSION": "1.0",
+            ]
+
+            try await withKnownIssue(
+                "https://github.com/swiftlang/swift-package-manager/issues/8659, SWIFT_EXEC override is not working",
+                isIntermittent: true
+            ){
+                // Build with a swiftc that returns version 1.0, we expect a successful build which compiles our one source
+                // file.
+                do {
+                    let result = try await execute(
+                        ["--verbose"],
+                        environment: environment,
+                        packagePath: fixturePath,
+                        configuration: config,
+                        buildSystem: buildSystem,
+                    )
+                    #expect(
+                        result.stdout.contains("\(dummySwiftcPath.pathString) -module-name"),
+                        "compilation task missing from build result: \(result.stdout)",
+                    )
+                    #expect(
+                        result.stdout.contains("Build complete!"),
+                        "unexpected build result: \(result.stdout)",
+                    )
+
+                    let swiftGetVersionFilePath = try findSwiftGetVersionFile()
+                    let actualVersion = try String(contentsOfFile: swiftGetVersionFilePath.pathString).spm_chomp()
+                    #expect(actualVersion == "1.0")
+                }
+
+                // Build again with that same version, we do not expect any compilation tasks.
+                do {
+                    let result = try await execute(
+                        ["--verbose"],
+                        environment: environment,
+                        packagePath: fixturePath,
+                        configuration: config,
+                        buildSystem: buildSystem,
+                    )
+                    #expect(
+                        !result.stdout.contains("\(dummySwiftcPath.pathString) -module-name"),
+                        "compilation task present in build result: \(result.stdout)",
+                    )
+                    #expect(
+                        result.stdout.contains("Build complete!"),
+                        "unexpected build result: \(result.stdout)",
+                    )
+
+                    let swiftGetVersionFilePath = try findSwiftGetVersionFile()
+                    let actualVersion = try String(contentsOfFile: swiftGetVersionFilePath.pathString).spm_chomp()
+                    #expect(actualVersion == "1.0")
+                }
+
+                // Build again with a swiftc that returns version 2.0, we expect compilation happening once more.
+                do {
+                    environment["CUSTOM_SWIFT_VERSION"] = "2.0"
+                    let result = try await execute(
+                        ["--verbose"],
+                        environment: environment,
+                        packagePath: fixturePath,
+                        configuration: config,
+                        buildSystem: buildSystem,
+                    )
+                    #expect(
+                        result.stdout.contains("\(dummySwiftcPath.pathString) -module-name"),
+                        "compilation task missing from build result: \(result.stdout)",
+                    )
+                    #expect(
+                        result.stdout.contains("Build complete!"),
+                        "unexpected build result: \(result.stdout)",
+                    )
+
+                    let swiftGetVersionFilePath = try findSwiftGetVersionFile()
+                    let actualVersion = try String(contentsOfFile: swiftGetVersionFilePath.pathString).spm_chomp()
+                    #expect(actualVersion == "2.0")
+                }
+            } when: {
+                (ProcessInfo.hostOperatingSystem == .windows)
+                || (buildSystem == .native && config == .release)
+            }
+        }
+    }
+
+    @Test(
+        // Windows builds of ExecutableNew using swiftbuild can fail because of problem with handling long paths which
+        // is root cause of linked issue
+        .IssueWindowsPathNoEntry,
+        .tags(
+            .Feature.CommandLineArguments.DisableGetTaskAllowEntitlement,
+            .Feature.CommandLineArguments.EnableGetTaskAllowEntitlement,
+            .Feature.CommandLineArguments.Verbose
+        ),
+        .tags(
+            .Feature.CommandLineArguments.BuildSystem
+        ),
+        arguments: getBuildData(for: SupportedBuildSystemOnAllPlatforms),
+    )
+    func getTaskAllowEntitlement(data: BuildData) async throws {
+        let buildSystem = data.buildSystem
+        let buildConfiguration = data.config
+        try await fixture(name: "ValidLayouts/SingleModule/ExecutableNew") { fixturePath in
+            #if os(macOS)
+            func codesignDisplay(execPath: AbsolutePath) async throws -> PropertyListItem? {
+                let args = ["codesign", "-d", "--entitlements", "-", "--xml", execPath.pathString]
+                let result = try await AsyncProcess.popen(arguments: args)
+                return if case .success(let output) = result.output,
+                          !output.isEmpty
+                {
+                    try PropertyList.fromBytes(output)
+                } else {
+                    nil
+                }
+            }
+
+            enum EntitlementCheckType {
+                case required, forbidden
+            }
+
+            func verify(entitlements: PropertyListItem?, getTaskAllow: EntitlementCheckType) {
+                guard let entitlements, case .plDict(let dict) = entitlements else {
+                    if getTaskAllow == .required {
+                        Issue.record("Missing expected entitlements")
+                    }
+                    return
+                }
+
+                switch getTaskAllow {
+                case .required:
+                    #expect(dict["com.apple.security.get-task-allow"] == .plBool(true))
+                case .forbidden:
+                    #expect(dict["com.apple.security.get-task-allow"] == nil)
+                }
+            }
+
+            let execName = "ExecutableNew"
+
+            var buildResult = try await build(
+                ["-v"],
+                packagePath: fixturePath,
+                configuration: buildConfiguration,
+                cleanAfterward: false,
+                buildSystem: buildSystem
+            )
+            var entitlements = try await codesignDisplay(execPath: buildResult.binPath.appending(execName))
+
+            verify(
+                entitlements: entitlements,
+                getTaskAllow:
+                buildConfiguration == .debug ? .required : .forbidden
+            )
+
+            try await executeSwiftPackage(fixturePath, extraArgs: ["clean"], buildSystem: buildSystem)
+
+            buildResult = try await build(
+                ["--enable-get-task-allow-entitlement"],
+                packagePath: fixturePath,
+                configuration: buildConfiguration,
+                cleanAfterward: false,
+                buildSystem: buildSystem
+            )
+            entitlements = try await codesignDisplay(execPath: buildResult.binPath.appending(execName))
+
+            verify(entitlements: entitlements, getTaskAllow: .required)
+
+            try await executeSwiftPackage(fixturePath, extraArgs: ["clean"], buildSystem: buildSystem)
+
+            buildResult = try await build(
+                ["--disable-get-task-allow-entitlement"],
+                packagePath: fixturePath,
+                configuration: buildConfiguration,
+                cleanAfterward: false,
+                buildSystem: buildSystem
+            )
+            entitlements = try await codesignDisplay(execPath: buildResult.binPath.appending(execName))
+
+            verify(entitlements: entitlements, getTaskAllow: .forbidden)
+            #else
+            try await withKnownIssue(isIntermittent: true) {
+                var buildResult = try await build(
+                    ["-v"],
+                    packagePath: fixturePath,
+                    configuration: buildConfiguration,
+                    buildSystem: buildSystem
+                )
+
+                #expect(!buildResult.stdout.contains("codesign --force --sign - --entitlements"))
+
+                buildResult = try await build(
+                    ["--disable-get-task-allow-entitlement", "-v"],
+                    packagePath: fixturePath,
+                    configuration: buildConfiguration,
+                    buildSystem: buildSystem
+                )
+
+                #expect(!buildResult.stdout.contains("codesign --force --sign - --entitlements"))
+                #expect(buildResult.stderr.contains(SwiftCommandState.entitlementsMacOSWarning))
+
+                buildResult = try await build(
+                    ["--enable-get-task-allow-entitlement", "-v"],
+                    packagePath: fixturePath,
+                    configuration: buildConfiguration,
+                    buildSystem: buildSystem
+                )
+
+                #expect(!buildResult.stdout.contains("codesign --force --sign - --entitlements"))
+                #expect(buildResult.stderr.contains(SwiftCommandState.entitlementsMacOSWarning))
+            } when: {
+                buildSystem == .swiftbuild && ProcessInfo.hostOperatingSystem == .windows
+            }
+            #endif
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CodeCoverage,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms, [
+            (
+                argument: "--disable-code-coverage",
+                shouldEmitWarning: true,
+            ),
+            (
+                argument: "--enable-code-coverage",
+                shouldEmitWarning: true,
+            ),
+            (
+                argument: "--enable-coverage",
+                shouldEmitWarning: false,
+            ),
+        ]
+    )
+    func deprecationWarningIsEmitted(
+        buildSystem: BuildSystemProvider.Kind,
+        testData: (argument: String, shouldEmitWarning: Bool),
+    ) async throws {
+        let configuration = BuildConfiguration.debug
+        try await fixture(name: "ValidLayouts/SingleModule/ExecutableNew") { fixturePath in
+            let (out, err)  = try await executeSwiftBuild(
+                fixturePath,
+                configuration: configuration,
+                extraArgs: [
+                    "--show-bin-path", // we don't care about the buildgit
+                    testData.argument,
+                ],
+                buildSystem: buildSystem,
+            )
+
+            let diagnosticMessage = "\(Basics.Diagnostic.deprecatedEnableDisableCoverage.severity): \(Basics.Diagnostic.deprecatedEnableDisableCoverage.message)"
+            #expect(
+                err.contains(diagnosticMessage) == testData.shouldEmitWarning,
+                "expected diagnostic message >>> \(diagnosticMessage)\n\nstdout: \(out)\n\nstderr: \(err)"
+            )
+        }
+    }
+
+    @Test(
+        .requireHostOS(.linux),
+        .SWBINTTODO("Swift build doesn't currently ignore Linux main when linking on Linux. This needs further investigation."),
+        .tags(
+            .Feature.CommandLineArguments.BuildTests,
+            .Feature.CommandLineArguments.EnableTestDiscovery,
+            .Feature.CommandLineArguments.Verbose,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func ignoresLinuxMain(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let configuration = BuildConfiguration.debug
+        try await fixture(name: "Miscellaneous/TestDiscovery/IgnoresLinuxMain") { fixturePath in
+            let buildResult = try await build(
+                ["-v", "--build-tests", "--enable-test-discovery"],
+                packagePath: fixturePath,
+                configuration: configuration,
+                cleanAfterward: false,
+                buildSystem: buildSystem,
+            )
+            let testBinaryPath = buildResult.binPath.appending("IgnoresLinuxMainPackageTests.xctest")
+
+            switch buildSystem {
+                case .native:
+                    expectFileExists(at: testBinaryPath)
+                    _ = try await AsyncProcess.checkNonZeroExit(arguments: [testBinaryPath.pathString])
+                case .swiftbuild:
+                    // there are no additional check
+                    break
+                case .xcode:
+                    Issue.record("Test expectations have not been implemented.")
+            }
+        }
+    }
+
+    @Test(
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/9299", relationship: .defect),
+        .tags(
+            .Feature.CommandLineArguments.Verbose,
+            .Feature.CommandLineArguments.VeryVerbose,
+            .Feature.CommandLineArguments.Xswiftc,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms, [
+            ["--verbose"],
+            ["--very-verbose"],
+            ["-Xswiftc", "-diagnostic-style=llvm"],
+        ]
+    )
+    func doesNotRebuildWithFlags(
+        buildSystem: BuildSystemProvider.Kind,
+        flags: [String],
+    ) async throws {
+        func mainObjectFile(in binPath: AbsolutePath, buildSystem: BuildSystemProvider.Kind) -> AbsolutePath {
+            switch buildSystem {
+                case .xcode, .swiftbuild:
+                    return binPath.appending("ExecutableNew")
+                case .native:
+                    return binPath.appending("ExecutableNew.build")
+                        .appending("main.swift.o")
+            }
+        }
+
+        let config = BuildConfiguration.debug
+        try await withKnownIssue(
+            """
+            Windows: Sometimes failed to build due to a possible path issue
+            All: --very-verbose causes rebuild on SwiftBuild (https://github.com/swiftlang/swift-package-manager/issues/9299)
+            """,
+            isIntermittent: true) {
+            try await fixture(name: "ValidLayouts/SingleModule/ExecutableNew") { fixturePath in
+                _ = try await build(
+                    [],
+                    packagePath: fixturePath,
+                    configuration: config,
+                    cleanAfterward: false,
+                    buildSystem: buildSystem,
+                )
+                let binPath = try await getBinPath(
+                    fixturePath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+                let mainOFile = mainObjectFile(in: binPath, buildSystem: buildSystem)
+                let initialMainOMtime = try #require(FileManager.default.attributesOfItem(atPath: mainOFile.pathString)[.modificationDate] as? Date)
+
+                _ = try await build(
+                    flags,
+                    packagePath: fixturePath,
+                    configuration: config,
+                    cleanAfterward: false,
+                    buildSystem: buildSystem,
+                )
+
+                let subsequentMainOMtime = try #require(FileManager.default.attributesOfItem(atPath: mainOFile.pathString)[.modificationDate] as? Date)
+                #expect(initialMainOMtime == subsequentMainOMtime, "Expected no rebuild to occur when using flags \(flags), but the file was modified.")
+            }
+        } when: {
+            buildSystem == .swiftbuild && [.windows, .linux].contains(ProcessInfo.hostOperatingSystem)
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func parseAsLibraryCriteria(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+        try await withKnownIssue(isIntermittent: true) {
+            try await fixture(name: "Miscellaneous/ParseAsLibrary") { fixturePath in
+                _ =  try await executeSwiftBuild(
+                    fixturePath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                    throwIfCommandFails: true
+                )
+            }
+        } when: {
+            ProcessInfo.hostOperatingSystem == .windows && buildSystem == .swiftbuild
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.BuildTests,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func fatalErrorDisplayedCorrectNumberOfTimesWhenSingleXCTestHasFatalErrorInBuildCompilation(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let config = BuildConfiguration.debug
+        let expected = 0
+        try await fixture(name: "Miscellaneous/Errors/FatalErrorInSingleXCTest/TypeLibrary") { fixturePath in
+            // WHEN swift-build --build-tests is executed"
+            let error = await #expect(throws: SwiftPMError.self ) {
+                try await execute(
+                    ["--build-tests"],
+                    packagePath: fixturePath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+            }
+            // THEN I expect a failure
+            guard case SwiftPMError.executionFailure(_, let stdout, let stderr) = try #require(error) else {
+                Issue.record("Incorrect error was raised.")
+                return
+            }
+
+            let matchString = "error: fatalError"
+            let stdoutMatches = getNumberOfMatches(of: matchString, in: stdout)
+            let stderrMatches = getNumberOfMatches(of: matchString, in: stderr)
+            let actualNumMatches = stdoutMatches + stderrMatches
+
+            // AND a fatal error message is printed \(expected) times
+            #expect(actualNumMatches == expected)
+        }
+    }
+
+    @Test(
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/8844", relationship: .defect),
+        .tags(
+            .Feature.CommandLineArguments.Quiet,
+        ),
+    arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+     func swiftBuildQuietLogLevel(
+         buildSystem: BuildSystemProvider.Kind,
+     ) async throws {
+         let configuration = BuildConfiguration.debug
+             // GIVEN we have a simple test package
+             try await fixture(name: "Miscellaneous/SwiftBuild") { fixturePath in
+                //WHEN we build with the --quiet option
+                let (stdout, stderr) = try await executeSwiftBuild(
+                    fixturePath,
+                    configuration: configuration,
+                    extraArgs: ["--quiet"],
+                    buildSystem: buildSystem
+                )
+                // THEN we should not see any output in stderr
+                 #expect(stderr.isEmpty)
+                // AND no content in stdout
+                 #expect(stdout.isEmpty)
+            }
+    }
+
+    @Test(
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/8844", relationship: .defect),
+        .tags(
+            .Feature.CommandLineArguments.Quiet,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func swiftBuildQuietLogLevelWithError(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let configuration = BuildConfiguration.debug
+         // GIVEN we have a simple test package
+        try await fixture(name: "Miscellaneous/SwiftBuild") { fixturePath in
+            let mainFilePath = fixturePath.appending("main.swift")
+            try localFileSystem.removeFileTree(mainFilePath)
+            try localFileSystem.writeFileContents(
+            mainFilePath,
+            string: """
+                print("done"
+                """
+            )
+
+            //WHEN we build with the --quiet option
+            let error = await #expect(throws: SwiftPMError.self) {
+                try await executeSwiftBuild(
+                fixturePath,
+                configuration: configuration,
+                extraArgs: ["--quiet"],
+                buildSystem: buildSystem
+                )
+            }
+
+            guard case SwiftPMError.executionFailure(_, let stdout, let stderr) = try #require(error) else {
+                Issue.record("Incorrect error was raised.")
+                return
+            }
+
+            switch buildSystem {
+                case .swiftbuild:
+                    // THEN we should see output in stderr
+                    #expect(stderr.isEmpty == false)
+                    // AND no content in stdout
+                    #expect(stdout.isEmpty)
+                case .native, .xcode:
+                    // THEN we should see content in stdout
+                    #expect(stdout.isEmpty == false)
+                    // AND no output in stderr
+                    #expect(stderr.isEmpty)
+            }
+        }
+    }
+
+    @Test(
+        .requireHostOS(.macOS),
+        .tags(
+            .Feature.CommandLineArguments.Triple,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildingPackageWhichRequiresOlderDeploymentTarget(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        let configuration = BuildConfiguration.debug
+        // This fixture specifies a deployment target of macOS 12, and uses API obsoleted in macOS 13. The goal
+        // of this test is to ensure that SwiftPM respects the deployment target specified in the package manifest
+        // when passed no triple of an unversioned triple, rather than using the latests deployment target.
+
+        // No triple - build should pass
+        try await fixture(name: "Miscellaneous/RequiresOlderDeploymentTarget") { path in
+                try await executeSwiftBuild(
+                    path,
+                    configuration: configuration,
+                    buildSystem: buildSystem,
+                    throwIfCommandFails: true
+                )
+        }
+
+        let hostArch: String
+        #if arch(arm64)
+        hostArch = "arm64"
+        #elseif arch(x86_64)
+        hostArch = "x86_64"
+        #else
+        Issue.record("test is not supported on host arch")
+        return
+        #endif
+
+        // Unversioned triple - build should pass
+        try await fixture(name: "Miscellaneous/RequiresOlderDeploymentTarget") { path in
+                try await executeSwiftBuild(
+                    path,
+                    configuration: configuration,
+                    extraArgs: ["--triple", "\(hostArch)-apple-macosx"],
+                    buildSystem: buildSystem,
+                    throwIfCommandFails: true
+                )
+        }
+
+        // Versioned triple with supported deployment target - build should pass
+        try await fixture(name: "Miscellaneous/RequiresOlderDeploymentTarget") { path in
+                try await executeSwiftBuild(
+                    path,
+                    extraArgs: ["--triple", "\(hostArch)-apple-macosx12.0"],
+                    buildSystem: buildSystem,
+                    throwIfCommandFails: true
+                )
+        }
+
+        // Versioned triple with unsupported deployment target - build should fail
+        try await withKnownIssue {
+            _ = try await fixture(name: "Miscellaneous/RequiresOlderDeploymentTarget") { path in
+                await #expect(throws: Error.self) {
+                    try await executeSwiftBuild(
+                        path,
+                        extraArgs: ["--triple", "\(hostArch)-apple-macosx14.0"],
+                        buildSystem: buildSystem,
+                        throwIfCommandFails: true
+                    )
+                }
+            }
+        } when: {
+            // The native build system does not correctly pass the elevated deployment target
+            buildSystem == .native
+        }
+    }
+
+    @Test(
+        .requireHostOS(.macOS),
+        .tags(
+            .Feature.CommandLineArguments.Experimental.BuildDylibsAsFrameworks,
+        ),
+        .tags(
+            .Feature.CommandLineArguments.BuildSystem,
+            .Feature.CommandLineArguments.Configuration,
+        ),
+        arguments: getBuildData(for: [.swiftbuild]),
+    )
+    func dynamicLibrariesAsFrameworks(
+        data: BuildData,
+    ) async throws {
+        let buildSystem = data.buildSystem
+        try await withKnownIssue {
+            try await fixture(name: "Miscellaneous/DynamicProduct") { fixturePath in
+                let aPath = fixturePath.appending("exec")
+                let result = try await build(
+                    ["--experimental-build-dylibs-as-frameworks"],
+                    packagePath: aPath,
+                    configuration: data.config,
+                    cleanAfterward: false,
+                    buildSystem: buildSystem,
+                )
+                #expect(result.binContents.contains("PackageFrameworks"))
+                #expect(result.binContents.contains("exec"))
+
+                let packageFrameworkPath = result.binPath.appending("PackageFrameworks")
+                try requireDirectoryExists(at: packageFrameworkPath)
+                let frameworks = try localFileSystem.getDirectoryContents(packageFrameworkPath)
+                #expect(frameworks.contains("firstDyna.framework"))
+                #expect(frameworks.contains("secondDyna.framework"))
+            }
+        } when: {
+            data.config == .release
+        }
+    }
+
+    @Test(
+        .requireHostOS(.macOS),
+        .tags(
+            .Feature.CommandLineArguments.BuildSystem,
+            .Feature.CommandLineArguments.Configuration,
+        ),
+    )
+    func trivialPackageResources() async throws {
+        let buildSystem = BuildSystemProvider.Kind.swiftbuild
+        let config = BuildConfiguration.debug
+        try await fixture(name: "Miscellaneous/TIF") { fixturePath in
+            let result = try await build(
+                [],
+                packagePath: fixturePath,
+                configuration: config,
+                cleanAfterward: false,
+                buildSystem: buildSystem,
+            )
+            try #require(result.binContents.contains("TIF_TIF.bundle"))
+            let contentsDir = result.binPath.appending("TIF_TIF.bundle", "Contents")
+            let bundleResourceDir = contentsDir.appending("Resources")
+
+            let bundleResources = try localFileSystem.getDirectoryContents(bundleResourceDir)
+            #expect(bundleResources.contains("some.txt"))
+            #expect(bundleResources.contains("Assets.car"))
+            #expect(bundleResources.contains("SomeAlert.nib"))
+
+            // Check that the Info.plist of the resource bundle looks reasonable.  In particular, it shouldn't have a CFBundleExecutable key, since it's a codeless bundle.
+            let infoPlistPath = contentsDir.appending("Info.plist")
+            let infoPlistBytes = try localFileSystem.readFileContents(infoPlistPath)
+            let infoPlist = try infoPlistBytes.withData({
+                try #require(PropertyListSerialization.propertyList(from: $0, options: [], format: nil) as? NSDictionary, "couldn't parse built resource bundle's Info.plist as a property list")
+            })
+            #expect(infoPlist["CFBundleExecutable"] == nil, "Expected CFBundleExecutable to be omitted from the Info.plist of a codeless resource bundle")
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.BuildSystem,
+            .Feature.CommandLineArguments.Configuration,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func executableTargetIntegratedIntoTwoProducts(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+            try await fixture(name: "Miscellaneous/ExecutableTargetWithTwoProducts") { fixturePath in
+                let config = BuildConfiguration.debug
+                let _ = try await build(
+                    [],
+                    packagePath: fixturePath,
+                    configuration: config,
+                    cleanAfterward: false,
+                    buildSystem: buildSystem,
+                )
+            }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.BuildSystem,
+        ),
+        .requireSwift6_4,
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func codesizeProfile(
+        buildSystem: BuildSystemProvider.Kind
+    ) async throws {
+        try await fixture(name: "ValidLayouts/SingleModule/ExecutableNew") { fixturePath in
+            let config = BuildConfiguration.release // Use release for WMO
+            let _ = try await build(
+                ["--experimental-enable-codesize-profile"],
+                packagePath: fixturePath,
+                configuration: config,
+                cleanAfterward: false,
+                buildSystem: buildSystem
+            )
+
+            let binPath = try await getBinPath(
+                fixturePath,
+                configuration: config,
+                buildSystem: buildSystem,
+            )
+
+            switch buildSystem {
+            case .native:
+                let executableBuildDir = binPath.appending("ExecutableNew.build")
+                #expect(localFileSystem.exists(executableBuildDir), "ExecutableNew.build directory should exist")
+
+                let buildDirContents = try localFileSystem.getDirectoryContents(executableBuildDir).filter {
+                    $0.hasSuffix(".sil") || $0.hasSuffix(".ll") || $0.hasSuffix(".opt.yaml")
+                }
+                #expect(!buildDirContents.isEmpty, "Should have supplementary output files (.sil, .ll, .opt.yaml)")
+
+            case .swiftbuild, .xcode:
+                // Swift Build stores intermediates under:
+                // .build/out/Intermediates.noindex/<Target>.build/<Config-platform>/<Variant>.build/Objects-normal/<arch>/
+                // The variant suffix (e.g. "-p" for products) varies by platform, so search recursively.
+                let intermediatesRoot = binPath
+                    .parentDirectory // Products
+                    .parentDirectory // out
+                    .appending(component: "Intermediates.noindex")
+                var foundFiles: [String] = []
+                if let enumerator = FileManager.default.enumerator(atPath: intermediatesRoot.pathString) {
+                    for case let file as String in enumerator {
+                        if file.hasSuffix(".sil") || file.hasSuffix(".ll") || file.hasSuffix(".opt.yaml") {
+                            foundFiles.append(file)
+                        }
+                    }
+                }
+                #expect(!foundFiles.isEmpty, "Should have supplementary output files (.sil, .ll, .opt.yaml) under \(intermediatesRoot)")
+            }
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.CommandLineArguments.BuildSystem,
+        ),
+        .requireSwift6_4,
+        arguments: [BuildSystemProvider.Kind.native]
+    )
+    func codesizeProfileWithCustomOutputDirectory(
+        buildSystem: BuildSystemProvider.Kind
+    ) async throws {
+        try await fixture(name: "ValidLayouts/SingleModule/ExecutableNew") { fixturePath in
+            let config = BuildConfiguration.release
+            let customOutputDir = fixturePath.appending("custom-codesize-output")
+
+            let _ = try await build(
+                ["--experimental-enable-codesize-profile", "--experimental-codesize-profile-output-dir", customOutputDir.pathString],
+                packagePath: fixturePath,
+                configuration: config,
+                cleanAfterward: false,
+                buildSystem: buildSystem
+            )
+
+            #expect(localFileSystem.exists(customOutputDir), "Custom output directory should be created")
+
+            let outputContents = try localFileSystem.getDirectoryContents(customOutputDir)
+            let hasSIL = outputContents.contains { $0.hasSuffix(".sil") }
+            let hasIR = outputContents.contains { $0.hasSuffix(".ll") }
+            let hasOptRecord = outputContents.contains { $0.hasSuffix(".opt.yaml") }
+
+            #expect(hasSIL, "Should have .sil files in custom directory")
+            #expect(hasIR, "Should have .ll files in custom directory")
+            #expect(hasOptRecord, "Should have .opt.yaml files in custom directory")
+        }
+    }
+}
+
+extension Triple {
+    func withoutVersion() throws -> Triple {
+        if isDarwin() {
+            let stringWithoutVersion = tripleString(forPlatformVersion: "")
+            return try Triple(stringWithoutVersion)
+        } else {
+            return self
+        }
+    }
+}
+
+
+@Suite(
+    .tags(
+        .TestSize.large,
+        Tag.Feature.SBOM
+    ),
+)
+struct BuildSBOMCommandTests {
+
+    private func verifySBOMCreated(
+        in stdout: String,
+        expectedCount: Int? = nil,
+        expectedDirectory: AbsolutePath? = nil,
+        message: String = "should produce at least 1 SBOM",
+        sourceLocation: SourceLocation = #_sourceLocation,
+    ) throws {
+        let lines = stdout.split(separator: "\n")
+        var sbomPaths: [String] = []
+
+        for line in lines {
+            // Match the new format: "- created {spec} v{version} SBOM at {path}"
+            if line.contains(" SBOM at "),
+               let range = line.range(of: " SBOM at "),
+               let endRange = line[range.upperBound...].range(of: ".json") {
+                let pathString = String(line[range.upperBound..<endRange.upperBound])
+                sbomPaths.append(pathString)
+            }
+        }
+
+        guard !sbomPaths.isEmpty else {
+            Issue.record("No SBOM paths found in stdout")
+            return
+        }
+
+        // Verify expected count if specified
+        if let expectedCount = expectedCount {
+            #expect(sbomPaths.count == expectedCount, "Expected \(expectedCount) SBOM(s) but found \(sbomPaths.count)", sourceLocation: sourceLocation)
+        }
+
+        for pathString in sbomPaths {
+            let absolutePath = try AbsolutePath(validating: pathString)
+            #expect(localFileSystem.exists(absolutePath), "Reported SBOM should exist at \(absolutePath)", sourceLocation: sourceLocation)
+            if let expectedDir = expectedDirectory {
+                #expect(absolutePath.parentDirectory == expectedDir, "SBOM should be created in the expected directory: \(expectedDir)", sourceLocation: sourceLocation)
+            }
+        }
+
+        // If expected directory is specified, verify only the expected number of SBOM files exist there
+        if let expectedDir = expectedDirectory, let expectedCount = expectedCount {
+            let dirContents = try localFileSystem.getDirectoryContents(expectedDir)
+            let sbomFiles = dirContents.filter { $0.hasSuffix(".json") }
+            #expect(sbomFiles.count == expectedCount, "Expected exactly \(expectedCount) SBOM file(s) in \(expectedDir) but found \(sbomFiles.count)", sourceLocation: sourceLocation)
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithCycloneDXSpec(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: ["--sbom-spec", "cyclonedx"],
+                buildSystem: buildSystem,
+            )
+            #expect(stdout.contains("Build complete!"))
+            #expect(stdout.contains("SBOMs created"))
+            try verifySBOMCreated(in: stdout, message: "should produce at least 1 CycloneDX SBOM")
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithSPDXSpec(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: ["--sbom-spec", "spdx"],
+                buildSystem: buildSystem,
+            )
+            #expect(stdout.contains("Build complete!"))
+            #expect(stdout.contains("SBOMs created"))
+            try verifySBOMCreated(in: stdout, expectedCount: 1, message: "should produce at least 1 SPDX SBOM")
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithInvalidSBOMSpec(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            await expectThrowsCommandExecutionError(
+                try await executeSwiftBuild(
+                    fixturePath,
+                    extraArgs: ["--sbom-spec", "cyclonedx22"],
+                    buildSystem: buildSystem,
+                )
+            ) { error in
+                #expect(error.stderr.contains("The value 'cyclonedx22' is invalid"))
+            }
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithSBOMSpecAndProduct(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: ["--sbom-spec", "cyclonedx", "--product", "Foo"],
+                buildSystem: buildSystem,
+            )
+            #expect(stdout.contains("SBOMs created"))
+            try verifySBOMCreated(in: stdout, expectedCount: 1, message: "should produce at least 1 CycloneDX SBOM")
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithMultipleSBOMSpecs(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: ["--sbom-spec", "cyclonedx", "--sbom-spec", "spdx"],
+                buildSystem: buildSystem,
+            )
+            #expect(stdout.contains("Build complete!"))
+            #expect(stdout.contains("SBOMs created"))
+            try verifySBOMCreated(in: stdout, expectedCount: 2, message: "should produce at least 2 SBOMs")
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithSBOMSpecFromEnvironment(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: [],
+                env: ["SWIFTPM_BUILD_SBOM_SPEC": "cyclonedx"],
+                buildSystem: buildSystem,
+            )
+            #expect(stdout.contains("Build complete!"))
+            #expect(stdout.contains("SBOMs created"))
+            try verifySBOMCreated(in: stdout, expectedCount: 1, message: "should produce at least 1 SBOM from environment variable")
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithMultipleSBOMSpecsFromEnvironment(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: [],
+                env: ["SWIFTPM_BUILD_SBOM_SPEC": "cyclonedx,spdx"],
+                buildSystem: buildSystem,
+            )
+
+            #expect(stdout.contains("Build complete!"))
+            #expect(stdout.contains("SBOMs created"))
+            try verifySBOMCreated(in: stdout, expectedCount: 2, message: "should produce at least 2 SBOMs from environment variable")
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithSBOMDirectory(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let customSBOMDir = fixturePath.appending("env-sboms")
+
+
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: ["--sbom-spec", "cyclonedx", "--sbom-output-dir", customSBOMDir.pathString],
+                buildSystem: buildSystem,
+            )
+
+            #expect(stdout.contains("SBOMs created"))
+            try verifySBOMCreated(
+                in: stdout,
+                expectedCount: 1,
+                expectedDirectory: customSBOMDir,
+                message: "should produce at least 1 CycloneDX SBOM in custom directory"
+            )
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithSBOMDirectoryFromEnvironment(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let customSBOMDir = fixturePath.appending("env-sboms")
+
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: [],
+                env: [
+                    "SWIFTPM_BUILD_SBOM_SPEC": "cyclonedx",
+                    "SWIFTPM_BUILD_SBOM_OUTPUT_DIR": customSBOMDir.pathString
+                ],
+                buildSystem: buildSystem,
+            )
+
+            #expect(stdout.contains("SBOMs created"))
+            try verifySBOMCreated(
+                in: stdout,
+                expectedCount: 1,
+                expectedDirectory: customSBOMDir,
+                message: "should produce at least 1 CycloneDX SBOM in custom directory"
+            )
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithSBOMFilterFromEnvironment(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: [],
+                env: [
+                    "SWIFTPM_BUILD_SBOM_SPEC": "cyclonedx",
+                    "SWIFTPM_BUILD_SBOM_FILTER": "product"
+                ],
+                buildSystem: buildSystem,
+            )
+
+            #expect(stdout.contains("SBOMs created"))
+            try verifySBOMCreated(in: stdout, expectedCount: 1, message: "should produce at least 1 SBOM from environment variable")
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func commandLineFlagOverridesEnvironmentVariable(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: ["--sbom-spec", "spdx"],
+                env: ["SWIFTPM_BUILD_SBOM_SPEC": "cyclonedx"],
+                buildSystem: buildSystem,
+            )
+
+            #expect(stdout.contains("SBOMs created"))
+
+            // Verify that command line flag overrides environment variable by checking SBOM path
+            let spdxRegex = try Regex(#"created spdx.* v.* SBOM at .*\.json"#)
+            let cyclonedxRegex = try Regex(#"created cyclonedx.* v.* SBOM at .*\.json"#)
+
+            #expect(stdout.contains(spdxRegex), "should create SPDX SBOM from command line, not CycloneDX from environment")
+            #expect(!stdout.contains(cyclonedxRegex), "should not create CycloneDX SBOM from environment variable")
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithAllSBOMEnvironmentVariables(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let customSBOMDir = fixturePath.appending("all-env-sboms")
+
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: [],
+                env: [
+                    "SWIFTPM_BUILD_SBOM_SPEC": "cyclonedx,spdx",
+                    "SWIFTPM_BUILD_SBOM_OUTPUT_DIR": customSBOMDir.pathString,
+                    "SWIFTPM_BUILD_SBOM_FILTER": "all",
+                    "SWIFTPM_BUILD_SBOM_WARNING_ONLY": "false"
+                ],
+                buildSystem: buildSystem,
+            )
+
+            try verifySBOMCreated(in: stdout, expectedCount: 2, expectedDirectory: customSBOMDir, message: "should produce at least 2 SBOMs")
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithSBOMWarningOnlyMode(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            // Use platform-specific invalid path:
+            // - Windows: NUL is a reserved device name that cannot be used as a directory
+            // - Linux: /proc/self/fd/0 is a read-only file descriptor that cannot be used as a directory
+            // - macOS: /invalid/readonlypath (path doesn't exist and can't be created)
+            let invalidPath: String
+            switch ProcessInfo.hostOperatingSystem {
+            case .windows:
+                invalidPath = "NUL"
+            case .linux:
+                invalidPath = "/proc/self/fd/0"
+            default:
+                invalidPath = "/invalid/readonlypath"
+            }
+
+            await expectThrowsCommandExecutionError(
+                try await executeSwiftBuild(
+                    fixturePath,
+                    extraArgs: ["--sbom-spec", "cyclonedx", "--sbom-output-dir", invalidPath],
+                    buildSystem: buildSystem,
+                )
+            ) { error in
+                #expect(error.stderr.contains(invalidPath))
+            }
+
+            let (_, _) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: ["--sbom-spec", "cyclonedx", "--sbom-output-dir", invalidPath, "--sbom-warning-only"],
+                buildSystem: buildSystem,
+            )
+
+            await expectThrowsCommandExecutionError(
+                try await executeSwiftBuild(
+                    fixturePath,
+                    extraArgs: ["--sbom-spec", "cyclonedx", "--sbom-output-dir", invalidPath],
+                    env: ["SWIFTPM_BUILD_SBOM_WARNING_ONLY": "false"],
+                    buildSystem: buildSystem,
+                )
+            ) { error in
+                #expect(error.stderr.contains(invalidPath))
+            }
+
+            let (_, _) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: ["--sbom-spec", "cyclonedx", "--sbom-output-dir", invalidPath],
+                env: ["SWIFTPM_BUILD_SBOM_WARNING_ONLY": "true"],
+                buildSystem: buildSystem,
+            )
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithInvalidSBOMFilterFromEnvironment(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            await expectThrowsCommandExecutionError(
+                try await executeSwiftBuild(
+                    fixturePath,
+                    extraArgs: [],
+                    env: [
+                        "SWIFTPM_BUILD_SBOM_SPEC": "cyclonedx",
+                        "SWIFTPM_BUILD_SBOM_FILTER": "invalid_filter"
+                    ],
+                    buildSystem: buildSystem,
+                )
+            ) { error in
+                #expect(error.stderr.contains("Invalid SBOM filter value 'invalid_filter'"))
+                #expect(error.stderr.contains("Valid values are: all, product, package"))
+            }
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithInvalidSBOMSpecFromEnvironment(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            await expectThrowsCommandExecutionError(
+                try await executeSwiftBuild(
+                    fixturePath,
+                    extraArgs: [],
+                    env: ["SWIFTPM_BUILD_SBOM_SPEC": "invalid_spec"],
+                    buildSystem: buildSystem,
+                )
+            ) { error in
+                #expect(error.stderr.contains("Invalid SBOM spec value 'invalid_spec'"))
+                #expect(error.stderr.contains("Valid values are"))
+            }
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithPartiallyInvalidSBOMSpecsFromEnvironment(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            await expectThrowsCommandExecutionError(
+                try await executeSwiftBuild(
+                    fixturePath,
+                    extraArgs: [],
+                    env: ["SWIFTPM_BUILD_SBOM_SPEC": "cyclonedx,invalid_spec,spdx"],
+                    buildSystem: buildSystem,
+                )
+            ) { error in
+                #expect(error.stderr.contains("Invalid SBOM spec value 'invalid_spec'"))
+                #expect(error.stderr.contains("Valid values are"))
+            }
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func commandLineFlagOverridesInvalidEnvironmentVariable(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            // Valid CLI flag should override invalid environment variable
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: ["--sbom-spec", "cyclonedx", "--sbom-filter", "product"],
+                env: [
+                    "SWIFTPM_BUILD_SBOM_SPEC": "invalid_spec",
+                    "SWIFTPM_BUILD_SBOM_FILTER": "invalid_filter"
+                ],
+                buildSystem: buildSystem,
+            )
+            #expect(stdout.contains("SBOMs created"))
+            try verifySBOMCreated(in: stdout, expectedCount: 1, message: "should produce SBOM despite invalid environment variables")
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func buildWithSBOMSpecEmitsWarningForNonSwiftBuild(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let (_, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                extraArgs: ["--sbom-spec", "cyclonedx"],
+                buildSystem: buildSystem,
+            )
+
+            if buildSystem != .swiftbuild {
+                #expect(stderr.contains("warning: generating SBOM(s) without `--build-system swiftbuild` flag creates SBOM(s) without build-time conditionals."))
+            } else {
+                #expect(!stderr.contains("without build-time conditionals"))
+            }
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms, ["cyclonedx", "spdx"]
+    )
+    func sbomReproducibilityExcludingTimestampsAndUUIDs(
+        buildSystem: BuildSystemProvider.Kind,
+        sbomSpec: String
+    ) async throws {
+        try await fixture(name: "DependencyResolution/Internal/Simple") { fixturePath in
+            let customSBOMDir = fixturePath.appending("reproducibility-test-\(sbomSpec)")
+
+            // Generate first SBOM
+            try await generateSBOM(
+                fixturePath: fixturePath,
+                sbomSpec: sbomSpec,
+                outputDir: customSBOMDir,
+                buildSystem: buildSystem
+            )
+
+            // Get the first SBOM file from the output directory
+            let sbomFiles1 = try getSBOMFiles(in: customSBOMDir)
+            #expect(sbomFiles1.count == 1, "Expected exactly 1 SBOM file after first generation")
+            let sbomPath1 = sbomFiles1[0]
+            let content1 = try readSBOMContent(at: sbomPath1)
+
+            // Small delay to ensure different timestamp
+            try await Task.sleep(for: .seconds(1))
+
+            // Generate second SBOM
+            try await generateSBOM(
+                fixturePath: fixturePath,
+                sbomSpec: sbomSpec,
+                outputDir: customSBOMDir,
+                buildSystem: buildSystem
+            )
+
+            // Get all SBOM files from the output directory (should now have 2)
+            let sbomFiles2 = try getSBOMFiles(in: customSBOMDir)
+            #expect(sbomFiles2.count == 2, "Expected exactly 2 SBOM files after second generation")
+
+            // Find the newly created file (the one that's not sbomPath1)
+            guard let sbomPath2 = sbomFiles2.first(where: { $0 != sbomPath1 }) else {
+                throw NSError(domain: "TestError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not find second SBOM file"])
+            }
+            let content2 = try readSBOMContent(at: sbomPath2)
+
+            // Verify the two SBOMs are different files (different timestamps in filename)
+            #expect(sbomPath1 != sbomPath2, "SBOM files should have different names due to timestamps")
+
+            // Normalize both SBOMs by removing timestamps and UUIDs
+            let normalized1 = try normalizeJSONForComparison(content1)
+            let normalized2 = try normalizeJSONForComparison(content2)
+
+            // Compare normalized content
+            #expect(normalized1 == normalized2, "SBOMs should be identical after normalizing timestamps and UUIDs")
+        }
+    }
+
+    /// Generates an SBOM in the specified output directory
+    private func generateSBOM(
+        fixturePath: AbsolutePath,
+        sbomSpec: String,
+        outputDir: AbsolutePath,
+        buildSystem: BuildSystemProvider.Kind
+    ) async throws {
+        let (_, _) = try await executeSwiftBuild(
+            fixturePath,
+            extraArgs: ["--sbom-spec", sbomSpec, "--sbom-output-dir", outputDir.pathString],
+            buildSystem: buildSystem
+        )
+    }
+
+    /// Gets all SBOM JSON files from the specified directory
+    private func getSBOMFiles(in directory: AbsolutePath) throws -> [AbsolutePath] {
+        let contents = try localFileSystem.getDirectoryContents(directory)
+        let sbomFiles = contents.filter { $0.hasSuffix(".json") }
+        return sbomFiles.map { directory.appending(component: $0) }.sorted()
+    }
+
+    /// Reads SBOM content from file
+    private func readSBOMContent(at path: AbsolutePath) throws -> String {
+        let data = try localFileSystem.readFileContents(path)
+        guard let content = String(data: Data(data.contents), encoding: .utf8) else {
+            throw NSError(domain: "TestError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not read SBOM as UTF-8"])
+        }
+        return content
+    }
+
+    /// Normalizes JSON content by replacing timestamps and UUIDs with placeholder values
+    /// This allows comparison of SBOM content while ignoring non-deterministic fields
+    private func normalizeJSONForComparison(_ jsonString: String) throws -> String {
+        guard let jsonData = jsonString.data(using: .utf8),
+              let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+            throw NSError(domain: "TestError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to parse JSON"])
+        }
+
+        // Recursively normalize the JSON object
+        let normalizedObject = normalizeJSONValue(jsonObject)
+
+        // Convert back to string with sorted keys for consistent comparison
+        let normalizedData = try JSONSerialization.data(withJSONObject: normalizedObject, options: [.sortedKeys, .prettyPrinted])
+
+        guard let normalizedString = String(data: normalizedData, encoding: .utf8) else {
+            throw NSError(domain: "TestError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to convert normalized JSON to string"])
+        }
+
+        return normalizedString
+    }
+
+    private func normalizeJSONValue(_ value: Any) -> Any {
+        if let dict = value as? [String: Any] {
+            var normalizedDict: [String: Any] = [:]
+            for (key, val) in dict {
+                // Normalize timestamp fields
+                if key == "timestamp" || key == "created" || key.contains("Time") || key.contains("Date") {
+                    if val is String {
+                        normalizedDict[key] = "NORMALIZED_TIMESTAMP"
+                    } else {
+                        normalizedDict[key] = normalizeJSONValue(val)
+                    }
+                }
+                // Normalize UUID fields and URN-based identifiers
+                else if key == "serialNumber" || key == "bom-ref" || key == "spdxId" ||
+                        key == "creationInfo" || key == "createdBy" || key.contains("uuid") || key.contains("UUID") {
+                    normalizedDict[key] = normalizeUUIDValue(val)
+                }
+                else {
+                    normalizedDict[key] = normalizeJSONValue(val)
+                }
+            }
+            return normalizedDict
+        }
+        else if let array = value as? [Any] {
+            return array.map { normalizeJSONValue($0) }
+        }
+        else if let string = value as? String {
+            return normalizeStringWithUUIDs(string)
+        }
+        else {
+            return value
+        }
+    }
+
+    /// Normalizes values that may contain UUIDs (strings or arrays of strings)
+    private func normalizeUUIDValue(_ value: Any) -> Any {
+        if let string = value as? String {
+            return normalizeStringWithUUIDs(string)
+        } else if let array = value as? [Any] {
+            return array.map { normalizeUUIDValue($0) }
+        } else {
+            return normalizeJSONValue(value)
+        }
+    }
+
+    /// Replaces UUID patterns in strings with a normalized placeholder
+    private func normalizeStringWithUUIDs(_ string: String) -> String {
+        // Match UUID patterns in various formats:
+        // - Standard UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        // - URN format: urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        let uuidPattern = #"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"#
+
+        guard let regex = try? NSRegularExpression(pattern: uuidPattern, options: .caseInsensitive) else {
+            return string
+        }
+
+        let range = NSRange(string.startIndex..., in: string)
+        let normalized = regex.stringByReplacingMatches(
+            in: string,
+            options: [],
+            range: range,
+            withTemplate: "NORMALIZED-UUID"
+        )
+
+        return normalized
+    }
+}

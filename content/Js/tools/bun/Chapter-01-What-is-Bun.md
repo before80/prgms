@@ -31,6 +31,8 @@ Bun 的"渐进式采用"意味着：你不需要一次性把所有项目迁移�
 
 Node.js 用的是 **V8 引擎**（Google Chrome 内核），Bun 用的是 **JavaScriptCore 引擎**（Apple Safari 内核）。两者都是 JavaScript 引擎，只是"发动机"不同。
 
+> 📌 **版本提示（2026-09 核对）**：Bun 当前稳定版为 **1.4.x**。Bun 1.4 已将运行时底层从 Zig 重写为 **Rust**，同时保留 JavaScriptCore 作为 JavaScript 引擎，并大幅提升了 Node.js 兼容性。本文后面提到“Zig”的地方，均指 Bun 1.3 及之前的历史实现。
+
 Bun 的目标是 **100% 兼容 Node.js**，意味着你不需要改一行代码，直接把 `node` 换成 `bun`，你的 Node.js 项目大概率就能跑起来。当然，"大概率"是因为 Node.js 的生态太庞大了，Bun 团队正在努力追赶，目前兼容性是**持续进行中、尚未完全完成**的工作。
 
 > ⚠️ **注意**："100% 兼容"是 Bun 的**目标**，而非当前已完成的状态。Bun 官方明确表示 *"This is an ongoing effort that is not complete."*（这是一项尚未完成的工作）。实际使用中，极少数 Node.js 特有场景仍可能需要适配。
@@ -52,7 +54,7 @@ graph LR
     A --> C["适合长时间运行<br/>服务器端"]
     
     D["Bun"] --> E["JavaScriptCore 引擎<br/>Apple Safari 内核"]
-    D --> F["启动快 4 倍⚠️<br/>短任务无敌"]
+    D --> F["启动更快<br/>短任务优势明显"]
     
     style D fill:#7c3aed,color:#fff
     style E fill:#7c3aed,color:#fff
@@ -144,7 +146,7 @@ Bun 的速度优势体现在三个维度：
 
 > ⚠️ 以下数据来自 Bun 官方基准测试，实际表现因场景而异。
 
-Bun 的启动速度比 Node.js **快约 4 倍**（Bun 官方基准测试），这得益于 JavaScriptCore 引擎在启动阶段的大量优化。
+Bun 的启动速度通常显著快于 Node.js，这得益于 JavaScriptCore 引擎和 Bun 原生运行时的启动优化。Bun 1.4 官方基准显示，在部分 Linux/Windows 场景下启动时间可降到 Node.js 的约一半甚至更低；具体数值会随平台和版本变化。
 
 ### HTTP 服务吞吐量
 
@@ -192,7 +194,7 @@ Bun 原生实现了 Node.js 的核心模块，比如：
 
 > ⚠️ **Node.js 兼容性说明**：Bun 目标是实现 Node.js 核心模块的兼容，但这是一项**持续进行、尚未完全完成**的工作。部分模块（如 `os`、`util`、`net`、`http`、`dgram`、`zlib` 等）已有支持，但仍有少数模块和边界情况在完善中。使用前建议查阅 [Bun 官方兼容性文档](https://bun.sh/docs/runtime/nodejs-apis)。
 
-**关于原生 addon**：如果 `bun install` 安装的包包含 `.node` 原生模块文件，而 Bun 不支持该模块时，安装会失败或降级使用 npm。详见 1.9 节。
+**关于原生 addon**：Bun 实现了 Node-API，大多数 `.node` 原生模块可以直接 `require()`；只有依赖 V8 私有接口或特殊构建流程的模块才可能失败。详见 1.9 节。
 
 ---
 
@@ -204,8 +206,7 @@ Bun 原生实现了 Node.js 的核心模块，比如：
 - `bun run` → 脚本运行器（替代 node/npx）
 - `bun test` → 测试框架（替代 jest/vitest）
 - `bun build` → 打包器（适合中小型项目⚠️，超大型项目建议评估后再使用）
-- `bun fmt` → 代码格式化（替代 prettier）
-- `bun lint` → 代码检查（替代 eslint）
+- `bunx` → 直接运行 npm 包中的 CLI（类似 npx）
 - `Bun.serve()` → HTTP 服务器（替代 express/fastify 的部分场景）
 
 你不需要装一堆工具，一个 `bun` 全搞定。
@@ -218,7 +219,7 @@ graph TD
     A --> C["run<br/>脚本运行"]
     A --> D["test<br/>测试框架"]
     A --> E["build<br/>打包器"]
-    A --> F["fmt / lint<br/>格式化/检查"]
+    A --> F["bunx<br/>运行 npm CLI"]
     A --> G["Bun.serve()<br/>HTTP服务"]
     
     style A fill:#7c3aed,color:#fff,stroke:#7c3aed
@@ -232,19 +233,17 @@ graph TD
 
 ---
 
-## 1.9 现阶段局限性：不支持原生 Node.js addons
+## 1.9 原生 Node.js addons 的支持情况
 
-这是 Bun 和 Node.js 之间**最核心的差异**。
+这是 Bun 和 Node.js 之间需要重点验证的兼容区域。
 
 Node.js 的生态里有大量用 C/C++ 编写的原生模块（`.node` 文件），这些模块需要编译后才能使用。比如某些图像处理库、数据库驱动的高性能绑定等。
 
-**Bun 不支持 `.node` 文件**。
-
-这意味着如果你项目里用到了某个只有 `.node` 版本的包，Bun 目前跑不了。解决方案有：
-1. 找这个包的纯 JavaScript / WebAssembly 版本
-2. 用 `bun:ffi` 调用 C 类库（*但注意：`bun:ffi` 目前是实验性功能，不建议在生产环境使用*）
-3. 用 Node-API 编写原生模块
-4. 继续用 Node.js
+Bun 从零实现了 **Node-API**，因此大多数 `.node` 模块可以直接 `require()`。真正可能失败的是依赖 V8 私有 API、特殊构建流程或 Bun 尚未实现的 Node.js 内部行为的模块。遇到问题时可以：
+1. 优先使用按 Node-API 编写的包版本
+2. 找纯 JavaScript / WebAssembly 替代品
+3. 用 `bun:ffi` 调用 C 类库（*注意：`bun:ffi` 属于进阶能力，生产使用前应充分验证*）
+4. 必要时继续使用 Node.js
 
 好消息是：这类包越来越少，而且 Bun 团队正在推进对 NAPI（Node.js Addon 接口）的支持，未来会越来越好。
 
@@ -272,7 +271,7 @@ irm bun.sh/install.ps1 | iex
 
 Bun 是**从零开始重写**的全新项目：
 - Node.js：C++ 编写，V8 引擎
-- Bun：Zig + JavaScriptCore，从零实现
+- Bun：Rust（1.4+；早期为 Zig）+ JavaScriptCore，从零实现
 
 类比一下：
 - Node.js 像是一辆**改装过的卡车**（经过多年迭代，功能多但也负重累累）
@@ -286,6 +285,6 @@ Bun 是**从零开始重写**的全新项目：
 
 本章介绍了 Bun 的定位、核心优势和当前局限。Bun 是一个**一站式 JavaScript 工具包**，以单一二进制文件形式发布，支持**渐进式采用**——你可以从一条命令开始，慢慢迁移更多场景。
 
-Bun 的三大核心优势：**速度**（启动显著更快、HTTP 吞吐更高、包安装速度优势明显）、**生态兼容**（原生实现 Node.js API）、**一体化**（一个工具搞定所有）。同时也要注意它的局限：不支持 `.node` 原生模块、Windows 兼容性仍在完善中。
+Bun 的三大核心优势：**速度**（启动显著更快、HTTP 吞吐更高、包安装速度优势明显）、**生态兼容**（原生实现 Node.js API）、**一体化**（一个工具搞定所有）。同时也要注意它的局限：部分依赖 Node.js 内部实现或非 N-API 的 `.node` 原生模块仍可能不兼容，Windows 兼容性也在持续完善中。
 
-Bun 不是 Node.js 的 fork，而是基于 JavaScriptCore + Zig 从零重写的全新运行时，目标是在保持兼容的同时，提供更快的开发体验。
+Bun 不是 Node.js 的 fork，而是基于 JavaScriptCore + Rust（早期为 Zig）从零重写的全新运行时，目标是在保持兼容的同时，提供更快的开发体验。

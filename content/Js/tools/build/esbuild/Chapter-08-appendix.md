@@ -1,6 +1,8 @@
 
 
 +++
+
+# 第8章 附录
 title = "第8章 附录"
 weight = 80
 date = "2026-03-28T11:54:00+08:00"
@@ -234,7 +236,7 @@ esbuild app.js --bundle --serve=3000 --outdir=dist
 | `Could not resolve "xxx"` | 找不到模块 "xxx" | 确认模块已安装，或检查路径是否正确 |
 | `Cannot initialize worker when already initialized` | 重复初始化 | 确保没有同时调用多次 `context()` |
 | `"xxx" is not compatible with "yyy"` | 平台和格式不兼容 | 检查 `platform` 和 `format` 的组合是否合理 |
-| `"splitting" is only supported with "esm" format and "browser" platform` | 代码分割只能在 ESM 格式 + browser 平台下使用 | 确保 `format: 'esm'` 且 `platform: 'browser'`，CLI 下需同时加 `--format=esm --platform=browser` |
+| `"splitting" is only supported with "esm" format` | 代码分割要求输出格式为 ESM | 设置 `format: 'esm'` 并提供 `outdir`；平台按实际运行环境选择，CLI 下加 `--format=esm --outdir=dist` |
 | `Expected "xxx" but got "yyy"` | 语法错误 | 检查源代码语法是否正确 |
 | `Cannot import from "node:" protocol` | 旧版不支持 `node:` 协议 | 新版（≥0.14）已支持，直接用 `import 'node:fs'` 即可 |
 

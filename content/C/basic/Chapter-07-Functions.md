@@ -1248,9 +1248,9 @@ int complexCalculation(int *arr, int size) {
 **方法一：使用 `<stdnoreturn.h>` 中的 `noreturn` 宏**
 
 ```c
-#define __STDC_VERSION__ 201112L
 #include <stdio.h>
 #include <stdnoreturn.h>  // C11 引入
+#include <stdlib.h>       // exit()
 
 // 声明这是一个不会返回的函数
 noreturn void fatalError(const char *message) {

@@ -40,7 +40,7 @@ draft = false
 
 C++连接数据库有三条主要路线：
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    C++ 数据库编程方案                        │
 ├───────────────┬─────────────────────┬───────────────────────┤
@@ -181,7 +181,7 @@ int main() {
 ```
 
 运行结果：
-```
+```text
 数据库打开成功！
 表创建成功！
 数据插入成功！
@@ -496,7 +496,7 @@ int main() {
 ```
 
 运行结果：
-```
+```text
 插入成功！用户ID: 1
 插入成功！用户ID: 2
 插入成功！用户ID: 3
@@ -642,7 +642,7 @@ int main() {
 ```
 
 运行结果：
-```
+```text
 ===== 初始状态 =====
 Alice: $10000, Bob: $5000, Charlie: $3000
 
@@ -991,6 +991,8 @@ int main() {
 }
 */
 
+#include <iostream>   // 下面的 main 要用 std::cout
+
 int main() {
     std::cout << "===== SQLpp11 风格展示 =====" << std::endl;
     std::cout << "sqlpp11让你用C++语法写SQL：" << std::endl;
@@ -1043,6 +1045,8 @@ int main() {
 }
 */
 
+#include <iostream>   // 下面的 main 要用 std::cout
+
 int main() {
     std::cout << "===== Drogon框架数据库操作风格展示 =====" << std::endl;
     std::cout << R"(
@@ -1094,9 +1098,13 @@ newUser.deleteByPrimaryKey();
 ```cpp
 // 43-8-error-handling.cpp
 
+// 📦 依赖：需要安装 SQLite 开发库，并在编译时链接 -lsqlite3
+//    macOS 上 libsqlite3 是系统自带的，加 -lsqlite3 即可。
 #include <iostream>
 #include <string>
 #include <stdexcept>
+#include <vector>
+#include <utility>
 #include <sqlite3.h>
 
 // 自定义数据库异常
@@ -1763,6 +1771,8 @@ int main() {
 }
 */
 
+#include <iostream>   // 下面的 main 要用 std::cout
+
 int main() {
     std::cout << "===== Redis C++ 示例 =====" << std::endl;
     std::cout << R"(
@@ -1841,6 +1851,8 @@ int main() {
     return 0;
 }
 */
+
+#include <iostream>   // 下面的 main 要用 std::cout
 
 int main() {
     std::cout << "===== MongoDB C++ 示例 =====" << std::endl;

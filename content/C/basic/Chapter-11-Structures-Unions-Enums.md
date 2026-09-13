@@ -217,14 +217,19 @@ struct B 大小: 8 字节
 内存对齐的**原因**是：CPU 访问内存时，一次性读取 4 字节（或 8 字节，取决于系统）比读取 1 字节更高效。如果 `int` 没有对齐到 4 字节边界，CPU 可能要读两次再拼接，效率大打折扣。
 
 ```mermaid
-block-beta
-    columns 8
-    block:"struct A 的内存布局"
-        col1:"a (1字节)" col2:"padding" col3:"padding" col4:"padding" col5:"b (4字节)" col6:"b" col7:"b" col8:"b"
+flowchart TB
+    subgraph SA["struct A 的内存布局（共 8 字节）"]
+        direction LR
+        A1["a<br/>1 字节"]
+        A2["padding<br/>3 字节"]
+        A3["b<br/>4 字节"]
     end
 
-    block:"struct B 的内存布局"
-        col1:"b (4字节)" col2:"b" col3:"b" col4:"b" col5:"a (1字节)" col6:"padding" col7:"padding" col8:"padding"
+    subgraph SB["struct B 的内存布局（共 8 字节）"]
+        direction LR
+        B1["b<br/>4 字节"]
+        B2["a<br/>1 字节"]
+        B3["padding<br/>3 字节"]
     end
 ```
 
@@ -1135,18 +1140,18 @@ offsetof(height) = 24
 
 有时候我们希望在**编译时**就检查某个条件是否成立，而不是等到运行时报错。比如你写了一个网络协议包，假设 `int` 必须是 4 字节，如果不是，编译就应该失败而不是偷偷出 bug。
 
-`static_assert`（C11 的宏名是 `_Static_assert`，C23 简化成了 `static_assert`）就是干这个的：
+`static_assert`（C11 的写法是 `_Static_assert`，C23 起可以直接写 `static_assert`，而且第二个"消息"参数可以省略）就是干这个的：
 
-### 11.13.1 `static_assert`（C23）：不需要括号
+### 11.13.1 `static_assert`（C23）：消息参数可省略
 
 **C23 版本（更简洁）：**
 
 ```c
 #include <stdio.h>
 
-// C23: static_assert 不需要额外的括号
+// C23: 直接写 static_assert（关键字），第二个参数可省
 static_assert(sizeof(int) == 4, "int 必须占 4 字节");
-static_assert(sizeof(void*) == 8, "只支持 64 位系统");
+static_assert(sizeof(void*) == 8);   // 省略消息
 
 struct Packet {
     char header[4];

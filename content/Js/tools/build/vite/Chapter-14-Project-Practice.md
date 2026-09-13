@@ -11,7 +11,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-14-Project-Practice
 
 # 第14章：完整项目实战
 
@@ -90,7 +89,7 @@ flowchart TD
 | 类别 | 技术选型 | 理由 |
 |------|----------|------|
 | 框架 | Vue 3 + TypeScript | 类型安全，开发体验好 |
-| 构建工具 | Vite 5 | 极速 HMR，社区活跃 |
+| 构建工具 | Vite 8 | Rolldown 统一开发与生产构建，速度快，社区活跃 |
 | 路由 | Vue Router 4 | Vue 官方路由 |
 | 状态管理 | Pinia | Vue 官方推荐，比 Vuex 简洁 |
 | UI 组件库 | Element Plus | Vue 3 生态成熟 |

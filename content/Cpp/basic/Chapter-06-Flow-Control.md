@@ -91,7 +91,8 @@ int main() {
     if (age >= 18) {  // 第一层：年龄够吗？
         if (has_ticket) {  // 第二层：有票吗？
             std::cout << "Welcome to the concert!" << std::endl;
-            // 输出: Welcome to the concert!（双重喜悦）
+            // 输出: Welcome to the concert!
+            // （两层条件都满足，才是"双重喜悦"）
         } else {
             std::cout << "You need a ticket." << std::endl;  // 票呢？
         }
@@ -105,7 +106,7 @@ int main() {
 
 **运行结果：**
 
-```
+```text
 Passed!
 Grade: Not A
 Grade: B
@@ -218,7 +219,7 @@ int main() {
 
 **运行结果：**
 
-```
+```text
 Wednesday
 Color is Green
 ```
@@ -515,12 +516,14 @@ int main() {
     // do-while：先执行一次再判断条件
     // 保证循环体至少执行一次！
     
+    const int secret = 42;  // 神秘的数字
+    const int guesses[] = {41, 7, 42};  // 模拟用户输入：猜错两次后猜中
+    int round = 0;
     int guess = 0;
-    int secret = 42;  // 神秘的数字
     
     do {
         std::cout << "Enter your guess (0 to quit): ";
-        guess = 41;  // 模拟用户输入（故意猜错一次）
+        guess = guesses[round++];  // 模拟用户输入（每轮换一个值！）
         if (guess == 0) {
             std::cout << "Quitting..." << std::endl;
             break;  // 退出程序
@@ -532,11 +535,13 @@ int main() {
         std::cout << "Try again!" << std::endl;  // 猜错了，再来
     } while (guess != 0 && guess != secret);  // 条件判断在这里
     
-    // 典型场景：用户菜单
+    // 典型场景：用户菜单（同样用"模拟输入"驱动，直到输入 q）
+    const char choices[] = {'a', 'q'};
+    int menu_round = 0;
     char choice = 0;  // 初始化，避免未定义行为
     do {
         std::cout << "\nMenu: (a)dd, (s)ubtract, (q)uit: ";
-        choice = 'a';  // 模拟输入
+        choice = choices[menu_round++];  // 模拟输入
         switch (choice) {
             case 'a':
                 std::cout << "Addition selected" << std::endl;  // 输出: Addition selected
@@ -547,12 +552,31 @@ int main() {
             case 'q':
                 std::cout << "Quit" << std::endl;  // 输出: Quit
                 break;
+            default:
+                std::cout << "Unknown option" << std::endl;  // 没列出的选项要兜底
+                break;
         }
     } while (choice != 'q');  // 用户选择q才退出
     
     return 0;
 }
 ```
+
+**运行结果：**
+
+```text
+Enter your guess (0 to quit): Try again!
+Enter your guess (0 to quit): Try again!
+Enter your guess (0 to quit): You got it!
+
+Menu: (a)dd, (s)ubtract, (q)uit: Addition selected
+
+Menu: (a)dd, (s)ubtract, (q)uit: Quit
+```
+
+> ⚠️ **重要提醒**：写 `do-while` 时，循环体里一定要有能改变判断条件的东西（这里是 `guess` 和 `choice`）。
+> 如果条件里的变量永远不变——比如把 `guess = guesses[round++];` 写成 `guess = 41;`——循环就永远不会退出，变成一个**死循环**。
+> 这也是新手最常写出的一类 bug：代码能编译通过，却永远跑不完。
 
 > 💡 **小技巧**：注意do-while结尾的分号`while(条件);`——这是新手最容易忘记的！忘记了编译器会报一个莫名其妙的错误。
 
@@ -651,14 +675,15 @@ C++23让范围for也支持初始化了！之前如果你想在for循环内部初
 #include <iostream>
 #include <vector>
 
+// 模拟一个返回vector的函数
+std::vector<int> getData() {
+    return {1, 2, 3, 4, 5};
+}
+
 int main() {
     // C++23: 范围for可以带初始化
     // 之前需要在for外面定义变量
     
-    // 模拟一个返回vector的函数
-    std::vector<int> getData() {
-        return {1, 2, 3, 4, 5};
-    }
     
     // C++23写法：变量在for内部初始化，作用域被限制
     for (auto vec = getData(); auto& v : vec) {
@@ -1026,7 +1051,8 @@ flowchart LR
 
 ### 结构化绑定属性（C++26）
 
-C++26正在讨论为结构化绑定添加属性的支持。这个提案允许你在绑定的变量上添加属性，比如`[[deprecated]]`。
+为结构化绑定加属性这件事**已经写进 C++26 了**（提案 P0609R3《Attributes for Structured Bindings》），
+可以给绑定的每个变量单独加属性，比如 `[[maybe_unused]]`、`[[deprecated]]`。
 
 **代码示例：**
 
@@ -1058,11 +1084,11 @@ int main() {
 }
 ```
 
-> 📚 **背景知识**：C++属性是一种标准化的注解机制，使用`[[...]]`语法。常见属性包括`[[nodiscard]]`、`[[maybe_unused]]`、`[[deprecated]]`等。C++26计划让属性可以更精细地应用到结构化绑定的各个变量上。
+> 📚 **背景知识**：C++属性是一种标准化的注解机制，使用`[[...]]`语法。常见属性包括`[[nodiscard]]`、`[[maybe_unused]]`、`[[deprecated]]`等。C++26（P0609R3）允许把属性更精细地应用到结构化绑定的各个变量上。
 
 ### 结构化绑定作为条件（C++26）
 
-C++26草案还提出了一个有趣的特性：**让结构化绑定可以作为if或while的条件**。这样可以让"绑定+判断"一步到位。
+另一个已经进入 C++26 的特性（提案 P0963R3）：**让结构化绑定可以直接作为 if/while 的条件**，让"绑定+判断"一步到位。
 
 **代码示例：**
 
@@ -1082,7 +1108,7 @@ int main() {
         (void)val;  // 抑制未使用警告
     }
     
-    // C++26（草案）：直接在if条件中结构化绑定
+    // C++26（已采纳，P0963R3）：直接在if条件中结构化绑定
     // if (auto [val] = opt; val.has_value()) {  // 一行搞定绑定和判断
     //     std::cout << *val << std::endl;
     // }
@@ -1090,7 +1116,7 @@ int main() {
     // 模拟map查找场景
     std::map<int, std::string> m = {{1, "one"}, {2, "two"}};
     
-    // C++26可能支持的语法：
+    // C++26 采纳后的语法（本机编译器尚未实现，故注释掉）：
     // if (auto [it, success] = m.insert({3, "three"}); success) {
     //     std::cout << "Inserted" << std::endl;
     // }
@@ -1109,7 +1135,8 @@ int main() {
 
 ### 结构化绑定引入包（C++26）
 
-C++26草案还提出了"引入包（Introducing Packages）"的概念，允许将多个值组成一个"包"用于后续处理。这听起来有点抽象，但它可以解决一些现有结构化绑定的限制。
+C++26 还正式采纳了"引入包"（Structured Bindings can introduce a Pack，提案 P1061R10）：
+允许把结构化绑定展开成一个参数包用于后续处理。这听起来有点抽象，但它解决了一些现有结构化绑定拿不到"整包"的限制。
 
 **代码示例：**
 
@@ -1118,7 +1145,7 @@ C++26草案还提出了"引入包（Introducing Packages）"的概念，允许�
 #include <tuple>
 
 int main() {
-    // C++26（草案）: 结构化绑定可以引入"包"（package）
+    // C++26（已采纳，P1061R10）: 结构化绑定可以引入"包"（pack）
     // 允许将多个值绑定为一个"包"用于后续处理
     
     auto tuple = std::make_tuple(1, 2, 3, 4, 5);

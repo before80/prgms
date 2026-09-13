@@ -11,7 +11,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-13-Testing-And-Debugging
 
 # 第13章：测试与调试
 

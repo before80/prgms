@@ -163,6 +163,7 @@ flowchart LR
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>   /* inet_ntoa / inet_addr 等地址转换函数在这里 */
 #include <arpa/inet.h>
 
 #define PORT 8888
@@ -345,6 +346,7 @@ UDP 比 TCP 简单多了——不需要 connect，不需要 listen，不需要 a
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>   /* inet_ntoa、inet_addr 等声明在这里 */
 
 #define PORT 9999
 #define BUFFER_SIZE 1024
@@ -503,7 +505,8 @@ flowchart LR
 > **小技巧**：带 **s** 的是 short（16位，2字节），带 **l** 的是 long（32位，4字节）。"h" 是 host，"n" 是 network。
 
 ```c
-#include <arpa/inet.h>
+#include <stdio.h>       /* printf */
+#include <arpa/inet.h>   /* htons / htonl / ntohs / ntohl */
 
 int main(void) {
     unsigned short port = 8080;

@@ -14,6 +14,8 @@ draft = false
 
 ---
 
+> 📌 **版本提示（2026-09 核对）**：Next.js 16 已把 Turbopack 设为开发和生产构建的默认打包器，并要求 Node.js 20.9+。旧版本文中的 `--turbo`（Next.js 14）和 `--turbopack`（Next.js 15）仍作为历史差异保留；新项目使用 `create-next-app@latest` 时通常是 Next.js 16.x。
+
 ## 2.1 零配置快速初始化项目
 
 ### 时间的浪费是可耻的
@@ -138,7 +140,7 @@ my-project/
 ├── public/                 # 静态资源（图片、字体等直接放这里）
 │   ├── file.svg
 │   └── elevenlabs.svg
-├── .eslintrc.json         # ESLint 配置
+├── eslint.config.mjs      # ESLint 配置（Next.js 16 默认）
 ├── .gitignore              # Git 忽略文件
 ├── next.config.ts          # Next.js 配置
 ├── package.json            # 项目配置
@@ -181,7 +183,7 @@ my-project/
 | ESLint 代码检查 | `--eslint` | 开启后自带 eslint 配置和规则集 |
 | App Router | `--app` | Next.js 13+ 默认开启的路由系统 |
 | src 目录 | `--src-dir` | 把代码放 src/ 目录下 |
-| Turbopack 加速 | `--turbo` | 用新一代打包工具提速（实验性） |
+| Turbopack 加速 | Next.js 16 默认启用；旧版可用 `--turbo` / `--turbopack` | Rust 编写的新一代打包器 |
 
 ### 组合示例
 
@@ -200,7 +202,7 @@ npx create-next-app@latest my-fullstack-blog \
 
 - 手动安装 TypeScript + 配置 tsconfig.json
 - 手动安装 Tailwind + 配置 tailwind.config.ts + 配置 postcss.config.mjs
-- 手动安装 ESLint + 配置 .eslintrc.json
+- 手动安装 ESLint + 配置 `eslint.config.mjs`（旧版为 `.eslintrc.json`）
 - 手动创建 src/app 目录结构
 - 手动配置路径别名
 

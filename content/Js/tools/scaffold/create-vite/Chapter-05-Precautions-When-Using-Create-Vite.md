@@ -16,7 +16,7 @@ draft = false
 
 Create-Vite 不是所有 Node.js 版本都能用，它有一个**最低版本要求**。
 
-截至目前，Create-Vite 5.x 要求 **Node.js >= 18.12.0**。
+截至 2026 年 9 月，`create-vite@9.x` 与 Vite 8 一致，要求 Node.js `^20.19.0 || >=22.12.0`。如果你的项目还在使用 Create-Vite 5.x，那一代才对 Node.js 18 有兼容要求。
 
 为什么要限制 Node.js 版本呢？因为 Create-Vite 内部用了一些较新的 JavaScript 特性——如果你的 Node.js 太老，这些特性不存在，Create-Vite 就会报一些令人摸不着头脑的错误。与其让你在报错信息里大海捞针，不如直接从源头拦住：版本不够，免谈 🚫。
 
@@ -76,17 +76,17 @@ v20.18.0
 
 ### 5.1.5 Node.js 版本不满足时的报错信息
 
-如果你用的是 Node.js 16，运行 Create-Vite，会看到类似这样的错误：
+如果你用的是 Node.js 18 或更低版本，运行 `create-vite@9`，会看到类似这样的错误：
 
 ```
 node:events:491
     throw er; // Unhandled 'error' event
     ^
 Error: The engine "node" is incompatible with this module.
-Expected: ">=18.12.0"
+Expected: "^20.19.0 || >=22.12.0"
 ```
 
-解决方案很简单：**升级 Node.js 到 18.12.0 或更高版本**。
+解决方案很简单：**升级 Node.js 到 20.19+ 或 22.12+**。推荐直接使用 Node.js 22 LTS 或 24 LTS。
 
 ---
 
@@ -519,7 +519,7 @@ Vite 生态里有大量的插件，但它们**不一定兼容所有版本的 Vit
 // 以 @vitejs/plugin-vue 为例，package.json 里的版本要求
 {
   "peerDependencies": {
-    "vite": "^5.0.0 || ^6.0.0"  // 支持 Vite 5.x 或 6.x
+    "vite": "^8.0.0"  // 以插件实际 peerDependencies 为准
   }
 }
 ```
@@ -532,12 +532,14 @@ Vite 生态里有大量的插件，但它们**不一定兼容所有版本的 Vit
 >
 > 图例：✅ = 该版本组合经过官方验证可用
 
-| 插件 | Vite 4 | Vite 5 | Vite 6 |
-|------|--------|--------|--------|
-| `@vitejs/plugin-vue` | ✅ 插件 4.x | ✅ 插件 5.x | ✅ 插件 5.x |
-| `@vitejs/plugin-react` | ✅ 插件 3.x | ✅ 插件 3.x / 4.x | ✅ 插件 4.x |
-| `vite-plugin-pwa` | ✅ 插件 0.5.x | ✅ 插件 0.5.x / 1.x | ✅ 插件 1.x |
-| `unplugin-vue-components` | ✅ 插件 0.26.x | ✅ 插件 0.27+ | ✅ 插件 0.27+ |
+| 插件 | Vite 5 | Vite 6 | Vite 7 | Vite 8 |
+|------|--------|--------|--------|--------|
+| `@vitejs/plugin-vue` | 插件 5.x | 插件 5.x | 插件 6.x | 插件 6.x |
+| `@vitejs/plugin-react` | 插件 4.x | 插件 4.x/5.x | 插件 5.x | 插件 6.x |
+| `vite-plugin-pwa` | 0.21+ | 0.21+/1.x | 1.x | 1.x |
+| `unplugin-vue-components` | 0.27+ | 最新版 | 最新版 | 最新版 |
+
+> 截至 2026 年 9 月，`@vitejs/plugin-vue@6.x` 的 `peerDependencies` 已声明支持 Vite 5–8；`@vitejs/plugin-react@6.x` 面向 Vite 8，并使用 Oxc 做 React Refresh 转换。升级 Vite 时请以插件自身的 `peerDependencies` 为准。
 
 ### 5.7.4 版本不匹配时的表现
 
@@ -553,7 +555,7 @@ Error: [vite-plugin-xxx]: 'api.eliminate' is not a function
 ```bash
 # 查看当前项目的 Vite 版本
 npm list vite
-# vite@6.0.5
+# vite@8.3.0
 
 # 更新插件到兼容版本
 npm install -D @vitejs/plugin-vue@latest
@@ -683,7 +685,7 @@ npm run dev
 
 本章详细梳理了使用 Create-Vite 时需要注意的 8 个关键事项：
 
-- **Node.js 版本**：要求 >= 18.12.0，升级用 nvm 或去官网下载 LTS 版本。
+- **Node.js 版本**：`create-vite@9` / Vite 8 要求 `^20.19.0 || >=22.12.0`，升级用 nvm 或去官网下载 LTS 版本。
 - **包管理器**：支持 npm/pnpm/yarn，但**不要混用**，选定一个就一直用它。
 - **环境变量命名规则**：`VITE_` 前缀是 Vite 的安全机制，只有带此前缀的变量才会暴露给前端代码；敏感信息绝不以 `VITE_` 开头。
 - **浏览器兼容性**：Create-Vite 依赖原生 ESM，要求浏览器支持 ES Modules（2017 年之后的现代浏览器都支持，IE11 不支持）。

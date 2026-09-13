@@ -1,0 +1,1772 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift open source project
+//
+// Copyright (c) 2021-2025 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See http://swift.org/LICENSE.txt for license information
+// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
+import Basics
+import _Concurrency
+
+@_spi(SwiftPMInternal)
+@testable import PackageGraph
+import PackageLoading
+import PackageModel
+@testable import SPMBuildCore
+import _InternalTestSupport
+import Workspace
+import Testing
+import Foundation
+
+@Suite(
+    .serializedIfOnWindows,
+    .tags(
+        .TestSize.large,
+        .Feature.Command.Package.Plugin,
+        .Feature.Plugin,
+    )
+)
+struct PluginTests {
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .tags(
+            .Feature.Command.Build,
+            .Feature.CommandLineArguments.Product,
+            .Feature.CommandLineArguments.BuildSystem,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testUseOfBuildToolPluginTargetByExecutableInSamePackage(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/MySourceGenPlugin") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath,
+                configuration: .debug,
+                extraArgs: ["--product", "MyLocalTool"],
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Linking MySourceGenBuildTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Generating foo.swift from foo.dat"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Linking MyLocalTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build of product 'MyLocalTool' complete!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .xcode:
+                Issue.record("Test expectations must be defined.")
+            }
+        }
+    }
+
+    @Test(
+        .IssueWindowsRelativePathAssert,
+        .requiresSwiftConcurrencySupport,
+        .disabled(if: CiEnvironment.runningInSelfHostedPipeline && ProcessInfo.hostOperatingSystem == .windows),
+        .tags(
+            .Feature.Command.Test,
+            .Feature.CommandLineArguments.BuildSystem,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+
+    func testUseOfBuildToolPluginTargetNoPreBuildCommands(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/MySourceGenPluginNoPreBuildCommands") { fixturePath in
+            let (_, stderr) = try await executeSwiftTest(
+                fixturePath,
+                buildSystem: buildSystem,
+            )
+            #expect(stderr.contains("file(s) which are unhandled; explicitly declare them as resources or exclude from the target"), "expected warning not emitted")
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .tags(
+            .Feature.Command.Build,
+            .Feature.CommandLineArguments.BuildSystem,
+            .Feature.CommandLineArguments.Product,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testUseOfBuildToolPluginProductByExecutableAcrossPackages(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath.appending("MySourceGenClient"),
+                configuration: .debug,
+                extraArgs: ["--product", "MyTool"],
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Linking MySourceGenBuildTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Generating foo.swift from foo.dat"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Linking MyTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build of product 'MyTool' complete!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+                case .xcode:
+                Issue.record("Test expectations must be defined.")
+            }
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .tags(
+            .Feature.Command.Build,
+            .Feature.CommandLineArguments.BuildSystem,
+            .Feature.CommandLineArguments.Product,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testUseOfPrebuildPluginTargetByExecutableAcrossPackages(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/MySourceGenPlugin") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath,
+                configuration: .debug,
+                extraArgs: ["--product", "MyOtherLocalTool"],
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Compiling MyOtherLocalTool bar.swift"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Compiling MyOtherLocalTool baz.swift"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Linking MyOtherLocalTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build of product 'MyOtherLocalTool' complete!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .xcode:
+                Issue.record("Test expectations must be defined.")
+            }
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .disabled(if: CiEnvironment.runningInSelfHostedPipeline && ProcessInfo.hostOperatingSystem == .windows),
+        arguments: SupportedBuildSystemOnAllPlatforms
+    )
+    func testUseOfPluginWithInternalExecutable(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath.appending("ClientOfPluginWithInternalExecutable"),
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Compiling PluginExecutable main.swift"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Linking PluginExecutable"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Generating foo.swift from foo.dat"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Compiling RootTarget foo.swift"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Linking RootTarget"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .xcode:
+                Issue.record("Test expectations must be defined.")
+            }
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .tags(
+            .Feature.Command.Build,
+            .Feature.CommandLineArguments.BuildSystem,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testInternalExecutableAvailableOnlyToPlugin(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins") { fixturePath in
+            let error = try await #require(throws: SwiftPMError.self, "Illegally used internal executable") {
+                try await executeSwiftBuild(
+                    fixturePath.appending("InvalidUseOfInternalPluginExecutable"),
+                    buildSystem: buildSystem,
+                )
+            }
+
+            guard case SwiftPMError.executionFailure(_, _, let stderr) = error else {
+                Issue.record("Unexpected error type: \(error.interpolationDescription)")
+                return
+            }
+
+            #expect(
+                stderr.contains("product 'PluginExecutable' required by package 'invaliduseofinternalpluginexecutable' target 'RootTarget' not found in package 'PluginWithInternalExecutable'."), "stderr:\n\(stderr)"
+            )
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .tags(
+            .Feature.Command.Build,
+        ),
+        .disabled(if: CiEnvironment.runningInSelfHostedPipeline && ProcessInfo.hostOperatingSystem == .windows),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testLocalBuildToolPluginUsingRemoteExecutable(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath.appending("LibraryWithLocalBuildToolPluginUsingRemoteTool"),
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Compiling MySourceGenBuildTool main.swift"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Linking MySourceGenBuildTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Generating generated.swift from generated.dat"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Compiling MyLibrary generated.swift"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .xcode:
+                Issue.record("Test expectations must be defined.")
+            }
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .disabled(if: CiEnvironment.runningInSelfHostedPipeline && ProcessInfo.hostOperatingSystem == .windows),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testBuildToolPluginDependencies(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/MyBuildToolPluginDependencies") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath,
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Compiling MySourceGenBuildTool main.swift"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Linking MySourceGenBuildTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Generating foo.swift from foo.dat"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Compiling MyLocalTool foo.swift"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .xcode:
+                Issue.record("Test expectations must be defined.")
+            }
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testContrivedTestCases(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/ContrivedTestPlugin") { fixturePath in
+            let buildSpecificArgs: [String] = switch buildSystem {
+                case .native, .xcode:
+                    []
+                case .swiftbuild:
+                    ["--disable-sandbox"]
+            }
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath,
+                configuration: .debug,
+                extraArgs: ["--product", "MyLocalTool"] + buildSpecificArgs,
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Linking MySourceGenBuildTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Generating foo.swift from foo.dat"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Linking MyLocalTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build of product 'MyLocalTool' complete!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .xcode:
+                Issue.record("Test expectations must be defined.")
+            }
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .requireHostOS(.macOS, "Test is only supported on macOS"),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testPluginScriptSandbox(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/SandboxTesterPlugin") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath,
+                configuration: .debug,
+                extraArgs: ["--product", "MyLocalTool"],
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Linking MyLocalTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build of product 'MyLocalTool' complete!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .xcode:
+                Issue.record("Test expectations must be defined.")
+            }
+        }
+    }
+
+    @Test(
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/9215", relationship: .verifies),
+        .requiresSwiftConcurrencySupport,
+        arguments: [BuildSystemProvider.Kind.native, .swiftbuild]
+    )
+    func testUseOfVendedBinaryTool(buildSystem: BuildSystemProvider.Kind) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/MyBinaryToolPlugin") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath,
+                configuration: .debug,
+                extraArgs: ["--product", "MyLocalTool"],
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case  .native:
+                #expect(stdout.contains("Linking MyLocalTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build of product 'MyLocalTool' complete!"), "stdout:\n(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .xcode:
+                Issue.record("Test has no expectation for \(buildSystem)")
+            }
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .requireHostOS(.macOS, "Test is only supported on macOS"),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testUseOfBinaryToolVendedAsProduct(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/BinaryToolProductPlugin") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath,
+                configuration: .debug,
+                extraArgs: ["--product", "MyLocalTool"],
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Linking MyLocalTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build of product 'MyLocalTool' complete!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .xcode:
+                Issue.record("Test expectations must be defined.")
+            }
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .disabled(if: (ProcessInfo.hostOperatingSystem == .windows), "test plugin does not support windows"),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testBuildToolWithoutOutputs(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        func createPackageUnderTest(packageDir: AbsolutePath, toolsVersion: ToolsVersion) throws {
+            let manifestFile = packageDir.appending("Package.swift")
+            try localFileSystem.createDirectory(manifestFile.parentDirectory, recursive: true)
+            try localFileSystem.writeFileContents(
+                manifestFile,
+                string: """
+                // swift-tools-version: \(toolsVersion.description)
+                import PackageDescription
+                let package = Package(name: "MyPackage",
+                    targets: [
+                        .target(name: "SomeTarget", plugins: ["Plugin"]),
+                        .plugin(name: "Plugin", capability: .buildTool),
+                    ])
+                """)
+
+            let targetSourceFile = packageDir.appending(components: "Sources", "SomeTarget", "dummy.swift")
+            try localFileSystem.createDirectory(targetSourceFile.parentDirectory, recursive: true)
+            try localFileSystem.writeFileContents(targetSourceFile, string: "")
+
+            let pluginSourceFile = packageDir.appending(components: "Plugins", "Plugin", "plugin.swift")
+            try localFileSystem.createDirectory(pluginSourceFile.parentDirectory, recursive: true)
+            try localFileSystem.writeFileContents(pluginSourceFile, string: """
+            import PackagePlugin
+            #if os(Android)
+            let touchExe = "/system/bin/touch"
+            #else
+            let touchExe = "/usr/bin/touch"
+            #endif
+
+            @main
+            struct Plugin: BuildToolPlugin {
+                func createBuildCommands(context: PluginContext, target: Target) async throws -> [Command] {
+                    return [
+                        .buildCommand(
+                            displayName: "empty",
+                            executable: .init(touchExe),
+                            arguments: [context.pluginWorkDirectory.appending("best.txt")],
+                            inputFiles: [],
+                            outputFiles: []
+                        )
+                    ]
+                }
+            }
+            """)
+        }
+
+        try await testWithTemporaryDirectory { tmpPath in
+            let packageDir = tmpPath.appending(components: "MyPackage")
+            let pathOfGeneratedFile = packageDir.appending(components: [".build", "plugins", "outputs", "mypackage", "SomeTarget", "destination", "Plugin", "best.txt"])
+
+            try await withKnownIssue {
+                try createPackageUnderTest(packageDir: packageDir, toolsVersion: .v5_9)
+                let (_, stderr) = try await executeSwiftBuild(
+                    packageDir,
+                    env: ["SWIFT_DRIVER_SWIFTSCAN_LIB" : "/this/is/a/bad/path"],
+                    buildSystem: buildSystem,
+                )
+                #expect(stderr.contains("warning: Build tool command 'empty' (applied to target 'SomeTarget') does not declare any output files"), "expected warning not emitted")
+                #expect(!localFileSystem.exists(pathOfGeneratedFile), "plugin generated file unexpectedly exists at \(pathOfGeneratedFile.pathString)")
+            } when: {
+                buildSystem == .swiftbuild
+            }
+
+            try createPackageUnderTest(packageDir: packageDir, toolsVersion: .v6_0)
+            let (stdout, stderr2) = try await executeSwiftBuild(
+                packageDir,
+                env: ["SWIFT_DRIVER_SWIFTSCAN_LIB" : "/this/is/a/bad/path"],
+                buildSystem: buildSystem,
+            )
+            #expect(stdout.contains("Build complete!"))
+            #expect(!stderr2.contains("error:"))
+            #expect(localFileSystem.exists(pathOfGeneratedFile), "plugin did not run, generated file does not exist at \(pathOfGeneratedFile.pathString)")
+        }
+    }
+
+    @Test(
+        .bug("rdar://117870608"),
+        .requiresSwiftConcurrencySupport,
+        .disabled()
+    )
+    func testCommandPluginInvocation() async throws {
+        // FIXME: This test is getting quite long — we should add some support functionality for creating synthetic plugin tests and factor this out into separate tests.
+        try await testWithTemporaryDirectory { tmpPath in
+            // Create a sample package with a library target and a plugin. It depends on a sample package.
+            let packageDir = tmpPath.appending(components: "MyPackage")
+            let manifestFile = packageDir.appending("Package.swift")
+            try localFileSystem.createDirectory(manifestFile.parentDirectory, recursive: true)
+            try localFileSystem.writeFileContents(
+                manifestFile,
+                string: """
+                // swift-tools-version: 5.6
+                import PackageDescription
+                let package = Package(
+                    name: "MyPackage",
+                    dependencies: [
+                        .package(name: "HelperPackage", path: "VendoredDependencies/HelperPackage")
+                    ],
+                    targets: [
+                        .target(
+                            name: "MyLibrary",
+                            dependencies: [
+                                .product(name: "HelperLibrary", package: "HelperPackage")
+                            ]
+                        ),
+                        .plugin(
+                            name: "PluginPrintingInfo",
+                            capability: .command(
+                                intent: .custom(verb: "print-info", description: "Description of the command"),
+                                permissions: [.writeToPackageDirectory(reason: "Reason for wanting to write to package directory")]
+                            )
+                        ),
+                        .plugin(
+                            name: "PluginFailingWithError",
+                            capability: .command(
+                                intent: .custom(verb: "fail-with-error", description: "Sample plugin that throws an error")
+                            )
+                        ),
+                        .plugin(
+                            name: "PluginFailingWithoutError",
+                            capability: .command(
+                                intent: .custom(verb: "fail-without-error", description: "Sample plugin that exits without error")
+                            )
+                        ),
+                        .plugin(
+                            name: "NeverendingPlugin",
+                            capability: .command(
+                                intent: .custom(verb: "neverending-plugin", description: "A plugin that doesn't end running")
+                            )
+                        ),
+                    ]
+                )
+                """
+            )
+            let librarySourceFile = packageDir.appending(components: "Sources", "MyLibrary", "library.swift")
+            try localFileSystem.createDirectory(librarySourceFile.parentDirectory, recursive: true)
+            try localFileSystem.writeFileContents(
+                librarySourceFile,
+                string: """
+                public func Foo() { }
+                """
+            )
+            let printingPluginSourceFile = packageDir.appending(components: "Plugins", "PluginPrintingInfo", "plugin.swift")
+            try localFileSystem.createDirectory(printingPluginSourceFile.parentDirectory, recursive: true)
+            try localFileSystem.writeFileContents(
+                printingPluginSourceFile,
+                string: """
+                import PackagePlugin
+                @main struct MyCommandPlugin: CommandPlugin {
+                    func performCommand(
+                        context: PluginContext,
+                        arguments: [String]
+                    ) throws {
+                        // Check the identity of the root packages.
+                        print("Root package is \\(context.package.displayName).")
+
+                        // Check that we can find a tool in the toolchain.
+                        let swiftc = try context.tool(named: "swiftc")
+                        print("Found the swiftc tool at \\(swiftc.path).")
+                    }
+                }
+                """
+            )
+            let pluginFailingWithErrorSourceFile = packageDir.appending(components: "Plugins", "PluginFailingWithError", "plugin.swift")
+            try localFileSystem.createDirectory(pluginFailingWithErrorSourceFile.parentDirectory, recursive: true)
+            try localFileSystem.writeFileContents(
+                pluginFailingWithErrorSourceFile,
+                string: """
+                import PackagePlugin
+                @main struct MyCommandPlugin: CommandPlugin {
+                    func performCommand(
+                        context: PluginContext,
+                        arguments: [String]
+                    ) throws {
+                        // Print some output that should appear before the error diagnostic.
+                        print("This text should appear before the uncaught thrown error.")
+
+                        // Throw an uncaught error that should be reported as a diagnostics.
+                        throw "This is the uncaught thrown error."
+                    }
+                }
+                extension String: Error { }
+                """
+            )
+            let pluginFailingWithoutErrorSourceFile = packageDir.appending(components: "Plugins", "PluginFailingWithoutError", "plugin.swift")
+            try localFileSystem.createDirectory(pluginFailingWithoutErrorSourceFile.parentDirectory, recursive: true)
+            try localFileSystem.writeFileContents(
+                pluginFailingWithoutErrorSourceFile,
+                string: """
+                import PackagePlugin
+                import Foundation
+                @main struct MyCommandPlugin: CommandPlugin {
+                    func performCommand(
+                        context: PluginContext,
+                        arguments: [String]
+                    ) throws {
+                        // Print some output that should appear before we exit.
+                        print("This text should appear before we exit.")
+
+                        // Just exit with an error code without an emitting error.
+                        exit(1)
+                    }
+                }
+                extension String: Error { }
+                """
+            )
+            let neverendingPluginSourceFile = packageDir.appending(components: "Plugins", "NeverendingPlugin", "plugin.swift")
+            try localFileSystem.createDirectory(neverendingPluginSourceFile.parentDirectory, recursive: true)
+            try localFileSystem.writeFileContents(
+                neverendingPluginSourceFile,
+                string: """
+                import PackagePlugin
+                import Foundation
+                @main struct MyCommandPlugin: CommandPlugin {
+                    func performCommand(
+                        context: PluginContext,
+                        arguments: [String]
+                    ) throws {
+                        // Print some output that should appear before we exit.
+                        print("This text should appear before we exit.")
+
+                        // Just exit with an error code without an emitting error.
+                        exit(1)
+                    }
+                }
+                extension String: Error { }
+                """
+            )
+
+            // Create the sample vendored dependency package.
+            let library1Path = packageDir.appending(components: "VendoredDependencies", "HelperPackage", "Package.swift")
+            try localFileSystem.createDirectory(library1Path.parentDirectory, recursive: true)
+            try localFileSystem.writeFileContents(
+                library1Path,
+                string: """
+                // swift-tools-version: 5.5
+                import PackageDescription
+                let package = Package(
+                    name: "HelperPackage",
+                    products: [
+                        .library(
+                            name: "HelperLibrary",
+                            targets: ["HelperLibrary"]
+                        ),
+                    ],
+                    targets: [
+                        .target(
+                            name: "HelperLibrary"
+                        ),
+                    ]
+                )
+                """
+            )
+
+            let library2Path = packageDir.appending(components: "VendoredDependencies", "HelperPackage", "Sources", "HelperLibrary", "library.swift")
+            try localFileSystem.createDirectory(library2Path.parentDirectory, recursive: true)
+            try localFileSystem.writeFileContents(
+                library2Path,
+                string: """
+                public func Bar() { }
+                """
+            )
+
+            // Load a workspace from the package.
+            let observability = ObservabilitySystem.makeForTesting()
+            let workspace = try Workspace(
+                fileSystem: localFileSystem,
+                forRootPackage: packageDir,
+                customManifestLoader: ManifestLoader(toolchain: UserToolchain.default),
+                delegate: MockWorkspaceDelegate()
+            )
+
+            // Load the root manifest.
+            let rootInput = PackageGraphRootInput(packages: [packageDir], dependencies: [])
+            let rootManifests = try await workspace.loadRootManifests(
+                packages: rootInput.packages,
+                observabilityScope: observability.topScope
+            )
+            #expect(rootManifests.count == 1, "\(rootManifests)")
+
+            // Load the package graph.
+            let packageGraph = try await workspace.loadPackageGraph(
+                rootInput: rootInput,
+                observabilityScope: observability.topScope
+            )
+            expectNoDiagnostics(observability.diagnostics)
+            #expect(packageGraph.packages.count == 2, "\(packageGraph.packages)")
+            #expect(packageGraph.rootPackages.count == 1, "\(packageGraph.rootPackages)")
+            let package = try #require(packageGraph.rootPackages.first)
+
+            // Find the regular target in our test package.
+            let libraryTarget = try #require(package.modules.map(\.underlying).first{ $0.name == "MyLibrary" } as? SwiftModule)
+            #expect(libraryTarget.type == .library)
+
+            // Set up a delegate to handle callbacks from the command plugin.
+            let delegateQueue = DispatchQueue(label: "plugin-invocation")
+            class PluginDelegate: PluginInvocationDelegate {
+                let delegateQueue: DispatchQueue
+                var diagnostics: [Basics.Diagnostic] = []
+
+                init(delegateQueue: DispatchQueue) {
+                    self.delegateQueue = delegateQueue
+                }
+
+                func pluginCompilationStarted(commandLine: [String], environment: [String: String]) {
+                }
+
+                func pluginCompilationEnded(result: PluginCompilationResult) {
+                }
+
+                func pluginCompilationWasSkipped(cachedResult: PluginCompilationResult) {
+                }
+
+                func pluginEmittedOutput(_ data: Data) {
+                    // Add each line of emitted output as a `.info` diagnostic.
+                    dispatchPrecondition(condition: .onQueue(delegateQueue))
+                    let textlines = String(decoding: data, as: UTF8.self).split(whereSeparator: { $0.isNewline })
+                    print(textlines.map{ "[TEXT] \($0)" }.joined(separator: "\n"))
+                    diagnostics.append(contentsOf: textlines.map{
+                        Basics.Diagnostic(severity: .info, message: String($0), metadata: .none)
+                    })
+                }
+
+                func pluginEmittedDiagnostic(_ diagnostic: Basics.Diagnostic) {
+                    // Add the diagnostic as-is.
+                    dispatchPrecondition(condition: .onQueue(delegateQueue))
+                    print("[DIAG] \(diagnostic)")
+                    diagnostics.append(diagnostic)
+                }
+
+                func pluginEmittedProgress(_ message: String) {}
+            }
+
+            // Helper function to invoke a plugin with given input and to check its outputs.
+            func testCommand(
+                package: ResolvedPackage,
+                plugin pluginName: String,
+                modules moduleNames: [String],
+                arguments: [String],
+                toolNamesToPaths: [String: AbsolutePath] = [:],
+                sourceLocation: SourceLocation = #_sourceLocation,
+                expectFailure: Bool = false,
+                diagnosticsChecker: (DiagnosticsTestResult) throws -> Void
+            ) async throws {
+                // Find the named plugin.
+                let plugins = package.modules.compactMap{ $0.underlying as? PluginModule }
+                let plugin = try #require(plugins.first(where: { $0.name == pluginName }), "There is no plugin target named ‘\(pluginName)’")
+                try #require(plugin.type == .plugin, "Target \(plugin) isn’t a plugin")
+
+                // Find the named input targets to the plugin.
+                var modules: [ResolvedModule] = []
+                for name in moduleNames {
+                    let module = try #require(package.modules.first(where: { $0.underlying.name == name }), "There is no target named ‘\(name)’")
+                    try #require(module.type != .plugin, "Target \(module) is a plugin")
+                    modules.append(module)
+                }
+
+                let pluginDir = tmpPath.appending(components: package.identity.description, plugin.name)
+                let delegate = PluginDelegate(delegateQueue: delegateQueue)
+                do {
+                    let scriptRunner = DefaultPluginScriptRunner(
+                        fileSystem: localFileSystem,
+                        cacheDir: pluginDir.appending("cache"),
+                        toolchain: try UserToolchain.default
+                    )
+
+                    let toolSearchDirectories = [try UserToolchain.default.swiftCompilerPath.parentDirectory]
+                    let success = try await plugin.invoke(
+                        action: .performCommand(package: package, arguments: arguments),
+                        buildEnvironment: BuildEnvironment(platform: .macOS, configuration: .debug),
+                        workers: 1,
+                        scriptRunner: scriptRunner,
+                        workingDirectory: package.path,
+                        outputDirectory: pluginDir.appending("output"),
+                        toolSearchDirectories: toolSearchDirectories,
+                        accessibleTools: [:],
+                        writableDirectories: [pluginDir.appending("output")],
+                        readOnlyDirectories: [package.path],
+                        allowNetworkConnections: [],
+                        pkgConfigDirectories: [],
+                        sdkRootPath: nil,
+                        fileSystem: localFileSystem,
+                        modulesGraph: packageGraph,
+                        observabilityScope: observability.topScope,
+                        callbackQueue: delegateQueue,
+                        delegate: delegate
+                    )
+                    if expectFailure {
+                        #expect(!success, "expected command to fail, but it succeeded")
+                    }
+                    else {
+                        #expect(success, "expected command to succeed, but it failed", sourceLocation: sourceLocation)
+                    }
+                }
+                catch {
+                    Issue.record("error \(String(describing: error))", sourceLocation: sourceLocation)
+                }
+
+                // Check that we didn't end up with any completely empty diagnostics.
+                #expect(observability.diagnostics.first{ $0.message.isEmpty } == nil)
+
+                // Invoke the diagnostics checker for the plugin output.
+                try expectDiagnostics(delegate.diagnostics, problemsOnly: false, sourceLocation: sourceLocation, handler: diagnosticsChecker)
+            }
+
+            // Invoke the command plugin that prints out various things it was given, and check them.
+            try await testCommand(package: package, plugin: "PluginPrintingInfo", modules: ["MyLibrary"], arguments: ["veni", "vidi", "vici"]) { output in
+                output.check(diagnostic: .equal("Root package is MyPackage."), severity: .info)
+                output.check(diagnostic: .and(.prefix("Found the swiftc tool"), .suffix(".")), severity: .info)
+            }
+
+            // Invoke the command plugin that throws an unhandled error at the top level.
+            try await testCommand(package: package, plugin: "PluginFailingWithError", modules: [], arguments: [], expectFailure: true) { output in
+                output.check(diagnostic: .equal("This text should appear before the uncaught thrown error."), severity: .info)
+                output.check(diagnostic: .equal("This is the uncaught thrown error."), severity: .error)
+
+            }
+            // Invoke the command plugin that exits with code 1 without returning an error.
+            try await testCommand(package: package, plugin: "PluginFailingWithoutError", modules: [], arguments: [], expectFailure: true) { output in
+                output.check(diagnostic: .equal("This text should appear before we exit."), severity: .info)
+                output.check(diagnostic: .equal("Plugin ended with exit code 1"), severity: .error)
+            }
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testLocalAndRemoteToolDependencies(buildSystem: BuildSystemProvider.Kind) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/PluginUsingLocalAndRemoteTool") { path in
+            let (stdout, stderr) = try await executeSwiftPackage(
+                path.appending("MyLibrary"),
+                configuration: .debug,
+                extraArgs: ["plugin", "my-plugin"],
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                // Native build system is more explicit about what it's doing in stderr
+                #expect(stderr.contains("Linking RemoteTool"), "stdout:\n\(stderr)\n\(stdout)")
+                #expect(stderr.contains("Linking LocalTool"), "stdout:\n\(stderr)\n\(stdout)")
+                #expect(stderr.contains("Linking ImpliedLocalTool"), "stdout:\n\(stderr)\n\(stdout)")
+                #expect(stderr.contains("Build of product 'ImpliedLocalTool' complete!"), "stdout:\n\(stderr)\n\(stdout)")
+            case .swiftbuild, .xcode:
+                // There are nothing specific to expect
+                break
+            }
+            #expect(stdout.contains("A message from the remote tool."), "stdout:\n\(stderr)\n\(stdout)")
+            #expect(stdout.contains("A message from the local tool."), "stdout:\n\(stderr)\n\(stdout)")
+            #expect(stdout.contains("A message from the implied local tool."), "stdout:\n\(stderr)\n\(stdout)")
+        }
+    }
+
+    @Test(
+        .tags(
+            .Feature.Command.Package.Plugin,
+        )
+    )
+    func testPluginAPIsForMixedLanguageTargets() async throws {
+        try await fixture(name: "Miscellaneous/Plugins/MixedTargetPluginAPIs") { fixturePath in
+            let (stdout, _) = try await executeSwiftPackage(
+                fixturePath,
+                extraArgs: ["dump-targets"],
+                buildSystem: .swiftbuild,
+            )
+
+            #expect(stdout.contains("SwiftOnly.type = swift"))
+            #expect(stdout.contains("SwiftOnly.publicHeaders = none"))
+            #expect(stdout.contains("SwiftOnly.headerSearchPaths = []"))
+
+            #expect(stdout.contains("ClangOnly.type = clang"))
+            #expect(stdout.contains("ClangOnly.publicHeaders = include"))
+
+            #expect(stdout.contains("Mixed.type = mixed"))
+            #expect(stdout.contains("Mixed.publicHeaders = include"))
+            #expect(stdout.contains(#"Mixed.swiftDefinitions = ["SWIFT_DEFINITION"]"#))
+            #expect(stdout.contains(#"Mixed.clangDefinitions = ["PREPROCESSOR_MACRO"]"#))
+            #expect(stdout.contains(#"Mixed.headerSearchPaths = ["extra_headers"]"#))
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+    )
+    func testPluginUsageDoesntAffectTestTargetMappings() async throws {
+        try await fixture(name: "Miscellaneous/Plugins/MySourceGenPlugin") { packageDir in
+            // Load a workspace from the package.
+            let observability = ObservabilitySystem.makeForTesting()
+            let workspace = try Workspace(
+                fileSystem: localFileSystem,
+                forRootPackage: packageDir,
+                customManifestLoader: ManifestLoader(toolchain: UserToolchain.default),
+                delegate: MockWorkspaceDelegate()
+            )
+
+            // Load the root manifest.
+            let rootInput = PackageGraphRootInput(packages: [packageDir], dependencies: [])
+            let rootManifests = try await workspace.loadRootManifests(
+                packages: rootInput.packages,
+                observabilityScope: observability.topScope
+            )
+            #expect(rootManifests.count == 1, "\(rootManifests)")
+
+            // Load the package graph.
+            let packageGraph = try await workspace.loadPackageGraph(
+                rootInput: rootInput,
+                observabilityScope: observability.topScope
+            )
+            expectNoDiagnostics(observability.diagnostics)
+
+            // Make sure that the use of plugins doesn't bleed into the use of plugins by tools.
+            let testTargetMappings = try packageGraph.computeTestModulesForExecutableModules()
+            for (target, testTargets) in testTargetMappings {
+                #expect(!testTargets.contains{ $0.name == "MySourceGenPluginTests" }, "target: \(target), testTargets: \(testTargets)")
+            }
+        }
+    }
+
+    @Test(
+        .bug("rdar://88792829"),
+        .requiresSwiftConcurrencySupport,
+        .disabled(if: ProcessInfo.hostOperatingSystem == .windows, "This hangs intermittently on windows in CI")
+    )
+    func testCommandPluginCancellation() async throws {
+        try await testWithTemporaryDirectory { (tmpPath: AbsolutePath) -> Void in
+            // Create a sample package with a couple of plugins a other targets and products.
+            let packageDir = tmpPath.appending(components: "MyPackage")
+            try localFileSystem.createDirectory(packageDir, recursive: true)
+            try localFileSystem.writeFileContents(
+                packageDir.appending(components: "Package.swift"),
+                string: """
+                // swift-tools-version: 5.6
+                import PackageDescription
+                let package = Package(
+                    name: "MyPackage",
+                    products: [
+                        .library(
+                            name: "MyLibrary",
+                            targets: ["MyLibrary"]
+                        ),
+                    ],
+                    targets: [
+                        .target(
+                            name: "MyLibrary"
+                        ),
+                        .plugin(
+                            name: "NeverendingPlugin",
+                            capability: .command(
+                                intent: .custom(verb: "neverending-plugin", description: "Help description")
+                            )
+                        ),
+                    ]
+                )
+                """
+            )
+            let myLibraryTargetDir = packageDir.appending(components: "Sources", "MyLibrary")
+            try localFileSystem.createDirectory(myLibraryTargetDir, recursive: true)
+            try localFileSystem.writeFileContents(
+                myLibraryTargetDir.appending("library.swift"),
+                string: """
+                public func GetGreeting() -> String { return "Hello" }
+                """
+            )
+            let neverendingPluginTargetDir = packageDir.appending(components: "Plugins", "NeverendingPlugin")
+            try localFileSystem.createDirectory(neverendingPluginTargetDir, recursive: true)
+            try localFileSystem.writeFileContents(
+                neverendingPluginTargetDir.appending("plugin.swift"),
+                string: """
+                import PackagePlugin
+                import Foundation
+                @main struct NeverendingPlugin: CommandPlugin {
+                    func performCommand(
+                        context: PluginContext,
+                        arguments: [String]
+                    ) throws {
+                        print("pid: \\(ProcessInfo.processInfo.processIdentifier)")
+                        while true {
+                            Thread.sleep(forTimeInterval: 1.0)
+                            print("still here")
+                        }
+                    }
+                }
+                """
+            )
+
+            // Load a workspace from the package.
+            let observability = ObservabilitySystem.makeForTesting()
+            let workspace = try Workspace(
+                fileSystem: localFileSystem,
+                forRootPackage: packageDir,
+                customManifestLoader: ManifestLoader(toolchain: UserToolchain.default),
+                delegate: MockWorkspaceDelegate()
+            )
+
+            // Load the root manifest.
+            let rootInput = PackageGraphRootInput(packages: [packageDir], dependencies: [])
+            let rootManifests = try await workspace.loadRootManifests(
+                packages: rootInput.packages,
+                observabilityScope: observability.topScope
+            )
+            #expect(rootManifests.count == 1, "\(rootManifests)")
+
+            // Load the package graph.
+            let packageGraph = try await workspace.loadPackageGraph(
+                rootInput: rootInput,
+                observabilityScope: observability.topScope
+            )
+            expectNoDiagnostics(observability.diagnostics)
+            #expect(packageGraph.packages.count == 1, "\(packageGraph.packages)")
+            #expect(packageGraph.rootPackages.count == 1, "\(packageGraph.rootPackages)")
+            let package: ResolvedPackage = try #require(packageGraph.rootPackages.first)
+
+            // Find the regular target in our test package.
+            let libraryTarget = try #require(
+                package.modules
+                    .map(\.underlying)
+                    .first{ $0.name == "MyLibrary" } as? SwiftModule
+            )
+            #expect(libraryTarget.type == .library)
+
+            // Set up a delegate to handle callbacks from the command plugin.  In particular we want to know the process identifier.
+            let delegateQueue = DispatchQueue(label: "plugin-invocation")
+            class PluginDelegate: PluginInvocationDelegate {
+                let delegateQueue: DispatchQueue
+                var diagnostics: [Basics.Diagnostic] = []
+                var parsedProcessIdentifier: Int? = .none
+
+                init(delegateQueue: DispatchQueue) {
+                    self.delegateQueue = delegateQueue
+                }
+
+                func pluginCompilationStarted(commandLine: [String], environment: [String: String]) {
+                }
+
+                func pluginCompilationEnded(result: PluginCompilationResult) {
+                }
+
+                func pluginCompilationWasSkipped(cachedResult: PluginCompilationResult) {
+                }
+
+                func pluginEmittedOutput(_ data: Data) {
+                    // Add each line of emitted output as a `.info` diagnostic.
+                    dispatchPrecondition(condition: .onQueue(delegateQueue))
+                    let textlines = String(decoding: data, as: UTF8.self).split(whereSeparator: { $0.isNewline })
+                    diagnostics.append(contentsOf: textlines.map{
+                        Basics.Diagnostic(severity: .info, message: String($0), metadata: .none)
+                    })
+
+                    // If we don't already have the process identifier, we try to find it.
+                    if parsedProcessIdentifier == .none {
+                        func parseProcessIdentifier(_ string: String) -> Int? {
+                            guard let match = try? NSRegularExpression(pattern: "pid: (\\d+)", options: []).firstMatch(in: string, options: [], range: NSRange(location: 0, length: string.count)) else { return .none }
+                            // We have a match, so extract the process identifier.
+                            assert(match.numberOfRanges == 2)
+                            return Int((string as NSString).substring(with: match.range(at: 1)))
+                        }
+                        parsedProcessIdentifier = textlines.compactMap{ parseProcessIdentifier(String($0)) }.first
+                    }
+                }
+
+                func pluginEmittedDiagnostic(_ diagnostic: Basics.Diagnostic) {
+                    // Add the diagnostic as-is.
+                    dispatchPrecondition(condition: .onQueue(delegateQueue))
+                    diagnostics.append(diagnostic)
+                }
+
+                func pluginEmittedProgress(_ message: String) {}
+            }
+
+            // Find the relevant plugin.
+            let plugins = package.modules.compactMap { $0.underlying as? PluginModule }
+            let plugin = try #require(plugins.first(where: { $0.name == "NeverendingPlugin" }), "There is no plugin target named ‘NeverendingPlugin’")
+            #expect(plugin.type == .plugin, "Target \(plugin) isn’t a plugin")
+
+            // Run the plugin.
+            let pluginDir = tmpPath.appending(components: package.identity.description, plugin.name)
+            let scriptRunner = DefaultPluginScriptRunner(
+                fileSystem: localFileSystem,
+                cacheDir: pluginDir.appending("cache"),
+                toolchain: try UserToolchain.default
+            )
+            let delegate = PluginDelegate(delegateQueue: delegateQueue)
+            // Use a task with timeout to test cancellation
+            let pluginTask = Task {
+                try await withTaskCancellationHandler {
+                    _ = try await plugin.invoke(
+                        action: .performCommand(package: package, arguments: []),
+                        buildEnvironment: BuildEnvironment(platform: .macOS, configuration: .debug),
+                        workers: 1,
+                        scriptRunner: scriptRunner,
+                        workingDirectory: package.path,
+                        outputDirectory: pluginDir.appending("output"),
+                        toolSearchDirectories: [try UserToolchain.default.swiftCompilerPath.parentDirectory],
+                        accessibleTools: [:],
+                        writableDirectories: [pluginDir.appending("output")],
+                        readOnlyDirectories: [package.path],
+                        allowNetworkConnections: [],
+                        pkgConfigDirectories: [],
+                        sdkRootPath: try UserToolchain.default.sdkRootPath,
+                        fileSystem: localFileSystem,
+                        modulesGraph: packageGraph,
+                        observabilityScope: observability.topScope,
+                        callbackQueue: delegateQueue,
+                        delegate: delegate
+                    )
+                } onCancel: {
+                    do {
+                        try scriptRunner.cancel(deadline: .now() + .seconds(5))
+                    } catch {
+                        Issue.record("Cancelling script runner should not fail: \(error)")
+                    }
+                }
+            }
+
+            // Wait for the plugin to start and get its PID
+            try await Task.sleep(nanoseconds: UInt64(DispatchTimeInterval.seconds(3).nanoseconds()!))
+
+            // At this point we should have parsed out the process identifier. But it's possible we don't always — this is being investigated in rdar://88792829.
+            var pid: Int? = .none
+            delegateQueue.sync {
+                pid = delegate.parsedProcessIdentifier
+            }
+            guard let pid = pid else {
+                pluginTask.cancel()
+                print("skipping test because no pid was received from the plugin; being investigated as rdar://88792829\n\(delegate.diagnostics.description)")
+                return
+            }
+
+            // Check that it's running (we do this by asking for its priority — this only works on some platforms).
+            #if os(macOS)
+            errno = 0
+            getpriority(Int32(PRIO_PROCESS), UInt32(pid))
+            #expect(errno == 0, "unexpectedly got errno \(errno) when trying to check process \(pid)")
+            #endif
+
+            // Cancel the plugin task
+            pluginTask.cancel()
+
+            // Wait a bit for cancellation to propagate
+            try await Task.sleep(nanoseconds: UInt64(DispatchTimeInterval.milliseconds(500).nanoseconds()!))
+
+            // Check that it's no longer running (we do this by asking for its priority — this only works on some platforms).
+            #if os(macOS)
+            errno = 0
+            getpriority(Int32(PRIO_PROCESS), UInt32(pid))
+            #expect(errno == ESRCH, "unexpectedly got errno \(errno) when trying to check process \(pid)")
+            #endif
+
+            // Ensure the task was actually cancelled
+            do {
+                _ = try await pluginTask.value
+                Issue.record("Plugin task should have been cancelled")
+            } catch is CancellationError {
+                // Expected - task was cancelled
+            } catch {
+                // Also acceptable - plugin may have been terminated
+            }
+        }
+    }
+
+    @Test
+    func testUnusedPluginProductWarnings() async throws {
+        // Test the warnings we get around unused plugin products in package dependencies.
+        try await testWithTemporaryDirectory { tmpPath in
+            // Create a sample package that uses three packages that vend plugins.
+            let packageDir = tmpPath.appending(components: "MyPackage")
+            try localFileSystem.createDirectory(packageDir, recursive: true)
+            try localFileSystem.writeFileContents(
+                packageDir.appending("Package.swift"),
+                string: """
+                // swift-tools-version: 5.6
+                import PackageDescription
+                let package = Package(
+                    name: "MyPackage",
+                    dependencies: [
+                        .package(name: "BuildToolPluginPackage", path: "VendoredDependencies/BuildToolPluginPackage"),
+                        .package(name: "UnusedBuildToolPluginPackage", path: "VendoredDependencies/UnusedBuildToolPluginPackage"),
+                        .package(name: "CommandPluginPackage", path: "VendoredDependencies/CommandPluginPackage")
+                    ],
+                    targets: [
+                        .target(
+                            name: "MyLibrary",
+                            path: ".",
+                            plugins: [
+                                .plugin(name: "BuildToolPlugin", package: "BuildToolPluginPackage")
+                            ]
+                        ),
+                    ]
+                )
+                """
+            )
+            try localFileSystem.writeFileContents(
+                packageDir.appending("Library.swift"),
+                string: """
+                public var Foo: String
+                """
+            )
+
+            // Create the depended-upon package that vends a build tool plugin that is used by the main package.
+            let buildToolPluginPackageDir = packageDir.appending(components: "VendoredDependencies", "BuildToolPluginPackage")
+            try localFileSystem.createDirectory(buildToolPluginPackageDir, recursive: true)
+            try localFileSystem.writeFileContents(
+                buildToolPluginPackageDir.appending("Package.swift"),
+                string: """
+                // swift-tools-version: 5.6
+                import PackageDescription
+                let package = Package(
+                    name: "BuildToolPluginPackage",
+                    products: [
+                        .plugin(
+                            name: "BuildToolPlugin",
+                            targets: ["BuildToolPlugin"])
+                    ],
+                    targets: [
+                        .plugin(
+                            name: "BuildToolPlugin",
+                            capability: .buildTool(),
+                            path: ".")
+                    ]
+                )
+                """
+            )
+            try localFileSystem.writeFileContents(
+                buildToolPluginPackageDir.appending("Plugin.swift"),
+                string: """
+                import PackagePlugin
+                @main struct MyPlugin: BuildToolPlugin {
+                    func createBuildCommands(context: PluginContext, target: Target) throws -> [Command] {
+                        return []
+                    }
+                }
+                """
+            )
+
+            // Create the depended-upon package that vends a build tool plugin that is not used by the main package.
+            let unusedBuildToolPluginPackageDir = packageDir.appending(components: "VendoredDependencies", "UnusedBuildToolPluginPackage")
+            try localFileSystem.createDirectory(unusedBuildToolPluginPackageDir, recursive: true)
+            try localFileSystem.writeFileContents(
+                unusedBuildToolPluginPackageDir.appending("Package.swift"),
+                string: """
+                // swift-tools-version: 5.6
+                import PackageDescription
+                let package = Package(
+                    name: "UnusedBuildToolPluginPackage",
+                    products: [
+                        .plugin(
+                            name: "UnusedBuildToolPlugin",
+                            targets: ["UnusedBuildToolPlugin"])
+                    ],
+                    targets: [
+                        .plugin(
+                            name: "UnusedBuildToolPlugin",
+                            capability: .buildTool(),
+                            path: ".")
+                    ]
+                )
+                """
+            )
+            try localFileSystem.writeFileContents(
+                unusedBuildToolPluginPackageDir.appending("Plugin.swift"),
+                string: """
+                import PackagePlugin
+                @main struct MyPlugin: BuildToolPlugin {
+                    func createBuildCommands(context: PluginContext, target: Target) throws -> [Command] {
+                        return []
+                    }
+                }
+                """
+            )
+
+            // Create the depended-upon package that vends a command plugin.
+            let commandPluginPackageDir = packageDir.appending(components: "VendoredDependencies", "CommandPluginPackage")
+            try localFileSystem.createDirectory(commandPluginPackageDir, recursive: true)
+            try localFileSystem.writeFileContents(
+                commandPluginPackageDir.appending("Package.swift"),
+                string: """
+                // swift-tools-version: 5.6
+                import PackageDescription
+                let package = Package(
+                    name: "CommandPluginPackage",
+                    products: [
+                        .plugin(
+                            name: "CommandPlugin",
+                            targets: ["CommandPlugin"])
+                    ],
+                    targets: [
+                        .plugin(
+                            name: "CommandPlugin",
+                            capability: .command(intent: .custom(verb: "how", description: "why")),
+                            path: ".")
+                    ]
+                )
+                """
+            )
+            try localFileSystem.writeFileContents(
+                commandPluginPackageDir.appending("Plugin.swift"),
+                string: """
+                import PackagePlugin
+                @main struct MyPlugin: CommandPlugin {
+                    func performCommand(context: PluginContext, targets: [Target], arguments: [String]) throws {
+                    }
+                }
+                """
+            )
+
+            // Load a workspace from the package.
+            let observability = ObservabilitySystem.makeForTesting()
+            let workspace = try Workspace(
+                fileSystem: localFileSystem,
+                location: .init(forRootPackage: packageDir, fileSystem: localFileSystem),
+                customManifestLoader: ManifestLoader(toolchain: UserToolchain.default),
+                delegate: MockWorkspaceDelegate()
+            )
+
+            // Load the root manifest.
+            let rootInput = PackageGraphRootInput(packages: [packageDir], dependencies: [])
+            let rootManifests = try await workspace.loadRootManifests(
+                packages: rootInput.packages,
+                observabilityScope: observability.topScope
+            )
+            #expect(rootManifests.count == 1, "\(rootManifests)")
+
+            // Load the package graph.
+            let packageGraph = try await workspace.loadPackageGraph(
+                rootInput: rootInput,
+                observabilityScope: observability.topScope
+            )
+            #expect(packageGraph.packages.count == 4, "\(packageGraph.packages)")
+            #expect(packageGraph.rootPackages.count == 1, "\(packageGraph.rootPackages)")
+
+            // Check that we have only a warning about the unused build tool plugin (not about the used one and not about the command plugin).
+            testDiagnostics(observability.diagnostics, problemsOnly: true) { result in
+                result.checkUnordered(diagnostic: .contains("dependency 'unusedbuildtoolpluginpackage' is not used by any target"), severity: .warning)
+            }
+        }
+    }
+
+    @Suite(
+        .issue("https://github.com/swiftlang/swift-package-manager/issues/9040", relationship: .verifies),
+        .tags(
+            .Feature.Snippets,
+        )
+    )
+    struct SnippetTests {
+        @Test(
+            .requiresSwiftConcurrencySupport,
+            arguments: SupportedBuildSystemOnAllPlatforms,
+        )
+        func testSnippetSupport(
+            buildSystem: BuildSystemProvider.Kind,
+        ) async throws {
+            let config = BuildConfiguration.debug
+            try await fixture(name: "Miscellaneous/Plugins/PluginsAndSnippets") { fixturePath in
+                let (stdout, stderr) = try await executeSwiftPackage(
+                    fixturePath,
+                    configuration: config,
+                    extraArgs: ["do-something"],
+                    buildSystem: buildSystem,
+                )
+                #expect(stdout.contains("type of snippet target: snippet"), "stderr:\n\(stderr)")
+            }
+        }
+
+        @Test(
+            .disabled(),
+            .requiresSwiftConcurrencySupport,
+            .tags(
+                .Feature.Command.Package.CompletionTool,
+            ),
+            arguments: SupportedBuildSystemOnAllPlatforms,
+        )
+        func testBasicBuildSnippets(
+            buildSystem: BuildSystemProvider.Kind,
+        ) async throws {
+            let config = BuildConfiguration.debug
+            try await fixture(name: "Miscellaneous/Plugins/PluginsAndSnippets") { fixturePath in
+                await #expect(throws: Never.self) {
+                    let _ = try await executeSwiftBuild(
+                        fixturePath,
+                        configuration: config,
+                        buildSystem: buildSystem,
+                    )
+                }
+
+                let snippets = try await executeSwiftPackage(
+                    fixturePath,
+                    configuration: config,
+                    extraArgs: ["completion-tool", "list-snippet"],
+                    buildSystem: buildSystem,
+                ).stdout.split(whereSeparator: \.isNewline)
+
+                let binPath = try await getBinPath(
+                    fixturePath,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+                for snippet in snippets {
+                    try expectFileExists(
+                        at: binPath.appending("\(snippet)")
+                    )
+                }
+            }
+        }
+
+        @Test(
+            .issue("https://github.com/swiftlang/swift-package-manager/issues/9040", relationship: .verifies),
+            .requiresSwiftConcurrencySupport,
+            arguments: SupportedBuildSystemOnAllPlatforms, try getFiles(in: RelativePath(validating: "Fixtures/Miscellaneous/Plugins/PluginsAndSnippets/Snippets"), matchingExtension: "swift",),
+        )
+        func testBasicBuildIndividualSnippets(
+            buildSystem: BuildSystemProvider.Kind,
+            targetPath: RelativePath,
+        ) async throws {
+            let config = BuildConfiguration.debug
+            try await fixture(name: "Miscellaneous/Plugins/PluginsAndSnippets") { fixturePath in
+                let targetName = targetPath.basenameWithoutExt
+                await #expect(throws: Never.self) {
+                    let _ = try await executeSwiftBuild(
+                        fixturePath,
+                        configuration: config,
+                        extraArgs: ["--product", targetName],
+                        buildSystem: buildSystem,
+                    )
+                }
+            }
+        }
+
+        @Test(
+            .issue("https://github.com/swiftlang/swift-package-manager/issues/9040", relationship: .verifies),
+            .requiresSwiftConcurrencySupport,
+            arguments: SupportedBuildSystemOnAllPlatforms, try getFiles(in: RelativePath(validating: "Fixtures/Miscellaneous/Plugins/PluginsAndSnippets/Snippets"), matchingExtension: "swift",),
+        )
+        func testBasicRunSnippets(
+            buildSystem: BuildSystemProvider.Kind,
+            targetPath: RelativePath,
+        ) async throws {
+            let config = BuildConfiguration.debug
+            let targetName = targetPath.basenameWithoutExt
+            try await fixture(name: "Miscellaneous/Plugins/PluginsAndSnippets") { fixturePath in
+                let (stdout, stderr) = try await executeSwiftRun(
+                    fixturePath,
+                    targetName,
+                    configuration: config,
+                    buildSystem: buildSystem,
+                )
+
+                #expect(stdout.contains("hello, snippets"), "stderr: \(stderr)")
+            }
+        }
+    }
+
+    @Test(
+        .bug("https://github.com/swiftlang/swift-package-manager/issues/8774"),
+        .requiresSwiftConcurrencySupport,
+        .tags(
+            .Feature.Command.Build,
+            .Feature.CommandLineArguments.BuildTests,
+        ),
+        .disabled(if: CiEnvironment.runningInSelfHostedPipeline && ProcessInfo.hostOperatingSystem == .windows),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testIncorrectDependencies(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/IncorrectDependencies") { path in
+            let (stdout, stderr) = try await executeSwiftBuild(
+                path,
+                extraArgs: ["--build-tests"],
+                buildSystem: buildSystem,
+            )
+
+            #expect(stdout.contains("Build complete!"), "output:\n\(stderr)\n\(stdout)")
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        arguments: SupportedBuildSystemOnAllPlatforms
+    )
+    func testPrebuildDependencyOnExecutableTarget(buildSystem: BuildSystemProvider.Kind) async throws {
+        // Build tool plugins aren't permitted to depend on executable targets and use them in the prebuild commands
+        // that they return. This is because these commands run immediately and the executable doesn't exist yet or
+        // it isn't up-to-date.
+        try await fixture(name: "Miscellaneous/Plugins/PrebuildDependsExecutableTarget") { path in
+            let error = try await #require(throws: Error.self) {
+                try await executeSwiftBuild(
+                    path,
+                    extraArgs: ["--vv"],
+                    buildSystem: buildSystem,
+                )
+            }
+
+            #expect("\(error)".contains("a prebuild command cannot use executables built from source"))
+        }
+    }
+
+    @Test(
+        .requireHostOS(.macOS, "sandboxing tests are only supported on macOS"),
+        .requiresSwiftConcurrencySupport,
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testSandboxViolatingBuildToolPluginCommands(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        // Check that the build fails with a sandbox violation by default.
+        try await fixture(name: "Miscellaneous/Plugins/SandboxViolatingBuildToolPluginCommands") { path in
+            let error = try await #require(throws: Error.self) {
+                try await executeSwiftBuild(
+                    path.appending("MyLibrary"),
+                    configuration: .debug,
+                    buildSystem: buildSystem,
+                )
+            }
+
+            switch buildSystem {
+            case .native:
+                #expect("\(error)".contains("You don’t have permission to save the file “generated” in the folder “MyLibrary”."))
+            case .swiftbuild:
+                #expect("\(error)".contains("Operation not permitted"))
+            case .xcode:
+                Issue.record("Test expected have not been considered")
+            }
+        }
+
+        // Check that the build succeeds if we disable the sandbox.
+        try await fixture(name: "Miscellaneous/Plugins/SandboxViolatingBuildToolPluginCommands") { path in
+            let (stdout, stderr) = try await executeSwiftBuild(
+                path.appending("MyLibrary"),
+                configuration: .debug,
+                extraArgs: ["--disable-sandbox"],
+                buildSystem: buildSystem,
+            )
+            #expect(stdout.contains("Build complete!"), "[STDOUT]\n\(stdout)\n[STDERR]\n\(stderr)\n")
+        }
+    }
+
+    @Test(
+        .requireHostOS(.macOS, "sandboxing tests are only supported on macOS"),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testBuildToolPluginSwiftFileExecutable(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/SwiftFilePlugin") { fixturePath in
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                configuration: .debug,
+                extraArgs: [ "--verbose"],
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Hello, Build Tool Plugin!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stderr.contains("Hello, Build Tool Plugin!"), "stderr:\n\(stderr)")
+            case .xcode:
+                Issue.record("Test expected have not been considered")
+            }
+        }
+    }
+
+    @Test(
+        .bug("https://github.com/swiftlang/swift-package-manager/issues/8774"),
+        .requiresSwiftConcurrencySupport,
+        .tags(
+            .Feature.Command.Build,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testTransitivePluginOnlyDependency(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/TransitivePluginOnlyDependency") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath,
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Compiling plugin MyPlugin"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Compiling Library Library.swift"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .xcode:
+                Issue.record("Test expected have not been considered")
+            }
+        }
+    }
+
+    @Test(
+        "Build-tool plugin crashes surface invocation failure details",
+        .requiresSwiftConcurrencySupport,
+        .issue(
+            "https://github.com/swiftlang/swift-package-manager/issues/10042",
+            relationship: .defect
+        ),
+        .tags(
+            .Feature.Command.Build,
+            .Feature.CommandLineArguments.BuildSystem
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms
+    )
+    func testBuildToolPluginCrash(
+        buildSystem: BuildSystemProvider.Kind
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/BuildToolPluginCrash") { fixturePath in
+            let error = try await #require(
+                throws: SwiftPMError.self,
+                "Expected the build to fail when the build-tool plugin crashes"
+            ) {
+                try await executeSwiftBuild(
+                    fixturePath,
+                    buildSystem: buildSystem
+                )
+            }
+
+            guard case SwiftPMError.executionFailure(_, _, let stderr) = error else {
+                Issue.record("Unexpected error type: \(error.interpolationDescription)")
+                return
+            }
+
+            #expect(
+                stderr.contains("plugin process ended by an uncaught signal"),
+                "stderr:\n\(stderr)"
+            )
+            #expect(
+                stderr.contains("intentional build-tool plugin crash"),
+                "stderr:\n\(stderr)"
+            )
+            #expect(
+                stderr.contains("build planning stopped due to build-tool plugin failures"),
+                "stderr:\n\(stderr)"
+            )
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testMissingPlugin(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/MissingPlugin") { fixturePath in
+            print(fixturePath)
+            do {
+                try await executeSwiftBuild(
+                    fixturePath,
+                    buildSystem: buildSystem,
+                )
+            } catch SwiftPMError.executionFailure(_, _, let stderr) {
+                #expect(stderr.contains("error: 'missingplugin': no plugin named 'NonExistingPlugin' found"), "stderr:\n\(stderr)")
+            }
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .tags(
+            .Feature.Command.Build,
+        ),
+        .disabled(if: CiEnvironment.runningInSelfHostedPipeline && ProcessInfo.hostOperatingSystem == .windows),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testPluginCanBeReferencedByProductName(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/PluginCanBeReferencedByProductName") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath,
+                buildSystem: buildSystem,
+            )
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Compiling plugin MyPlugin"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Compiling PluginCanBeReferencedByProductName gen.swift"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+            case .xcode:
+                Issue.record("Test expected have not been considered")
+            }
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .tags(
+            .Feature.Command.Build,
+            .Feature.CommandLineArguments.BuildSystem,
+            .Feature.CommandLineArguments.Product,
+            .Feature.CommandLineArguments.XbuildToolsSwiftc,
+        ),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testPluginCanBeAffectedByXBuildToolsParameters(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/MySourceGenPlugin") { fixturePath in
+            let buildArgs: [String] = switch buildSystem {
+                case .native, .xcode: []
+                case .swiftbuild: ["-v"]
+            }
+            let (stdout, stderr) = try await executeSwiftBuild(
+                fixturePath,
+                configuration: .debug,
+                extraArgs: ["--product", "MyLocalTool", "-Xbuild-tools-swiftc", "-DUSE_CREATE"] + buildArgs,
+                buildSystem: buildSystem,
+            )
+
+            switch buildSystem {
+            case .native:
+                #expect(stdout.contains("Linking MySourceGenBuildTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Creating foo.swift from foo.dat"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Linking MyLocalTool"), "stdout:\n\(stdout)")
+                #expect(stdout.contains("Build of product 'MyLocalTool' complete!"), "stdout:\n\(stdout)")
+            case .swiftbuild:
+                #expect(stdout.contains("MySourceGenBuildTool-product"), "stdout:\n\(stdout)\nstderr:\n\(stderr)")
+                #expect(stdout.contains("Creating foo.swift from foo.dat"), "stdout:\n\(stdout)\nstderr:\n\(stderr)")
+                #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)\nstderr:\n\(stderr)")
+            case .xcode:
+                Issue.record("Test expected have not been considered")
+            }
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        .disabled(if: CiEnvironment.runningInSelfHostedPipeline && ProcessInfo.hostOperatingSystem == .windows),
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testURLBasedPluginAPI(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/MySourceGenPluginUsingURLBasedAPI") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath,
+                configuration: .debug,
+                buildSystem: buildSystem,
+            )
+            #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+        }
+    }
+
+    @Test(
+        .requiresSwiftConcurrencySupport,
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testDependentPlugins(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+        try await fixture(name: "Miscellaneous/Plugins/DependentPlugins") { fixturePath in
+            let (stdout, _) = try await executeSwiftBuild(
+                fixturePath,
+                buildSystem: buildSystem,
+            )
+            #expect(stdout.contains("Build complete!"), "stdout:\n\(stdout)")
+        }
+    }
+
+    @Test(
+        arguments: SupportedBuildSystemOnAllPlatforms,
+    )
+    func testCommandPluginBuildingPackageUsingBuildToolPlugin(
+        buildSystem: BuildSystemProvider.Kind,
+    ) async throws {
+            try await fixture(name: "Miscellaneous/Plugins/CommandPluginBuildingBuildToolPlugin") { fixturePath in
+                let (stdout, stderr) = try await executeSwiftPackage(
+                    fixturePath,
+                    extraArgs: ["plugin", "build-release"],
+                    buildSystem: buildSystem,
+                )
+                #expect(stdout.contains("Built successfully"))
+            }
+    }
+}

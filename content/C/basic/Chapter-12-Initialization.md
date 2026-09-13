@@ -396,11 +396,21 @@ int main() {
 ```c
 #include <stdio.h>
 
+struct Point {
+    int x;
+    int y;
+};
+
 struct Matrix {
     int rows;
     int cols;
     int data[3][3];
 };
+
+// 返回结构体的函数必须定义在文件作用域（函数外）！
+struct Point create_point(int x, int y) {
+    return (struct Point){x, y};  // 直接返回复合字面量
+}
 
 void print_matrix(struct Matrix m) {
     printf("矩阵 (%dx%d):\n", m.rows, m.cols);
@@ -412,7 +422,7 @@ void print_matrix(struct Matrix m) {
     }
 }
 
-int main() {
+int main(void) {
     // 场景一：临时创建一个矩阵用于计算
     print_matrix((struct Matrix){
         .rows = 3,
@@ -422,10 +432,6 @@ int main() {
     // 输出一个 3x3 矩阵
 
     // 场景二：函数返回临时结构体
-    struct Point create_point(int x, int y) {
-        return (struct Point){x, y};  // 直接返回复合字面量！
-    }
-
     struct Point center = create_point(100, 200);
     printf("中心点: (%d, %d)\n", center.x, center.y);
     // 输出: 中心点: (100, 200)
@@ -433,6 +439,23 @@ int main() {
     return 0;
 }
 ```
+
+> ⚠️ **注意上面那个 `create_point` 的位置**：它被放在了 `main` **外面**。这一点非常关键。
+>
+> 有些教程会把函数**嵌套写在 `main` 里面**，像这样：
+>
+> ```c
+> int main(void) {
+>     struct Point create_point(int x, int y) {   // ❌ 不是标准 C！
+>         return (struct Point){x, y};
+>     }
+>     ...
+> }
+> ```
+>
+> **嵌套函数定义是 GCC 的私有扩展（Nested Functions），不是标准 C 的一部分**。GCC 能编过，但 Clang 和 MSVC 会直接报错（`function definition is not allowed here`），更严重的是它生成的代码依赖栈上的"跳板"（trampoline），还需要可执行的栈——在很多现代系统上默认是被禁止的。
+>
+> **结论：标准 C 里所有函数都定义在文件作用域**，函数内部只能有声明，不能有定义。
 
 ---
 

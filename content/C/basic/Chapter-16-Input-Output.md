@@ -271,18 +271,20 @@ C99 引入了一批新的长度修饰符，让 `printf` 能够更精确地匹配
 #include <inttypes.h> // 提供 intmax_t
 
 int main(void) {
-    // %zd —— size_t（无符号整数，通常是 unsigned int 或 unsigned long）
+    // %zu —— size_t（无符号，长度随平台而定）
     size_t s = 12345;
-    printf("size_t: %zd\n", s);        // 输出: size_t: 12345
+    printf("size_t: %zu\n", s);        // 输出: size_t: 12345
+    // 注意：%zd 不是给 size_t 用的！%zd 要的是 size_t 的"有符号兄弟"
+    // （POSIX 的 ssize_t），用错了在严格的编译器上会被 -Wformat 揪出来。
 
     // %td —— ptrdiff_t（指针相减的结果类型）
     int arr[5];
     ptrdiff_t diff = &arr[5] - &arr[0];
     printf("ptrdiff_t: %td\n", diff);  // 输出: ptrdiff_t: 5
 
-    // %hhd —— char 有符号解释（输出为一个 signed char）
-    char c = 255;  // -1 的二进制表示（8位）
-    printf("char (signed): %hhd\n", c); // 输出: char (signed): -1
+    // %hhd —— 按 signed char 打印
+    signed char c = -1;
+    printf("signed char: %hhd\n", c);   // 输出: signed char: -1
 
     // %llu —— unsigned long long
     unsigned long long big = 18446744073709551615ULL;
@@ -296,7 +298,7 @@ int main(void) {
 }
 ```
 
-**为什么要这些？** 想象一下，`int` 在 16 位系统上是 2 字节，在 32 位系统上是 4 字节，在 64 位系统上可能还是 4 字节（Windows）或 8 字节（Linux）。这些修饰符让你在打印 `size_t` 时不用担心它具体是 `unsigned int` 还是 `unsigned long`，写 `%zd` 就完事了！
+**为什么要这些？** 想象一下，`int` 在 16 位系统上是 2 字节，在 32 位系统上是 4 字节，在 64 位系统上可能还是 4 字节（Windows）或 8 字节（Linux）。这些修饰符让你在打印 `size_t` 时不用担心它具体是 `unsigned int` 还是 `unsigned long`，写 `%zu` 就完事了——记住"**`u` 配 `size_t`，`d` 配 `ssize_t`**"这个口诀就不会记混。
 
 ### 16.1.5 `<inttypes.h>` 格式宏：跨平台的安全保障
 
@@ -691,7 +693,11 @@ int main(void) {
 
 ### 16.3.3 C11 安全版本：`sprintf_s` / `snprintf_s`
 
-C11 引入了一族 `_s` 后缀的安全函数，它们不仅限制长度，还会在运行时检测**空指针**等问题。
+> ⚠️ **注意适用范围**：`_s` 后缀的这一族函数来自 C11 **附录 K（Annex K）**，是**可选特性**——glibc（Linux）、Apple Clang（macOS）、bionic（Android）**都没有实现**，只有 MSVC 提供。所以在 Linux/macOS 上下面这段代码**编译不过**（`use of undeclared identifier 'sprintf_s'`）。
+>
+> 好消息是：**在非 Windows 平台上，`snprintf` 已经足够安全**——它天然带长度限制，也不会写越界。附录 K 的额外价值主要是"把错误处理从返回值搬到约束处理器"，实际收益有限。
+
+C11 引入了一族 `_s` 后缀的安全函数，它们不仅限制长度，还会在运行时检测**空指针**、长度为零等约束违规问题。
 
 ```c
 #define __STDC_WANT_LIB_EXT1__ 1
@@ -701,12 +707,14 @@ C11 引入了一族 `_s` 后缀的安全函数，它们不仅限制长度，还�
 int main(void) {
     char buffer[50];
 
-    // sprintf_s 不需要传 size，会自动检查缓冲区边界
+    // sprintf_s 的原型是：int sprintf_s(char *s, rsize_t n, const char *format, ...);
+    // 注意：它【必须】传入缓冲区大小 n，这一点和 gets_s 不一样，别记混了
     sprintf_s(buffer, sizeof(buffer), "Hello, %s!", "小明");
     printf("%s\n", buffer);
     // 输出: Hello, 小明!
 
     // snprintf_s 是 snprintf 的安全版本
+    // 原型：int snprintf_s(char *s, rsize_t n, const char *format, ...);
     int result = snprintf_s(buffer, sizeof(buffer), "Test %d", 123);
     printf("%s (返回值: %d)\n", buffer, result);
     // 输出: Test 123 (返回值: 8)
@@ -1047,7 +1055,7 @@ int main(void) {
 - **格式说明符**是 `printf` 的核心：`%d`（整数）、`%f`（浮点）、`%s`（字符串）、`%p`（地址）、`%c`（字符）、`%x`（十六进制）等
 - **标志位**可以微调输出格式：`-`（左对齐）、`+`（显示正号）、`#`（Alternate form）、`0`（零填充）
 - **宽度和精度**让你精确控制输出的"身材"：如 `%8.2f`（总宽8，2位小数）
-- **C99 新增长度修饰符**：`%zd`（size_t）、`%td`（ptrdiff_t）、`%hhd`（signed char）、`%llu`（unsigned long long）
+- **C99 新增长度修饰符**：`%zu`（size_t）、`%zd`（ssize_t，POSIX）、`%td`（ptrdiff_t）、`%hhd`（signed char）、`%llu`（unsigned long long）
 - **`<inttypes.h>` 宏**（`PRId64`、`PRIu32` 等）保证了跨平台打印固定宽度整数的安全性
 
 ### `scanf` 格式化输入

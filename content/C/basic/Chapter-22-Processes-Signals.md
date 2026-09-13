@@ -751,8 +751,11 @@ int main(void) {
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <unistd.h>   /* pause() 在这里（POSIX） */
 
-char *str = "hello,world,how,are,you";
+// 注意：strtok 会【修改】字符串，所以必须放在可写的数组里，
+// 写成 char *str = "..." 会指向只读的字符串字面量，修改它是未定义行为！
+char str[] = "hello,world,how,are,you";
 
 void handler(int sig) {
     (void)sig;
@@ -783,8 +786,9 @@ int main(void) {
 #include <string.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <unistd.h>   /* pause() 在这里（POSIX） */
 
-char *str = "hello,world,how,are,you";
+char str[] = "hello,world,how,are,you";   // 同上：strtok_r 也会修改字符串
 
 void handler(int sig) {
     (void)sig;

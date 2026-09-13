@@ -14,6 +14,8 @@ draft = false
 
 ---
 
+> 📌 **版本提示（2026-09 核对）**：截至 2026 年 9 月，Next.js 最新稳定版为 **16.3.x**，对应的 `create-next-app` 也是 16.x。Next.js 16 要求 **Node.js 20.9+**，Turbopack 已成为默认打包器，`create-next-app` 的交互流程和默认模板也有更新。本章保留 14/15 的说明用于兼容旧项目，但新项目应以 16.x 为准。
+
 ## 1.1 官方脚手架工具的定义
 
 ### 一个让人又爱又恨的场景
@@ -50,7 +52,7 @@ npx create-next-app@latest
 # 3. 跑完就删，不污染你的全局环境
 ```
 
-> 小提示：`@latest` 代表最新稳定版，如果你想用特定版本，可以改成 `@14` 之类的，比如 `npx create-next-app@14`。
+> 小提示：`@latest` 代表最新稳定版；截至 2026 年 9 月会安装 16.x。如果你想用特定版本，可以改成 `@15`、`@14` 之类的，比如 `npx create-next-app@14`。生产项目建议优先使用最新稳定版，除非你确实要维护旧分支。
 
 ### 它是一个 CLI 工具
 
@@ -84,10 +86,10 @@ github.com/vercel/next.js/tree/main/packages/create-next-app
 
 | Next.js 版本 | create-next-app 版本 | 说明 |
 |---|---|---|
-| 15.x | 15.x | 最新版，手拉手一起走 |
-| 14.x | 14.x | 稳定搭档 |
-| 13.x | 13.x | 早期版本 |
-| 12.x | 12.x | 老前辈了 |
+| 16.x | 16.x | 截至 2026-09 的最新稳定版，默认 Turbopack |
+| 15.x | 15.x | 上一代稳定版，仍可维护旧项目 |
+| 14.x | 14.x | 较旧版本，Node.js 最低要求 18.17+ |
+| 13.x / 12.x | 13.x / 12.x | 老项目兼容，不建议新项目使用 |
 
 > **小知识**：严格来说，`create-next-app` 的版本号有时候会比 Next.js 多一个小版本号，但大体上你看到 Next.js 是几，create-next-app 也差不了多少。所以当你运行 `npx create-next-app@latest` 时，拿到的版本就是你机器上最新的 Next.js 配套版本。
 
@@ -187,7 +189,7 @@ mkdir my-blog
 | `tsconfig.json` | TypeScript 配置 + 路径别名 |
 | `tailwind.config.ts` | Tailwind CSS 配置 |
 | `postcss.config.mjs` | PostCSS 配置 |
-| `.eslintrc.json` | ESLint 配置 |
+| `eslint.config.mjs` | ESLint 配置（Next.js 16 默认；旧版为 `.eslintrc.json`） |
 | `.gitignore` | Git 忽略文件 |
 
 **④ 文件骨架生成**
@@ -202,7 +204,7 @@ my-blog/
 │   └── page.tsx            # 首页（Hello World 已写好）
 ├── public/                 # 静态资源目录
 │   └── file.svg
-├── .eslintrc.json         # ESLint 配置
+├── eslint.config.mjs      # ESLint 配置（Next.js 16 默认）
 ├── .gitignore              # Git 忽略配置
 ├── next.config.ts          # Next.js 配置
 ├── package.json            # 项目配置
@@ -320,7 +322,7 @@ graph TD
 | **create-next-app** | 项目初始化工具 | 从零创建一个 Next.js 项目 |
 | **Next.js** | 核心框架 | 提供路由、SSR、SSG、API 等能力 |
 | **Next.js CLI**（`npx next`） | 运行时命令 | 启动开发服务器、构建项目、启动生产服务 |
-| **Turbopack** | 打包工具 | 替代 Webpack 的新一代打包器（Next.js 14+ 可用 `--turbo` 开启） |
+| **Turbopack** | 打包工具 | Rust 编写的新一代打包器；Next.js 16 已默认启用，可用 `next build --webpack` 临时退回 Webpack |
 | **Vercel** | 部署平台 | Next.js 官方亲爹，零配置部署 |
 | **@next/codemod** | 代码迁移工具 | 大版本升级时自动迁移代码 |
 

@@ -312,15 +312,20 @@ Hello, World!
 这是追加的内容。
 ```
 
-### 15.3.1 C11 安全版本：`fopen_s`
+### 15.3.1 C11 安全版本：`fopen_s`（附录 K，可选且鲜有实现）
 
-C11 引入了一个"更安全"的版本 `fopen_s()`。它通过**运行时约束检查**来避免一些传统 `fopen()` 的问题。
+> ⚠️ **先泼一盆冷水**：`fopen_s()` 属于 C11 **附录 K（Annex K，"边界检查接口"）**，而附录 K 是**可选**的，现实中**几乎没有实现**。Linux 的 glibc、macOS 的 Apple Clang、Android 的 bionic **都没有提供** `fopen_s`/`sprintf_s`/`strcpy_s` 这一族函数，只有 **Windows 的 MSVC** 完整实现了它。
+>
+> 所以：**在 Linux/macOS 上，本小节的代码编译不过**，报错是 `use of undeclared identifier 'fopen_s'`。写跨平台代码时，请老老实实用"传统 `fopen` + 手动检查"那套。
+
+它通过**运行时约束检查**来避免一些传统 `fopen()` 的问题。标准规定的原型是：
 
 ```c
-#define __STDC_WANT_LIB_EXT1__ 1  // 必须定义这个才能用
+#define __STDC_WANT_LIB_EXT1__ 1  // 启用附录 K 接口前必须先定义这个宏
 #include <stdio.h>
+#include <errno.h>                // errno_t 定义在这里
 
-errno_t fopen_s(FILE * * restrict stream,
+errno_t fopen_s(FILE * restrict * restrict streamptr,
                 const char * restrict filename,
                 const char * restrict mode);
 ```
@@ -338,6 +343,7 @@ errno_t fopen_s(FILE * * restrict stream,
 ```c
 #include <stdio.h>
 #define __STDC_WANT_LIB_EXT1__ 1
+#include <errno.h>    /* errno_t */
 
 int main() {
     FILE *fp;
@@ -350,11 +356,14 @@ int main() {
     }
     fclose(fp);
 
-    // C11 安全方式
+    // C11 安全方式（仅 MSVC 等少数实现提供）
     errno_t err = fopen_s(&fp, "data.txt", "r");
     if (err != 0) {
         printf("fopen_s 失败，错误码: %d\n", err);
-        // 可以用 strerrorerr_s 获取错误信息
+        // 可以用 strerror_s 获取错误信息（同样是附录 K 的函数）
+        char msgbuf[128];
+        strerror_s(msgbuf, sizeof(msgbuf), err);
+        printf("错误信息: %s\n", msgbuf);
         return 1;
     }
     fclose(fp);
@@ -362,6 +371,8 @@ int main() {
     return 0;
 }
 ```
+
+> 💡 **跨平台替代方案**：`fopen` 失败后本来就能拿到原因——先用 `perror()` 打印，或者读 `errno`（`<errno.h>`）再交给 `strerror(errno)` 转成文字。这套组合在**所有平台**上都可用，比依赖附录 K 靠谱得多。
 
 > `fopen_s()` 看起来很美，但有个大问题：**它是可选支持的**！在某些编译器上（比如 GCC），你定义 `__STDC_WANT_LIB_EXT1__ 1` 也可能不生效。所以**最靠谱的方式还是手动检查 `fopen()` 的返回值**。
 
@@ -1270,6 +1281,7 @@ int mkstemp(char *template);
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>   /* close()、POSIX 的 mkstemp 相关声明 */
 
 int main() {
     // ===== tmpfile（简单但不灵活） =====
@@ -1633,9 +1645,11 @@ gcc -D_FILE_OFFSET_BITS=64 -o myprogram myprogram.c
 
 ---
 
-## 15.17 C23 位置参数：`%1$d` —— printf 的"精准打击"
+## 15.17 位置参数：`%1$d` —— printf 的"精准打击"（POSIX 扩展，非 ISO C）
 
-C23 标准化了一个从 POSIX 借来的特性：**printf 的位置参数**。
+> ⚠️ **先纠正一个流传很广的说法**："C23 把 printf 的位置参数标准化了"——**这是错的**。翻遍 C23 草案（N3096）的 `fprintf` 一节，格式串的语法只有"标志 + 宽度 + 精度 + 长度修饰符 + 转换字符"这几段，根本没有 `N$` 这种写法，上面也没有出现任何"第 n 个参数"的规则。
+>
+> `%1$d` 这类**位置参数是 POSIX（以及 glibc、BSD libc）的扩展**，Windows 上要用 `_printf_p` 系列函数才支持。ISO C 至今（包括 C23）都没有把它纳入标准，所以它**不是可移植的 C**。本节把它讲清楚，是为了让你在读到别人的代码时知道这是怎么回事，而不是让你把它当成标准写法到处用。
 
 ### 什么是位置参数？
 
@@ -1655,7 +1669,7 @@ printf("%2$d %1$d %4$d %3$d\n", 10, 20, 30, 40);
 
 语法：`%N$` 后面跟格式说明符，其中 N 是从 1 开始的参数位置。
 
-### C23 代码示例
+### 代码示例
 
 ```c
 #include <stdio.h>
@@ -1673,20 +1687,26 @@ int main() {
     printf("%2$.2f %1$.3f\n", 3.14159, 2.71828);
     // 输出: 2.72 3.142
 
-    // ===== 混用普通和位置参数（C23 标准支持）=====
-    printf("%s %2$d %s\n", "hello", 123, "world");
+    // ===== ⚠️ 不要混用普通参数和位置参数 =====
+    // printf("%s %2$d %s\n", "hello", 123, "world");
+    // 这条语句在 macOS/glibc 上"碰巧"能跑出 hello 123 world，
+    // 但 POSIX 明确规定：一个格式串里只要用了位置参数，就必须全部用位置参数，
+    // 混用属于未定义行为（Clang 也会给出 -Wformat 警告：
+    // "cannot mix positional and non-positional arguments in format string"）。
+    // 想用位置参数，就老老实实全写成 %1$s %2$d %3$s。
+    printf("%1$s %2$d %3$s\n", "hello", 123, "world");
     // 输出: hello 123 world
-    // %s 用第1个参数(hello)，%2$d 用第2个参数(123)，%s 用第3个参数(world)
 
     // ===== 鸡兔同笼问题：位置参数的实用场景 =====
     int heads = 35, legs = 94;
     int chickens = (4 * heads - legs) / 2;
     int rabbits = heads - chickens;
     printf("有 %1$d 只鸡和 %2$d 只兔子\n", chickens, rabbits);
+    // 鸡 2 条腿、兔 4 条腿，所以"验证"式里要分别用 2 和 4 两个系数
     printf("验证: 头=%1$d+%2$d=%3$d, 腿=%4$d*%1$d+%5$d*%2$d=%6$d\n",
            chickens, rabbits, heads,
-           2, 2, rabbits, legs);
-    // 输出会很复杂，但展示了位置参数的灵活性
+           2, 4, legs);
+    // 输出: 验证: 头=23+12=35, 腿=2*23+4*12=94
 
     return 0;
 }
@@ -1700,9 +1720,10 @@ int main() {
 
 ### ⚠️ 注意事项
 
-- **POSIX 系统早就支持了**，C23 只是把它纳入标准
-- **MSVC 支持较差**，可能需要使用 `%1$d` 的变体或其他方法
-- 位置参数必须**从 1 开始连续编号**，不能跳过或重复（编译检查）
+- **这是 POSIX 扩展，不是 ISO C**。Linux/macOS 的 libc 支持，MSVC 需要改用 `_printf_p` 系列，`-std=c23 -pedantic` 下会给出警告
+- **只能全部使用位置参数，或者全部不用**；混用是未定义行为
+- 引用的下标必须**从 1 开始且不超过实际传参个数**，写错不会报错，只会读到错误的参数（或直接崩溃）
+- 用 `%2$` 的同时又用 `*` 动态宽度时，宽度参数也要写成 `*2$` 这种位置形式，规则比较绕，实际项目里用得不多
 
 ---
 

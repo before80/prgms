@@ -138,40 +138,45 @@ flowchart TD
 ### 28.2.2 代码示例
 
 ```cpp
-#include <iostream>
 #include <functional>
+#include <iostream>
 #include <memory>
 
 int main() {
-    // 创建一个只移动的函数包装器
-    // 返回类型是 int，参数是 void
+#if defined(__cpp_lib_move_only_function)
+    // ✅ 先看标准库有没有实现：libc++ 21 还没有，GCC 12+ / MSVC 19.32+ 已经提供
+
     std::move_only_function<int()> func1 = []{ return 42; };
-    
-    // 调用它
-    int result = func1();  // 调用 operator()
-    std::cout << "func1() = " << result << std::endl;  // 输出: func1() = 42
-    
-    // 移动语义演示
-    // func1 被"转移"给 func2，之后 func1 变为空壳
+    std::cout << "func1() = " << func1() << std::endl;   // 42
+
+    // 转移所有权：转移之后 func1 变成"空壳"
     std::move_only_function<int()> func2 = std::move(func1);
-    
-    // func1 现在是空的！调用它会抛出 std::bad_function_call 异常
-    // int r1 = func1();  // 请不要取消注释！会爆炸！
-    
-    // func2 仍然有效
-    std::cout << "func2() = " << func2() << std::endl;  // 输出: func2() = 42
-    
-    // 存储不可复制的可调用对象
+    // int r1 = func1();   // ❌ 调用空函数会抛 std::bad_function_call
+
+    // 真正的杀手锏：存放"不可复制"的可调用对象
     auto uptr = std::make_unique<int>(100);
-    std::move_only_function<int()> funcWithUnique = [ptr = std::move(uptr)]() mutable {
-        return *ptr;  // 独占所有权的智能指针
-    };
-    
-    std::cout << "funcWithUnique() = " << funcWithUnique() << std::endl;  // 输出: funcWithUnique() = 100
-    
-    return 0;
+    std::move_only_function<int()> funcWithUnique =
+        [ptr = std::move(uptr)]() mutable { return *ptr; };
+
+    std::cout << "func2() = " << func2()
+              << ", funcWithUnique() = " << funcWithUnique() << std::endl;   // 42, 100
+#else
+    std::cout << "本标准库尚未提供 std::move_only_function" << std::endl;
+#endif
 }
 ```
+
+```text
+$ clang++ -std=c++23 move_only.cpp && ./a.out
+本标准库尚未提供 std::move_only_function
+```
+
+> 📌 **可用性（实测）**：`std::move_only_function` 是 **C++23** 的库特性，但它比语言特性更容易"缺席"。
+> - **Apple clang 21 的 libc++ 尚未实现**（`error: no member named 'move_only_function' in namespace 'std'`）；
+> - GCC 12+、MSVC 19.32+ 已经提供；
+> - 上面代码用 `__cpp_lib_move_only_function` 做了保护，所以在本机也能编译运行（会走 `#else` 分支）。
+>
+> 在没有它的环境里，想存"只移动的可调用对象"，只能自己写类型擦除、或者用 `std::function` + `std::shared_ptr` 包装（后者多了引用计数开销，也失去了"独占"语义）。
 
 ### 28.2.3 std::function vs std::move_only_function
 
@@ -244,11 +249,11 @@ int main() {
     
     Calculator calc;
     
-    // 绑定成员函数的尾部参数
-    // std::bind_back 也适用于成员函数！
-    auto boundAdd = std::bind_back(&Calculator::add, &calc, 100);
-    // 调用 boundAdd(5) => calc.add(5, 100) => 105
-    std::cout << "boundAdd(5) = " << boundAdd(5) << std::endl;  // 输出: boundAdd(5) = 105
+    // 绑定成员函数的尾部参数：只绑"后面的参数"，对象由调用时提供
+    // 注意：把 &calc 也绑进去是错的——bind_back 绑的永远是参数列表"末尾"的那几个
+    auto boundAdd = std::bind_back(&Calculator::add, 100);
+    // 调用 boundAdd(&calc, 5) => calc.add(5, 100) => 105
+    std::cout << "boundAdd(&calc, 5) = " << boundAdd(&calc, 5) << std::endl;  // 输出: 105
     
     return 0;
 }
@@ -365,18 +370,15 @@ struct MyStruct {
     int value = 42;
 };
 
-void process(int& x) { std::cout << "Lvalue overload" << std::endl; }
-void process(int&& x) { std::cout << "Rvalue overload" << std::endl; }
+// 两个重载，用来观察"转发之后到底是左值还是右值"
+void process(MyStruct& x)  { std::cout << "左值重载, value=" << x.value << std::endl; }
+void process(MyStruct&& x) { std::cout << "右值重载, value=" << x.value << std::endl; }
 
 template<typename T>
 void wrapper(T&& arg) {
-    // std::forward_like<T> 会根据 T 的值类别
-    // 决定返回左值引用还是右值引用
-    auto forwarded = std::forward_like<T>(arg);
-    
-    // 打印 forwarded 的类型信息
-    // 如果 T 是 MyStruct&，forwarded 就是 MyStruct&
-    // 如果 T 是 MyStruct，forwarded 就是 MyStruct&&
+    // std::forward_like<T>(arg) 会"模仿 T 的值类别"：
+    //   T = MyStruct&  → 结果是左值 MyStruct&
+    //   T = MyStruct   → 结果是右值 MyStruct&&
     std::cout << "Type info: ";
     process(std::forward_like<T>(arg));
 }
@@ -629,17 +631,20 @@ int main() {
     std::cout << "and_then result: " << (result1 ? std::to_string(*result1) : "nullopt") << std::endl;
     // 输出: and_then result: 84
     
-    // 2. map: 如果有值，对值做变换，返回新的 optional
-    auto result2 = opt.map([](int x) {
-        return x * 3;  // 返回非 optional，但会被自动包装
+    // 2. transform: 如果有值，对值做变换，返回值会被自动包进 optional
+    //    注意：optional 没有 map！想做变换请用 transform
+    auto result2 = opt.transform([](int x) {
+        return x * 3;  // 返回非 optional 的值
     });
-    std::cout << "map result: " << (result2 ? std::to_string(*result2) : "nullopt") << std::endl;
-    // 输出: map result: 126
-    
-    // 3. transform: 和 map 类似，但是用于 void 的情况
-    opt.transform([](int x) {
-        std::cout << "transforming " << x << std::endl;
-    });
+    std::cout << "transform result: " << (result2 ? std::to_string(*result2) : "nullopt") << std::endl;
+    // 输出: transform result: 126
+
+    // 3. 想做"有值就打印"这种带副作用、没有返回值的事？transform 做不到——
+    //    它要求传入的可调用对象返回一个非 void 的对象（否则编译报错）。
+    //    直接判断一下最清楚：
+    if (opt) {
+        std::cout << "transforming " << *opt << std::endl;
+    }
     
     // 4. or_else: 如果是空，执行函数返回默认值
     std::optional<int> empty_opt;
@@ -650,9 +655,9 @@ int main() {
     
     // 链式调用！
     auto final_result = opt
-        .and_then([](int x) { return std::optional<int>(x + 1); })
-        .map([](int x) { return x * 2; })
-        .or_else([] { return std::optional<int>(0); });
+        .and_then([](int x) { return std::optional<int>(x + 1); })   // 返回 optional
+        .transform([](int x) { return x * 2; })                      // 返回普通值
+        .or_else([] { return std::optional<int>(0); });              // 兜底
     
     std::cout << "Chained result: " << *final_result << std::endl;  // 输出: 86
     
@@ -667,10 +672,10 @@ flowchart LR
     A["std::optional<T>"] --> B["有值"]
     A --> C["无值"]
     
-    B --> D["and_then(f) → optional<U>"]
-    B --> E["map(f) → optional<U>"]
-    B --> F["transform(f) → optional<void>"]
-    B --> G["or_else(f) → optional<T>"]
+    B --> D["and_then(f)：f 返回 optional → 展平"]
+    B --> E["transform(f)：f 返回普通值 → 自动包装"]
+    B --> F["or_else(f)：只在无值时调用，返回 optional"]
+    B --> G["没有 map！可选链上没有这个名字"]
     
     C --> H["返回空 optional"]
     C --> I["返回 f() 的结果"]
@@ -687,9 +692,11 @@ flowchart LR
 
 ### 28.10.1 什么是std::generator？
 
-`std::generator`（预计纳入C++26）是C++标准库中的**协程（Coroutine）**实现，专门用于创建**惰性序列**（Lazy Sequence）。
+`std::generator`（**C++23**，提案 P2502R2）是C++标准库中的**协程（Coroutine）**实现，专门用于创建**惰性序列**（Lazy Sequence）。
 
-> ⚠️ **重要提示**：`std::generator` 原本计划进入C++23，但最终被推迟到C++26（P2502R2）。截至2024年，没有任何编译器完整支持它。本节内容为前瞻性介绍，请勿在实际项目中使用！
+> ⚠️ **可用性提示**：`std::generator` 属于 **C++23**（不是 C++26），但它依赖 `<generator>` 头文件，
+> 目前 GCC 14+ / MSVC 19.38+ 已经提供，而 Apple clang 21 的 libc++ 还没有。
+> 所以本节代码在本机可能编译不过，属于"标准已定、实现未到"的情况。
 
 **什么是惰性序列？**
 
@@ -700,8 +707,13 @@ flowchart LR
 ### 28.10.2 代码示例
 
 ```cpp
+// 注意：这段是"概念示意"，不是能在本机编译的代码
+// 原因：std::generator 需要 <generator>，而 Apple clang 21 的 libc++ 还没有这个头文件
+//      （实测：fatal error: 'generator' file not found）
+// GCC 14+ / 较新的 libc++ / MSVC 已经提供。
+
+#include <generator>
 #include <iostream>
-// #include <generator>  // 实验性支持
 
 // 定义一个生成器：生成斐波那契数列
 // std::generator<yield_type, argument_type>
@@ -768,6 +780,11 @@ flowchart TD
 
 > ⚡ **电力比喻**：如果你需要一个发电机，`std::generator` 就是那个"随取随用"的发电机——你需要多少电，它就发多少电，而不是一次性发1000度存起来！
 
+> 📌 **可用性（实测）**：`std::generator` 是 **C++23** 的库特性（P2502），定义在头文件 `<generator>` 里。
+> - **Apple clang 21 的 libc++ 目前没有这个头文件**：`fatal error: 'generator' file not found`；
+> - GCC 14+、较新的 libc++/MSVC 已提供；
+> - 所以本节的代码只能作为**概念示意**读。想在本机体验"惰性序列"，可以先自己写一个协程，或用 `std::ranges` 的视图（`views::iota`、`views::filter` 等）替代——它们同样是惰性的，而且 C++20 就能用。
+
 ## 28.11 std::stacktrace——"代码的时间旅行"
 
 ### 28.11.1 什么是stacktrace？
@@ -779,6 +796,10 @@ flowchart TD
 ### 28.11.2 代码示例
 
 ```cpp
+// 注意：这段代码需要一个提供 <stacktrace> 的标准库
+// Apple clang 21 的 libc++ 尚未提供（实测：fatal error: 'stacktrace' file not found）
+// GCC 13+ / MSVC 已经提供；Boost.Stacktrace 也能在本机实现类似功能。
+
 #include <iostream>
 #include <stacktrace>
 #include <string>
@@ -837,7 +858,7 @@ int main() {
 
 ### 28.11.3 stacktrace示意图
 
-```
+```text
 ┌─────────────────────────────────────┐
 │ main()                              │  ← Frame 0 (最顶层/最外层)
 ├─────────────────────────────────────┤
@@ -850,6 +871,11 @@ int main() {
 ```
 
 > 🔍 **侦探比喻**：如果程序是一个犯罪现场，`std::stacktrace` 就是C++给你的"监控录像"——它能告诉你**程序是怎么一步步走到这里的**，是调试复杂bug的利器！
+
+> 📌 **可用性（实测）**：`std::stacktrace` 是 C++23 的库特性（P0881），定义在 `<stacktrace>` 里。
+> - **Apple clang 21 的 libc++ 尚未提供**：`fatal error: 'stacktrace' file not found`；
+> - GCC 13+、MSVC 已提供；想在本机用类似功能，可以选择 **Boost.Stacktrace**；
+> - 上面这段代码因此按**概念示意**展示，本机无法直接编译。
 
 ## 28.12 std::print与std::println——"格式化打印的文艺复兴"
 
@@ -932,44 +958,57 @@ int main() {
 
 ```cpp
 #include <iostream>
-// #include <mdspan>  // 实验性支持
+#include <mdspan>      // C++23
+#include <cstddef>     // std::size_t
 
 int main() {
-    std::cout << "std::mdspan in C++23 (conceptual example)" << std::endl;
-    
-    /*
     // 原始数据：一维数组
     int data[] = {1, 2, 3, 4, 5, 6};
     
     // 将 data 视图化为 2x3 的二维数组
-    // std::extents<size_t, 2, 3> 指定维度为 2 行 3 列
-    std::mdspan<int, std::extents<size_t, 2, 3>> matrix(data);
+    // std::extents<std::size_t, 2, 3> 指定维度为 2 行 3 列
+    std::mdspan<int, std::extents<std::size_t, 2, 3>> matrix(data);
     
     // 按行列访问
-    std::cout << matrix[0, 0] << std::endl;  // 输出: 1 (第0行第0列)
-    std::cout << matrix[0, 1] << std::endl;  // 输出: 2 (第0行第1列)
-    std::cout << matrix[1, 2] << std::endl;  // 输出: 6 (第1行第2列)
+    std::cout << "matrix[0,0] = " << matrix[0, 0] << std::endl;  // 输出: 1
+    std::cout << "matrix[0,1] = " << matrix[0, 1] << std::endl;  // 输出: 2
+    std::cout << "matrix[1,2] = " << matrix[1, 2] << std::endl;  // 输出: 6
     
     // 获取维度信息
-    std::cout << "Rows: " << matrix.extent(0) << std::endl;  // 输出: 2
-    std::cout << "Cols: " << matrix.extent(1) << std::endl;  // 输出: 3
+    std::cout << "行数: " << matrix.extent(0)
+              << ", 列数: " << matrix.extent(1) << std::endl;    // 输出: 行数: 2, 列数: 3
     
     // 同一个数据，不同视角！
     // 3x2 的视图
-    std::mdspan<int, std::extents<size_t, 3, 2>> transposed(data);
-    std::cout << transposed[0, 0] << std::endl;  // 输出: 1
-    std::cout << transposed[2, 1] << std::endl;  // 输出: 6
+    std::mdspan<int, std::extents<std::size_t, 3, 2>> transposed(data);
+    std::cout << "transposed[0,0] = " << transposed[0, 0] << std::endl;  // 输出: 1
+    std::cout << "transposed[2,1] = " << transposed[2, 1] << std::endl;  // 输出: 6
     
     // 动态维度
-    std::mdspan<int, std::dextents<size_t, 2>> dynamic_matrix(
-        data, 
-        std::dextents<size_t, 2>{2, 3}  // 运行时指定维度
-    );
-    */
+    int rows = 2, cols = 3;   // 运行时才知道的维度
+    std::mdspan<int, std::dextents<std::size_t, 2>> dynamic_matrix(data, rows, cols);
+    std::cout << "动态维度: " << dynamic_matrix.extent(0) << "x" << dynamic_matrix.extent(1)
+              << ", dynamic_matrix[1,1] = " << dynamic_matrix[1, 1] << std::endl;
+    // 输出: 动态维度: 2x3, dynamic_matrix[1,1] = 5
     
     return 0;
 }
 ```
+
+**运行结果：**
+
+```text
+matrix[0,0] = 1
+matrix[0,1] = 2
+matrix[1,2] = 6
+行数: 2, 列数: 3
+transposed[0,0] = 1
+transposed[2,1] = 6
+动态维度: 2x3, dynamic_matrix[1,1] = 5
+```
+
+> 📎 **可用性提醒**：`<mdspan>` 在 GCC 13+、Clang 18+ 配合 libc++ 18+、MSVC 19.36+ 中可用，特性宏是 `__cpp_lib_mdspan`。
+> 注意 `matrix[0, 0]` 里的逗号是 C++23 的**多维下标运算符**（和 `operator[]` 一起引入），C++20 及以前写不出来。
 
 ### 28.13.3 mdspan视角变换
 
@@ -1004,21 +1043,21 @@ flowchart LR
 
 ```cpp
 #include <iostream>
-// #include <flat_map>
-// #include <flat_set>
+#include <flat_map>    // C++23
+#include <flat_set>    // C++23
+#include <string>
 
 int main() {
-    std::cout << "Flat containers in C++23 (conceptual example)" << std::endl;
-    
-    /*
     // flat_set 示例
     std::flat_set<int> fs = {5, 2, 8, 1, 9};
-    // 内部存储：[1, 2, 5, 8, 9]（有序、连续）
+    std::cout << "flat_set 内部顺序: ";
+    for (int v : fs) std::cout << v << " ";      // 内部存储有序、连续
+    std::cout << std::endl;
     
     // 查找
     auto it = fs.find(5);
     if (it != fs.end()) {
-        std::cout << "Found: " << *it << std::endl;
+        std::cout << "Found: " << *it << std::endl;   // 输出: Found: 5
     }
     
     // flat_map 示例
@@ -1032,18 +1071,37 @@ int main() {
     fm.insert({"date", 4});
     
     // 访问
-    std::cout << fm["apple"] << std::endl;  // 输出: 1
+    std::cout << "fm[\"apple\"] = " << fm["apple"] << std::endl;   // 输出: 1
+    std::cout << "fm.size() = " << fm.size() << std::endl;         // 输出: 4
+
+    // 迭代仍然按键递增（注意：libc++ 里迭代器解引用得到的是"值"，用 auto [k, v]）
+    for (auto [k, v] : fm) std::cout << k << "=" << v << " ";
+    std::cout << std::endl;   // 输出: apple=1 banana=2 cherry=3 date=4
     
-    // 迭代器是随机访问的！（普通map是双向迭代器）
-    // 可以用 fs.begin() + 3 这种骚操作
+    // 迭代器是随机访问的！（普通 map 只有双向迭代器）
+    std::cout << "fs.begin() + 3 -> " << *(fs.begin() + 3) << std::endl;   // 输出: 8
     
     // 优点：更好的缓存局部性
     // 缺点：插入/删除是 O(n)，而普通 map 是 O(log n)
-    */
     
     return 0;
 }
 ```
+
+**运行结果：**
+
+```text
+flat_set 内部顺序: 1 2 5 8 9
+Found: 5
+fm["apple"] = 1
+fm.size() = 4
+apple=1 banana=2 cherry=3 date=4
+fs.begin() + 3 -> 8
+```
+
+> 📎 **可用性提醒**：`<flat_map>` / `<flat_set>` 在 GCC 15+、Clang 21+ 配合较新的 libc++、MSVC 19.36+ 中可用，
+> 特性宏是 `__cpp_lib_flat_map` / `__cpp_lib_flat_set`。
+> 如果你的标准库还没有它们，把 `std::flat_map` 换成 `std::map` 依然是同一套接口。
 
 ### 28.14.4 传统容器 vs 扁平容器
 
@@ -1094,8 +1152,13 @@ C++23又新增了多个实用的范围适配器！
 | `views::cartesian_product` | 生成笛卡尔积 | `[1,2] × [a,b] → [1a,1b,2a,2b]` |
 | `views::as_const` | 转为const视图 | 防止修改 |
 | `views::as_rvalue` | 转为右值视图 | 用于移动语义 |
-| `views::adjacent` | 生成相邻元素对 | `[a,b,c] → [(a,b), (b,c)]` ⚠️ C++26 |
-| `views::adjacent_transform` | 对相邻元素对做变换 | 同上，但应用函数 ⚠️ C++26 |
+| `views::adjacent<N>` | 生成相邻的 N 元组 | `[a,b,c] → [(a,b), (b,c)]` |
+| `views::adjacent_transform<N>` | 对相邻 N 元组做变换 | 同上，但直接应用函数 |
+
+> ⚠️ **版本纠正**：`adjacent` 和 `adjacent_transform` 都是 **C++23** 特性（随 `zip` 系列一起进入标准），不是 C++26。
+> 表里的 `chunk_by`、`cartesian_product`、`as_const`、`as_rvalue` 同样都是 C++23；
+> 顺带一提，`views::chunk` / `views::slide`（固定大小分块、滑动窗口）也是 C++23（P2442R1），
+> C++26 新增的范围适配器是 `views::concat`、`views::cache_latest` 等。
 
 ### 28.15.3 代码示例
 
@@ -1103,49 +1166,77 @@ C++23又新增了多个实用的范围适配器！
 #include <iostream>
 #include <ranges>
 #include <vector>
+#include <tuple>     // std::get
 
 int main() {
-    std::cout << "New range adaptors in C++23" << std::endl;
-    
     std::vector<int> nums = {1, 2, 3, 4, 5, 6};
     
-    // views::adjacent - 生成滑动窗口（窗口大小默认2）
-    // auto pairs = nums | std::views::adjacent;  // 生成 [(1,2), (2,3), ...]
+    // views::adjacent<2>：滑动窗口，生成相邻元素对（C++23）
+    std::cout << "相邻对: ";
+    for (auto t : nums | std::views::adjacent<2>) {
+        std::cout << "(" << std::get<0>(t) << "," << std::get<1>(t) << ") ";
+    }
+    std::cout << std::endl;   // 输出: (1,2) (2,3) (3,4) (4,5) (5,6)
+
+    // views::chunk_by：把"相邻且满足条件"的元素分到同一组
+    // 下面这个例子把连续递增的整数分成一组
+    std::cout << "分组: ";
+    for (auto g : nums | std::views::chunk_by([](int a, int b) { return a + 1 == b; })) {
+        std::cout << "[";
+        for (int v : g) std::cout << v << " ";
+        std::cout << "]";
+    }
+    std::cout << std::endl;   // 输出: [1 2 3 4 5 6 ]
     
-    // views::chunk_by - 按条件分组
-    // auto groups = nums | std::views::chunk_by([](int a, int b) { return a + 1 == b; });
-    // [1,2,3] 是一组（连续），[4,5,6] 是另一组
-    
-    // views::cartesian_product - 笛卡尔积
-    // std::vector<int> a = {1, 2}, b = {10, 20};
-    // auto product = std::views::cartesian_product(a, b);
-    // 结果：[(1,10), (1,20), (2,10), (2,20)]
-    
-    // views::as_const - 防止修改
-    // auto const_view = nums | std::views::as_const;
-    
-    std::cout << "Range adaptors provide lazy, composable transformations!" << std::endl;
+    // views::adjacent_transform<2>：直接在窗口上算结果，连元组都省了
+    std::cout << "相邻差: ";
+    for (int d : nums | std::views::adjacent_transform<2>([](int a, int b) { return b - a; })) {
+        std::cout << d << " ";
+    }
+    std::cout << std::endl;   // 输出: 1 1 1 1 1
     
     return 0;
 }
 ```
 
+**运行结果：**
+
+```text
+相邻对: (1,2) (2,3) (3,4) (4,5) (5,6)
+分组: [1 2 3 4 5 6 ]
+相邻差: 1 1 1 1 1
+```
+
+> 📎 **还有两个适配器暂时用不上**：`views::cartesian_product`（笛卡尔积）和 `views::as_const`（只读视图）同属 C++23，
+> 但 libc++ 到 19 还没有实现；等你的标准库跟上后，用法和上面完全一致：
+> `nums | std::views::as_const`、`std::views::cartesian_product(a, b)`。
+
 ### 28.15.4 管道操作符链式调用
 
 ```cpp
-// 传统方式：循环嵌套循环
-for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < m; ++j) {
-        process(i, j);
-    }
-}
+#include <iostream>
+#include <ranges>
+#include <vector>
 
-// 范围方式：优雅的管道链
-nums 
-    | std::views::filter([](int x) { return x % 2 == 0; })  // 过滤偶数
-    | std::views::transform([](int x) { return x * x; })     // 平方
-    | std::views::take(5)                                     // 取前5个
-    | std::views::reverse;                                    // 反转
+int main() {
+    std::vector<int> nums = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+
+    // 范围方式：优雅的管道链
+    auto result = nums
+        | std::views::filter([](int x) { return x % 2 == 0; })  // 过滤偶数
+        | std::views::transform([](int x) { return x * x; })     // 平方
+        | std::views::take(3);                                   // 取前3个
+
+    // 注意：视图是惰性的，直到这里真正遍历时才进行计算
+    for (int x : result) std::cout << x << " ";   // 输出: 4 16 36
+    std::cout << std::endl;
+
+    // 传统写法对比（要写循环、临时vector、还要注意边界）
+    // for (int i = 0; i < n && count < 3; ++i)
+    //     if (nums[i] % 2 == 0) { out.push_back(nums[i] * nums[i]); ++count; }
+
+    return 0;
+}
 ```
 
 > 🚰 **管道比喻**：范围适配器就像工厂的流水线——原材料（数据）从左边进去，经过一系列处理工位（适配器），最后出来的是成品。数据是**惰性求值**的，只有你真正需要的时候才会处理！
@@ -1292,33 +1383,36 @@ C++23让 `std::pair` 和 `std::tuple` 支持**转发构造函数默认参数**�
 
 ```cpp
 #include <iostream>
-#include <utility>
 #include <string>
+#include <tuple>
+#include <utility>
 #include <vector>
 
 int main() {
-    // C++23: pair支持不完整的构造
-    // 注意：std::string 无法从 int 构造，所以下面的写法是错的！
-    // std::pair<int, std::string> p(1);  // ❌ 编译错误！std::string 没有接受 int 的构造函数
-    // std::tuple<int, double, std::string> t(10);  // ❌ 同样的问题
-    
-    // 正确用法：第二个元素的类型必须能从 int 构造，或者有默认构造函数
-    std::pair<int, std::vector<int>> p(42);  // int(42) + vector<int>() 默认构造
-    std::cout << "p.first = " << p.first << std::endl;       // 输出: 42
-    std::cout << "p.second.empty() = " << p.second.empty() << std::endl;  // 输出: 1 (true)
-    
-    // tuple 也支持类似用法
-    std::tuple<int, double, std::vector<int>> t(10, 3.14);  // 前两个用提供的值，vector默认构造
-    std::cout << "get<0>(t) = " << std::get<0>(t) << std::endl;  // 输出: 10
-    std::cout << "get<1>(t) = " << std::get<1>(t) << std::endl;  // 输出: 3.14
-    std::cout << "get<2>(t).empty() = " << std::get<2>(t).empty() << std::endl;  // 输出: 1 (true)
-    
-    // 甚至可以只提供一个元素，其余默认构造
-    std::pair<double, std::string> partial(2.718);
-    std::cout << "partial.first = " << partial.first << std::endl;  // 输出: 2.718
-    std::cout << "partial.second.empty() = " << partial.second.empty() << std::endl;  // 输出: 1 (true)
-    
-    return 0;
+    // ⚠️ 先破除一个流传很广的误解：
+    //   "C++23 允许 pair/tuple 只给前几个参数，其余自动默认构造"
+    //   没有这回事！下面两行在 C++23、C++26 都会报错（实测）：
+    // std::pair<int, std::vector<int>> bad1(42);            // ❌
+    // std::tuple<int, double, std::vector<int>> bad2(10, 3.14);  // ❌
+
+    // ✅ 正确写法：需要默认构造的元素，显式写 {} 或调用默认构造
+    std::pair<int, std::vector<int>> p{42, {}};
+    std::cout << "p.first = " << p.first
+              << ", p.second.empty() = " << std::boolalpha << p.second.empty() << std::endl;
+    // 输出: p.first = 42, p.second.empty() = true
+
+    std::tuple<int, double, std::vector<int>> t{10, 3.14, {}};
+    std::cout << "get<0>(t) = " << std::get<0>(t)
+              << ", get<1>(t) = " << std::get<1>(t)
+              << ", get<2>(t).empty() = " << std::get<2>(t).empty() << std::endl;
+    // 输出: get<0>(t) = 10, get<1>(t) = 3.14, get<2>(t).empty() = true
+
+    // ✅ C++23 真正给 pair/tuple 加的东西之一是"与 tuple-like 类型互操作"（P2165）：
+    //    pair 可以拿来构造 tuple，反之亦然
+    std::pair<int, std::string> fromPair{1, "hi"};
+    std::tuple<int, std::string> fromTuple = fromPair;   // C++23 起允许
+    std::cout << std::get<0>(fromTuple) << " " << std::get<1>(fromTuple) << std::endl;
+    // 输出: 1 hi
 }
 ```
 
@@ -1328,7 +1422,10 @@ int main() {
 
 ### 28.19.1 什么是std::ssize？
 
-`std::ssize`（C++23）返回容器的**带符号大小**（signed size）。
+`std::ssize`（**C++20**，提案 P1227R2）返回容器的**带符号大小**（signed size）。
+
+> 📝 **版本纠正**：`std::ssize` 是 C++20 的特性，不是 C++23。
+> 它和 `std::size` 一起在 `<iterator>` 里提供，这里放在本章是当"常用工具"一并介绍。
 
 传统上，`std::size()` 返回 `size_t`（无符号整数），这在循环中会导致一些尴尬的代码：
 
@@ -1477,50 +1574,56 @@ std::unordered_map<std::string, int> m;
 // m.find(42);  // 编译错误！int 不能转 std::string
 ```
 
-> 📝 **背景**：有序容器（`std::map`、`std::set`）的异构查找早在 C++14 就通过透明比较器（Transparent Comparator）实现了。但**无序容器**（`std::unordered_map`、`std::unordered_set`）长期缺乏这一能力——直到 C++23！
+> 📝 **背景**：有序容器（`std::map`、`std::set`）的异构查找早在 C++14 就通过透明比较器（Transparent Comparator）实现了。无序容器则要等到 **C++20**（提案 P0919R3）。
 
-C++23为**无序容器**引入了**异构查找**（Heterogeneous Lookup），允许你用 `std::string_view`、`const char*` 等类型直接查找，无需构造完整的 `std::string` 对象！
+**C++20** 为**无序容器**引入了**异构查找**（Heterogeneous Lookup），允许你用 `std::string_view`、`const char*` 等类型直接查找，无需构造完整的 `std::string` 对象！
+
+> 📝 **版本纠正**：这一特性属于 C++20，不是 C++23。判据很简单：`unordered_map::find(const K&)` 这个模板重载在 C++20 就已经存在了。
 
 ### 28.21.2 代码示例
 
 ```cpp
 #include <iostream>
-#include <unordered_map>
+#include <string>
 #include <string_view>
+#include <unordered_map>
+
+// 想让 unordered_map 支持"用 string_view 查找"，
+// 必须给它一个**透明（transparent）**的哈希函数
+struct StringHash {
+    using is_transparent = void;   // ← 关键：这个 typedef 让容器知道"我能处理多种键类型"
+    size_t operator()(std::string_view sv) const noexcept {
+        return std::hash<std::string_view>{}(sv);
+    }
+};
 
 int main() {
-    // C++23: 使用 std::unordered_map::find 的异构版本
-    std::unordered_map<std::string, int> m = {
+    std::unordered_map<std::string, int, StringHash, std::equal_to<>> m{
         {"apple", 1},
         {"banana", 2},
         {"cherry", 3}
     };
-    
-    // C++23之前：必须构造完整的 std::string
-    auto it1 = m.find(std::string("apple"));  // 需要分配内存
-    
-    // C++23：直接使用 string_view（不需要分配内存！）
-    auto it2 = m.find(std::string_view("banana"));
-    
-    // 查找成功
-    if (it1 != m.end()) {
-        std::cout << "Found: " << it1->second << std::endl;  // 输出: Found: 1
+
+    // 用 string_view 查找：不需要构造 std::string，也就没有额外的内存分配
+    auto it = m.find(std::string_view("banana"));
+    if (it != m.end()) {
+        std::cout << "Found: " << it->second << std::endl;   // 输出: Found: 2
     }
-    if (it2 != m.end()) {
-        std::cout << "Found: " << it2->second << std::endl;  // 输出: Found: 2
-    }
-    
-    // operator[] 也支持异构（只在 C++23 unordered_map！）
-    // m[std::string_view("date")] = 4;  // 如果不存在，会插入
-    
-    // 注意：这是通过自定义 allocator 和 key_eq 实现的
-    // 需要使用 std::unordered_map 的新构造函数或 empty() + insert()
-    
-    std::cout << "Heterogeneous lookup in unordered containers (C++23)" << std::endl;
+    std::cout << "count(cherry) = " << m.count(std::string_view("cherry")) << std::endl;  // 1
+
+    // ⚠️ 异构查找只对"查找类"成员有效：find / count / contains / equal_range
+    //    operator[] 和 insert 不接受异构键，下面这行是编译错误：
+    // m[std::string_view("date")] = 4;   // ❌ no viable overloaded operator[]
+
+    std::cout << "Heterogeneous lookup in unordered containers" << std::endl;
     
     return 0;
 }
 ```
+
+> 📌 **两个容易记错的地方**：
+> 1. **异构查找是 C++20 的特性，不是 C++23**。它由 P0919 引入，C++20 起就可用了——很多资料把它算进 C++23，是记错了。
+> 2. **透明哈希不是可选项**。如果 `unordered_map` 用的是默认的 `std::hash<std::string>`，那么 `m.find(std::string_view("banana"))` 会**直接编译失败**。上面代码里的 `StringHash`（提供 `is_transparent`）是必需的，不是装饰。
 
 ### 28.21.3 异构查找原理
 
@@ -1705,7 +1808,7 @@ int main() {
 
 ### 28.24.4 lerp图解
 
-```
+```text
 lerp(a, b, t)
 t=0.0:  a + 0.0 * (b-a) = a ████████░░░░░░░░░░░░
 t=0.25: a + 0.25 * (b-a) = ████░░░░░░░░░░░░░░░░░░░
@@ -1765,9 +1868,10 @@ int main() {
     std::cout << "log(e) = " << std::log(std::numbers::e) << std::endl;
     // 输出: log(e) = 1
     
-    // C++23 新增常量（如果有）
-    // std::cout << "sqrt3 = " << std::numbers::sqrt3 << std::endl;  // C++23
-    // std::cout << "invsqrt3 = " << std::numbers::invsqrt3 << std::endl;  // C++23
+    // C++23 新增常量
+    // 注意名字：是 inv_sqrt3（带下划线），不是 invsqrt3
+    // std::cout << "sqrt3 = " << std::numbers::sqrt3 << std::endl;         // C++23
+    // std::cout << "inv_sqrt3 = " << std::numbers::inv_sqrt3 << std::endl; // C++23
     
     // 为什么不用 M_PI？（那是宏，不是类型安全的！）
     // 正确做法：
@@ -1787,9 +1891,14 @@ int main() {
 | `std::numbers::sqrt2` | √2 | 1.41421... |
 | `std::numbers::sqrt3` | √3 | 1.73205... |
 | `std::numbers::phi` | 黄金比例 φ | 1.61803... |
-| `std::numbers::eg` | log₂e | 1.44269... |
+| `std::numbers::log2e` | log₂e | 1.44269... |
 | `std::numbers::ln2` | ln(2) | 0.69314... |
 | `std::numbers::ln10` | ln(10) | 2.30258... |
+| `std::numbers::inv_sqrt3` | 1/√3 | 0.57735... |
+| `std::numbers::egamma` | 欧拉-马歇罗尼常数 γ | 0.57721... |
+
+> ⚠️ **易错点**：标准里**没有** `std::numbers::eg`、`invsqrt3` 这种名字（这是常见的错写）。
+> 正确写法是 `log2e`、`inv_sqrt3`。写错时会得到"no member named ..."的编译错误。
 
 > 🎯 **标准化比喻**：以前每个人都用自己定义的 `PI`，有的3.14，有的3.1415926。C++标准库就像"度量衡局"——现在大家都有了统一的官方标准！
 
@@ -1840,7 +1949,7 @@ int main() {
 
 ### 28.26.3 字节序可视化
 
-```
+```text
 数值 0x12345678 在内存中的存储（小端）:
 
 高地址 ──────────────────────────────── 低地址
@@ -1950,9 +2059,9 @@ C++20引入了**模块**（Modules）特性，这是对include方式的重大升
 
 ### 28.28.2 std模块
 
-> ⚠️ **重要提示**：`import std;` 和 `import std.compat;` 原本计划在C++23中引入，但最终被推迟到C++26。目前没有任何编译器正式支持标准化的 `std` 模块。
-
-部分编译器（如MSVC）提供了自己的 `import std` 实验性实现，但这不是标准化的行为。
+> ⚠️ **重要提示**：`import std;` 和 `import std.compat;` 是 **C++23** 的特性（提案 P2465R3），并没有推迟到 C++26。
+> 真正的问题是**编译器实现**：GCC 和 Clang 至今没有提供标准化的 `std` 模块，MSVC 有自己的实验性实现。
+> 所以"标准里有"和"你能用上"是两回事。
 
 ```cpp
 // 传统方式
@@ -1960,7 +2069,7 @@ C++20引入了**模块**（Modules）特性，这是对include方式的重大升
 #include <vector>
 #include <string>
 
-// 新方式（模块，预计C++26）
+// 新方式（模块，C++23）
 // import std;  // 导入整个标准库！
 ```
 
@@ -1970,8 +2079,8 @@ C++20引入了**模块**（Modules）特性，这是对include方式的重大升
 #include <iostream>
 
 int main() {
-    // C++23: 新模块 std 和 std.compat
-    // 注意：编译器支持有限，这里是概念演示
+    // C++23: 新模块 std 和 std.compat（P2465R3）
+    // 注意：本机 libc++ 尚未提供，这里是概念演示
     
     // import std;  // 导入整个标准库（模块方式）
     
@@ -2051,7 +2160,7 @@ mindmap
       扁平容器
       std::mdspan
     协程
-      std::generator ⚠️ C++26
+      std::generator（C++23，本机 libc++ 暂缺）
     调试与追踪
       std::stacktrace
       std::print/println
@@ -2069,8 +2178,8 @@ mindmap
     容器擦除
       统一容器擦除
     模块系统
-      std模块 ⚠️ C++26
-      std.compat模块 ⚠️ C++26
+      std模块（C++23）
+      std.compat模块（C++23）
 ```
 
 ### 28.29.2 核心要点回顾
@@ -2087,7 +2196,7 @@ mindmap
 
 6. **`std::stacktrace`**：运行时调用栈获取，调试神器
 
-7. **`std::generator`**：协程实现的惰性序列，内存友好 ⚠️ C++26（非C++23）
+7. **`std::generator`**：协程实现的惰性序列，内存友好（C++23；本机 libc++ 暂未提供）
 
 8. **扁平容器**：`std::flat_map`/`std::flat_set`，缓存友好的数据结构
 

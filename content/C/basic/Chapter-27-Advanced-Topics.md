@@ -46,7 +46,6 @@ int main(void) {
 
     DEBUG_PRINT("x = %d\n", x);          // x = 42
     DEBUG_PRINT("x = %d, y = %.2f\n", x, y);  // x = 42, y = 3.14
-    DEBUG_PRINT("Hello, World!\n");      // Hello, World!
 
     return 0;
 }
@@ -56,7 +55,7 @@ int main(void) {
 
 > 想象一下：`...` 就像一个"百宝箱"，你往里面扔什么它都接着，而 `__VA_ARGS__` 就是打开这个宝箱的钥匙，把里面的东西一次性全倒出来。
 
-### 27.1.3 ##__VA_ARGS__：消除多余逗号的黑科技
+### 27.1.3 处理"可变参数为空"：##__VA_ARGS__ 与 __VA_OPT__
 
 但是！这里有个坑：
 
@@ -70,58 +69,87 @@ DEBUG_PRINT("Hello");  // 展开后变成：printf("Hello", );  ← 多了一个
 // 编译错误！谁见了都想打人！
 ```
 
-C99 贴心地提供了 `##__VA_ARGS__`（注意 `##` 前缀），它的作用是：**如果可变参数为空，就自动吞掉前面那个多余的逗号！**
+标准的 C99/C11/C17 都没有办法在预处理阶段判断"可变参数是不是空的"。真正解决问题的是 **C23 引入的 `__VA_OPT__`**：
 
 ```c
 #include <stdio.h>
 
-// 加上 ## 之后，空参数的情况就被优雅地处理了
-#define DEBUG_PRINT(fmt, ...) printf(fmt, ##__VA_ARGS__)
+// ① C23 标准写法：__VA_OPT__(,) 表示"可变参数非空时，在这里插一个逗号"
+#define DEBUG_PRINT(fmt, ...) printf(fmt __VA_OPT__(,) __VA_ARGS__)
+
+// ② GNU 扩展写法：## 前缀让预处理器在可变参数为空时吞掉前面的逗号
+//    （GCC / Clang 支持；-pedantic 下会提示这是 GNU 扩展）
+#define DEBUG_PRINT_GNU(fmt, ...) printf(fmt, ##__VA_ARGS__)
 
 int main(void) {
-    DEBUG_PRINT("Hello");               // ✅ 完美！展开后是 printf("Hello");
-    DEBUG_PRINT("x = %d", 42);          // ✅ 正常工作的版本
+    DEBUG_PRINT("Hello\n");             // ✅ 展开为 printf("Hello\n");
+    DEBUG_PRINT("x = %d\n", 42);        // ✅ 展开为 printf("x = %d\n", 42);
+
+    DEBUG_PRINT_GNU("Hello\n");         // ✅ 同上（GCC / Clang）
+    DEBUG_PRINT_GNU("x = %d\n", 42);    // ✅ 同上（GCC / Clang）
 
     return 0;
 }
 ```
+
+> 两个容易踩的坑：
+>
+> 1. `DEBUG_PRINT("Hello\n")` 这种"完全不写可变参数"的调用，**从 C23 起才算合法**。在 C17 及以前，`...` 至少要接一个实参（否则是一个约束违反，`-pedantic` 会提示 `-Wvariadic-macro-arguments-omitted`）。
+> 2. `##__VA_ARGS__` 是 GNU 扩展而非 ISO C。它的标准替代品正是 C23 的 `__VA_OPT__`。两者选一个用即可，不要混用。
 
 ### 27.1.4 实战：写一个自己的日志宏
 
 ```c
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdarg.h>
 
-// 带日志级别的可变参数宏
-#define LOG_LEVEL 1  // 0=静默, 1=ERROR, 2=WARNING, 3=INFO, 4=DEBUG
+// 日志级别：0=静默, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG
+#define LOG_LEVEL 3
 
-#define LOG_ERROR(...)  log_msg("ERROR", __FILE__, __LINE__, __VA_ARGS__)
-#define LOG_WARN(...)   log_msg("WARN",  __FILE__, __LINE__, __VA_ARGS__)
-#define LOG_INFO(...)   log_msg("INFO",  __FILE__, __LINE__, __VA_ARGS__)
-#define LOG_DEBUG(...)  log_msg("DEBUG", __FILE__, __LINE__, ##__VA_ARGS__)
-
+// 真正干活的函数：先打印级别/文件/行号，再把可变参数交给 vprintf
 void log_msg(const char *level, const char *file, int line, const char *fmt, ...) {
-#if LOG_LEVEL >= 1
-    printf("[%s] %s:%d: ", level, file, line);
     va_list args;
+    printf("[%s] %s:%d: ", level, file, line);
     va_start(args, fmt);
     vprintf(fmt, args);  // vprintf 接收 va_list
     va_end(args);
     printf("\n");
-#endif
 }
 
+// 关键技巧：用预处理指令决定"某个级别的日志到底编不编进程序"。
+// 级别不够时宏展开成空语句，既没有运行时开销，也不会产生"参数未使用"警告。
+#if LOG_LEVEL >= 1
+#  define LOG_ERROR(...) log_msg("ERROR", __FILE__, __LINE__, __VA_ARGS__)
+#else
+#  define LOG_ERROR(...) ((void)0)
+#endif
+#if LOG_LEVEL >= 2
+#  define LOG_WARN(...)  log_msg("WARN",  __FILE__, __LINE__, __VA_ARGS__)
+#else
+#  define LOG_WARN(...)  ((void)0)
+#endif
+#if LOG_LEVEL >= 3
+#  define LOG_INFO(...)  log_msg("INFO",  __FILE__, __LINE__, __VA_ARGS__)
+#else
+#  define LOG_INFO(...)  ((void)0)
+#endif
+#if LOG_LEVEL >= 4
+#  define LOG_DEBUG(...) log_msg("DEBUG", __FILE__, __LINE__, __VA_ARGS__)
+#else
+#  define LOG_DEBUG(...) ((void)0)
+#endif
+
 int main(void) {
-    LOG_ERROR("这是一个错误: code=%d", 500);    // [ERROR] main.c:24: 这是一个错误: code=500
-    LOG_WARN("内存使用率: %.1f%%", 85.5);        // [WARN] main.c:25: 内存使用率: 85.5%
-    LOG_INFO("服务启动成功");                    // [INFO] main.c:26: 服务启动成功
-    LOG_DEBUG("调试信息: x=%d, y=%d", 1, 2);     // [DEBUG] main.c:27: 调试信息: x=1, y=2
+    LOG_ERROR("这是一个错误: code=%d", 500);   // [ERROR] main.c:47: 这是一个错误: code=500
+    LOG_WARN("内存使用率: %.1f%%", 85.5);      // [WARN] main.c:48: 内存使用率: 85.5%
+    LOG_INFO("服务启动成功");                  // [INFO] main.c:49: 服务启动成功
+    LOG_DEBUG("调试信息: x=%d, y=%d", 1, 2);   // 级别不够，这行被编译掉了
 
     return 0;
 }
 ```
 
-> `va_list`、`va_start`、`vprintf` 这些是处理可变参数的"三件套"。我们会在后续章节详细讲解。
+> `va_list`、`va_start`、`vprintf`、`va_end` 都来自 `<stdarg.h>`，是处理可变参数的"四件套"。请注意：把 `...` 原样转发给另一个可变参数函数时，**不能直接把 `__VA_ARGS__` 塞进 `printf`，而要改用 `vprintf` + `va_list`** —— 因为在 `log_msg` 内部，实参已经被"收拢"成 `va_list` 了。详见第 7 章"可变参数函数"。
 
 ### 27.1.5 小结
 
@@ -129,7 +157,8 @@ int main(void) {
 |------|------|
 | `...` | 可变参数占位符 |
 | `__VA_ARGS__` | 将可变参数展开传递给其他函数 |
-| `##__VA_ARGS__` | 可变参数为空时删除前面的逗号 |
+| `##__VA_ARGS__` | GNU 扩展：可变参数为空时删除前面的逗号 |
+| `__VA_OPT__(x)` | C23 标准：可变参数非空时才展开为 `x` |
 
 ---
 
@@ -169,8 +198,7 @@ int main(void) {
 
     // 更骚的操作：直接传给函数
     int max = 0;
-    int nums[] = (int[]){5, 2, 8, 1, 9};  // 等等，这个语法有问题，看下面正确的
-    // 正确写法：
+    // 复合字面量是"匿名对象"，只能通过指针去访问它的地址
     int *numbers = (int[]){5, 2, 8, 1, 9};
     for (int i = 0; i < 5; i++) {
         if (numbers[i] > max) max = numbers[i];
@@ -366,21 +394,28 @@ int main(void) {
 
 int main(void) {
     int num = 3;
-    printf("SQUARE_BAD(%d) = %d\n", num, SQUARE_BAD(num));    // 9 ✅
-    printf("SQUARE_BAD(%d++) = %d, num=%d\n", num, SQUARE_BAD(num++), num);
-    // 未定义行为！num 被增加了两次！
+    printf("SQUARE_BAD(%d) = %d\n", num, SQUARE_BAD(num));   // 9 ✅
 
     num = 3;
-    printf("SQUARE_SAFE(%d) = %d\n", num, SQUARE_SAFE(num));   // 9 ✅
-    printf("SQUARE_SAFE(%d++) = %d, num=%d\n", num, SQUARE_SAFE(num++), num);
-    // 行为良好！num 只增加一次
-    // 输出：SQUARE_SAFE(3++) = 9, num=4
+    int bad = SQUARE_BAD(num++);   // 展开成 ((num++) * (num++))
+    // ⚠️ 未定义行为：同一个对象在两次未定序的修改之间被改了两次。
+    // 结果是 9、12 还是别的什么，取决于编译器与优化级别。
+    printf("SQUARE_BAD(num++) = %d, num = %d\n", bad, num);
+
+    num = 3;
+    printf("SQUARE_SAFE(%d) = %d\n", num, SQUARE_SAFE(num));  // 9 ✅
+
+    num = 3;
+    int good = SQUARE_SAFE(num++);  // 先把 num++ 的结果存进 _x，再算 _x * _x
+    printf("SQUARE_SAFE(num++) = %d, num = %d\n", good, num); // 9, 4 ✅
 
     return 0;
 }
 ```
 
-> `typeof(x)` 是 GNU 扩展，用法稍后我们会详细讲。现在你只需要知道它是"获取 x 的类型"的魔法。
+> 把两次副作用分开写成独立语句，是为了让示例本身不引入额外的未定义行为 —— 原版把 `num` 和 `SQUARE_BAD(num++)` 放在同一个 `printf` 调用里，调用实参之间也是未定序的，等于用一个 UB 去演示另一个 UB。
+>
+> `typeof(x)` 曾是 GNU 扩展，**C23 起已标准化**（见 27.4）。现在你只需要知道它是"获取 x 的类型"的魔法。
 
 ### 27.3.5 语句表达式的限制
 
@@ -582,41 +617,47 @@ if (unlikely(ptr == NULL)) {
 
 ### 27.5.3 __builtin_offsetof
 
-**用途**：计算结构体中某个成员相对于结构体起始地址的字节偏移量。这和标准库的 `offsetof` 宏功能相同，但 `__builtin_offsetof` 更强大——它**可以用于位域（bit-field）**！
+**用途**：计算结构体中某个成员相对于结构体起始地址的字节偏移量。它和标准库的 `offsetof` 宏功能**完全相同** —— 事实上 glibc 里 `offsetof` 就是用 `__builtin_offsetof` 实现的。它唯一的"优势"是绕过了 `offsetof` 的某些使用限制（例如成员名里带逗号、或者用于模板式的宏展开）。
+
+⚠️ 一个流传很广的误解：`__builtin_offsetof` **不能**用于位域（bit-field）。无论 `offsetof` 还是 `__builtin_offsetof`，用在位域上都是**编译错误**（Clang 会说 `cannot compute offset of bit-field`）。因为位域没有独立的地址，"偏移量"这个概念对它不适用。
 
 ```c
 #include <stdio.h>
 #include <stddef.h>  // 标准 offsetof
 
-struct Packet {
-    unsigned int header  : 4;  // 前 4 位：头部
-    unsigned int type    : 4;  // 中 4 位：类型
-    unsigned int payload : 24; // 后 24 位：数据
+struct Point {
+    int x;       // 偏移 0
+    int y;       // 偏移 4
+    double z;    // 偏移 8（double 需要 8 字节对齐）
 };
 
-struct Point {
-    int x;
-    int y;
-    double z;
+// 位域结构体：成员共用同一个存储单元，"偏移量"没有意义
+struct Packet {
+    unsigned int header  : 4;   // 前 4 位：头部
+    unsigned int type    : 4;   // 中 4 位：类型
+    unsigned int payload : 24;  // 后 24 位：数据
 };
 
 int main(void) {
-    // 验证 __builtin_offsetof 和 offsetof 结果一致
-    struct Point p;
-    printf("offsetof(Point, x) = %zu\n", __builtin_offsetof(struct Point, x));  // 0
-    printf("offsetof(Point, y) = %zu\n", __builtin_offsetof(struct Point, y));  // 4
-    printf("offsetof(Point, z) = %zu\n", __builtin_offsetof(struct Point, z));  // 8 (可能需要对齐)
+    // offsetof 和 __builtin_offsetof 的结果完全一致
+    printf("offsetof(Point, x) = %zu\n", offsetof(struct Point, x));             // 0
+    printf("offsetof(Point, y) = %zu\n", offsetof(struct Point, y));             // 4
+    printf("offsetof(Point, z) = %zu\n", offsetof(struct Point, z));             // 8
+    printf("__builtin_offsetof(Point, z) = %zu\n",
+           __builtin_offsetof(struct Point, z));                                 // 8
 
-    // __builtin_offsetof 可以用于位域！
-    printf("offsetof(Packet, header)   = %zu\n", __builtin_offsetof(struct Packet, header));    // 0
-    printf("offsetof(Packet, type)     = %zu\n", __builtin_offsetof(struct Packet, type));      // 4
-    printf("offsetof(Packet, payload)  = %zu\n", __builtin_offsetof(struct Packet, payload));   // 8
+    printf("sizeof(struct Packet) = %zu\n", sizeof(struct Packet));              // 4
+
+    // ❌ 下面这行会编译失败：Cannot compute offset of bit-field 'header'
+    // printf("%zu\n", offsetof(struct Packet, header));
 
     return 0;
 }
 ```
 
-> `__builtin_offsetof` 就像是给你一个"透视眼"，能看到结构体在内存中的布局——每个成员住在哪一层楼（偏移量）。
+> `__builtin_offsetof` 就像是给你一个"透视眼"，能看到结构体在内存中的布局——每个成员住在哪一层楼（偏移量）。但"位域"成员住的是同一个房间里的上下铺，没有独立的门牌号，所以既不能用 `offsetof` 也不能用 `__builtin_offsetof` 去问它"住几楼"。
+>
+> 顺带一提：标准 C 明确禁止把 `offsetof` 用在位域上。如果确实需要"位域在整个存储单元里的位置"，只能靠手工分析 + `_Static_assert(sizeof(struct Packet) == 4, "...")` 这样的静态检查来约束。
 
 ---
 
@@ -663,6 +704,7 @@ int main(void) {
 ```c
 #include <stdio.h>
 #include <time.h>
+#include <stdlib.h>   // malloc / free / clock
 
 #define N 10000000
 
@@ -766,18 +808,17 @@ int main(void) {
 ```c
 #include <stdio.h>
 
-// 泛型打印函数：通过 _Generic 实现类型分发
-#define PRINT_VALUE(x) do { \
-    _Generic((x), \
-        int:    printf("%d (int)\n", x), \
-        double: printf("%.2f (double)\n", x), \
-        char:   printf("'%c' (char)\n", x), \
-        char *: printf("\"%s\" (char*)\n", x), \
-        default: printf("未知类型\n") \
-    ) \
-} while(0)
+// 泛型打印：让 _Generic 只负责"挑格式串"，真正的打印还是交给 printf。
+// 这一点很重要 —— _Generic 的每个分支都必须是一个类型正确的表达式，
+// 直接把 printf(...) 塞进分支里会因为"类型对不上"而编译失败。
+#define PRINT_VALUE(x) printf(_Generic((x), \
+    int:    "int: %d\n", \
+    double: "double: %.2f\n", \
+    char:   "char: '%c'\n", \
+    char *: "char*: \"%s\"\n", \
+    default: "未知类型\n"), (x))
 
-// 泛型加法：只能对相同类型操作
+// 泛型加法：根据左操作数的类型选择计算分支
 #define ADD(a, b) _Generic((a), \
     int:   ((a) + (b)), \
     double: ((a) + (b)), \
@@ -785,17 +826,24 @@ int main(void) {
 )
 
 int main(void) {
-    PRINT_VALUE(42);       // 42 (int)
-    PRINT_VALUE(3.14);     // 3.14 (double)
-    PRINT_VALUE('A');      // 'A' (char)
-    PRINT_VALUE("hello");  // "hello" (char*)
+    char c = 'A';
 
-    printf("ADD(1, 2) = %d\n", ADD(1, 2));        // 3
+    PRINT_VALUE(42);       // int: 42
+    PRINT_VALUE(3.14);     // double: 3.14
+    PRINT_VALUE(c);        // char: 'A'
+    PRINT_VALUE("hello");  // char*: "hello"
+
+    printf("ADD(1, 2) = %d\n", ADD(1, 2));            // 3
     printf("ADD(1.5, 2.5) = %.1f\n", ADD(1.5, 2.5));  // 4.0
 
     return 0;
 }
 ```
+
+> ⚠️ 两个常见坑：
+>
+> 1. `_Generic` 的所有分支都会被**完整地做语义检查**（即使没被选中）。所以像 `char *: printf("%d", x)` 这种"类型对不上"的分支照样报错。
+> 2. 字符常量 `'A'` 在 C 里的类型是 **`int`** 而不是 `char`（这一点和 C++ 不同），所以要演示 `char` 分支必须写成 `char c = 'A'; PRINT_VALUE(c);`。上面旧版本直接写 `PRINT_VALUE('A')` 会走 `int` 分支。
 
 ---
 
@@ -804,8 +852,9 @@ int main(void) {
 ```c
 #include <stdio.h>
 
-// typeof 是 GCC/Clang 扩展，C23 已标准化
-// 这里的实现不需要 typeof，只用 _Generic 就能做到类型感知
+// typeof 曾是 GCC/Clang 扩展，C23 已把它标准化（另有 typeof_unqual 变体）
+// 这里的 MIN/MAX 不用 _Generic，而是靠 typeof 声明"同类型的临时变量"，
+// 从而保证每个参数只求值一次（避免 MIN(i++, j++) 这种副作用被放大）
 #define MIN(a, b) ({ \
     __typeof__(a) _a = (a); \
     __typeof__(b) _b = (b); \
@@ -839,77 +888,76 @@ int main(void) {
 
 ### 27.7.1 constexpr 是什么？
 
-C23 引入了 `constexpr` 关键字，用来声明**在编译时求值**的常量或函数。
+C23 引入了 `constexpr` 关键字。先说结论，因为这一点非常容易被写错：
 
-> 想象一下：你去餐厅点菜，`constexpr` 就像是"预制菜"——在你下单之前，菜已经做好了（编译时计算好了），上菜飞快（程序运行飞快）。
+> **C23 的 `constexpr` 是一个"存储类说明符"，而且只能修饰对象（变量），不能修饰函数。**
+> `constexpr int square(int x)` 在 C 里是**编译错误**（Clang 的原文：`'constexpr' can only be used with variables`）。这一点和 C++ 完全不同 —— C++ 的 `constexpr` 可以修饰函数。
+
+那 `constexpr` 到底做什么？它声明一个**编译期常量对象**：编译器必须能在编译时算出它的初始值，同时这个对象本身也是 `const` 的。它最重要的用途是"可以出现在常量表达式里"，比如数组长度、`case` 标签、`static_assert` 的比较对象等。
+
+> 想象一下：你去餐厅点菜，`constexpr` 就像是"预制菜"——在你下单之前，菜已经做好了（编译时算好了），上菜飞快（程序运行飞快）。
 
 ```c
 #include <stdio.h>
+#include <limits.h>
 
-// constexpr 函数：编译器尝试在编译时求值
-constexpr int square(int x) {
-    return x * x;
-}
+// constexpr 对象：值必须在编译期确定，且本身就是 const
+constexpr int SQUARE_SIDE = 4;
+constexpr int AREA = SQUARE_SIDE * SQUARE_SIDE;   // 16，可用在常量表达式里
+constexpr double PI = 3.14159265358979323846;
+
+// 编译期断言：对常量表达式做静态检查
+static_assert(AREA == 16, "AREA 应该是 16");
+
+// ❌ 这是 C++ 的写法，在 C 里直接编译报错：
+// constexpr int square(int x) { return x * x; }
 
 int main(void) {
-    // 如果编译器足够聪明，编译时就计算出结果
-    int result = square(5);  // 可能是编译时就算好了
-    printf("square(5) = %d\n", result);  // square(5) = 25
-
-    // 但 C23 的 constexpr 有严格限制：
-    // ❌ 不能用循环
-    // ❌ 不能用递归（太复杂）
-    // ❌ 不能有可变修改对象（volatile 等）
+    int grid[AREA];                     // AREA 是编译期常量，这是"定长数组"而非 VLA
+    printf("grid 有 %zu 个元素\n", sizeof(grid) / sizeof(grid[0]));  // 16
+    printf("SQUARE_SIDE = %d, PI = %.5f\n", SQUARE_SIDE, PI);
+    printf("BITINT_MAXWIDTH = %llu\n", (unsigned long long)BITINT_MAXWIDTH);
 
     return 0;
 }
 ```
 
-### 27.7.2 C23 constexpr 的限制
+### 27.7.2 那"编译期求值的函数"怎么办？
 
-C23 的 `constexpr` 是一个**受限版本**——它不允许循环、递归和可变修改对象。这是为了让编译器能够可靠地在编译时求值。
+C 里没有 `constexpr` 函数，能用的工具是这几样：
+
+| 需求 | C 里的做法 |
+|------|-----------|
+| 编译期算一个整数常量 | 宏、`enum` 常量，或 `constexpr` 对象 |
+| 编译期检查条件 | C11 起有 `_Static_assert`（C23 起也可以写 `static_assert`） |
+| 编译期做位运算、判断类型 | `#if` / `__has_builtin` 等预处理指令 |
+| 希望某个函数的调用被"折叠"成常量 | 没有标准保证；现代编译器在 `-O2` 下会自行做常量传播和内联 |
 
 ```c
 #include <stdio.h>
 
-// ✅ 合法的 constexpr：简单的算术运算
-constexpr int add(int a, int b) {
-    return a + b;
-}
+// ① 宏：最老牌的"编译期求值"
+#define SQUARE(x) ((x) * (x))
 
-// ✅ 合法的 constexpr：条件表达式
-constexpr int abs_val(int x) {
-    return x >= 0 ? x : -x;
-}
+// ② constexpr 对象：结果可以在常量表达式里使用
+constexpr int SIDE = 3;
+constexpr int AREA = SQUARE(SIDE);       // 9
 
-// ❌ 非法：循环
-// constexpr int sum_to(int n) {
-//     int sum = 0;
-//     for (int i = 1; i <= n; i++) {  // 禁止！
-//         sum += i;
-//     }
-//     return sum;
-// }
-
-// ❌ 非法：递归（太复杂）
-// constexpr int factorial(int n) {
-//     return n <= 1 ? 1 : n * factorial(n - 1);  // 禁止！
-// }
+// ③ 编译期断言，把错误提前到编译阶段
+static_assert(SQUARE(5) == 25, "宏展开的常量检查");
 
 int main(void) {
-    // 编译期常量
-    constexpr int ANSWER = add(21, 21);  // 编译时计算
-    printf("ANSWER = %d\n", ANSWER);      // 42
-
-    // 编译时计算数组大小（C23）
-    int arr[square(3)];  // int arr[9];
-    printf("arr 大小 = %zu\n", sizeof(arr) / sizeof(arr[0]));  // 9
+    int board[SIDE * SIDE];              // 定长数组：9 个 int
+    printf("SIDE=%d, AREA=%d, 棋盘格数=%zu\n",
+           SIDE, AREA, sizeof(board) / sizeof(board[0]));
 
     return 0;
 }
 ```
 
-> 这就好像是 C 委员会说："编译时计算是好东西，但循环和递归太复杂，编译器算不明白，还可能把编译器卡死（编译器超时）！所以我们只允许简单的表达式。"
+> 顺便澄清一个常见误解："C23 的 `constexpr` 不允许循环、递归、volatile"。这句话描述的其实是 **C++ 的 `constexpr` 函数**遵循的规则（而且 C++14 之后连循环也放开了）。C23 根本没有"constexpr 函数"这回事，所以也谈不上"限制它不能做什么"。
+>
+> 想深入了解 `constexpr` 对象的准确规则，可以看标准草案 N3096 的 6.7.1（存储类说明符）与 6.6（常量表达式）两节。
 
 ---
 
@@ -917,24 +965,32 @@ int main(void) {
 
 ### 27.8.1 nullptr 是什么？
 
-在 C 语言的历史上，`NULL` 有两种定义：
+在 C 语言的历史上，`NULL` 可能是"整型 0"，也可能是"空指针"，具体是哪个由标准库实现决定：
 
 ```c
-#define NULL ((void*)0)   // 指针上下文
-#define NULL 0            // 整数上下文
+// 某实现可能这样定义
+#define NULL 0
+// 也可能这样定义
+#define NULL ((void*)0)
+// C23 起，还可以定义成 nullptr（见下）
 ```
 
-这导致了一些混乱，比如：
+一个 `NULL` 两种"身份"，会带来一些麻烦，比如：
 
 ```c
 void foo(char *p);
-foo(NULL);  // 如果 NULL 被定义为 ((void*)0)，这会有警告！
+foo(NULL);   // 没问题，两种定义都能隐式转换成指针
+
+// 但如果想在宏里区分"整数 0"和"空指针"，就没辙了：
+//   _Generic(NULL, int: ..., void *: ...)   ← 到底选哪个分支，取决于实现
+// 在 C++ 里重载函数时也是同理（C 没有重载，但 _Generic 会遇到同样的问题）。
 ```
 
-C23 引入了一个新的关键字：`nullptr`，它是一个**类型安全的空指针常量**。
+C23 引入了一个新的关键字：`nullptr`。它是一个**类型安全的空指针常量**，类型是 `nullptr_t`（定义在 `<stddef.h>` 里），可以隐式转换成任意指针类型，也可以和指针比较。
 
 ```c
 #include <stdio.h>
+#include <stddef.h>   // nullptr_t 定义在这里
 
 void foo(char *p) {
     if (p == NULL) {
@@ -967,9 +1023,26 @@ int main(void) {
 
 ## 27.9 C23 标准属性全解
 
-C11 引入了 `__attribute__((xxx))` 语法（GCC 扩展），而 C23 正式标准化了**属性语法**：`[[xxx]]`。这就像是给代码贴标签，告诉编译器"这段代码有特殊含义"。
+C23 正式标准化了**属性语法**：`[[xxx]]`（GCC/Clang 早就有的 `__attribute__((xxx))` 是它的前身）。这就像是给代码贴标签，告诉编译器"这段代码有特殊含义"。
 
-### 27.9.1 [[noreturn]]（C23 标准化）
+C23 一共只标准化了 **7 个**属性，全部列在这里，免得记错：
+
+| 属性 | 作用 | 可用于 |
+|------|------|--------|
+| `[[deprecated]]` / `[[deprecated("原因")]]` | 标记已废弃 | 函数、类型、变量、成员… |
+| `[[fallthrough]]` | 声明 switch 穿透是故意的 | 语句 |
+| `[[maybe_unused]]` | 抑制"未使用"警告 | 变量、函数、参数、类型… |
+| `[[nodiscard]]` / `[[nodiscard("原因")]]` | 忽略返回值时告警 | 函数、结构体/枚举类型 |
+| `[[noreturn]]` | 函数不会正常返回 | 函数 |
+| `[[reproducible]]` | 函数是"幂等且无副作用"的 | 函数类型 |
+| `[[unsequenced]]` | 函数是"无状态、无副作用"的 | 函数类型 |
+
+> ⚠️ 两个常见误解（很多 AI 生成的教程都会写错）：
+>
+> - `[[likely]]` / `[[unlikely]]` 是 **C++20** 的属性，**C23 并没有采纳**。在 C 里写 `[[likely]]` 只会得到 `warning: unknown attribute 'likely' ignored`。C 里的对应手段仍然是 `__builtin_expect`（见 27.5.2）。
+> - `[[no_unique_address]]` **也没有**被 C23 采纳，同样属于 C++20。
+
+### 27.9.1 [[noreturn]]
 
 告诉编译器：这个函数**不会返回**给调用者（比如 `exit()`、`abort()`、`longjmp()`）。
 
@@ -977,18 +1050,16 @@ C11 引入了 `__attribute__((xxx))` 语法（GCC 扩展），而 C23 正式标�
 #include <stdio.h>
 #include <stdlib.h>
 
-// C23 标准化，之前是 _Noreturn（GCC 扩展）
+// C23 标准化。之前的标准写法是 _Noreturn（C11 引入的函数说明符，
+// 至今仍然可用，但 C23 起更推荐 [[noreturn]]）
 [[noreturn]] void fatal_error(const char *msg) {
     printf("严重错误: %s\n", msg);
     exit(1);  // 永远不会返回
 }
 
-// 编译器看到这个属性，就知道：
-// - 不需要在调用点生成"未初始化返回值"警告
-// - 可以做一些优化
-[[noreturn]] void __builtin_trap(void) {
-    while(1);  // 无限循环，不会返回
-}
+// 注意：不要试图自己写一个叫 __builtin_trap 的函数去"覆盖"编译器内置函数，
+// 那样会报 "definition of builtin function"。编译器内置的 __builtin_trap()
+// 本身就等价于一条 trap 指令，见 27.5.4。
 
 int main(void) {
     printf("程序开始\n");
@@ -997,21 +1068,22 @@ int main(void) {
 }
 ```
 
-### 27.9.2 [[nodiscard]]（C17，message 为 C23 新增）
+### 27.9.2 [[nodiscard]]
 
 告诉编译器：如果调用者**忽略**这个函数的返回值，就报警告。
 
 ```c
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>   // strlen / strcpy
 
-// C17: 没有 message
+// 基本形式
 [[nodiscard]] int * allocate_array(int size) {
     int *arr = malloc(size * sizeof(int));
     return arr;
 }
 
-// C23: 带 message
+// 带 message 的形式（C23）
 [[nodiscard("请检查内存是否释放")]] char *strdup_safe(const char *s) {
     char *copy = malloc(strlen(s) + 1);
     if (copy) strcpy(copy, s);
@@ -1021,13 +1093,14 @@ int main(void) {
 int main(void) {
     // ✅ 正确用法：接收返回值
     int *arr = allocate_array(10);
-    printf("分配了 %zu 字节\n", sizeof(arr));  // 40
+    printf("arr 指针本身占 %zu 字节（注意：不是数组大小）\n", sizeof(arr));
+    printf("分配了 %d 个 int，共 %zu 字节\n", 10, 10 * sizeof(int));
 
     // ❌ 错误用法：忽略返回值，编译器会报警告！
     allocate_array(100);  // 警告：忽略 nodiscard 函数的返回值！
 
-    // 如果你的编译器支持 C23 message：
-    // strdup_safe("hello");  // 警告：忽略 nodiscard 函数的返回值 (请检查内存是否释放)
+    // 带 message 的形式：警告里会带上"请检查内存是否释放"
+    // strdup_safe("hello");  // （取消注释即可看到警告）
 
     free(arr);
     return 0;
@@ -1063,7 +1136,7 @@ int main(void) {
 }
 ```
 
-### 27.9.4 [[deprecated]]（C17，message 为 C23 新增）
+### 27.9.4 [[deprecated]]
 
 标记某个符号已被废弃，使用时会产生警告。
 
@@ -1076,7 +1149,7 @@ int old_calculate(int x) {
     return x * 2;
 }
 
-// C17 版本（无 message）
+// 不带 message 的基本形式
 [[deprecated]]
 char *old_function(void) {
     return "旧函数";
@@ -1133,10 +1206,9 @@ const char *get_day_name(int day) {
         case 5:
             return "星期五";
         case 6:
-            return "周六";
-            [[fallthrough]];  // 故意穿透到周日
+            [[fallthrough]];  // 故意穿透：周六和周日共用一套逻辑
         case 7:
-            return "周日";
+            return "周末";
         default:
             return "无效";
     }
@@ -1144,8 +1216,8 @@ const char *get_day_name(int day) {
 
 int main(void) {
     printf("%s\n", get_day_type(3));   // 工作日
-    printf("%s\n", get_day_name(6));   // 周六 (注意没有周六的专属消息)
-    printf("%s\n", get_day_name(7));   // 周日
+    printf("%s\n", get_day_name(6));   // 周末（穿透到 case 7）
+    printf("%s\n", get_day_name(7));   // 周末
 
     return 0;
 }
@@ -1153,40 +1225,18 @@ int main(void) {
 
 > 没有 `[[fallthrough]]`，编译器会以为你是"忘了写 break"；加上它，编译器就知道："哦，这是故意的！"
 
-### 27.9.6 [[ likely ]]（C23）
+### 27.9.6 必须澄清的误区：C23 没有 [[likely]] / [[unlikely]]
 
-提示编译器：这个分支**很可能被执行**。
+很多资料会把 `[[likely]]`、`[[unlikely]]` 说成"C23 给 `__builtin_expect` 的语法糖"。**这是错的**：这两个属性属于 **C++20**，C23 的属性列表里并没有它们。在 C 里写 `[[likely]]` 只会得到一条 `warning: unknown attribute 'likely' ignored`，不会带来任何优化。
 
-```c
-#include <stdio.h>
-#include <time.h>
-
-int main(void) {
-    // 提示编译器，这个条件很可能为真
-    if (1) {
-        [[likely]];  // 提示：条件很可能为真
-        printf("这个分支很可能会执行\n");
-    }
-
-    int errors = 0;
-    if (errors == 0) [[likely]];
-    printf("没有错误，程序继续运行\n");
-
-    return 0;
-}
-```
-
-> `[[likely]]` 和 `[[unlikely]]` 是 C23 给 `__builtin_expect` 的"语法糖"，让代码更易读。
-
-### 27.9.7 [[ unlikely ]]（C23）
-
-提示编译器：这个分支**很可能不执行**。
+C 里做分支提示，标准手段只有编译器内置函数（`__builtin_expect`，见 27.5.2）：
 
 ```c
 #include <stdio.h>
 
 int divide(int a, int b) {
-    if (b == 0) [[unlikely]] {
+    // __builtin_expect(b == 0, 0) 表示"这个条件基本不会成立"
+    if (__builtin_expect(b == 0, 0)) {
         printf("除数不能为 0！\n");
         return 0;
     }
@@ -1194,141 +1244,92 @@ int divide(int a, int b) {
 }
 
 int main(void) {
-    // 正常情况走高效路径
-    printf("10 / 2 = %d\n", divide(10, 2));  // 5
-    printf("10 / 3 = %d\n", divide(10, 3));  // 3
-
-    // 错误情况 - 编译器知道这是 unlikely 的
-    divide(10, 0);  // 除数不能为 0！
+    printf("10 / 2 = %d\n", divide(10, 2));   // 5
+    printf("10 / 3 = %d\n", divide(10, 3));   // 3
+    divide(10, 0);                            // 除数不能为 0！
 
     return 0;
 }
 ```
 
-### 27.9.8 [[no_unique_address]]（C23）
+> 想确认某个属性到底有没有被支持，可以用 C23 的 `__has_c_attribute`：
+>
+> - `__has_c_attribute(likely)` → 在 GCC 15 / Clang 21 上会展开为 `0`（不支持）；
+> - `__has_c_attribute(nodiscard)` → 展开为非 `0`（支持）。返回值是"标准版本号 × 100 + 月份"，例如 `202311L` 表示 C23。
 
-这是一个很有趣的属性：告诉编译器如果一个**空类型**成员是唯一处于某个地址的，可以**把它的大小优化为 0**。
+### 27.9.7 另一个误区：[[no_unique_address]] 也不在 C23 里
+
+`[[no_unique_address]]` 同样是 **C++20** 的属性，C23 没有采纳它。在 C 里写它，编译器的反应依然是"不认识这个属性，忽略"：
+
+```text
+warning: unknown attribute 'no_unique_address' ignored [-Wunknown-attributes]
+```
+
+另外要提醒一句：上面旧版本示例里的 `struct Empty { };`（**没有任何成员**的结构体）在 C 里其实也是**非标准**写法。C 要求结构体至少有一个具名成员，只有 GCC/Clang 才把它当作扩展接受（并且 `sizeof` 为 0）。在 C 里想表达"占位"的语义，稳妥做法是显式给一个成员，例如：
 
 ```c
-#include <stdio.h>
-
-struct Empty {
-    // 空结构体，C 语言中合法，大小为 0（但有些实现会给 1）
-};
-
-// 不加属性：即使 Empty 是空的，也占用空间
-struct Wrapper1 {
-    int x;
-    struct Empty e;  // 可能会占用 1 字节（对齐）
-};
-
-// 加了属性：编译器可以优化，把 e 的地址优化掉
-struct Wrapper2 {
-    int x;
-    struct Empty [[no_unique_address]] e;  // 可能不占空间
-};
-
-int main(void) {
-    printf("sizeof(Empty) = %zu\n", sizeof(struct Empty));  // 可能是 0 或 1
-    printf("sizeof(Wrapper1) = %zu\n", sizeof(struct Wrapper1));
-    printf("sizeof(Wrapper2) = %zu\n", sizeof(struct Wrapper2));
-
-    printf("&Wrapper1.x = %p\n", (void*)&((struct Wrapper1*)0)->x);
-    printf("&Wrapper2.x = %p\n", (void*)&((struct Wrapper2*)0)->x);
-    // &Wrapper2.x 的地址应该等于 Wrapper2 的地址（如果 e 被优化掉）
-
-    return 0;
-}
+struct tag { unsigned char dummy; };
 ```
 
-> `[[no_unique_address]]` 就像是"共享办公桌"：两个不同的人（成员）如果不会同时需要位置，编译器就把他们的工位合并成一个，节省空间。
+> 想在 C 里节省成员的存储，目前没有标准手段；能靠的只有**手工重排成员顺序**（把对齐要求高的成员放前面）和 `_Static_assert` 检查布局。
 
 ---
 
-## 27.10 C23 模块系统（import / module / export）
+## 27.10 澄清：C23 **没有**模块系统
 
-> ⚠️ **警告**：截至 2024 年，模块系统的编译器支持极为有限。GCC 和 Clang 对模块的支持还在开发中，MSVC 几乎没有支持。这一节的内容是"前瞻性"的，生产环境请继续使用传统的 `#include`。
+> ⚠️ 先给结论：**C 语言至今（C23 及之后已发布的版本）都没有模块系统**，`import` / `module` / `export` 这些关键字在 C 里的编译结果只有一条 —— `error: unknown type name 'import'`。它们是 **C++20** 的特性（C++ 的模块确实用 `import` / `export`）。本章早先的一些代码把它们当成"C23 新特性"，那是错误的，已经改写。
 
-### 27.10.1 为什么需要模块？
+### 27.10.1 为什么会有"C23 有模块"的说法？
 
-传统的 `#include` 是"文本替换"——编译器把头文件的内容直接复制到源文件。这导致了：
+这多半是两件事被混在了一起：
 
-- **重复编译**：每个包含某个头文件的 `.c` 文件都要重新编译那个头文件
-- **命名空间污染**：`#include <stdio.h>` 把所有 stdio 的名字都引入到全局作用域
-- **编译依赖图不清晰**：难以并行编译
+1. **C++20 的模块**（`import std;`、`export module math;`）确实存在，而且演示代码很常见；
+2. C 委员会**讨论过**给 C 加模块（各种提案），但从未进入 C23 标准文本。在 N3096（C23 草案）里搜索 `module` 一词，命中数是 **0**。
 
-模块系统就是来解决这些问题的：
+### 27.10.2 C 里想要"减少头文件重复包含"，用什么？
+
+答案是继续用预处理器的老办法，它们都很成熟：
+
+| 手段 | 说明 | 标准 |
+|------|------|------|
+| 头文件保护宏 | `#ifndef X_H` / `#define X_H` / `#endif` | C89 起 |
+| `#pragma once` | 更简洁，但属于扩展，不是标准 | 编译器扩展（GCC/Clang/MSVC 都支持） |
+| 前置声明 | 减少不必要的 `#include` | C89 起 |
+| 只包含接口、把实现放 `.c` | 从工程结构上减少依赖 | — |
 
 ```c
-// math.cmi - 模块接口文件（C23）
-module;  // 开始模块
+/* point.h —— 一个规范的头文件 */
+#ifndef POINT_H
+#define POINT_H
 
-export int add(int a, int b) {
-    return a + b;
-}
+struct Point {
+    int x;
+    int y;
+};
 
-export int multiply(int a, int b) {
-    return a * b;
-}
+int point_distance_squared(const struct Point *a, const struct Point *b);
+
+#endif /* POINT_H */
 ```
 
 ```c
-// 使用模块
-import math;  // 导入 math 模块
+/* point.c —— 实现放在源文件里 */
+#include "point.h"
 
-int main(void) {
-    int result = math.add(3, 4);  // 7
-    return 0;
+int point_distance_squared(const struct Point *a, const struct Point *b) {
+    int dx = a->x - b->x;
+    int dy = a->y - b->y;
+    return dx * dx + dy * dy;
 }
 ```
 
-> 模块系统就像是图书馆的**借书系统**：`#include` 是直接把书复印给你（复制），而 `import` 是告诉你"去图书馆的某个书架借"（引用），用完还回去，资源共享，不占你家空间。
-
-### 27.10.2 模块的基本语法
-
-```c
-// 定义模块
-module;  // 开始模块定义
-
-export module math;  // 声明这是一个名为 "math" 的模块
-
-// 导出函数
-export int add(int a, int b) {
-    return a + b;
-}
-
-// 不导出的内容，外部不可见
-static int helper(int x) {
-    return x * 2;
-}
-```
-
-```c
-// 使用模块
-import math;  // 导入模块
-
-int main(void) {
-    int result = math.add(10, 20);  // 需要用模块名前缀
-    // int r = add(10, 20);  // ❌ 错误！需要 math.add
-    return 0;
-}
-```
-
-### 27.10.3 当前状态
-
-| 编译器 | 模块支持状态 |
-|--------|------------|
-| GCC | 部分支持（实验性，需要 `-fmodules-ts`） |
-| Clang | 部分支持（实验性） |
-| MSVC | 几乎没有支持 |
-
-> 如果你想在生产项目中使用模块，请三思而后行。目前最靠谱的选择还是 `#include` + 头文件保护。
-
----
+> 如果将来 C 真的采纳了模块，编译器一定会通过 `__STDC_VERSION__` 升级和 `__has_include` 之外的特性探测宏来区分。在此之前，看到任何"用 `import` 写 C 代码"的教程，直接跳过即可。
 
 ## 27.11 内联汇编：`__asm__ volatile`（GCC 扩展）
 
 > ⚠️ **警告**：内联汇编是 GCC/Clang 的扩展，非标准 C！它可以让你的代码直接和 CPU 指令打交道，但代价是**可移植性为零**。除非你真的需要优化到极致，或者在写操作系统内核，否则不要用！
+>
+> 还有一层"可移植性为零"是很多人没意识到的：本节示例里的指令（`addl`、`rdtsc`）和约束（`=a`、`=b`、`=A`）都是 **x86/x86-64 专属**的。把同样的代码拿到 ARM64（Apple Silicon、绝大多数手机、越来越多的服务器）上编译，会直接得到 `error: invalid output constraint '=a' in asm` 之类的错误。想跟随本节实验，请在 x86-64 环境（或 `x86_64` 交叉编译目标）下进行。
 
 ### 27.11.1 什么是内联汇编？
 
@@ -1354,6 +1355,8 @@ int main(void) {
 }
 ```
 
+> 上面这段只适用于 **x86/x86-64**：`%eax`、`%ebx` 是 x86 的寄存器名，`"=a"`、`"a"`、`"b"` 是 x86 的约束字母。用 GCC/Clang 编译时要加 `-std=gnu11`（或更高的 gnu* 标准），因为 `__asm__` 不是 ISO C 的一部分。
+
 > 内联汇编就像是你在厨房里做菜，突然说"让我来用分子料理的手法处理这块肉"——直接用最高级、最底层的工具，但风险也最高（可能搞砸整道菜）。
 
 ### 27.11.2 内联汇编的语法
@@ -1369,29 +1372,37 @@ __asm__ volatile (
 
 ### 27.11.3 常用约束
 
-| 约束 | 含义 |
-|------|------|
-| `=r` | 输出到任意寄存器 |
-| `=a` | 输出到 eax |
-| `=b` | 输出到 ebx |
-| `0` | 与第0个操作数使用同一寄存器 |
-| `r` | 读取任意寄存器 |
-| `i` | 立即数（常量） |
-| `m` | 内存 |
+下表中的具体字母（`a`、`b`、`A`…）都绑定到 x86 的寄存器，换个架构就完全不同：
+
+| 约束 | 含义 | 可移植性 |
+|------|------|---------|
+| `r` | 任意通用寄存器（输入） | 通用 |
+| `=r` | 任意通用寄存器（输出） | 通用 |
+| `m` | 内存操作数 | 通用 |
+| `i` | 立即数（编译期常量） | 通用 |
+| `0`～`9` | 与第 N 个操作数使用同一个位置 | 通用 |
+| `=&r` | 输出专用寄存器（early-clobber） | 通用 |
+| `"a"` / `"=a"` | x86 的 eax/rax | x86 专属 |
+| `"b"` / `"=b"` | x86 的 ebx/rbx | x86 专属 |
+| `"=A"` | **仅 32 位 x86**：eax/edx 拼成一个 64 位值 | x86-32 专属 |
+| `cc` | 汇编会修改条件码标志 | 通用 |
+| `memory` | 汇编会读写内存，编译器需重新加载 | 通用 |
 
 ### 27.11.4 实战：读取 CPU 时钟周期
 
 ```c
 #include <stdio.h>
 
-// 读取 CPU 时钟周期（x86_64）
-static __inline unsigned long long get_cycles(void) {
-    unsigned long long t;
+// 读取 CPU 时间戳计数器（x86 / x86-64 专属）
+// rdtsc 把 64 位计数拆成 edx:eax 两半，所以要分别接收再拼起来。
+// 注意：在 64 位下不能用 "=A" 约束 —— 那只是 32 位 x86 的写法。
+static inline unsigned long long get_cycles(void) {
+    unsigned int lo, hi;
     __asm__ volatile (
-        "rdtsc"              // 读取时间戳计数器
-        : "=A"(t)            // 输出到 t（eax:edx 组合）
+        "rdtsc"
+        : "=a"(lo), "=d"(hi)     // eax → lo，edx → hi
     );
-    return t;
+    return ((unsigned long long)hi << 32) | lo;
 }
 
 int main(void) {
@@ -1419,28 +1430,35 @@ int main(void) {
 
 现在，C23 的 `#embed` 可以直接帮你把二进制文件嵌入到编译后的程序里！
 
+> **可用性提示**：`#embed` 从 **GCC 15** 和 **Clang 19** 才开始支持（本示例在 Apple Clang 21 上可以直接编译）。更早的版本会报 `expected expression` 之类看起来毫不相关的错误。MSVC 目前不支持。
+
+下面这个例子里，`favicon.bin` 是**你自己准备的真实文件**（随便找个图片或文本文件改名即可，注意它得和源文件在同一个目录，或者在包含路径上）：
+
 ```c
 #include <stdio.h>
 
-// C23 #embed：把二进制文件内容嵌入进来
-// 这会创建一个 unsigned char 数组
+// C23 #embed：把二进制文件内容原样嵌入
+// 这会生成一个 unsigned char 数组，大小正好等于文件字节数
 const unsigned char favicon_data[] = {
     #embed "favicon.bin"
 };
 
-// 也可以指定最大长度
-const unsigned char logo[] = {
-    #embed "logo.bin" limit(1024)  // 最多 1024 字节
+// limit(N)：最多嵌入 N 字节（相当于"截断"）
+const unsigned char logo_head[] = {
+    #embed "favicon.bin" limit(16)
 };
 
-// 指定终止符
-const unsigned char config[] = {
-    #embed "config.bin" terminator(0xFF)  // 遇到 0xFF 停止
+// prefix / suffix：在"整段展开结果"的首/尾各追加一段内容（各只生效一次）
+// 标准里的经典用法：suffix(,) 后紧跟一个 0，就给数组补上了结束符
+const unsigned char logo_z[] = {
+    #embed "favicon.bin" limit(4) suffix(,)
+    0
 };
 
 int main(void) {
     printf("favicon 大小: %zu 字节\n", sizeof(favicon_data));
-    printf("logo 大小: %zu 字节\n", sizeof(logo));
+    printf("只取前 16 字节: %zu 字节\n", sizeof(logo_head));
+    printf("前 4 字节 + 结束符: %zu 字节\n", sizeof(logo_z));
 
     return 0;
 }
@@ -1450,31 +1468,43 @@ int main(void) {
 
 ### 27.12.2 #embed 的参数
 
+C23 一共只定义 **4 个**标准参数（写成别的名字都会报 `unknown embed preprocessor parameter`，比如常见的 `terminator`、`if_empty_then` 都是**不存在的**）：
+
 | 参数 | 含义 |
 |------|------|
-| `limit(N)` | 最多嵌入 N 字节 |
-| `terminator(X)` | 遇到 X 字节就停止 |
-| `if_empty_then(value)` | 如果文件为空，使用这个值 |
+| `limit(N)` | 最多嵌入 N 个元素（相当于截断） |
+| `prefix(tokens…)` | 在整个展开结果**之前**插入一段预处理记号 |
+| `suffix(tokens…)` | 在整个展开结果**之后**插入一段预处理记号 |
+| `if_empty(tokens…)` | **如果资源为空**，用这些记号替换掉整个 `#embed` 指令 |
 
 ```c
 #include <stdio.h>
 
-// 如果文件不存在或为空，使用 fallback
-const unsigned char fallback_data[] = {
-    #embed "nonexistent.bin" if_empty_then(0)
-        limit(4)
+// 情形一：文件存在且非空 —— 正常嵌入前 4 个字节，再加一个 0 结尾
+const unsigned char data1[] = {
+    #embed "favicon.bin" limit(4) suffix(,)
+    0
 };
 
-// 如果文件为空，只包含一个 0
-const unsigned char tiny[] = {
-    #embed "empty.bin" if_empty_then(0)
+// 情形二：用 limit(0) 强制"资源被视为空"，
+// 于是整个 #embed 被 if_empty 里的内容替换，数组只剩一个 0
+const unsigned char data2[] = {
+    #embed "favicon.bin" limit(0) if_empty(0)
 };
+
+static_assert(sizeof(data2) == 1, "limit(0) 会把资源视为空，从而走 if_empty 分支");
 
 int main(void) {
-    printf("fallback 大小: %zu\n", sizeof(fallback_data));  // 4
+    printf("data1 大小: %zu 字节\n", sizeof(data1));  // 5
+    printf("data2 大小: %zu 字节\n", sizeof(data2));  // 1
     return 0;
 }
 ```
+
+> 还有两个细节值得记住：
+>
+> 1. `#embed` 的结果天然就是"逗号分隔的元素序列"，所以可以直接放进 `{ }` 初始化列表，也可以配合 `suffix(,)` + 后续元素使用。
+> 2. `if_empty` **不能**帮你处理"文件找不到"。文件不存在时是编译错误（`fatal error: 'xxx.bin' file not found`），`if_empty` 只处理"文件存在但内容为空（或被 `limit(0)` 变成空）"的情况。
 
 ---
 
@@ -1482,31 +1512,43 @@ int main(void) {
 
 ### 27.13.1 _BitInt 是什么？
 
-C23 引入了一个激动人心的特性：`_BitInt(N)` —— 可以指定**任意位数**的整数类型！以前 `int` 固定是 32 位，现在你可以要一个 7 位、128 位、甚至 1024 位的整数！
+C23 引入了一个激动人心的特性：`_BitInt(N)` —— 可以指定**精确位数**的整数类型！以前 `int` 固定是 32 位，现在你可以要一个 7 位、96 位、128 位的整数。
+
+不过"任意"要打个引号：`N` 的取值范围是 **1 ~ `BITINT_MAXWIDTH`**（定义在 `<limits.h>`，标准要求它至少等于 `ULLONG_WIDTH` 也就是 64，具体上限由实现决定）。另外各实现还有自己的额外限制，比如 **Clang 只支持到 128 位**（而且有符号和无符号是分别限制的），所以别真的去写 `_BitInt(1000000)`。
+
+配合新类型，C23 还给整数字面量加了 `wb` / `uwb` 后缀：`123wb` 表示"宽度刚好放得下 123 的 `_BitInt`"，`3uwb` 表示无符号版本。这样就不用自己算位宽了。
 
 ```c
 #include <stdio.h>
+#include <limits.h>
 
 int main(void) {
-    // _BitInt(N)：N 位的二进制整数
-    _BitInt(7) small = 100;  // 7 位，范围 -64 ~ 63
-    _BitInt(128) big = 12345678901234567890LL;
-    _BitInt(256) huge;
+    // _BitInt(N)：正好 N 位的整数（含符号位）
+    _BitInt(7) small = 63;                    // 7 位有符号：-64 ~ 63
+    unsigned _BitInt(7) usmall = 127;         // 7 位无符号：0 ~ 127
 
-    printf("small: %lld, 大小: %zu 位\n", (long long)small, sizeof(small) * 8);
-    printf("big: %lld, 大小: %zu 位\n", (long long)big, sizeof(big) * 8);
+    // 用 wb 后缀让字面量自己挑一个放得下的位宽
+    _BitInt(128) big = 12345678901234567890wb;
 
-    // 128 位整数的算术运算
-    _BitInt(128) a = (_BitInt(128))1 << 100;  // 2^100
-    _BitInt(128) b = (_BitInt(128))1 << 50;   // 2^50
-    _BitInt(128) c = a * b;                    // 2^150
-    printf("2^100 * 2^50 = 2^150, 成功计算！\n");
+    printf("small=%d, usmall=%u\n", (int)small, (unsigned)usmall);
+    printf("sizeof(_BitInt(7))   = %zu 字节\n", sizeof(_BitInt(7)));
+    printf("sizeof(_BitInt(128)) = %zu 字节\n", sizeof(big));
+    printf("BITINT_MAXWIDTH      = %llu\n", (unsigned long long)BITINT_MAXWIDTH);
+
+    // 只要结果不超过 128 位，就能安全地做大数运算
+    _BitInt(128) a = (_BitInt(128))1 << 100;   // 2^100
+    _BitInt(128) b = (_BitInt(128))1 << 20;    // 2^20
+    _BitInt(128) c = a * b;                    // 2^120，仍在 128 位之内
+    _BitInt(128) expected = (_BitInt(128))1 << 120;
+    printf("2^100 * 2^20 == 2^120 ? %s\n", (c == expected) ? "是" : "否");
 
     return 0;
 }
 ```
 
-> `_BitInt` 就像是给你一张**无限大的草稿纸**：以前 int 是 A4 纸，long long 是 A3 纸，现在 `_BitInt(1000000)` 是足球场大小的纸，想写多大就写多大。
+> 注意上一版代码里的两个错误：`_BitInt(7) small = 100;` 会**溢出**（7 位有符号装不下 100，实际值会变成 -28，编译器给出 `-Wconstant-conversion` 警告）；而 `(_BitInt(128))1 << 100` 再乘以 `1 << 50` 得到 2^150，**超出 128 位**，属于有符号溢出（未定义行为）。写位精确整数时，"结果会不会溢出"必须自己盯着。
+>
+> `_BitInt` 就像是一叠**可裁剪的草稿纸**：int 是 A4 纸，long long 是 A3 纸，`_BitInt(N)` 则是"你要多大就裁多大"，但最大也只能裁到实现允许的那个尺寸。
 
 ### 27.13.2 _BitInt 的用法
 
@@ -1514,33 +1556,29 @@ int main(void) {
 #include <stdio.h>
 
 int main(void) {
-    // 基本声明
-    _BitInt(8)   byte_val;    // 8 位：有符号 -128 ~ 127
-    _BitInt(16)  word_val;    // 16 位
-    _BitInt(32)  dword_val;   // 32 位
-    _BitInt(64)  qword_val;   // 64 位
-    _BitInt(128) big_val;     // 128 位
+    // 基本声明：和普通整数一样可以赋初值、参与运算
+    _BitInt(8)   byte_val  = -1;      // 8 位有符号：-128 ~ 127
+    _BitInt(16)  word_val  = 1000;    // 16 位有符号
+    _BitInt(32)  dword_val = 100000;  // 32 位有符号
+    unsigned _BitInt(8) ubyte = 255;  // 8 位无符号：0 ~ 255
 
-    // 无符号版本
-    unsigned _BitInt(8) ubyte = 255;  // 0 ~ 255
-    unsigned _BitInt(256) big_unsigned;
+    printf("%d %d %d %u\n",
+           (int)byte_val, (int)word_val, (int)dword_val, (unsigned)ubyte);
 
-    // 赋值
-    byte_val = 127;
-    big_val = 12345678901234567890123456789012345678901234567890LL;
-
-    // 运算
-    _BitInt(256) fib1 = 1, fib2 = 1, fibn;
+    // F(100) ≈ 3.54e20，需要约 69 位，96 位无符号绰绰有余
+    unsigned _BitInt(96) fib1 = 1, fib2 = 1, fibn = 0;
     for (int i = 3; i <= 100; i++) {
         fibn = fib1 + fib2;
         fib1 = fib2;
         fib2 = fibn;
     }
-    printf("第100个斐波那契数（部分）已计算完成\n");
+    printf("F(100) > 2^64 ? %s\n",
+           (fibn > ((unsigned _BitInt(96))1 << 64)) ? "是" : "否");
 
-    // 格式化输出需要用 %lld 或手动转换
-    // _BitInt 不能直接用 printf %d，需要手动处理
-    // 这里只演示概念，不演示格式化输出
+    // printf 家族没有任何转换说明符能直接打印 _BitInt。
+    // 值能放进标准类型时可以转换后打印（超宽会按 2^N 取模截断）；
+    // 想完整打印大数，只能自己按位/按十进制逐位提取（见 27.13.4）。
+    printf("F(100) 的低 64 位 = %llu\n", (unsigned long long)fibn);
 
     return 0;
 }
@@ -1549,22 +1587,38 @@ int main(void) {
 ### 27.13.3 _BitInt 的限制
 
 ```c
-// ❌ N 必须小于 2^12（4096），即最大 4095 位
-// _BitInt(8192) x;  // ❌ 非法！太大了
+#include <stdio.h>
+#include <limits.h>
 
-// ❌ 位数必须大于 0
-// _BitInt(0) x;  // ❌ 非法！
+int main(void) {
+    // ✅ N 的取值范围是 1 ~ BITINT_MAXWIDTH，并且可以是常量表达式
+    enum { WIDTH = 128 };          // 或者用 #define / constexpr
+    _BitInt(WIDTH) configurable = 0;
 
-// ✅ 枚举可以包含 _BitInt 类型
-enum { MAX_BITS = 256 };
-_BitInt(MAX_BITS) configurable;
+    printf("BITINT_MAXWIDTH = %llu\n", (unsigned long long)BITINT_MAXWIDTH);
+    printf("sizeof(_BitInt(%d)) = %zu 字节\n", (int)WIDTH, sizeof(configurable));
 
-// ✅ 与标准整数类型的转换
-_BitInt(64) x = 42LL;  // ✅
-long long y = x;       // ✅ 可能丢失精度
+    // ✅ 与标准整数类型之间可以互相转换
+    long long  from_std = 42;
+    _BitInt(64) to_bit   = from_std;
+    long long  back      = (long long)to_bit;
+    printf("from_std=%lld, to_bit=%lld, back=%lld\n",
+           from_std, (long long)to_bit, back);
 
-// ⚠️ printf 没有直接支持 _BitInt，需要手动实现
+    return 0;
+}
+
+// ❌ 以下写法都会编译失败（取消注释即可自行验证）：
+//   _BitInt(0) x;            // N 必须 ≥ 1
+//   _BitInt(8192) z;         // 超过本实现的 BITINT_MAXWIDTH
+//   signed _BitInt(256) w;   // Clang：有符号 _BitInt 最多 128 位
 ```
+
+> 关于上限，记住三句话就够了：
+>
+> - **标准层面**：`N` 必须落在 `1 ~ BITINT_MAXWIDTH` 内（`BITINT_MAXWIDTH` 见 `<limits.h>`）。
+> - **实现层面**：各编译器可以更保守。Clang 目前把有符号、无符号都限制在 **128 位**；GCC 的额度要大得多（具体数值取决于目标平台，可用 `BITINT_MAXWIDTH` 打印）。
+> - **格式化输出**：`printf` 的转换说明符里**没有**给 `_BitInt` 准备的位置，必须转换或手工提取。
 
 ### 27.13.4 实战：计算大整数
 
@@ -1591,14 +1645,7 @@ void add_big_integers(const char *a, const char *b, char *result) {
 }
 
 int main(void) {
-    // 如果你的编译器支持 _BitInt，可以这样：
-    _BitInt(512) x = 0;
-    _BitInt(512) y = 0;
-
-    // 这比手动实现字符串加法简单多了！
-    printf("_BitInt(512) 可以表示巨大的整数\n");
-
-    // 传统字符串方法：
+    // 传统字符串方法：不依赖任何扩展，任何编译器都能跑
     char a[] = "123456789012345678901234567890";
     char b[] = "987654321098765432109876543210";
     char result[100];
@@ -1606,6 +1653,14 @@ int main(void) {
     add_big_integers(a, b, result);
     printf("%s + %s = %s\n", a, b, result);
     // 123456789012345678901234567890 + 987654321098765432109876543210 = 1111111110111111111011111111100
+
+    // 如果编译器的 _BitInt 位宽够大，同样的加法可以直接算；
+    // 但要打印出来仍需自己逐位提取（printf 不支持 _BitInt）。
+    // 这两个数各约 100 位，所以要给到 128 位才放得下。
+    unsigned _BitInt(128) x = 123456789012345678901234567890uwb;
+    unsigned _BitInt(128) y = 987654321098765432109876543210uwb;
+    unsigned _BitInt(128) sum = x + y;
+    printf("用 _BitInt(96) 算出的和，低 64 位 = %llu\n", (unsigned long long)sum);
 
     return 0;
 }
@@ -1620,29 +1675,31 @@ int main(void) {
 | 知识点 | 标准 | 用途 |
 |--------|------|------|
 | `...` + `__VA_ARGS__` | C99 | 可变参数宏，让宏也能接受任意多参数 |
-| `##__VA_ARGS__` | C99 | 消除空参数时的多余逗号 |
+| `__VA_OPT__(x)` | C23 | 可变参数非空时才展开，解决"多余逗号"问题 |
+| `##__VA_ARGS__` | GNU 扩展 | 同上，但只能在 GCC/Clang 上用 |
 | 复合字面量 `(int[]){1,2,3}` | C99 | 临时数组/结构体，即用即弃 |
 | 语句表达式 `({})` | GNU | 在括号里写代码块，返回最后表达式的值 |
 | `typeof` / `typeof_unqual` | C23 | 获取变量类型，写类型无关的宏 |
 | `__builtin_popcount` | GCC/Clang | 快速计算二进制中 1 的个数 |
-| `__builtin_expect` | GCC/Clang | 分支预测优化，`likely`/`unlikely` 的实现原理 |
-| `__builtin_offsetof` | GCC/Clang | 计算结构体成员偏移量（支持位域） |
+| `__builtin_expect` | GCC/Clang | 分支预测优化，`likely`/`unlikely` 宏的实现原理 |
+| `__builtin_offsetof` | GCC/Clang | 计算结构体成员偏移量（**不能**用于位域） |
 | `__builtin_trap` | GCC/Clang | 触发调试器断点 |
 | `__builtin_prefetch` | GCC/Clang | 提前预取数据到缓存 |
 | `_Generic` | C11 | 类型分发，实现泛型选择 |
-| `constexpr` | C23 | 编译期求值（但限制多） |
+| `constexpr` | C23 | 声明**编译期常量对象**（不能修饰函数） |
 | `nullptr` | C23 | 类型安全的空指针 |
 | `[[noreturn]]` | C23 | 标记不会返回的函数 |
-| `[[nodiscard]]` | C17 | 标记不能忽略返回值的函数 |
-| `[[maybe_unused]]` | C17 | 抑制"未使用"警告 |
-| `[[deprecated]]` | C17 | 标记废弃的符号 |
-| `[[fallthrough]]` | C17 | 标记 switch 的有意穿透 |
-| `[[likely/unlikely]]` | C23 | 分支预测提示 |
-| `[[no_unique_address]]` | C23 | 空类型成员的地址优化 |
-| `import`/`module`/`export` | C23 | 模块系统（支持有限） |
-| `__asm__ volatile` | GNU | 内联汇编（非标准，慎用） |
-| `#embed` | C23 | 二进制文件内容嵌入 |
-| `_BitInt(N)` | C23 | 任意精度整数 |
+| `[[nodiscard]]` | C23 | 标记不能忽略返回值的函数 |
+| `[[maybe_unused]]` | C23 | 抑制"未使用"警告 |
+| `[[deprecated]]` | C23 | 标记废弃的符号 |
+| `[[fallthrough]]` | C23 | 标记 switch 的有意穿透 |
+| `[[reproducible]]` / `[[unsequenced]]` | C23 | 描述函数的优化性质 |
+| `[[likely]]` / `[[unlikely]]` | ❌ 仅 C++20 | C23 没有采纳，C 里用 `__builtin_expect` |
+| `[[no_unique_address]]` | ❌ 仅 C++20 | C23 没有采纳 |
+| `import` / `module` / `export` | ❌ 仅 C++20 | **C 没有模块系统**，继续用 `#include` |
+| `__asm__ volatile` | GNU 扩展 | 内联汇编（非标准，x86 专属，慎用） |
+| `#embed` | C23 | 二进制文件内容嵌入（GCC 15+ / Clang 19+） |
+| `_BitInt(N)` / `wb` 后缀 | C23 | 位精确整数（Clang 上限 128 位） |
 
 > 🎓 **毕业感言**：恭喜你完成 C 语言高阶课程！你现在掌握了 C 语言界的大部分"隐藏技能"。但记住：**能力越大，责任越大**。那些 GNU 扩展虽然强大，但会锁定你的代码到特定编译器。选择工具时，永远要问自己："我真的需要这个吗？"
 

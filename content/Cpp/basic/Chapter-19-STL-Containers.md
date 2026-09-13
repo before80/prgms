@@ -322,8 +322,10 @@ int main() {
      * 迭代器失效规则（针对vector）：
      * 1. insert/emplace：
      *    - 如果发生扩容：所有迭代器都失效！
-     *    - 如果没发生扩容：插入点之前的迭代器仍然有效，之后的失效
-     * 2. erase：被删除元素之前的迭代器仍然有效，之后的失效
+     *    - 如果没发生扩容：插入点**之前**的迭代器仍然有效；
+     *      插入点**本身及其之后**的迭代器失效
+     * 2. erase：被删除元素**之前**的迭代器仍然有效；
+     *    被删除元素本身及其之后的迭代器失效
      * 3. clear()或shrink_to_fit()：所有迭代器都失效
      * 
      * 最佳实践：
@@ -394,12 +396,16 @@ int main() {
      * - 需要频繁在头部插入/删除，用deque
      * - 需要高性能随机访问且频繁操作头部，deque
      * 
-     * 迭代器失效规则（针对deque）：
-     * - 在deque两端push/pop不会使迭代器失效！
-     * - 在deque中间插入/删除：所有迭代器都失效！
-     * - erase删除元素：被删除位置之前的迭代器仍有效，之后的失效
-     * 
-     * 这点和vector不同：deque的迭代器不会因为一端的操作而失效。
+     * 迭代器失效规则（针对deque，按标准 [deque.modifiers]）：
+     * - 在**两端插入**（push_front/push_back/emplace_*）：
+     *     所有**迭代器**失效，但指向已有元素的**引用和指针依然有效**！
+     * - 在**中间插入**：所有迭代器、引用、指针全部失效。
+     * - 在**两端删除**（pop_front/pop_back/erase 首尾元素）：
+     *     只有指向被删除元素的迭代器/引用失效，其他元素不受影响。
+     * - 在**中间删除**：所有迭代器、引用、指针全部失效。
+     *
+     * ⚠️ 常见误区：很多人以为"deque 两端操作不会让迭代器失效"，这是错的。
+     *    失效的是**迭代器**；能"存活"的是**指针和引用**。两者要分清楚。
      */
     
     return 0;
@@ -808,18 +814,19 @@ int main() {
     
     // 方式4：使用insert_or_assign（C++17）
     scores.insert_or_assign("Alice", 100);  // key存在则更新，不存在则插入
-    // 注意：insert_or_assign会覆盖已存在的值！
+    // 注意：insert_or_assign会覆盖已存在的值！所以现在Alice的分数是100。
     
     // insert的返回值是pair<iterator, bool>，bool表示是否插入成功
     auto [iter, inserted] = scores.insert({"Alice", 100});
     if (!inserted) {
         std::cout << "Alice already exists with score: " << iter->second << std::endl;
-        // 输出: Alice already exists with score: 90
+        // 输出: Alice already exists with score: 100
+        // （insert没有覆盖：iter->second 仍是上面 insert_or_assign 写入的 100）
     }
     
     // ========== 访问操作 ==========
     // 使用operator[]访问，如果key不存在会插入！
-    std::cout << "Alice's score: " << scores["Alice"] << std::endl;  // 输出: 90
+    std::cout << "Alice's score: " << scores["Alice"] << std::endl;  // 输出: 100
     
     // 使用at()访问，如果key不存在会抛异常
     try {
@@ -841,7 +848,7 @@ int main() {
     }
     /*
      * 输出（按键排序）：
-     * Alice: 90
+     * Alice: 100
      * Bob: 85
      * Charlie: 92
      * David: 88
@@ -885,9 +892,11 @@ int main() {
     // count()：某个key出现的次数
     std::cout << "Count of 'apple': " << mm.count("apple") << std::endl;  // 输出: 2
     
-    // find()：返回第一个匹配的元素的迭代器
+    // find()：返回"某个"key匹配的元素——注意是哪一个由实现决定！
+    // 想确定地拿到"第一个"apple，请用 lower_bound 或 equal_range
     auto it_mm = mm.find("apple");
-    std::cout << "First apple: " << it_mm->second << std::endl;  // 输出: 1
+    std::cout << "Find apple -> " << it_mm->second << std::endl;
+    // 输出（libc++）：Find apple -> 3；换一个标准库可能输出 1
     
     // 遍历某个key的所有值
     std::cout << "All apples: ";
@@ -1183,24 +1192,23 @@ int main() {
     
     // 设置最大负载因子（调整rehash时机）
     std::unordered_set<int> us3;
-    us3.max_load_factor(0.5);  // 降低最大负载因子，更密集但更省内存
+    us3.max_load_factor(0.5);  // 降低最大负载因子：桶更少但链更长
     us3.reserve(100);  // 这会根据新的max_load_factor计算桶数
+    
+    // ========== 迭代器失效规则（针对unordered_*） ==========
+    /*
+     * - insert/emplace/operator[]：**只有发生 rehash 时**所有迭代器才失效；
+     *   没触发重哈希时，已有元素的迭代器依然有效（指向元素的指针/引用从不失效）
+     * - erase：只有被删除的那个元素的迭代器失效，其他元素的迭代器仍然有效
+     * - rehash / reserve：所有迭代器失效
+     *
+     * 一句话对比：unordered_* 比 vector 宽松——只要不 rehash，
+     * 插入/删除都不会"殃及"其他元素的迭代器。
+     */
     
     return 0;
 }
 ```
-
-    // ========== 迭代器失效规则（针对unordered_*） ==========
-    /*
-     * 迭代器失效规则（针对unordered_*）：
-     * - insert/emplace/operator[]：所有迭代器失效（因为可能触发rehash）
-     * - erase：被删除元素所在的桶中，只有被删除元素的迭代器失效
-     * - rehash/reserve：所有迭代器失效！
-     * 
-     * 重要特点：unordered_*的迭代器失效规则比vector更宽松！
-     * 删除一个元素不会影响其他元素的迭代器（只要它们不在同一个桶里）。
-     * 但rehash会导致所有迭代器失效。
-     */
 
 ## 19.5 容器适配器
 
@@ -1215,6 +1223,9 @@ int main() {
 ```cpp
 #include <iostream>
 #include <stack>
+#include <vector>   // 下面要用 vector 作为底层容器
+#include <list>     // 演示另一种底层容器
+#include <deque>    // 默认底层容器
 
 int main() {
     // std::stack：后进先出（LIFO）
@@ -1239,11 +1250,17 @@ int main() {
     std::cout << "Empty? " << s.empty() << std::endl;  // 输出: 0（false）
     
     // ========== 指定底层容器 ==========
-    // 默认使用deque，也可以用vector或list
+    // 默认使用 deque，也可以换成 vector 或 list
     std::stack<int, std::vector<int>> s_vec;  // 用vector作为底层容器
+    std::stack<int, std::list<int>>   s_list; // 用list作为底层容器
     
-    // 注意：如果使用vector作为底层，就不能用push_front了
-    // 因为vector不支持push_front操作！
+    // 注意：stack 本身只提供 push / pop / top，不提供 push_front！
+    // 底层容器的选择只影响内部实现（vector 扩容会搬运元素，list 不会），
+    // 对使用者来说接口完全一样。
+    s_vec.push(1);
+    s_list.push(2);
+    std::cout << "vector栈顶: " << s_vec.top()
+              << ", list栈顶: " << s_list.top() << std::endl;  // 输出: 1, 2
     
     // ========== emplace ==========
     // 原地构造一个元素（避免拷贝）

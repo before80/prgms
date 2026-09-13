@@ -10,6 +10,8 @@ draft = false
 
 # 第三章：Create-Vite 怎么用
 
+> 📌 **版本提示（2026-09 核对）**：`create-vite@latest` 当前对应 Vite 8.x；旧版本文中使用 `create-vite@5` 的示例时，请按对应的 Vite 5 文档理解。
+
 ## 3.1 环境准备（Node.js / npm / pnpm / yarn）
 
 ### 3.1.1 在开始之前，先问自己一个问题：什么是 Node.js？

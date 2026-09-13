@@ -251,23 +251,29 @@ int main() {
 }
 ```
 
-**unspecified behavior（未指定行为）**：标准没有规定具体行为，但结果**是确定的**（取决于实现），编译器可能选择不同的合法方式。比如函数参数的求值顺序。
+**unspecified behavior（未指定行为）**：标准提供了**多种**合法行为，但**没有规定实现必须选哪一种**，也不要求文档化。典型例子就是**函数参数的求值顺序**——标准只保证"调用前所有参数都算完了"，但不保证从左到右。
 
 ```c
 #include <stdio.h>
 
-int func(int x, int y) {
+int f(void) { printf("先算 f\n"); return 1; }
+int g(void) { printf("先算 g\n"); return 2; }
+
+int add(int x, int y) {
     return x + y;
 }
 
-int main() {
-    int i = 5;
-    // 这里 func 的两个参数哪个先求值？标准没说！
-    // 可能是 10+10=20，也可能是 10+5=15（取决于编译器）
-    printf("%d\n", func(10, i++));
+int main(void) {
+    // add 的结果 3 是确定的，但"先打印 f 还是先打印 g"是未指定的
+    // GCC 通常从右到左，Clang 通常从左到右——两者都完全合法
+    printf("结果: %d\n", add(f(), g()));
     return 0;
 }
 ```
+
+> ⚠️ **一个必须纠正的常见错误示范**：很多人拿 `func(10, i++)` 当"未指定行为"的例子，说"结果可能是 15 也可能是 16"。**这是错的**。后缀 `++` 的规则很明确——表达式的值是自增**之前**的旧值，所以 `func(10, i++)` 的参数永远是 10 和 5，结果恒为 15。
+>
+> 真正危险的是**同一个对象被多次无序列地读写**，比如 `func(i++, i++)` 或 `printf("%d %d\n", i++, i)`——那不叫"未指定"，那叫**未定义行为（UB）**，比未指定行为严重得多。
 
 > 记住：implementation-defined 是有据可查的，undefined behavior 是天马行空的，unspecified behavior 是标准放权给编译器的。
 
@@ -348,9 +354,13 @@ C89 的影响力极其深远。Windows API、POSIX 标准、Unix 系统调用—
 
 ### 1.5.3 C95 —— 第一次修正案
 
-1994 年，ISO 发布了 C 语言的第一个修正案——C95（ISO/IEC 9899:1990 Amendment 1）。
+1994 年，ISO 发布了 C 语言的第一个修正案——C95（ISO/IEC 9899:1990 Amendment 1），对应的 `__STDC_VERSION__` 是 `199409L`。
 
-这次修正案主要增加了**国际化支持**和**一些有用的库函数**：
+这次修正案的核心是**让 C 语言走出英语世界**，主要增加了三样东西：
+
+- **二合字母（digraphs）**：`<:` `:>` `<%` `%>` `%:` 这几个双字符组合，可以替代 `[` `]` `{` `}` `#`。和下面 `iso646.h` 的理由一样——有些国家的字符集里压根没有这些符号。
+- **宽字符库**：`<wchar.h>` 和 `<wctype.h>`，用于处理中文、日文等非 ASCII 字符。
+- **`<iso646.h>`**：提供运算符的替代拼写，比如 `and` 代替 `&&`，`or` 代替 `||`，`not` 代替 `!`。这些拼写在 C++ 里是关键字，在 C 里则是这个头文件提供的宏。
 
 - `<iso646.h>`：提供了一些运算符的替代拼写，比如 `and` 代替 `&&`，`or` 代替 `||`，`not` 代替 `!`。这主要是为了照顾某些国家键盘上没有 `&`、`|`、`!` 键的人。
 
@@ -669,7 +679,13 @@ int main(void) {
 
 #### 多线程支持 —— `<threads.h>`
 
-C11 引入了标准线程库，终于不用再依赖平台特定的 pthread 或者 Windows Thread 了：
+C11 引入了标准线程库 `<threads.h>`，理论上终于不用再依赖平台特定的 pthread 或者 Windows Thread 了：
+
+> ⚠️ **现实很骨感**：`<threads.h>` 的支持情况**非常糟糕**。macOS（Apple Clang）**根本没有这个头文件**，Windows 的 MSVC 长期也没有提供，只有 Linux 上的 glibc（2.28+）和 musl 完整支持。所以在 macOS 上编译下面这段代码，第一步 `#include <threads.h>` 就会直接失败。
+>
+> 实践中做跨平台多线程，主流选择仍然是 **C11 的 `<stdatomic.h>` + 平台线程 API（pthread / Win32）**，或者 C++ 的 `std::thread`，再或者干脆用第三方库。本教程第 24 章会详细对比这些方案。
+
+在支持它的平台上（主要是 Linux），用法是这样的：
 
 ```c
 
@@ -843,11 +859,16 @@ _Noreturn void fatal_error(const char *msg) {
     exit(1);  // 这个函数不会返回
 }
 
-int main(void) {
-    _Thread_local int thread_id = 0;  // 每个线程有自己的 thread_id
+// _Thread_local 放在文件作用域是最常见的用法
+_Thread_local int global_tid = 0;
 
-    thread_id = 1;
-    printf("当前线程 ID: %d\n", thread_id);
+int main(void) {
+    // 块作用域下的 _Thread_local 必须再配合 static 或 extern
+    static _Thread_local int local_tid = 0;  // 每个线程有自己的 local_tid
+
+    global_tid = 1;
+    local_tid = 1;
+    printf("当前线程 ID: %d / %d\n", global_tid, local_tid);
 
     // fatal_error("测试");  // 如果调用，程序会终止
 
@@ -855,6 +876,10 @@ int main(void) {
 }
 
 ```
+
+> ⚠️ **易错点**：直接写 `_Thread_local int x = 0;` 放在**函数体内**是编译错误（`'_Thread_local' variables must have global storage`）。块作用域下必须写成 `static _Thread_local` 或 `extern _Thread_local`——因为"线程存储期"本质上是"每个线程一份的静态存储"，不能是纯自动变量。
+
+> C23 起这些关键字都有了不带下划线的"正统名字"：`thread_local`、`noreturn`、`alignas`、`alignof`、`static_assert`、`bool`、`true`、`false`、`typeof`。写不带下划线的版本时，记得确认编译器支持 `-std=c23`。
 
 #### Unicode 字符类型
 
@@ -886,30 +911,39 @@ int main(void) {
 
 2017 年和 2018 年，C 语言分别发布了 C17（ISO/IEC 9899:2017）和 C18（ISO/IEC 9899:2018，实际上是同一版本的不同称谓）。这两个版本都是**维护性勘误更新**，没有新增任何核心语言特性或标准库头文件。
 
-C17 唯一的"实质更新"是引入了**标准属性**（standard attributes），使用双中括号语法：
+> C 标准原文对它的描述非常直白：**"第四版（`__STDC_VERSION__` 为 `201710L`）没有重大变化，只做了技术勘误和澄清。"**（ISO/IEC 9899:2023 草案 N3096，附录 M.3）
+
+C17 修正的都是一些"抠细节"的问题，例如：
+
+- 澄清了 `_Exit`、`at_quick_exit` 等函数的边界行为
+- 修正了浮点运算和舍入相关描述中的措辞歧义
+- 统一了若干与 C++ 标准不一致的表述方式
+
+> ⚠️ **一个非常常见的误传**：网上不少人（包括一些 AI 生成的教程）声称"C17 引入了 `[[nodiscard]]` 等标准属性"。**这是错的**。双中括号属性（`[[nodiscard]]`、`[[fallthrough]]`、`[[maybe_unused]]`、`[[deprecated]]` 等）是 **C23** 才加入的，C17 里一个都没有。如果你在 C17 下写这些属性，编译器会直接报错。
 
 ```c
 
+/* 下面这段代码在 C17 下无法编译，必须用 -std=c23 */
 #include <stdio.h>
 
-// [[nodiscard]]: 忽略返回值会给出警告
+// [[nodiscard]]: 忽略返回值会给出警告（C23 起）
 [[nodiscard]] int compute(void) {
     return 42;
 }
 
-// [[maybe_unused]]: 抑制未使用变量的警告
+// [[maybe_unused]]: 抑制未使用变量的警告（C23 起）
 void process(int a, [[maybe_unused]] int b) {
     [[maybe_unused]] int temp = a * 2;
     // b 没被使用，但不会有警告
 }
 
-// [[deprecated]]: 标记为已废弃
+// [[deprecated]]: 标记为已废弃（C23 起）
 [[deprecated("请使用 new_func 代替")]]
 int old_func(void) {
     return 100;
 }
 
-// [[fallthrough]]: 用于 switch-case，表示故意穿透
+// [[fallthrough]]: 用于 switch-case，表示故意穿透（C23 起）
 void check(int x) {
     switch (x) {
         case 1:
@@ -938,7 +972,7 @@ int main(void) {
 
 ```
 
-> C17 的主要价值在于**修复了之前标准中的缺陷和歧义**，让标准更加清晰一致。如果你不需要这些属性，C17 和 C11 几乎没有区别。
+> 所以 C17 的价值可以用一句话概括：**它让 C11 这个"准成品"变成了"可以直接上生产线的成品"**。如果你不需要 C23 的新特性，C17 就是最稳妥的选择。
 
 ---
 
@@ -992,11 +1026,11 @@ int main(void) {
 
     printf("x=%d, y=%d, cx=%d, cy=%d, uy=%d\n", x, y, cx, cy, uy);
 
-    // 用 typeof 定义宏会更安全
-    #define MAX(a, b) ({      \
-        typeof(a) _a = (a);    \
-        typeof(b) _b = (b);    \
-        _a > _b ? _a : _b;     \
+    // typeof 最实用的场景：写"参数只求值一次"的泛型宏
+    #define MAX(a, b) ({        \
+        typeof(a) _a = (a);     \
+        typeof(b) _b = (b);     \
+        _a > _b ? _a : _b;      \
     })
 
     int m = MAX(3, 7);
@@ -1008,28 +1042,43 @@ int main(void) {
 
 ```
 
+> ⚠️ 上面 `MAX` 宏里的 `({ ... })` 是 **GNU 语句表达式扩展**，不是标准 C 语法——GCC 和 Clang 支持，MSVC 不支持。如果你要写纯标准 C 的版本，得换成 `static inline` 函数，或者用 C23 的 `_Generic` 来做分派。`typeof` 本身是标准的，但"用语句表达式包一层"是扩展。
+
+> 顺带一提：`typeof` 在 GCC/Clang 里作为扩展已经存在二十多年了，C23 做的是把它"扶正"为国家标准关键字。所以老代码里的 `__typeof__` 在新标准下都可以放心改成 `typeof`。
+
 #### `constexpr` —— 常量表达式
 
-C23 引入了 `constexpr` 关键字，用于声明编译期常量。虽然 C 语言的 `constexpr` 比 C++ 的弱很多，但它已经足够做一些编译期计算了：
+C23 引入了 `constexpr` 存储类说明符，用于声明**编译期常量对象**。
+
+> ⚠️ **最重要的限制**：C 的 `constexpr` **只能修饰对象（变量），不能修饰函数**。看到 `constexpr int square(int x) { ... }` 这种写法，那是 C++ 的语法，C23 编译器会直接报错（`'constexpr' can only be used in variable declarations`）。C 里要做编译期计算，靠的是"常量表达式"，而不是 `constexpr` 函数。
 
 ```c
 
 #include <stdio.h>
 
-constexpr int ARRAY_SIZE = 100;  // 编译期常量
-constexpr int SQUARE(int x) { return x * x; }  // 编译期函数
+constexpr int ARRAY_SIZE = 100;   // 编译期常量对象
+constexpr int DOUBLE_SIZE = ARRAY_SIZE * 2;  // 可以引用另一个 constexpr 常量
+
+// 编译期计算用宏或常量表达式实现，而不是 constexpr 函数
+#define SQUARE(x) ((x) * (x))
 
 int main(void) {
-    int arr[ARRAY_SIZE];  // 数组大小必须是常量
+    int arr[ARRAY_SIZE];  // 数组大小必须是整型常量表达式
     printf("数组大小: %zu\n", sizeof(arr) / sizeof(arr[0]));  // 100
+    printf("DOUBLE_SIZE = %d\n", DOUBLE_SIZE);                // 200
 
-    enum { N = SQUARE(5) };  // 枚举常量，编译期计算
+    enum { N = SQUARE(5) };  // 枚举常量，编译期求值
     printf("5 的平方: %d\n", N);  // 25
+
+    // constexpr 对象本身是常量，不能修改
+    // ARRAY_SIZE = 200;  // ❌ 编译错误
 
     return 0;
 }
 
 ```
+
+> 对比一下更清楚：**C++ 的 `constexpr` 是"编译期执行"的通用工具**（能修饰函数、能跑循环和递归）；**C 的 `constexpr` 只是把 `static const` 提升为"可用于常量表达式"**，语义窄得多。不要拿 C++ 的经验直接套。
 
 #### 二进制字面量 `0b`
 
@@ -1055,17 +1104,24 @@ int main(void) {
 
 ```
 
-#### `char8_t` 和 `u8` 前缀
+#### `char8_t` 和 `u8'x'` 字符字面量
 
-C23 正式引入了 `char8_t` 类型，用于 UTF-8 字符：
+> 先分清两件事：**`u8"..."` 字符串字面量从 C11 就有了**（那时类型是 `char[]`）；C23 新引入的是 **`char8_t` 类型**和 **`u8'x'` 单字符字面量**，并把 `u8"..."` 的字符类型改成了 `char8_t`。
+
+C23 正式引入了 `char8_t` 类型（定义在 `<uchar.h>` 中），用于明确表示 UTF-8 编码的字符：
 
 ```c
 
 #include <stdio.h>
+#include <uchar.h>   /* char8_t 在这里定义 */
 
 int main(void) {
-    const char8_t *s = u8"你好，C23!";  // UTF-8 字符串
-    char8_t c = u8'中';  // UTF-8 字符
+    const char8_t *s = u8"你好，C23!";  // UTF-8 字符串，元素类型是 char8_t
+    char8_t c = u8'中';                 // 多字节 UTF-8 字符字面量也是 C23 才有的
+
+    // char8_t 是一个独立的无符号整数类型（通常等价于 unsigned char），不是 char 的别名
+    printf("s[0] = 0x%02X\n", (unsigned)s[0]);   // 第一个字节的 UTF-8 编码
+    printf("sizeof(char8_t) = %zu\n", sizeof(char8_t));  // 1
 
     printf("这是一个 UTF-8 字符: %c\n", (char)c);  // 能显示就显示
 
@@ -1073,6 +1129,10 @@ int main(void) {
 }
 
 ```
+
+> ⚠️ **注意 `u8'中'`**：C 标准原本规定字符字面量只能装一个字符，`u8'中'` 这种"一个字符但占多个字节"的写法是 C23 专门放开的新特性（多字节 UTF-8 字符字面量）。老标准下写它，要么报错，要么是 `char16_t`/`char32_t` 的 `u'中'`/`U'中'` 才合法。
+>
+> 另外，`<uchar.h>` 在 **macOS 的 Apple Clang 上目前仍然缺失**，这段代码要在 Linux + GCC 13/Clang 16 以上才能编译。
 
 #### 增强的属性语法
 
@@ -1122,70 +1182,94 @@ int main(void) {
 
 ```
 
-> 注意：`#embed` 是 C23 的新特性，目前只有少数编译器支持（如 GCC 14+、Clang 17+）。
+> 注意：`#embed` 是 C23 的新特性，**GCC 15 和 Clang 19 才正式支持**（GCC 14、Clang 18 及更早版本都不认识它）。旧编译器上只能退回到 `xxd -i` 之类的工具先生成数组，再把生成的文件 `#include` 进来。另外 `#embed` 也支持 `limit`、`prefix`、`suffix`、`if_empty` 等参数来做裁剪和填充。
+>
+> 📦 **运行前提**：上面的代码要求当前目录下存在一个 `logo.bin` 文件（随便一个二进制文件即可，例如一张 PNG 图片改名），否则编译会报"找不到文件"。
 
-#### 模块系统（预览）
+#### 模块系统（C23 未纳入，仍在讨论）
 
-C23 引入了**模块系统**的预览版，这是 C++ 早就有的特性。模块系统可以大幅改善编译时间和头文件的混乱局面：
+> ⚠️ **这是一个需要澄清的常见误传**：网上流传"C23 引入了模块系统"，**这个说法不准确**。模块（modules）提案在工作组内长期讨论后，**并没有被纳入 C23 标准**。翻遍 C23 草案 N3096 的变更清单，你也找不到 `module` 或 `import` 指令——它们不在标准里。
 
-```c
+目前各编译器的"模块"支持属于**厂商扩展**，而且互不兼容：
 
-// mymodule.c
-module;  // 开始模块单元
-
-export int add(int a, int b) {  // export 导出函数
-    return a + b;
-}
-
-export int multiply(int a, int b) {
-    return a * b;
-}
-```
+| 编译器 | 相关能力 | 说明 |
+|--------|---------|------|
+| Clang | `-fmodules`、`clang -cc1 modulemap` | 用于加速头文件解析，不是 C 语言的 `import` |
+| MSVC | C++ 模块（`.ixx`） | 属于 C++20 模块，与 C 无关 |
+| GCC | C++20 模块 | 同样只服务于 C++ |
 
 ```c
 
-// main.c
-import mymodule;  // 导入模块
+/* 如果你在网上看到这种代码，请留意：它不能在任何标准 C 编译器下编译 */
+// module;
+// export int add(int a, int b) { return a + b; }
+// import mymodule;
 
-int main(void) {
-    int r = add(3, 4);
-    printf("3 + 4 = %d\n", r);
-    return 0;
-}
+/* 当下要做"模块化"，仍然是老老实实用头文件 + 多编译单元 */
+// mathlib.h   声明
+// mathlib.c   实现
+// main.c      #include "mathlib.h" 后调用
+
 ```
 
-> 模块系统目前还是**可选特性**（mandatory feature），很多编译器还没有完整实现。预计在 C2x（未来的下一个标准）会成为必须支持的特性。
+> 想了解模块化的正规做法，请看第 21 章《链接与多文件项目》。模块如果将来真的进入 C29，标准里的写法也会和 C++ 的 `import`/`export` 有所区别，先别急着背语法。
 
 #### `_BitInt` —— 任意宽度整数
 
-`_BitInt` 允许你声明任意位宽的整数类型，不再受 `int8_t`、`int16_t`、`int32_t`、`int64_t` 的限制：
+`_BitInt` 允许你声明任意位宽的整数类型，不再受 `int8_t`、`int16_t`、`int32_t`、`int64_t` 的限制。
+
+标准规定 `_BitInt(N)` 中的 `N` 是一个取值在 1 到 `BITINT_MAXWIDTH` 之间的整数常量表达式。`BITINT_MAXWIDTH` 由实现定义，在 `<limits.h>` 中给出——**不是**"想写多大就写多大"：
 
 ```c
 
 #include <stdio.h>
-#include <stdbit.h>
+#include <limits.h>
 
 int main(void) {
-    // _BitInt(N): N 位的带符号整数
-    _BitInt(7) small = 100;   // 7 位，范围 -64~63
-    _BitInt(128) big = 12345; // 128 位，超级大
+    // _BitInt(N): N 位的带符号整数，范围 -2^(N-1) ~ 2^(N-1)-1
+    _BitInt(7) small = 60;      // 7 位，范围 -64 ~ 63，注意别写 100！
+    _BitInt(64) big = 12345;    // 64 位
 
-    _BitInt(256) huge = 1;
+    unsigned _BitInt(128) huge = 1;
     for (int i = 0; i < 100; i++) {
-        huge *= 2;  // 2 的 100 次方，256 位足够存
+        huge *= 2;  // 2 的 100 次方，128 位无符号足够存
     }
 
-    printf("small = %jd\n", (_BitInt(7))small);
-    printf("big = %jd\n", (_BitInt(128))big);
+    // _BitInt 类型没有专属的 printf 格式符，必须先转成标准整数类型
+    printf("small = %d\n", (int)small);
+    printf("big   = %lld\n", (long long)big);
+
+    printf("本实现的 BITINT_MAXWIDTH = %d\n", BITINT_MAXWIDTH);
 
     return 0;
 }
 
 ```
 
+> ⚠️ 两个常见坑：
+>
+> 1. **别用 `%jd` 直接打印 `_BitInt`**。`%jd` 要求的是 `intmax_t`，传 `_BitInt(7)` 或 `_BitInt(128)` 上去是未定义行为。要先显式转换成 `int`、`long long` 之类的标准类型。
+> 2. **`BITINT_MAXWIDTH` 决定了上限**。目前 Clang 对**有符号** `_BitInt` 的宽度上限是 128 位（超过会报 `signed _BitInt of bit sizes greater than 128 not supported`），无符号则可以更大。写 `_BitInt(256)` 之前先查一下目标编译器。
+
 #### `<stdbit.h>` —— 位操作库
 
-C23 引入了 `<stdbit.h>` 头文件，提供了一系列位操作函数：
+C23 引入了 `<stdbit.h>` 头文件，提供了一整套可移植的位/字节处理函数。**这些函数的名字统一以 `stdc_` 开头**，你以前在 GCC/Clang 里看到的 `__builtin_clz`、`__builtin_popcount` 或者 C++20 的 `std::popcount`，在这里都换了名字。
+
+主要函数族如下（每个都有 `_uc` / `_us` / `_ui` / `_ul` / `_ull` 等后缀版本，对应不同宽度）：
+
+| 函数 | 作用 |
+|------|------|
+| `stdc_leading_zeros(x)` | 前导零的个数 |
+| `stdc_leading_ones(x)` | 前导一的个数 |
+| `stdc_trailing_zeros(x)` | 尾随零的个数 |
+| `stdc_trailing_ones(x)` | 尾随一的个数 |
+| `stdc_first_leading_zero(x)` | 第一个前导零的位置（从 1 开始，没有则返回 0） |
+| `stdc_first_trailing_one(x)` | 第一个尾随一的位置 |
+| `stdc_count_ones(x)` | 置位数（1 的个数），即 popcount |
+| `stdc_count_zeros(x)` | 零的个数 |
+| `stdc_has_single_bit(x)` | 是否只有一位是 1（即是否为 2 的幂） |
+| `stdc_bit_width(x)` | 表示该值所需的最小位数 |
+| `stdc_bit_floor(x)` / `stdc_bit_ceil(x)` | 不大于/不小于 x 的最大/最小 2 的幂 |
 
 ```c
 
@@ -1193,51 +1277,63 @@ C23 引入了 `<stdbit.h>` 头文件，提供了一系列位操作函数：
 #include <stdbit.h>
 
 int main(void) {
-    unsigned int x = 0b10110011;
+    unsigned int x = 0b10110011u;   // 二进制 1011 0011
 
     printf("x = 0x%x\n", x);
 
     // 统计前导零和尾随零
-    printf("前导零: %u\n", ctlz(x));   // 最高位前有多少个 0
-    printf("尾随零: %u\n", ctz(x));    // 最低位后有多少个 0
+    printf("前导零: %u\n", stdc_leading_zeros(x));    // 最高位之前有多少个 0
+    printf("尾随零: %u\n", stdc_trailing_zeros(x));   // 最低位之后有多少个 0
 
     // 统计置位数（1 的个数）
-    printf("置位数: %u\n", popcount(x));
+    printf("置位数: %u\n", stdc_count_ones(x));
 
     // 单例检测（是否只有一个位是 1）
-    printf("单例: %s\n", has_single_bit(x) ? "是" : "否");
+    printf("单例: %s\n", stdc_has_single_bit(x) ? "是" : "否");
 
-    // 对数相关
-    printf("最高位位置: %u\n", log2u(x));
+    // 表示这个数最少需要多少位
+    printf("位宽: %u\n", stdc_bit_width(x));
 
     return 0;
 }
 
 ```
 
+> ⚠️ **别把函数名记混了**。`popcount`、`clz`、`ctz`、`log2` 这些名字来自 C++20 的 `<bit>`（`std::popcount`、`std::countl_zero`）或编译器内建函数，**不是** C23 `<stdbit.h>` 的接口。C23 的版本一律带 `stdc_` 前缀。另外 `<stdbit.h>` 是纯头文件库，很多函数底层就是编译器内建函数的薄封装，性能不打折。
+>
+> 📌 **可用性提醒**：`<stdbit.h>` 属于落地较晚的 C23 库。Linux 上需要较新的 glibc（2.39 起）配合 GCC 15+ 或较新的 Clang；**macOS 自带的 Apple Clang 和 MSVC 目前都没有提供这个头文件**，在这些平台上可以先用 `__builtin_popcount`、`__builtin_clz` 等内建函数顶着。
 #### `<stdckdint.h>` —— 安全的整数运算
 
-C23 引入了一个"安全整数运算"库，帮你检测加减乘除是否会溢出：
+C23 引入了一个"安全整数运算"库，帮你检测加减乘除是否会溢出。这解决了一个老大难问题：**有符号整数溢出在 C 里是未定义行为**，事后根本没法可靠地检查，必须在运算前就预判。
+
+`<stdckdint.h>` 提供三个泛型宏，第一个参数是"结果输出指针"，返回 `true` 表示发生了溢出：
 
 ```c
 
 #include <stdio.h>
-#include <stdckdint.h>
+#include <limits.h>     /* INT_MAX 在这里 */
+#include <stdckdint.h>  /* ckd_add / ckd_sub / ckd_mul */
 
 int main(void) {
-    int a = INT_MAX;  // 32 位 int 的最大值
+    int a = INT_MAX;  // 32 位 int 的最大值，通常是 2147483647
 
     int result;
-    if (ckd_add(&result, a, 1)) {  // 检测加法溢出
-        printf("检测到溢出！\n");
+    if (ckd_add(&result, a, 1)) {        // 返回 true 表示溢出
+        printf("加法溢出！result 里是回绕后的值：%d\n", result);
     } else {
         printf("结果: %d（正常）\n", result);
     }
 
-    if (ckd_mul(&result, a, 2)) {  // 检测乘法溢出
-        printf("检测到溢出！\n");
+    if (ckd_mul(&result, a, 2)) {        // 返回 true 表示溢出
+        printf("乘法溢出！result 里是回绕后的值：%d\n", result);
     } else {
         printf("结果: %d（正常）\n", result);
+    }
+
+    // 减法同样支持
+    int b = INT_MIN;
+    if (ckd_sub(&result, b, 1)) {
+        printf("下溢！\n");
     }
 
     return 0;
@@ -1245,9 +1341,14 @@ int main(void) {
 
 ```
 
+> 注意两点：
+>
+> 1. **别忘了 `#include <limits.h>`**，`INT_MAX`/`INT_MIN` 定义在那里。
+> 2. 这三个宏的返回值语义是**"是否溢出"**：返回 `false` 表示没溢出、`*result` 是精确结果；返回 `true` 表示溢出了，此时 `*result` 被写入的是"按目标类型回绕（wrapped around）"之后的值 —— 也就是说即使溢出，指针也照样会被写。所以别指望用返回值来判断"能不能放心读 `*result`"，程序逻辑上要在溢出分支里避免使用它。
+
 #### `#elifdef` 和 `#elifndef`
 
-C23 在预处理指令中增加了 `#elifdef` 和 `#elifndef`，让条件编译更简洁：
+C23 在预处理指令中增加了 `#elifdef` 和 `#elifndef`，让条件编译更简洁。它们需要配合 `#if` / `#ifdef` / `#ifndef` 使用——**条件链必须由 `#if` 系列开头**，这一点和老的 `#elif` 完全一样。
 
 ```c
 
@@ -1257,21 +1358,28 @@ C23 在预处理指令中增加了 `#elifdef` 和 `#elifndef`，让条件编译�
 
 int main(void) {
     // C23 之前要这么写：
-    #if defined(FOO)
-        printf("FOO defined\n");
-    #elif defined(BAR)
-        printf("BAR defined\n");
+    #if defined(FEATURE_X)
+        printf("FEATURE_X defined\n");
+    #elif defined(FEATURE_Y)
+        printf("FEATURE_Y defined\n");
     #else
-        printf("什么都不定义\n");
+        printf("两个都没定义\n");
     #endif
 
-    // C23 可以更直观：
-    #elifdef FEATURE_X
+    // C23 可以更直观，省掉 defined(...)：
+    #ifdef FEATURE_X
         printf("FEATURE_X defined\n");
     #elifdef FEATURE_Y
         printf("FEATURE_Y defined\n");
     #else
-        printf("什么都不定义\n");
+        printf("两个都没定义\n");
+    #endif
+
+    // #elifndef 则用于"没定义"的分支
+    #ifdef FEATURE_X
+        printf("有 FEATURE_X\n");
+    #elifndef FEATURE_Z
+        printf("没有 FEATURE_Z\n");
     #endif
 
     return 0;
@@ -1279,9 +1387,11 @@ int main(void) {
 
 ```
 
-#### 字符串转换函数
+> ⚠️ 常见错误：直接以 `#elifdef` 开始条件链，比如上面第二段代码如果写成 `#elifdef FEATURE_X ...` 而前面没有 `#ifdef`，编译器会报 **`#elifdef without #if`**。预处理指令是"一条链"，开头必须是 `#if`、`#ifdef` 或 `#ifndef`。
 
-C23 增加了一批新的字符串转数值函数：
+#### `strfromd` / `strfromf` / `strfroml` —— 数值转字符串
+
+C23 把 IEEE 754 推荐的一批"数值转字符串"函数正式纳入标准库（它们本来在 ISO/IEC TS 18661-1 里）：
 
 ```c
 
@@ -1303,44 +1413,56 @@ int main(void) {
     // strfroml: long double 转字符串
     // (用法类似)
 
-    // strtod / strtof / strtold 已经早就有了
+    // 反向操作（字符串转数值）的 strtod / strtof / strtold 早就有了（C89/C99）
     double d = strtod("3.14159", &end);
-    printf("strtod: %g, 剩余: '%s'\n", d, end);
+    printf("strtod: %g, 剩余: \"%s\"\n", d, end);
 
     return 0;
 }
 
 ```
 
-#### `getdelim` 和 `getline` —— 安全的字符串读取
+> 它们的签名是 `int strfromd(char *restrict s, size_t n, const char *restrict format, double fp);`——本质上是"带格式化串的 `snprintf`，但一次只转一个浮点数"，返回值是**转换后写入的字符数**（出错返回负值）。比手写 `snprintf` 更明确，也避开了格式串与参数类型不匹配的坑。
 
-这两个函数比 `gets` 安全得多（`gets` 已经在 C11 被废弃），用于读取整行：
+> 📌 **可用性提醒**：这三个函数虽然早在 **C11** 就写进了标准，但实际只有 **glibc**（Linux）等少数实现提供，**macOS 的 Apple libc 和 MSVC 都没有**——在 macOS 上编译上面的代码会得到 `use of undeclared identifier 'strfromd'`。跨平台代码直接用 `snprintf` 就行。
+
+#### `getdelim` 和 `getline` —— 安全的整行读取（POSIX，不是 C23）
+
+> ⚠️ **又一个常见误传**：这两个函数**不是** C 标准库的一部分，C23 里也没有（在 C23 草案 N3096 中搜索 `getline` 是零结果）。它们来自 **POSIX.1-2008**，在 Linux/macOS 上可直接用于 `<stdio.h>`，但在纯 Windows 环境（MSVC）下不可用——那边得用 `getline` 之外的方式，或者自己封装。
+
+它们比 `gets` 安全得多（`gets` 已在 C11 中被**移除**，不是"废弃"），可以读取任意长度的整行并自动扩容：
 
 ```c
 
+#define _POSIX_C_SOURCE 200809L   /* 在 glibc 上必须先声明这个宏 */
+
 #include <stdio.h>
+#include <stdlib.h>   /* free */
+#include <sys/types.h> /* ssize_t */
 
 int main(void) {
     char *line = NULL;      // 必须初始化为 NULL
     size_t len = 0;         // 必须初始化为 0
     ssize_t n;
 
-    printf("请输入一行文字（输入 Ctrl+D/Ctrl+Z 结束）：\n");
+    printf("请输入内容（Ctrl+D / Ctrl+Z 结束）：\n");
 
-    // getline 会自动分配内存，读取一整行
+    // getline 会自动分配/扩容内存，读取一整行（含换行符）
     while ((n = getline(&line, &len, stdin)) != -1) {
         printf("读取了 %zd 个字符: %s", n, line);
     }
 
-    free(line);  // 用完要释放内存
+    free(line);  // 用完要释放内存，这是 getline 的责任转移
     return 0;
 }
 
 ```
 
-#### `static_assert` 不需要括号
+> 三个必须注意的点：**①** 在 glibc 下要定义 `_POSIX_C_SOURCE 200809L`（macOS 上通常不需要）；**②** `ssize_t` 来自 `<sys/types.h>`，不是 `<stdio.h>`；**③** `line` 必须初始化为 `NULL`、`len` 必须为 0，否则 `getline` 会把它们当垃圾指针用，直接崩溃。
 
-C23 放宽了对 `static_assert` 的语法要求，不再强制要求括号：
+#### `static_assert` 的第二参数变成了可选项
+
+C23 放宽了对 `static_assert` 的语法要求：**括号仍然必须有**，但末尾的"错误消息"可以不写了；同时 `static_assert` 成了关键字（不用再包 `<assert.h>`）：
 
 ```c
 
@@ -1360,9 +1482,11 @@ int main(void) {
 
 ```
 
-#### 改进的 `__func__`
+#### `__func__` 的定位更明确
 
-C23 规定 `__func__` 不再需要提前声明，可以直接在函数中使用。
+`__func__` 从 C99 起就是预定义标识符，标准规定它"**就像在函数体开括号之后立刻声明了 `static const char __func__[] = "函数名";`**"。也就是说它**本来就不需要你手动声明**——"C23 起不用提前声明"这个说法是站不住的。
+
+C23 真正做的，是把规则写得更严谨：明确了它在预处理（`#`/`##` 运算）和相邻字符串字面量拼接场景下的表现，使它和 `__FILE__`、`__LINE__` 等预定义宏的行为更一致。
 
 ---
 
@@ -1396,6 +1520,8 @@ int main(void) {
 ```
 
 > 注意：C29 的具体特性还在讨论中，以上内容基于目前的草案文档，实际 API 可能会有所变化。
+>
+> ⚠️ **这段代码现在还不能编译**：`<stdmchar.h>` 目前只是一个提案中的头文件，现有任何编译器都还没有提供。把它写在示例里只是为了让你看清未来的方向，请把它当成"伪代码"来读。
 
 ---
 
@@ -1409,7 +1535,7 @@ int main(void) {
 | `void` 类型 | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `//` 注释 | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 | `inline` 函数 | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
-| 变长数组 VLA | ❌ | ❌ | ❌ | ✅ | ✅ | - | ❌ |
+| 变长数组 VLA（可选特性） | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 | `for` 循环内声明变量 | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 | `<stdint.h>` | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 | `_Bool / <stdbool.h>` | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
@@ -1422,7 +1548,7 @@ int main(void) {
 | 匿名结构体/共用体 | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 | `_Alignas/_Alignof` | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
 | `_Static_assert` | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-| `[[nodiscard]]` 等属性 | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| `[[nodiscard]]` 等属性 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | `nullptr` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | `typeof` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | `constexpr` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
@@ -1431,7 +1557,15 @@ int main(void) {
 | `_BitInt` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | `<stdbit.h>` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | `<stdckdint.h>` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| 模块系统 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | 预览 |
+| `#elifdef` / `#elifndef` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| 数字分隔符 `1'000'000` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `char8_t` 与 `u8'x'` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| 模块系统 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌（未纳入） |
+
+> 说明两处容易看走眼的地方：
+>
+> - **VLA 在 C23 里并没有被移除**。C11 起它就是"条件支持"的特性（用 `__STDC_NO_VLA__` 宏判断实现是否支持）；C23 只是把**变长修改类型（variably-modified type）**的支持变成强制，数组本身依然可以是可选的。所以这一格在 C23 依然是 ✅，而不是 ❌。
+> - **模块系统不在这张表的 C23 列**。它没有被纳入 C23 标准，标"预览"会误导人，这里明确划掉。
 
 ---
 
@@ -1455,9 +1589,11 @@ int main(void) {
 如果你在做真正的项目，**C17 是个好选择**：
 
 - C17 = C11 + 所有 C11 的 bug 修复
-- 增加了 `[[nodiscard]]` 等实用属性
+- **纯维护性更新，没有新增任何语言特性**（`[[nodiscard]]` 那套属性是 C23 的，别记错了）
 - 没有引入 C23 的实验性特性，稳定性更好
 - 编译器支持同样非常好
+
+> 一句话判断：C17 和 C11 在能力上**完全等价**，区别只在于 C17 修完了 C11 的勘误。如果编译器支持，直接上 C17 即可；如果项目里写着 `-std=c11`，也没有任何功能损失。
 
 ### 尝鲜推荐：C23
 
@@ -1494,20 +1630,30 @@ gcc -Wall -Wextra -std=c11 myprogram.c -o myprogram
 
 ```c
 
-// 源代码里可以用一些 pragma 来提示编译器
-#if __STDC_VERSION__ >= 202311L
+// 用 __STDC_VERSION__ 宏在编译期判断当前标准
+// 注意：要四个宏都定义齐全，否则后面 #if IS_CXX 会当成 0 处理，很容易看走眼
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
     #define IS_C23 1
-#elif __STDC_VERSION__ >= 201710L
+#else
+    #define IS_C23 0
+#endif
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201710L
     #define IS_C17 1
-#elif __STDC_VERSION__ >= 201112L
+#else
+    #define IS_C17 0
+#endif
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
     #define IS_C11 1
-#elif __STDC_VERSION__ >= 199901L
+#else
+    #define IS_C11 0
+#endif
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
     #define IS_C99 1
 #else
     #define IS_C99 0
-    #define IS_C11 0
-    #define IS_C17 0
-    #define IS_C23 0
 #endif
 
 #include <stdio.h>
@@ -1520,13 +1666,17 @@ int main(void) {
         printf("17\n");
     #elif IS_C11
         printf("11\n");
+    #elif IS_C99
+        printf("99\n");
     #else
-        printf("99 或更早\n");
+        printf("89/90 或更早\n");
     #endif
     return 0;
 }
 
 ```
+
+> 各标准对应的 `__STDC_VERSION__` 取值：C99 → `199901L`，C11 → `201112L`，C17 → `201710L`，C23 → `202311L`。C89/C90 没有定义这个宏（那是 C95 才加入的），所以一定要用 `defined()` 先判断存在性，否则在 `-std=c89` 下会直接报错。
 
 ---
 
@@ -1584,24 +1734,42 @@ int main(void) {
 
 **特点**：标准有规定，但**不唯一**，编译器可以合法选择不同的实现。
 
-**举例**：函数参数的求值顺序。
+**举例一**：函数参数的求值顺序（结果确定，但副作用的**发生次序**未指定）。
 
 ```c
 
 #include <stdio.h>
 
-int func(int a, int b) {
+int f(void) { printf("f "); return 1; }
+int g(void) { printf("g "); return 2; }
+
+int add(int a, int b) {
     return a + b;
 }
 
 int main(void) {
-    int i = 2;
-    // func(10, i++) —— 第一个参数先求值还是第二个参数先求值？
-    // 标准没说！
-    // 可能是 func(10, 2) 返回 12
-    // 也可能是先执行 i++（i 变成 3），再调用 func(10, 3) 返回 13
-    printf("%d\n", func(10, i++));
+    // add 的返回值一定是 3，但屏幕上先出现 "f " 还是 "g " 未指定
+    printf("| 结果=%d\n", add(f(), g()));
+    return 0;
+}
 
+```
+
+**举例二**：同一个表达式里修改同一个对象，写法不同结果可能不同（比如 `x = f() + g()` 中 `f` 和 `g` 都改了全局变量）。
+
+```c
+
+#include <stdio.h>
+
+int counter = 0;
+int next(void) { return ++counter; }   // 副作用：修改 counter
+
+int main(void) {
+    // next() + next()：哪个先执行未指定，所以结果可能是 1+2 也可能是 2+1
+    // 注意：这里"结果都是 3"只是巧合；如果换成 counter*10 + next()，
+    // 结果就会随求值顺序变化
+    int v = next() * 10 + next();
+    printf("v = %d, counter = %d\n", v, counter);
     return 0;
 }
 
@@ -1609,7 +1777,7 @@ int main(void) {
 
 **为什么存在**：给编译器实现留下灵活性。
 
-**怎么应对**：同一个函数调用里不要依赖副作用的顺序。
+**怎么应对**：不要在一个表达式里依赖多个副作用的先后顺序。**把有副作用的操作拆成独立语句**，是最省心的做法。
 
 ### 一句话总结
 
@@ -1637,8 +1805,8 @@ int main(void) {
    - **C95（1994）**：增加了国际化支持（`<wchar.h>`、`<wctype.h>`、`<iso646.h>`）
    - **C99（1999）**：现代化改革，`//` 注释、`inline`、变长数组、`<stdint.h>`、`<stdbool.h>` 等
    - **C11（2011）**：多线程支持（`<threads.h>`）、`_Atomic`、`_Generic`、Unicode 类型
-   - **C17/C18（2017/2018）**：维护性更新，主要增加 `[[nodiscard]]` 等标准属性
-   - **C23（2023）**：`nullptr`、`typeof`、二进制字面量、`_BitInt`、`<stdbit.h>`、`<stdckdint.h>`、`#embed` 等大量新特性
+   - **C17/C18（2017/2018）**：纯维护性更新，只做勘误和澄清，没有新增任何语言特性或库
+   - **C23（2023，正式发布为 ISO/IEC 9899:2024）**：`nullptr`、`typeof`、`constexpr`、二进制字面量、数字分隔符、`_BitInt`、`<stdbit.h>`、`<stdckdint.h>`、`#embed`、`[[nodiscard]]` 等属性、`#elifdef` 等大量新特性
    - **C29（预览）**：文本转码库 `<stdmchar.h>`
 
 6. **推荐标准**：新手用 **C11**，生产环境用 **C17**，尝鲜用 **C23**。
@@ -1649,5 +1817,3 @@ int main(void) {
    - **unspecified behavior**：结果取决于编译器选择
 
 > 恭喜你完成了 C 语言第一章的学习！你现在已经对 C 语言的前世今生有了全面的了解。下一章，我们将正式开始写代码，从 `Hello, World!` 开始，一步步走进 C 语言的世界！
-
-第1章生成完毕

@@ -29,6 +29,7 @@ draft = false
 ```c
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>   /* strlen */
 #include <unistd.h>
 #include <sys/types.h>
 
@@ -239,6 +240,8 @@ int main(void) {
 
 POSIX 消息队列是一套现代化的消息队列 API，以 `mq_` 开头。它们操作的是**消息**，每条消息由数据负载和优先级组成。
 
+> **⚠️ 可用性提示：** `<mqueue.h>` 属于 POSIX（实时扩展）。**macOS 没有提供 `<mqueue.h>`**（会报 `'mqueue.h' file not found`），Linux 上通常还需要链接 `-lrt`（较新的 glibc 已并入 `libc`）。想在 macOS 上做类似实验，可以用 System V 消息队列（`msgget`/`msgsnd`/`msgrcv`，macOS 支持）或者用 socket / 管道替代。
+
 **消息队列描述符**（`mqd_t`）是 POSIX 消息队列的核心，它不是简单的整数，而是一个专门的结构类型。
 
 ```c
@@ -346,6 +349,7 @@ System V 消息队列是更"古老"的一套 API，比 POSIX 早很多，至今�
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>   /* sleep */
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
@@ -604,6 +608,7 @@ System V 共享内存是另一套经典 API，用 `shmget()` 创建或获取共�
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>   /* sleep */
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -658,6 +663,7 @@ int main(void) {
 // sv_shm_reader.c
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>   /* sleep */
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -748,6 +754,7 @@ POSIX 信号量有两种：**命名信号量**（有名字，像文件一样操�
 // 模拟：两个进程争抢一个"公共资源"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>   /* strcmp */
 #include <unistd.h>
 #include <semaphore.h>
 #include <fcntl.h>

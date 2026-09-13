@@ -64,6 +64,8 @@ int add(int a, int b);
 int safeDivide(int a, int b);
 ```
 
+> 📦 **依赖**：下面的单元测试用 **GoogleTest**（第三方库），需要先安装并链接：`brew install googletest`，或在 CMake 里 `FetchContent`/`add_subdirectory`。
+
 ```cpp
 // calc_test.cpp
 #include <gtest/gtest.h>
@@ -127,7 +129,7 @@ g++ -std=c++17 -o calc_test calc.cpp calc_test.cpp -lgtest -lgtest_main -pthread
 
 输出类似：
 
-```
+```text
 [==========] Running 5 tests from 2 test suites.
 [----------] Global test environment set-up.
 [----------] 5 tests from AddTest, SafeDivideTest
@@ -447,6 +449,8 @@ server:
 
 **读取YAML配置（使用yaml-cpp）：**
 
+> 📦 **依赖**：yaml-cpp 是**第三方库**，需要先安装（macOS：`brew install yaml-cpp`）并在编译时链接。
+
 ```cpp
 // config_manager.cpp
 #include <iostream>
@@ -536,6 +540,7 @@ int main() {
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 class EnvConfig {
 public:
@@ -557,13 +562,32 @@ public:
 
 // 使用
 int main() {
-    std::string db_password = EnvConfig::require("DB_PASSWORD");
-    std::string log_dir = EnvConfig::optional("LOG_DIR", "/var/log/myapp");
+    // 安全做法：把"必需配置缺失"当成可处理的错误，而不是让异常直接终止程序
+    try {
+        std::string db_password = EnvConfig::require("DB_PASSWORD");
+        std::cout << "数据库口令: " << (db_password.empty() ? "[空]" : "***") << std::endl;
+        // 注意：日志里绝对不能打印口令原文，上面用 *** 代替
+    } catch (const std::exception& e) {
+        // 真实项目里应该写 stderr，并以非 0 状态码结束进程
+        std::cerr << "启动失败: " << e.what() << std::endl;
+        std::cerr << "提示: 请先设置环境变量，例如 export DB_PASSWORD=your-secret" << std::endl;
+    }
 
-    std::cout << "Using DB password: " << (db_password.empty() ? "[empty]" : "***") << std::endl;
-    std::cout << "Log directory: " << log_dir << std::endl;
+    // 可选配置：不存在时用默认值
+    std::string log_dir = EnvConfig::optional("LOG_DIR", "/var/log/myapp");
+    std::cout << "日志目录: " << log_dir << std::endl;
 }
 ```
+
+**运行结果**（没有设置 `DB_PASSWORD` 时）：
+
+```text
+启动失败: Required environment variable not set: DB_PASSWORD
+提示: 请先设置环境变量，例如 export DB_PASSWORD=your-secret
+日志目录: /var/log/myapp
+```
+
+设置之后再运行（`export DB_PASSWORD=secret`），第一行会变成 `数据库口令: ***`。
 
 ### vcpkg管理依赖
 
@@ -625,7 +649,7 @@ Git是C++项目的标配版本控制系统。但"会用git add和git commit"和"
 
 **1. GitFlow（重型，适合发布周期长的项目）：**
 
-```
+```text
 main  ───●────────────────●────────────● (生产版本)
            \            /            /
 develop ────●───●──●───●───●──●──●────●──● (日常开发)
@@ -640,7 +664,7 @@ hotfix/y ──────────●──────── (紧急修复
 
 **2. GitHub Flow（轻量，适合持续部署的互联网项目）：**
 
-```
+```text
 main ─────────────────────●────●────● (永远可部署)
          ↖PR     ↖PR    ↖PR
     feature/x ●─●─●    feature/y ●─●
@@ -1106,7 +1130,7 @@ g++ -std=c++17 -O2 -o benchmark_test benchmark_example.cpp \
 
 **输出示例：**
 
-```
+```text
 2026-03-29 16:00:00
 Run on (8 X 3000 MHz CPU s)
 CPU Cache: L1d 32K, L1i 32K, L2 256K, L3 8M

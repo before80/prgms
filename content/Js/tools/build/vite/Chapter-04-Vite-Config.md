@@ -10,7 +10,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-04-Vite-Config
 
 # 第4章：vite.config.js/ts 详解
 
@@ -764,25 +763,22 @@ export default defineConfig({
 
 ### 4.4.4 minify：代码压缩
 
-Vite 使用 esbuild 进行代码压缩，比传统的 terser 快 20-40 倍。
+Vite 8 默认使用 **Oxc Minifier** 进行 JavaScript 压缩；Vite 7 及之前默认使用 esbuild。Oxc 和 esbuild 都比传统的 terser 快得多。Vite 8 中仍可通过 `minify: 'esbuild'` 临时切回 esbuild，但需要自行安装 esbuild，且该兼容选项未来会被移除。
 
 ```javascript
 // vite.config.js
 export default defineConfig({
   build: {
-    // 默认：'esbuild'（使用 esbuild 压缩）
-    // 'terser'：使用 terser 压缩（更慢但压缩率可能更高）
+    // Vite 8 默认：'oxc'
+    // 'esbuild'：旧版默认或兼容回退，需要安装 esbuild
+    // 'terser'：压缩率可能更高，但速度更慢
     // false：不压缩（不推荐）
-    minify: 'esbuild',
-    
-    // 如果使用 terser，需要安装
-    // pnpm add -D terser
-    minify: 'terser',
+    minify: 'oxc',
   }
 })
 ```
 
-**terser 配置**（如果你坚持要用 terser）：
+**terser 配置**（如果你要用 terser，需要先安装 `pnpm add -D terser`）：
 
 ```javascript
 // vite.config.js
@@ -843,9 +839,9 @@ export default defineConfig({
 })
 ```
 
-### 4.4.7 rollupOptions：Rollup 高级配置
+### 4.4.7 rolldownOptions / rollupOptions：打包器高级配置
 
-Rollup 是 Vite 生产构建使用的打包器，`rollupOptions` 允许你深度定制 Rollup 的行为。
+Vite 8 使用 Rolldown 作为打包器，对应配置项改名为 `build.rolldownOptions`，原来的 `build.rollupOptions` 作为兼容别名保留但已弃用。Vite 1–7 则直接使用 `build.rollupOptions` 配置 Rollup。为保证跨版本兼容，本章示例同时说明两者；新项目应优先使用 `rolldownOptions`。
 
 ```javascript
 // vite.config.js
@@ -853,7 +849,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       // 输入（入口文件）
       input: {
         main: path.resolve(__dirname, 'index.html'),
@@ -1162,14 +1158,14 @@ export default defineConfig({
 })
 ```
 
-### 4.6.3 esbuildOptions：esbuild 配置
+### 4.6.3 rolldownOptions / esbuildOptions：依赖优化配置
 
 ```javascript
 // vite.config.js
 export default defineConfig({
   optimizeDeps: {
-    // esbuild 配置
-    esbuildOptions: {
+    // Vite 8 使用 Rolldown；旧版的 esbuildOptions 会被兼容层转换
+    rolldownOptions: {
       // 支持 JSX 文件
       loader: {
         '.js': 'jsx',
@@ -1376,7 +1372,7 @@ export default defineConfig({
 
 4. **解析配置（resolve）**：路径别名、扩展名、主字段、符号链接处理
 
-5. **依赖优化（optimizeDeps）**：强制预构建、排除预构建、esbuild 配置
+5. **依赖优化（optimizeDeps）**：强制预构建、排除预构建、`rolldownOptions`/`esbuildOptions` 配置
 
 6. **CSS 配置**：预处理器选项、PostCSS、CSS Modules
 
@@ -1392,7 +1388,7 @@ export default defineConfig({
 
 4. **CSS Modules 实验**：创建一个 `.module.css` 文件，试试 CSS Modules 的类名生成规则
 
-5. **手动分包**：配置 `rollupOptions.manualChunks`，把一个大的依赖库单独打包
+5. **手动分包**：理解 `manualChunks`；Vite 8 已迁移到 `rolldownOptions` / `codeSplitting`
 
 ---
 

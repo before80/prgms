@@ -10,7 +10,6 @@ isCJKLanguage = true
 draft = false
 +++
 
-# Chapter-05-Plugin-System
 
 # 第5章：插件系统
 
@@ -61,7 +60,7 @@ flowchart LR
     end
     
     subgraph 生产阶段
-        H[源代码] --> I[Rollup 打包]
+        H[源代码] --> I[Rolldown 打包<br/>（Vite 8+；旧版为 Rollup）]
         I --> J[代码压缩/优化]
         J --> K[输出到 dist]
         
@@ -1448,14 +1447,14 @@ Vite 插件有版本概念，不同版本的 Vite 可能需要不同版本的插
 ```json
 {
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.0.0",
-    "@vitejs/plugin-react": "^4.2.0",
-    "vite-plugin-pwa": "^0.19.0"
+    "@vitejs/plugin-vue": "^6.0.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "vite-plugin-pwa": "^1.0.0"
   }
 }
 ```
 
-> 💡 **版本兼容性建议**：通常保持 Vite 和官方插件的大版本号一致比较安全。比如 Vite 5.x 配 `@vitejs/plugin-vue` 5.x。
+> 💡 **版本兼容性建议**：Vite 8 搭配 `@vitejs/plugin-vue@6.x`、`@vitejs/plugin-react@6.x`。官方插件不总是与 Vite 主版本号一一相同，请以插件文档和 `peerDependencies` 为准。
 
 ---
 

@@ -13,12 +13,13 @@ draft = false
 
 ### 为什么要"先测量"？
 
-江湖上流传着一个古老的传说：**"过早优化是万恶之源。"** 这句话据说是计算机之父Donald Knuth说的，但就像很多名言一样，原文是什么已经不重要了，反正大家都拿它当挡箭牌。
+江湖上流传着一个古老的传说：**"过早优化是万恶之源。"** 这句话通常被归到高德纳（Donald Knuth）名下，
+而高德纳本人又把它归功于托尼·霍尔（Tony Hoare）。高德纳 1974 年的文章《Structured Programming with go to Statements》里写的是：
 
-实际上，Knuth的原话是：
+> "We should forget about small efficiencies, say about 97% of the time: premature optimization is the root of all evil."
+> （小处的效率，大约 97% 的场合都可以忽略不计：过早优化是万恶之源。）
 
-> "Premature optimization is the root of all evil in programming."
-
+注意这个"97%"是有前提的——**另外那 3% 的关键路径不能放过**。
 这句话的真实含义是：**不要在你还没搞清楚瓶颈在哪的时候就开始优化**。你辛辛苦苦把一个函数从10毫秒优化到1毫秒，结果发现它只占总运行时间的1%，而真正的瓶颈在那个你没注意到的数据库查询上（花了500毫秒）。这不是优化，这是"感动自己"。
 
 所以，性能优化的第一条铁律是：
@@ -105,15 +106,28 @@ int main() {
 }
 ```
 
-运行结果（在你的机器上可能不同）：
+> ⚠️ **测性能的两条铁律**（这个例子最想教你的是这个）：
+>
+> 1. **一定要开优化**：用 `clang++ -std=c++23 -O2 bench.cpp -o bench` 编译。
+>    不加 `-O2` 测到的是"调试版代码"，数字毫无参考价值（本机实测不加优化时反而可能"更慢版本更快"）。
+> 2. **不能只跑一次**：CPU 频率调节、缓存状态、后台进程都会影响结果。
+>    下面同一份代码、同一台机器连续跑两次，数字能差 3 倍。
 
-```
-slow_sum结果: 10000000, 耗时: 12453 微秒
-fast_sum结果: 10000000, 耗时: 8932 微秒
-fastest_sum结果: 10000000, 耗时: 4201 微秒
+运行结果（Apple clang，`-O2`，同一台机器连续跑两次）：
+
+```text
+slow_sum结果: 10000000, 耗时: 4581 微秒
+fast_sum结果: 10000000, 耗时: 1760 微秒
+fastest_sum结果: 10000000, 耗时: 1004 微秒
+—— 再跑一次 ——
+slow_sum结果: 10000000, 耗时: 1548 微秒
+fast_sum结果: 10000000, 耗时: 729 微秒
+fastest_sum结果: 10000000, 耗时: 750 微秒
 ```
 
-你看，`std::accumulate`（通常会被SIMD优化）比手写的循环快了好几倍！但别急着欢呼——这个例子主要是为了演示测量，在实际中你可能看不出这么大的差异，因为编译器已经做得很好了。
+看出来了吗？**第二次运行里 `fast_sum` 和 `fastest_sum` 几乎一样快**。开了 `-O2` 之后，编译器会把这三个版本的循环优化成非常接近的机器码，
+`std::accumulate` 的优势主要在"意图清晰、不容易写错下标"，而不是"凭空快几倍"。
+想在性能上真的下功夫，请用 Google Benchmark 这类框架做重复测量，别拿一次 `chrono` 的结果下结论。
 
 ### 使用prof工具进行profiling
 
@@ -322,7 +336,7 @@ LTO可以让编译器做很多"跨函数"的优化，比如：
 
 为了弥补这个速度差，CPU引入了**缓存（Cache）**机制：
 
-```
+```text
 寄存器 ──1ns──> L1 Cache ──3ns──> L2 Cache ──10ns──> L3 Cache ──100ns──> RAM
 ```
 
@@ -386,18 +400,18 @@ void matrix_multiply_blocked(const std::vector<double>& A,
                               const std::vector<double>& B,
                               std::vector<double>& C) {
     constexpr int BLOCK_SIZE = 64;  // 适合L1 Cache的分块大小
-    
-    for (int i = 0; i < N; i += BLOCK_SIZE) {
-        for (int j = 0; j < N; j += BLOCK_SIZE) {
-            for (int k = 0; k < N; k += BLOCK_SIZE) {
-                // 处理一个block
-                for (int ii = i; ii < std::min(i + BLOCK_SIZE, N); ++ii) {
-                    for (int jj = j; jj < std::min(j + BLOCK_SIZE, N); ++jj) {
-                        double sum = C[ii * N + jj];  // 累加已有的结果
-                        for (int kk = k; kk < std::min(k + BLOCK_SIZE, N); ++kk) {
-                            sum += A[ii * N + kk] * B[kk * N + jj];
+
+    // 分块只是"限定处理范围"，真正让速度飞起来的是循环顺序：
+    // i-k-j 顺序下，内层循环访问的是 C 和 B 的**连续**内存
+    for (int i0 = 0; i0 < N; i0 += BLOCK_SIZE) {
+        for (int k0 = 0; k0 < N; k0 += BLOCK_SIZE) {
+            for (int j0 = 0; j0 < N; j0 += BLOCK_SIZE) {
+                for (int i = i0; i < std::min(i0 + BLOCK_SIZE, N); ++i) {
+                    for (int k = k0; k < std::min(k0 + BLOCK_SIZE, N); ++k) {
+                        const double a = A[i * N + k];  // 取出来复用，只读一次
+                        for (int j = j0; j < std::min(j0 + BLOCK_SIZE, N); ++j) {
+                            C[i * N + j] += a * B[k * N + j];  // 连续访问 B 和 C
                         }
-                        C[ii * N + jj] = sum;
                     }
                 }
             }
@@ -436,15 +450,20 @@ int main() {
 }
 ```
 
-典型输出（在启用-O2编译时）：
+实测输出（Apple clang，`-std=c++23 -O2`，N = 512）：
 
-```
-Naive版本耗时: 4523 ms
-Cache友好版本耗时: 892 ms
-分块优化版本耗时: 312 ms
+```text
+Naive版本耗时: 98 ms
+Cache友好版本耗时: 52 ms
+分块优化版本耗时: 11 ms
 ```
 
-> **震惊吗？同一个算法，只是改变了一下内存访问模式，就快了十几倍！** 这就是缓存局部性的威力。
+> **同一个算法、同一组数据，只是改变内存访问顺序，就从 98 ms 降到 11 ms——快了约 9 倍。**
+> 这正是缓存局部性的威力：`Naive` 每算一个 `C[i][j]` 都要"列遍历"一遍 `B`，每次都踩空缓存；
+> 转置版把列访问变成行访问，省掉了一半时间；分块版再加上 i-k-j 循环顺序，让 `A`、`B`、`C` 三者的访问都落在连续内存上。
+>
+> ⚠️ **反例警告**：如果只做分块、却仍然按 i-j-k 顺序写内层循环（按列访问 `B`），实测反而是 **73 ms**——比转置版还慢。
+> 记住：**分块解决的是"数据能否留在缓存里"，循环顺序解决的是"访问是否连续"，两者缺一不可。**
 
 ### 预取（Prefetching）：提前把数据拉到缓存里
 
@@ -655,24 +674,21 @@ public:
     // 预先分配n个对象
     explicit ObjectPool(size_t n = 128) {
         pool_.reserve(n);
+        free_list_.reserve(n);
         for (size_t i = 0; i < n; ++i) {
             pool_.push_back(std::make_unique<T>());
+            free_list_.push_back(pool_.back().get());
         }
-        free_list_.reserve(n);
     }
     
     // 获取一个对象
     T* acquire() {
-        T* obj;
-        if (!free_list_.empty()) {
-            obj = free_list_.back();
-            free_list_.pop_back();
-        } else if (!pool_.empty()) {
-            obj = pool_.back().release();
-            pool_.pop_back();
-        } else {
+        if (free_list_.empty()) {
             throw std::runtime_error("Object pool exhausted!");
         }
+        T* obj = free_list_.back();
+        free_list_.pop_back();
+        ++in_use_;
         return obj;
     }
     
@@ -680,15 +696,17 @@ public:
     void release(T* obj) {
         if (obj) {
             free_list_.push_back(obj);
+            --in_use_;
         }
     }
     
-    size_t available() const { return free_list_.size() + pool_.size(); }
-    size_t in_use() const { return allocated_; }
+    size_t available() const { return free_list_.size(); }
+    size_t in_use() const { return in_use_; }
     
 private:
-    std::vector<std::unique_ptr<T>> pool_;    // 未分配的对象
-    std::vector<T*> free_list_;              // 已分配但可回收的对象
+    std::vector<std::unique_ptr<T>> pool_;   // 拥有所有对象，负责释放
+    std::vector<T*> free_list_;              // 当前空闲、可以借出去的对象
+    size_t in_use_ = 0;                      // 已经借出、尚未归还的个数
 };
 
 struct ExpensiveObject {
@@ -699,7 +717,8 @@ struct ExpensiveObject {
 };
 
 int main() {
-    ObjectPool<ExpensiveObject> pool;
+    // 池子要比"同时需要的对象数"大，否则 acquire 会抛异常
+    ObjectPool<ExpensiveObject> pool(1024);
     std::cout << "对象池初始大小: " << pool.available() << "\n";
     
     // 模拟大量对象的创建和销毁
@@ -723,6 +742,7 @@ int main() {
 对于容器，尽可能预分配空间，避免多次重新分配：
 
 ```cpp
+#include <iostream>   // std::cout
 #include <vector>
 #include <string>
 #include <chrono>
@@ -928,7 +948,7 @@ int main() {
 
 典型输出：
 
-```
+```text
 === HashMap vs Ordered Map (N=1000000) ===
 unordered_map插入: 127 ms
 unordered_map查找: 3 ms
@@ -952,6 +972,8 @@ std::map sum=99999900000
 ### C++并行算法（C++17）
 
 C++17引入了并行算法，让STL算法的多线程化变得极其简单：
+
+> 📎 **可用性说明**：并行算法需要标准库 + PSTL 后端（通常是 Intel TBB）。**Apple clang 自带的 libc++ 到 21 版都没有实现**，`std::execution::par` 在 macOS 上会报 `no member named 'par'`。想真正跑起来请用 GCC 9+（需 `-ltbb`）或 MSVC。下面保留标准写法供理解 API。
 
 ```cpp
 #include <algorithm>
@@ -996,7 +1018,9 @@ int main() {
 }
 ```
 
-> **注意**：使用并行算法需要链接TBB（Threading Building Blocks）或者使用支持C++17并行算法的编译器（如GCC 9+、Clang 9+配合libc++）。
+> **注意**：并行算法需要链接 TBB（Threading Building Blocks），并且标准库要实现 PSTL。
+> 实践上可用的是 **GCC 9+ 配合 libstdc++**（加 `-ltbb`）或 **MSVC**；
+> Apple clang 默认搭配的 libc++ 并没有实现并行算法，请不要照抄这段代码去跑 macOS。
 
 ### std::async和std::future：简单的异步任务
 
@@ -1317,12 +1341,24 @@ C++默认的内存分配器（`std::allocator`）是通用型的，但对于特�
 #include <chrono>
 #include <cstddef>
 #include <cassert>
+#include <algorithm>   // std::max
+
+// 每个空闲块里至少要放得下一个指针，而且块首必须是"对齐过的"
+// —— 这是"用块首当链表节点"的内存池最容易踩的坑：
+// 如果 block_size 比 sizeof(void*) 还小（比如给 int 用 4 字节），
+// 写 node->next 就会踩进相邻块，堆内存被破坏，程序随机崩溃。
+static size_t round_up(size_t value, size_t align) {
+    return (value + align - 1) / align * align;
+}
 
 // 一个简单的固定块大小内存池
 class MemoryPool {
 public:
     explicit MemoryPool(size_t block_size, size_t pool_size = 4096)
-        : block_size_(block_size), pool_size_(pool_size) {
+        : block_size_(round_up(std::max(block_size, sizeof(void*)),
+                               alignof(std::max_align_t))),
+          pool_size_(pool_size) {
+        assert(block_size_ >= sizeof(void*) && "块太小，放不下空闲链表节点！");
         expand_pool();
     }
     
@@ -1350,6 +1386,7 @@ public:
     }
     
     size_t allocated() const { return allocated_; }
+    size_t block_size() const { return block_size_; }
     
 private:
     struct FreeNode {
@@ -1378,58 +1415,6 @@ private:
     size_t allocated_ = 0;
     FreeNode* free_list_ = nullptr;
     std::vector<char*> chunks_;
-};
-
-// 使用内存池的简单Vector
-template<typename T>
-class PoolVector {
-public:
-    PoolVector(MemoryPool& pool) : pool_(&pool), size_(0), capacity_(0), data_(nullptr) {}
-    
-    ~PoolVector() {
-        // 销毁所有对象
-        for (size_t i = 0; i < size_; ++i) {
-            data_[i].~T();
-        }
-        // 释放数据内存
-        if (data_) {
-            pool_->deallocate(data_);
-        }
-    }
-    
-    void push_back(const T& value) {
-        if (size_ >= capacity_) {
-            size_t new_cap = capacity_ == 0 ? 4 : capacity_ * 2;
-            reserve(new_cap);
-        }
-        new (&data_[size_]) T(value);
-        ++size_;
-    }
-    
-    void reserve(size_t new_cap) {
-        if (new_cap <= capacity_) return;
-        
-        T* new_data = static_cast<T*>(pool_->allocate());
-        for (size_t i = 0; i < size_; ++i) {
-            new (&new_data[i]) T(std::move(data_[i]));
-            data_[i].~T();
-        }
-        if (data_) {
-            pool_->deallocate(data_);
-        }
-        data_ = new_data;
-        capacity_ = new_cap;
-    }
-    
-    size_t size() const { return size_; }
-    T& operator[](size_t i) { return data_[i]; }
-    const T& operator[](size_t i) const { return data_[i]; }
-    
-private:
-    MemoryPool* pool_;
-    size_t size_;
-    size_t capacity_;
-    T* data_;
 };
 
 // 小对象分配对比
@@ -1484,22 +1469,31 @@ int main() {
     std::cout << "=== 内存分配器对比（256字节对象 x 100000次）===\n";
     allocator_comparison();
     
-    // 使用PoolVector
-    std::cout << "\n=== PoolVector 示例 ===\n";
-    MemoryPool pool(sizeof(int), 256);
-    PoolVector<int> vec(pool);
-    for (int i = 0; i < 100; ++i) {
-        vec.push_back(i * i);
-    }
-    std::cout << "PoolVector内容: ";
-    for (size_t i = 0; i < vec.size(); ++i) {
-        std::cout << vec[i] << " ";
-    }
-    std::cout << "\n";
+    // ===== 复用演示：归还的块会立刻被再次利用 =====
+    std::cout << "\n=== 块的复用 ===\n";
+    MemoryPool pool(32, 8);        // 每块 32 字节，一次向系统要 8 块
+    std::cout << "调整后的块大小: " << pool.block_size() << " 字节（会向上取整到对齐值）\n";
+
+    void* p1 = pool.allocate();
+    void* p2 = pool.allocate();
+    std::cout << "分配了 2 块, allocated = " << pool.allocated() << "\n";   // 输出: 2
+
+    pool.deallocate(p1);           // 归还 p1
+    void* p3 = pool.allocate();    // 空闲链表是后进先出，于是立刻拿回同一块
+    std::cout << "归还再申请, allocated = " << pool.allocated() << "\n";   // 输出: 2
+    std::cout << "拿回的是刚才那块内存: " << (p1 == p3 ? "是" : "否") << "\n";  // 输出: 是
+    std::cout << "（p2 还没归还, 所以 allocated 仍是 2）\n";
     
     return 0;
 }
 ```
+
+> ⚠️ **别急着把内存池塞给 `std::vector`**：`std::vector` 一次就要一整片连续内存（容量 × `sizeof(T)`），
+> 而上面这个池每次只发一块固定大小的内存，两者对不上。
+> 真要让容器用池子，有两个正规做法：
+> - **标准库方案**：`std::pmr::monotonic_buffer_resource` + `std::pmr::vector<T>`（`<memory_resource>`，C++17 起）；
+> - **自己写分配器**：实现满足 *Allocator* 要求的 `PoolAllocator<T>::allocate(n)`，在 `n` 很大时向 `::operator new` 要内存，
+>   只有小对象才走内存池——但要注意 `std::vector` 每次扩容都会整块申请，池子未必用得上。
 
 ---
 

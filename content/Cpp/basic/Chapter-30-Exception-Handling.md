@@ -212,7 +212,9 @@ int main() {
     catch (const std::out_of_range& e) {
         // 最具体的异常类型放最前面
         std::cout << "【精确捕获】越界啦：" << e.what() << std::endl;
-        // 输出: 【精确捕获】越界啦：vector::_M_range_check: __n (which is 99) >= this->size() (which is 3)
+        // 输出（libc++）: 【精确捕获】越界啦：vector
+        // 输出（libstdc++）: 【精确捕获】越界啦：vector::_M_range_check: __n (which is 99) >= this->size() (which is 3)
+        // 提示：what() 的具体文字由标准库实现决定，标准只保证它"能描述错误"，不要依赖它的具体内容做判断！
     }
     catch (const std::exception& e) {
         // 通用的异常捕获放后面
@@ -237,7 +239,7 @@ int main() {
 
 C++标准库定义了一套完整的异常类继承体系，就像一个庞大的家族：
 
-```
+```text
                                     ┌─────────────────────┐
                                     │   std::exception     │ ← 所有异常的"老祖宗"
                                     └──────────┬──────────┘
@@ -291,7 +293,7 @@ int main() {
     }
     
     // 2. std::invalid_argument - 参数不合法
-    std::cout << "\n【2】std::invalid_argument：参数的"身份危机"" << std::endl;
+    std::cout << "\n【2】std::invalid_argument：参数的「身份危机」" << std::endl;
     try {
         // 模拟：把字符串转成整数，但字符串不是数字
         int n = std::stoi("hello world");  // 这会抛出invalid_argument
@@ -318,7 +320,7 @@ int main() {
     }
     
     // 4. std::runtime_error - 运行时错误（最常用的自定义异常基类）
-    std::cout << "\n【4】std::runtime_error：运行时才暴露的"潜伏者"" << std::endl;
+    std::cout << "\n【4】std::runtime_error：运行时才暴露的「潜伏者」" << std::endl;
     try {
         throw std::runtime_error("自定义运行时错误：我运行到一半才发现问题！");
     } catch (const std::runtime_error& e) {
@@ -327,7 +329,7 @@ int main() {
     }
 
     // 5. std::bad_cast - 动态类型转换失败
-    std::cout << "\n【5】std::bad_cast：类型转换的"社死"现场" << std::endl;
+    std::cout << "\n【5】std::bad_cast：类型转换的「社死」现场" << std::endl;
     try {
         class Base { public: virtual ~Base() = default; };
         class Derived1 : public Base {};
@@ -347,7 +349,7 @@ int main() {
     }
 
     // 6. std::bad_typeid - typeid运算符的"翻车"
-    std::cout << "\n【6】std::bad_typeid：typeid的"身份危机"" << std::endl;
+    std::cout << "\n【6】std::bad_typeid：typeid 的「身份危机」" << std::endl;
     try {
         class Base { 
         public: 
@@ -394,7 +396,8 @@ int main() {
     } catch (const std::exception& e) {
         // out_of_range 是 exception 的子类，所以能被捕获
         std::cout << "被 std::exception 捕获了：" << e.what() << std::endl;
-        // 输出: 被 std::exception 捕获了：vector::_M_range_check: ...
+        // 输出（libc++）: 被 std::exception 捕获了：vector
+        // （libstdc++ 会给出更啰嗦的 vector::_M_range_check: ...；文字随实现而变）
         std::cout << "异常类型：" << typeid(e).name() << std::endl;
     }
     
@@ -1222,22 +1225,25 @@ int main() {
         // 输出: (10 / 2) * 3 = 15
     }
     
-    std::cout << "\n【4】map转换结果类型" << std::endl;
+    std::cout << "\n【4】transform转换成功值" << std::endl;
     // 将int结果转换为string描述
     auto result4 = safeDivide(20, 4);
     if (result4) {
-        auto description = result4.map([](int v) {
+        // 注意：标准里叫 transform，不是 map
+        // （map / map_error 是第三方库 tl::expected 或提案中的名字，
+        //   标准库从未提供这两个成员函数）
+        auto description = result4.transform([](int v) {
             return "The result is: " + std::to_string(v);
         });
         std::cout << "  " << *description << std::endl;
         // 输出: The result is: 5
     }
     
-    std::cout << "\n【5】map_error转换错误类型" << std::endl;
+    std::cout << "\n【5】transform_error转换错误值" << std::endl;
     auto result5 = safeDivide(10, 0);
     if (!result5) {
         // 将错误从string转换为int错误码
-        auto errorCode = result5.map_error([](const std::string& err) {
+        auto errorCode = result5.transform_error([](const std::string& err) {
             if (err.find("zero") != std::string::npos) {
                 return -1;  // 除零错误码
             }
@@ -1259,14 +1265,15 @@ int main() {
     // 输出: 结果: 错误: File not found: nonexistent.txt
     
     std::cout << "\n【std::expected vs 异常】" << std::endl;
+    // 表格里的"宽度"按显示宽度算：一个中文/全角字符算两列
     std::cout << "┌────────────────┬────────────────────┐" << std::endl;
-    std::cout << "│    std::expected    │       异常         │" << std::endl;
+    std::cout << "│ std::expected   │ 异常               │" << std::endl;
     std::cout << "├────────────────┼────────────────────┤" << std::endl;
     std::cout << "│ 编译时知道错误  │ 运行时发现错误     │" << std::endl;
     std::cout << "│ 必须检查返回值  │ 可以忽略（危险）   │" << std::endl;
     std::cout << "│ 无性能开销      │ 有性能开销         │" << std::endl;
     std::cout << "│ 适合频繁错误    │ 适合罕见错误       │" << std::endl;
-    std::cout << "│ C++23可用       │ C++98就支持        │" << std::endl;
+    std::cout << "│ C++23 可用      │ C++98 就支持       │" << std::endl;
     std::cout << "└────────────────┴────────────────────┘" << std::endl;
     
     std::cout << "\n【总结】std::expected是异常的安全替代品！" << std::endl;
@@ -1285,14 +1292,24 @@ int main() {
 #include <string>
 
 /*
- * std::expected 高级用法：
+ * std::expected 高级用法（都是 C++23 标准成员，P2549R1）：
+ *
+ * 1. and_then：链式处理成功值（回调返回一个新的 expected）
+ * 2. transform：转换成功值（回调返回普通值）
+ * 3. transform_error：转换错误值
+ * 4. or_else：失败时提供替代的 expected
  * 
- * 1. and_then：链式处理成功值
- * 2. map：转换成功值
- * 3. map_error：转换错误值
- * 4. transform：类似map但用于optional语义
- * 5. or_else：处理错误情况
+ * 注意：标准里**没有** map / map_error 这两个成员，
+ *       它们是 tl::expected 等第三方实现的历史命名。
  */
+
+// 一个安全的除法：成功返回结果，失败返回错误信息
+std::expected<int, std::string> safeDivide(int a, int b) {
+    if (b == 0) {
+        return std::unexpected(std::string("Division by zero! Even calculators give up!"));
+    }
+    return a / b;
+}
 
 // 更复杂的例子：嵌套的expected
 std::expected<std::expected<int, std::string>, std::string> complexDivide(int a, int b) {
@@ -1324,11 +1341,14 @@ int main() {
         }
     }
     
-    // 更优雅的写法（需要C++23的and_then）
-    // 等价于上面的嵌套if
-    // auto final = safeDivide(100, 2)
-    //                 .and_then([](int v) { return safeDivide(v, 5); })
-    //                 .and_then([](int v) { return safeDivide(v, 2); });
+    // 更优雅的写法：用 and_then 把上面的嵌套 if 拍平
+    auto final = safeDivide(100, 2)
+                    .and_then([](int v) { return safeDivide(v, 5); })
+                    .and_then([](int v) { return safeDivide(v, 2); });
+    if (final) {
+        std::cout << "  and_then链式结果： " << *final << std::endl;
+        // 输出: and_then链式结果： 10
+    }
     
     std::cout << "\n【直接检查模式】" << std::endl;
     auto r = safeDivide(42, 0);
@@ -1356,13 +1376,13 @@ int main() {
 /*
  * 异常使用指南：
  * 
- * ? 应该使用异常的情况：
+ * ✅ 应该使用异常的情况：
  *   - 真正异常的情况（文件找不到、网络断开）
  *   - 构造函数失败
  *   - 不应该用返回码表示的错误
  *   - 跨调用栈传播错误
  * 
- * ? 不应该使用异常的情况：
+ * ❌ 不应该使用异常的情况：
  *   - 可预期的错误（用户输入无效）
  *   - 性能关键路径
  *   - 需要频繁处理的错误
@@ -1473,19 +1493,19 @@ int main() {
  * 异常 vs 错误码 vs std::expected 选择指南：
  * 
  * ┌─────────────┬────────────────────────────────────────────────────────┐
- * │   异常       │ ? 罕见、严重、无法提前预知的错误                         │
- * │             │ ? 需要跨多层调用栈传播                                   │
- * │             │ ? 调用者不知道如何处理，让调用者决定                       │
+ * │   异常       │ ✅ 罕见、严重、无法提前预知的错误                        │
+ * │             │ ✅ 需要跨多层调用栈传播                                  │
+ * │             │ ✅ 调用者不知道如何处理，让调用者决定                     │
  * │             │ 例子：文件找不到、内存分配失败、严重的数据损坏              │
  * ├─────────────┼────────────────────────────────────────────────────────┤
- * │   错误码     │ ? 频繁、可预期、调用者知道如何处理                        │
- * │             │ ? 只需要返回给直接调用者                                 │
- * │             │ ? 性能关键路径（但现代CPU上这个差异很小）                  │
+ * │   错误码     │ ✅ 频繁、可预期、调用者知道如何处理                       │
+ * │             │ ✅ 只需要返回给直接调用者                                │
+ * │             │ ✅ 性能关键路径（但现代CPU上这个差异很小）                 │
  * │             │ 例子：参数验证、简单的越界检查                            │
  * ├─────────────┼────────────────────────────────────────────────────────┤
- * │ std::expected│ ? 介于两者之间                                          │
- * │  (C++23)    │ ? 需要返回有意义的结果或错误                             │
- * │             │ ? 调用者必须处理（编译期强制）                            │
+ * │ std::expected│ ✅ 介于两者之间                                         │
+ * │  (C++23)    │ ✅ 需要返回有意义的结果或错误                            │
+ * │             │ ✅ 调用者必须处理（编译期强制）                           │
  * │             │ 例子：解析结果、数学运算结果                              │
  * └─────────────┴────────────────────────────────────────────────────────┘
  */
@@ -1693,7 +1713,7 @@ int main() {
 
 ### 异常处理三步曲
 
-```
+```text
 ┌─────────┐     throw      ┌─────────┐     catch      ┌─────────┐
 │  抛出   │ ──────────────?│  捕获   │ ──────────────?│  处理   │
 └─────────┘                └─────────┘                └─────────┘
@@ -1704,7 +1724,7 @@ int main() {
 
 ### 标准异常类层次
 
-```
+```text
 std::exception（所有异常的老祖宗）
 ├── std::logic_error（程序员能预防的）
 │   ├── std::domain_error

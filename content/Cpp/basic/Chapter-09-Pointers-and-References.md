@@ -58,7 +58,7 @@ int main() {
 
 运行结果可能像这样：
 
-```
+```text
 x = 10
 &x = 0x7fff5fbff8ac
 ptr = 0x7fff5fbff8ac
@@ -496,8 +496,10 @@ int (*funcPtr)(int, int);
 // 对比：声明一个普通函数
 int func(int, int);
 
-// 对比：声明一个函数指针数组
-int (*ops[3])(int, int) = {add, multiply, /* 第三个函数 */};
+// 对比：声明一个函数指针数组（add/multiply 是已定义的函数）
+int add(int, int);
+int multiply(int, int);
+int (*ops[3])(int, int) = {add, multiply, nullptr};  // 第三个位置先空着
 ```
 
 ## 9.7 引用的概念与使用
@@ -527,7 +529,7 @@ int main() {
     // &ref 和 &x 是相同的地址！
     std::cout << "&x = " << &x << std::endl;
     std::cout << "&ref = " << &ref << std::endl;
-    // 输出: 两个地址相同！ref就是x的另一个名字
+    // 输出: 两行打印出的地址完全一样——ref 就是 x 的另一个名字
     
     // 引用必须初始化 - 引用不能单独存在
     int y = 30;
@@ -844,7 +846,7 @@ int main() {
 
 运行结果可能像这样：
 
-```
+```text
 === Creating b1 ===
 Buffer constructed, size=1000
 
@@ -974,7 +976,7 @@ int main() {
 
 输出：
 
-```
+```text
 T& version
 T& version
 T&& version

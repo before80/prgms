@@ -32,6 +32,7 @@ draft = false
 #include <iostream>
 #include <vector>
 #include <stdexcept>
+#include <string>      // Stack<std::string> 需要它
 
 // 类模板：让类与类型参数无关
 // template<typename T> 告诉编译器：T是一个类型参数，稍后填充
@@ -101,7 +102,7 @@ int main() {
 ```
 
 运行结果：
-```
+```text
 intStack.pop() = 30
 intStack.peek() = 20
 stringStack.pop() = World
@@ -179,7 +180,7 @@ int main() {
 ```
 
 输出：
-```
+```text
 Wrapper value: 42
 As double: 42
 ```
@@ -241,7 +242,7 @@ int main() {
 ```
 
 输出：
-```
+```text
 Comparator<int>::equal(1, 1) = 1
 Comparator<int>::equal(1, 2) = 0
 Comparator<const char*>::equal("hello", "hello") = 1
@@ -303,7 +304,7 @@ int main() {
 ```
 
 输出：
-```
+```text
 p1: Pair<T, T> (same type)
 p2: Pair<T, int>
 p3: Pair<T*, T*> (both pointers)
@@ -336,106 +337,105 @@ graph TD
 ```cpp
 #include <iostream>
 #include <vector>
-#include <list>
 
 // 模板模板参数：Container 本身是一个模板
-// 语法：template<typename T> class Container
-// 表示 Container 接受一个类型参数，并且它本身还是个模板
+// 语法：template<typename> class Container
+// 含义：Container 是一个"只吃一个类型参数"的类模板
 template<typename T, template<typename> class Container>
 class Repository {
 private:
-    Container<T> data_;  // 用 Container<T> 作为存储结构
+    Container<T> data_;   // 用 Container<T> 作为底层存储
 
 public:
-    // 添加元素
     void add(const T& value) {
-        data_.push_back(value);  // 容器得支持 push_back 才行
+        data_.push_back(value);   // 要求 Container 有 push_back
     }
 
-    // 打印所有元素
     void print() const {
-        for (const auto& item : data_) {
-            std::cout << item << " ";
+        for (auto it = data_.begin(); it != data_.end(); ++it) {
+            if (it != data_.begin()) std::cout << " ";
+            std::cout << *it;
         }
         std::cout << std::endl;
     }
 };
 
 int main() {
-    // 等等，这样写有问题！
-    // std::vector 和 std::list 实际上有两个模板参数：
-    // template<typename T, typename Allocator> class vector
-    // template<typename T, typename Allocator> class list
-    //
-    // 所以 template<typename> class Container 匹配不上！
-
-    // 正确写法需要更灵活的模板模板参数：
-    // template<typename T, typename...> class Container
-
-    std::cout << "Template template parameters demo" << std::endl;
-
-    return 0;
-}
-```
-
-> 🔧 **实际问题**：标准库的容器（如 `std::vector`）通常有多个模板参数，第二个参数是分配器（Allocator），默认值是 `std::allocator<T>`。所以直接用 `template<typename> class Container` 是匹配不上的。
-
-### 正确的模板模板参数写法
-
-```cpp
-#include <iostream>
-#include <vector>
-#include <list>
-#include <memory>
-
-// 更灵活的版本：允许容器有额外的模板参数（通过 ...）
-template<typename T, template<typename, typename...> class Container>
-class FlexibleRepository {
-private:
-    Container<T> data_;  // 现在可以匹配 std::vector, std::list 等
-
-public:
-    void add(const T& value) {
-        data_.push_back(value);
-    }
-
-    void print() const {
-        for (const auto& item : data_) {
-            std::cout << item << " ";
-        }
-        std::cout << std::endl;
-    }
-};
-
-int main() {
-    // 现在可以正常工作了！
-    FlexibleRepository<int, std::vector> repo1;
-    FlexibleRepository<int, std::list> repo2;
-
-    repo1.add(1);
-    repo1.add(2);
-    repo1.add(3);
-
-    repo2.add(10);
-    repo2.add(20);
-
-    std::cout << "Vector repo: ";
-    repo1.print();  // 输出: 1 2 3
-
-    std::cout << "List repo: ";
-    repo2.print();  // 输出: 10 20
+    // C++17 起（P0522R0，被各家编译器当作缺陷修复回溯应用）：
+    // 即使 std::vector 声明的是 template<typename T, typename Alloc = ...>，
+    // 也能匹配"只吃一个参数"的模板模板参数——只要多出来的参数带默认值。
+    Repository<int, std::vector> repo;
+    repo.add(1);
+    repo.add(2);
+    repo.add(3);
+    repo.print();   // 输出: 1 2 3
 
     return 0;
 }
 ```
 
 输出：
-```
-Vector repo: 1 2 3
-List repo: 10 20
+```text
+1 2 3
 ```
 
-> 🎯 **模板模板参数的实际应用**：当你希望类模板接受容器类型但不确定容器具体参数时，这个技巧非常有用。比如写一个通用的序列化库、数据库ORM映射等。
+> ⚠️ **这段历史值得单独说一句**：在 C++11/14 时代，上面的代码**是编译不过的**。
+> 当时的规则要求"模板模板实参和模板模板形参的形参列表必须完全一致"，而 `std::vector` 有两个参数
+> （`T` 和 `Alloc`，后者有默认值），`template<typename> class Container` 只有一个，于是匹配失败——
+> "带默认值"也救不了它，因为当时只看形参列表的**形状**。
+>
+> 后来 **P0522R0**（*Matching of template template-parameters to template template-arguments*）
+> 放宽了这条规则：多出来的参数只要有默认值，就允许匹配。这条修改被当作**缺陷修复**回溯应用，
+> GCC / Clang / MSVC 现在在所有标准模式下都按新规则办事。本节代码用 Apple clang 21 实测，
+> 从 `-std=c++11` 到 `-std=c++23` 全部通过。
+
+### `typename...` 版本：更保险，也更常见的写法
+
+既然 `template<typename>` 已经能匹配 `std::vector` 了，为什么还会看到
+`template<typename, typename...> class Container` 这种写法？
+
+因为它**不依赖上面那条放宽规则**，在老编译器上也能工作，是写库时更稳的选择：
+
+```cpp
+#include <iostream>
+#include <set>
+#include <vector>
+
+// 写法：只要"至少一个类型参数"，后面的额外参数（如 Alloc、Compare）全部吸收
+template<typename T, template<typename, typename...> class Container>
+struct Repo {
+    Container<T> data_;
+    void add(const T& v) { data_.push_back(v); }
+};
+
+int main() {
+    Repo<int, std::vector> a;
+    a.add(1);          // ✅ vector 有 push_back
+
+    Repo<int, std::set> b;   // ⚠️ 这一行本身能编译过！
+    // b.add(2);            // ❌ 一旦调用 add()，才会报错：
+    //                      //    'std::set<int>' has no member named 'push_back'
+
+    std::cout << "模板模板参数只检查形状，不检查成员\n";
+
+    (void)b;
+    return 0;
+}
+```
+
+输出：
+```text
+模板模板参数只检查形状，不检查成员
+```
+
+> 🎯 **两个关键结论**：
+> 1. **模板模板参数只匹配"形状"**——参数个数对不对、类型对不对，编译器一看就知道；
+>    但"容器有没有 `push_back`"这种**成员层面的要求，编译器不会提前检查**。
+> 2. 类模板的成员函数**只有被用到时才实例化**。所以 `Repo<int, std::set> b;` 能编过，
+>    `b.add(2)` 才会爆炸。这就是模板报错经常"又长又难懂"的根源：错误发生的时机，离你写错的地方很远。
+>
+> **实用建议**：写库、要求新老编译器通吃，就用 `template<typename, typename...> class`；
+> 只面向 C++17 及以后的现代编译器，`template<typename> class` 更简洁易读。
 
 ## 17.5 类型萃取与SFINAE
 
@@ -446,12 +446,14 @@ SFINAE 全称是 **Substitution Failure Is Not An Error**——翻译成中文�
 想象你写了一个函数，可以计算任何数字的绝对值：
 ```cpp
 template<typename T>
-T abs(T value) {
+T my_abs(T value) {
     return value < 0 ? -value : value;
 }
 ```
 
 但如果有人传了 `"hello"` 字符串呢？编译器不会报错，而是会**跳过这个重载，去找其他版本**。就像追求者A说"我不会做饭"，你不会生气（大概吧），而是优雅地转向下一个追求者——这就是 SFINAE 的精髓：**此路不通，另寻他路，编译器绝不崩溃**。
+
+> ⚠️ **注意这里的函数名**：上面故意用了 `my_abs` 而不是 `abs`。因为 `<cstdlib>` / `<cmath>` 里已经有一个全局的 `::abs(int)`，你如果也定义全局的 `abs`，非模板版本会在重载决议里赢过你的模板，SFINAE 的演示效果就被"截胡"了。**给模板函数起个专属名字，是避免这类意外最省事的办法。**
 
 ```cpp
 #include <iostream>
@@ -462,14 +464,14 @@ T abs(T value) {
 // 如果 T 是整数类型，用这个版本
 template<typename T>
 typename std::enable_if<std::is_integral<T>::value, T>::type
-abs(T value) {
+my_abs(T value) {
     return value < 0 ? -value : value;
 }
 
 // 如果 T 是浮点类型，用这个版本
 template<typename T>
 typename std::enable_if<std::is_floating_point<T>::value, T>::type
-abs(T value) {
+my_abs(T value) {
     return value < 0 ? -value : value;
 }
 
@@ -494,8 +496,8 @@ auto describe(T value) {
 }
 
 int main() {
-    std::cout << "abs(-5) = " << abs(-5) << std::endl;  // 输出: 5
-    std::cout << "abs(-3.14) = " << abs(-3.14) << std::endl;  // 输出: 3.14
+    std::cout << "my_abs(-5) = " << my_abs(-5) << std::endl;  // 输出: 5
+    std::cout << "my_abs(-3.14) = " << my_abs(-3.14) << std::endl;  // 输出: 3.14
 
     std::cout << "square(7) = " << square(7) << std::endl;  // 输出: 49
 
@@ -508,9 +510,9 @@ int main() {
 ```
 
 输出：
-```
-abs(-5) = 5
-abs(-3.14) = 3.14
+```text
+my_abs(-5) = 5
+my_abs(-3.14) = 3.14
 square(7) = 49
 describe(42) = integer
 describe(3.14) = floating point
@@ -580,7 +582,7 @@ int main() {
 ```
 
 输出：
-```
+```text
 add(1, 2) = 3
 add(1.5, 2.5) = 4
 multiply(6, 7) = 42
@@ -599,6 +601,7 @@ multiply(6, 7) = 42
 #include <iostream>
 #include <concepts>
 #include <string>
+#include <functional>   // std::hash
 
 // 自定义概念：Addable
 // 语法：requires (T a, T b) { 表达式 }
@@ -645,7 +648,7 @@ int main() {
 ```
 
 输出：
-```
+```text
 sum(1, 2) = 3
 sum(1.5, 2.5) = 4
 Hello, concepts!
@@ -697,8 +700,10 @@ T clone(const T& obj) {
 }
 
 // std::regular："正规"类型
-// 等价于：default_initializable && copyable && movable
-// 是一个"完美"类型该有的样子
+// 定义：std::regular<T> = std::semiregular<T> && std::equality_comparable<T>
+// 而 semiregular = copyable && default_initializable
+// 也就是说，它要求：可默认构造、可拷贝、可移动、可赋值，并且能用 == 比较
+// （注意重点是最后的"可比较"——这正是 regular 比 copyable 更严格的地方）
 template<std::regular T>
 class Container {
     // T必须是regular类型：
@@ -707,29 +712,41 @@ class Container {
     // - 移动构造函数
     // - 拷贝赋值运算符
     // - 移动赋值运算符
-    // - 相等比较运算符
+    // - 相等比较运算符（operator== / operator!=）
 };
 
 int main() {
     std::cout << "factorial(5) = " << factorial(5) << std::endl;  // 输出: 120
-    std::cout << "circleArea(2.0) = " << circleArea(2.0) << std::endl;  // 输出: 12.56636
+    // 注意：默认输出精度是 6 位有效数字，所以是 12.5664 而不是 12.56636
+    std::cout << "circleArea(2.0) = " << circleArea(2.0) << std::endl;  // 输出: 12.5664
 
-    // std::vector 满足 std::regular，所以可以实例化 Container
+    // std::vector<int> 满足 std::regular，所以可以实例化 Container
+    Container<std::vector<int>> c1;   // ✅ 编译通过
+
+    // 反例：定义一个没写 operator== 的类，就通不过 std::regular 约束
+    //   struct NoEq { int x; };
+    //   Container<NoEq> bad;   // ❌ error: constraints not satisfied
+    //                          //    （因为 NoEq 不满足 equality_comparable）
+    (void)c1;
+
     std::vector<int> v1 = {1, 2, 3};
     std::vector<int> v2 = v1;  // 拷贝操作
 
     std::cout << "v1.size() = " << v1.size() << ", v2.size() = " << v2.size() << std::endl;
     // 输出: v1.size() = 3, v2.size() = 3
 
+    std::cout << "Container<std::vector<int>> 实例化成功" << std::endl;
+
     return 0;
 }
 ```
 
 输出：
-```
+```text
 factorial(5) = 120
-circleArea(2.0) = 12.56636
+circleArea(2.0) = 12.5664
 v1.size() = 3, v2.size() = 3
+Container<std::vector<int>> 实例化成功
 ```
 
 > 🏛️ **标准概念一览**：
@@ -794,102 +811,99 @@ int main() {
 ```
 
 输出：
-```
+```text
 p1.first = 10, p1.second = 20.5
 p2.first = 1, p2.second = 2
 ```
 
 > 🚀 **CTAD 的推导规则**：
-> 编译器会查看构造函数，根据传入的参数推断模板参数。如果有多个构造函数，通常取共同的超类型（如 int 和 double 会推导为 double）。
+> 编译器会拿构造函数（或自定义推导指南）的**形参模式**去匹配实参类型，逐个把模板参数解出来。
+> 关键点：这是**逐参数的"一对一"匹对**，不存在"取共同超类型"这回事——
+> `Pair p(10, 20.5)` 推出来的是 `Pair<int, double>`，**不是** `Pair<double, double>`。
+> 另外要记住：**CTAD 只发生在类模板的构造/初始化**，而且推导失败时不会自动"退一步"去做类型转换。
 
 ### 自定义推导指南
 
-有时候自动推导不能满足你的需求，你可以自定义推导指南（Dedution Guide）：
+有时候自动推导的结果不是你想要的，这时可以写**自定义推导指南**（Deduction Guide）来"接管"推导过程。
+
+最常见的场景：字符串字面量的类型是 `const char[N]`，直接推导会得到一个存 `const char*` 的对象，而你想要的是 `std::string`：
 
 ```cpp
 #include <iostream>
-#include <vector>
+#include <string>
+#include <type_traits>
 
 template<typename T>
-struct Container {
-    std::vector<T> data;
-
-    // 从 initializer_list 构造
-    Container(std::initializer_list<T> init) : data(init) {}
+struct Box {
+    T value;
+    Box(T v) : value(v) {}
 };
 
-// 自定义推导指南：
-// 从 {1, 2, 3} 推导出 Container<int> 而不是 Container<int>？
-Container(std::initializer_list<int>) -> Container<int>;
+// 自定义推导指南：遇到字符串字面量时，推导成 Box<std::string>
+// 语法：类名(形参列表) -> 你要的实例类型;
+Box(const char*) -> Box<std::string>;
 
 int main() {
-    // 不加推导指南：Container c1 = {1, 2, 3}; 可能报错
-    // 加了推导指南后：
-    Container c1 = {1, 2, 3};  // 推导出 Container<int>
+    Box b1(42);        // 没有匹配的自定义指南，走隐式指南 → Box<int>
+    Box b2("hello");   // 命中自定义指南            → Box<std::string>
 
-    std::cout << "c1.data.size() = " << c1.data.size() << std::endl;
-    // 输出: c1.data.size() = 3
+    static_assert(std::is_same_v<decltype(b2), Box<std::string>>);
 
-    return 0;
-}
-```
+    std::cout << "b1 = " << b1.value << std::endl;          // 输出: b1 = 42
+    std::cout << "b2 = " << b2.value << std::endl;          // 输出: b2 = hello
+    std::cout << "b2.value.size() = " << b2.value.size() << std::endl;  // 输出: b2.value.size() = 5
 
-## 17.8 概念和变量模板的模板参数（C++26）
-
-### 概念作为模板参数？
-
-C++26 可能会引入一个革命性的特性：**概念可以作为模板参数**！
-
-```cpp
-#include <iostream>
-#include <concepts>
-
-// C++26（草案）: 概念可以作为模板参数
-// 这是未来的特性，目前仅作展望：
-// template<template<typename> concept Container>
-// struct ContainerTraits { ... };
-
-// 变量模板：编译期的常量
-// template<typename T>
-// inline constexpr bool is_small = sizeof(T) < 8;
-// 判断 T 的大小是否小于 8 字节
-
-template<typename T>
-inline constexpr bool is_small = sizeof(T) < 8;
-
-// 变量模板的概念（概念本身就是变量模板的集合）
-template<typename T>
-inline constexpr bool is_integer = std::is_integral_v<T>;
-
-int main() {
-    std::cout << "is_small<int>: " << is_small<int> << std::endl;  // 输出: 1 (true, 4 < 8)
-    std::cout << "is_small<double>: " << is_small<double> << std::endl;  // 输出: 0 (false, 8 >= 8)
-
-    std::cout << "is_integer<int>: " << is_integer<int> << std::endl;  // 输出: 1
-    std::cout << "is_integer<double>: " << is_integer<double> << std::endl;  // 输出: 0
-
-    // C++26可能允许这样的语法：
-    // template<std::integral T, template<T> concept C>
-    // struct Test { ... };
+    // 如果没有那条指南，b2 会是 Box<const char*>，
+    // 下面这行就会编译失败（Box<const char*> 里没有 size()）：
+    // std::cout << b2.value.size() << std::endl;
 
     return 0;
 }
 ```
 
 输出：
-```
-is_small<int>: 1
-is_small<double>: 0
-is_integer<int>: 1
-is_integer<double>: 0
+```text
+b1 = 42
+b2 = hello
+b2.value.size() = 5
 ```
 
-> 🔮 **展望 C++26**：
-> 未来的 C++ 可能允许：
-> - `template<template<typename> concept C> struct X { ... };` — 概念作为模板参数
-> - `template<std::integral T, template<T> concept Range> struct Y { ... };` — 更复杂的约束
+> ⚠️ **一个常见的误解**：很多人以为"用了 `std::initializer_list` 构造函数就一定要写推导指南"。
+> 其实不用——编译器会从构造函数自动生成隐式指南，比如对一个
+> `Container(std::initializer_list<T>)` 构造函数，`Container c = {1, 2, 3};` 本来就能推出 `Container<int>`。
+> 自定义指南是为了**改变**推导结果（比如把 `const char*` 变成 `std::string`），不是为了"让它能编过"。
+
+## 17.8 概念和变量模板的模板参数（C++26）
+
+### 概念作为模板参数
+
+C++26 正式采纳了一项提案（P2841R7《Concept and variable-template template-parameters》），让**概念本身可以当作模板参数**传进来——这在以前是做不到的，你只能传一个"类模板"（模板模板参数），不能传一个"约束"。
+
+```cpp
+// 📎 可用性说明：Apple clang 21 的 libc++/clang 尚未实现这个语法。
+//    下面保留标准写法，供理解用途。
+
+// 以前只能传"类模板"：
+template<template<typename> class Container>
+struct Old { /* ... */ };
+
+// C++26 起可以传"概念"：
+template<template<typename> concept C, typename T>
+    requires C<T>
+struct Wrapper {
+    T value;
+};
+
+// 使用：第一个实参是一个"概念"的名字，而不是类模板的名字
+Wrapper<std::integral, int> w{42};   // ✅
+// Wrapper<std::integral, double> w2; // ❌ double 不满足 integral
+```
+
+> 📎 **可用性说明**：这项特性（P2841R7）由 GCC 16 / 更新的编译器逐步实现，**Apple clang 21 还不支持**，写 `template<template<typename> concept C>` 会报
+> `error: template template parameter requires 'class' or 'typename' after the parameter list`。
+> 上面用 `text` 代码块展示写法，请勿直接当作可编译代码。
 >
-> 这将开启模板元编程的新纪元！
+> 💡 **什么时候有用**：当你写的类模板需要"接受一个约束、并把它转发给内部类型"时，比如实现自己的容器适配器、序列化框架、或者约束组合器。
 
 ### 变量模板
 
@@ -897,29 +911,33 @@ is_integer<double>: 0
 
 ```cpp
 #include <iostream>
+#include <cstddef>
 #include <type_traits>
 
-// 常见的变量模板
+// 自己写一个变量模板（注意：别起名成 is_pointer_v，那会和 std::is_pointer_v 撞脸）
 template<typename T>
-inline constexpr bool is_pointer_v = std::is_pointer_v<T>;
+inline constexpr bool my_is_pointer_v = std::is_pointer_v<T>;
 
 template<typename T>
-inline constexpr size_t type_size = sizeof(T);
+inline constexpr std::size_t type_size = sizeof(T);
 
 int main() {
     std::cout << std::boolalpha;  // 打印 true/false 而不是 1/0
-    std::cout << "is_pointer_v<int>: " << is_pointer_v<int> << std::endl;  // false
-    std::cout << "is_pointer_v<int*>: " << is_pointer_v<int*> << std::endl;  // true
+    std::cout << "my_is_pointer_v<int>: " << my_is_pointer_v<int> << std::endl;   // false
+    std::cout << "my_is_pointer_v<int*>: " << my_is_pointer_v<int*> << std::endl; // true
 
     std::cout << "type_size<char>: " << type_size<char> << std::endl;  // 1
-    std::cout << "type_size<long>: " << type_size<long> << std::endl;  // 通常是 4 或 8
+    // LP64 平台（macOS / Linux 64 位）上 long 是 8 字节；Windows 上是 4 字节
+    std::cout << "type_size<long>: " << type_size<long> << std::endl;  // macOS: 8
 
     return 0;
 }
 ```
 
 > ⚡ **变量模板的用途**：
-> - `std::is_integral_v<T>` 是 `std::is_integral<T>::value` 的简写（少了 `::type` 的烦恼）
+> - 标准库的 `std::is_integral_v<T>` 是 `std::is_integral<T>::value` 的简写（少了 `::value` 的烦恼）
+>   注意：**变量模板这个语言特性是 C++14**，但标准库里那一大批 `_v` 后缀（`is_integral_v`、`is_pointer_v`…）
+>   是 **C++17** 才补上的。在 C++14 里你只能用自己写的变量模板。
 > - 提供编译期类型信息查询
 > - 替代宏定义的编译期常量（比 `#define` 安全一万倍）
 
@@ -938,9 +956,10 @@ int main() {
 - **偏特化**：为部分类型参数提供特殊实现
 
 ### 📌 模板模板参数
-- **概念**：模板参数本身是模板
-- **语法**：`template<typename T, template<typename> class Container>`
-- **注意**：标准库容器可能有多个模板参数，需要灵活处理
+- **定义**：让"模板参数本身也是一个模板"，例如 `template<typename T, template<typename> class Container>`
+- **语法**：`template<typename T, template<typename> class Container>`；需要更保险时写 `template<typename, typename...> class`
+- **注意**：C++17 起（P0522R0）带默认参数的容器模板（如 `std::vector`）可以直接匹配 `template<typename> class`
+- **关键结论**：模板模板参数只检查"形状"，容器有没有某个成员函数要等真正调用时才会报错
 
 ### 📌 SFINAE 与类型萃取
 - **SFINAE**：模板替换失败不算错误，编译器自动选择其他重载
@@ -958,8 +977,8 @@ int main() {
 - **推导指南**：自定义推导规则
 
 ### 📌 展望 C++26
-- **概念作为模板参数**：未来的革命性特性
-- **变量模板**：编译期常量定义
+- **概念作为模板参数**：C++26 正式采纳（P2841R7），可以写 `template<template<typename> concept C, typename T>`（Apple clang 21 尚未实现）
+- **变量模板**：C++14 引入的编译期常量定义；标准库里成批的 `_v` 后缀是 C++17 才补上的
 
 > 🎯 **学习建议**：模板是 C++ 最强大的特性之一，也是最难掌握的部分。建议多动手实践，从简单的 Stack 类开始，逐步实现更复杂的模板元编程技巧。记住，编译器是最好的老师——遇到错误时，仔细阅读错误信息，它会告诉你哪里出了问题！
 

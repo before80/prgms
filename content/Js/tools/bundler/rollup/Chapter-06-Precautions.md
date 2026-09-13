@@ -500,7 +500,7 @@ IE 11 以及一些老版本浏览器不支持 ES Module。如果你需要兼容�
 
 注意：需要为两种格式分别准备打包产物——IIFE 格式给老浏览器用，ES Module 格式给现代浏览器用。
 
-### 6.8.2 generatedCode 选项（控制模块包装语法，如 es2015 / esnext）
+### 6.8.2 generatedCode 选项（控制模块包装语法：es5 / es2015）
 
 `generatedCode` 选项控制 Rollup 生成模块系统包装代码时使用的语法风格——比如是否使用 `Object.defineProperty` 包装 `export`，是否添加 `__esModule` 标记等。
 
@@ -509,19 +509,18 @@ IE 11 以及一些老版本浏览器不支持 ES Module。如果你需要兼容�
 ```javascript
 export default {
   output: {
-    // 'es2015'：兼容更多环境的输出（如 exports.__esModule 标记）
+    // 'es2015'：在 Rollup 生成的 helper/包装代码中使用 ES2015 语法
     generatedCode: 'es2015',
 
-    // 'esnext'（默认）：生成更简洁的现代模块语法
-    // generatedCode: 'esnext',
-
-    // 'preserved'：尽量保留源代码的语法特性（实验性）
-    // generatedCode: 'preserved'
+    // 默认值是 'es5'
+    // generatedCode: 'es5'
   }
 };
 ```
 
 这个选项主要影响 Rollup 如何生成 `import`/`export` 相关的包装代码，以及是否添加 ES Module 兼容性标记。如果你需要兼容老版本浏览器，**仍然需要 Babel**——`generatedCode` 只是控制模块层面的包装方式。
+
+> ⚠️ `'esnext'` 和 `'preserved'` 不是 `generatedCode` 的合法值；合法预设只有 `'es5'` 和 `'es2015'`。
 
 ### 6.8.3 Source Map 路径偏移
 

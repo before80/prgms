@@ -1,6 +1,8 @@
 
 
 +++
+
+# 第5章 如何使用 esbuild
 title = "第5章 如何使用esbuild"
 weight = 50
 date = "2026-03-28T11:54:00+08:00"
@@ -41,7 +43,7 @@ npm install -g esbuild
 
 ```bash
 esbuild --version
-# 打印结果：0.24.2
+# 打印结果：0.28.2
 ```
 
 全局安装的好处是：一次性安装，到处使用。但缺点也很明显：每个项目的 esbuild 版本可能不一致，容易出现"在我电脑上能跑，在你电脑上挂了"的坑爹情况。
@@ -79,7 +81,7 @@ npm install esbuild
     "build": "esbuild src/index.js --bundle --outfile=dist/index.js"
   },
   "dependencies": {
-    "esbuild": "^0.20.0"
+    "esbuild": "^0.28.0"
   }
 }
 ```
@@ -92,7 +94,7 @@ npm install esbuild
 
 ```bash
 esbuild --version
-# 打印结果：0.24.2  （版本号可能不同，以你安装的为准）
+# 打印结果：0.28.2  （版本号可能不同，以你安装的为准）
 ```
 
 如果打印出版本号，说明安装成功；如果报 `command not found`，说明安装可能出了问题。
@@ -124,7 +126,7 @@ npm install -g @esbuild/win32-x64
 
 ```bash
 esbuild --version
-# 打印结果：0.24.2
+# 打印结果：0.28.2
 ```
 
 这个特性特别适合：不想装 Node.js 只想体验一下 esbuild 速度的尝鲜用户、或者在某些受限环境里（比如只有 Go 运行时的 Docker 容器）使用。
@@ -749,7 +751,7 @@ app.listen(8080, () => {
 
 最流行的方案是用 `vite` 或 `@web/dev-server`，它们都内置了代理支持，而且底层也用 esbuild 加速构建——体验最佳，一步到位。
 
-> 💡 **总之**：esbuild 的 serve 追求的是"小而美"——只做静态文件服务，不搞大而全。如果你在项目中需要完整的开发服务器（含代理、热更新等），可以考虑在 esbuild 前面加一层 Express 代理，或者直接使用基于 esbuild 的上层方案（如 Vite）。
+> 💡 **总之**：esbuild 的 serve 追求的是"小而美"——只做静态文件服务，不搞大而全。如果你在项目中需要完整的开发服务器（含代理、热更新等），可以考虑 Vite 等上层工具；Vite 1–7 基于 esbuild，Vite 8 已改用 Rolldown/Oxc。
 
 ### 5.5.4 watch + serve 组合使用
 

@@ -684,8 +684,11 @@ int main() {
     std::cout << "Custom: " << customDelim << std::endl;  // 输出: Custom: Contains )" in the middle
     
     // UTF-8原始字符串
-    const char* utf8Raw = u8R"(中文测试 中文字符)";
-    std::cout << "UTF-8 raw: " << utf8Raw << std::endl;  // 输出: UTF-8 raw: 中文测试 中文字符
+    // ⚠️ C++20 起，u8 字面量的类型是 const char8_t[]，而不是 const char*！
+    const char8_t* utf8Raw = u8R"(中文测试 中文字符)";
+    std::cout << "UTF-8 raw: "
+              << reinterpret_cast<const char*>(utf8Raw) << std::endl;
+    // 输出: UTF-8 raw: 中文测试 中文字符
     
     return 0;
 }

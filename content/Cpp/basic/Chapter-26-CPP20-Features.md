@@ -71,8 +71,9 @@ int main() {
     // 调用add函数，传入整数
     std::cout << "add(1, 2) = " << add(1, 2) << std::endl;  // 输出: 3
 
-    // 如果需要同时支持浮点数，C++20中需要另外定义一个概念或使用 requires 表达式
-    // C++23 起可直接使用 std::floating_point 概念
+    // 如果需要同时支持浮点数，标准库早就准备好了 <concepts> 里的
+    // std::floating_point 概念（C++20 起就有），直接拿来写：
+    //   template<std::floating_point T> T add(T a, T b) { return a + b; }
 
     // 如果尝试传入字符串？编译器会直接报错："你的类型不满足要求，禁止入内！"
 
@@ -486,6 +487,8 @@ int main() {
 3. **无封装性**：只要包含了头文件，就能访问其中的所有内容，包括你不希望被看到的
 
 模块的出现就是为了解决这些问题！
+
+> 📦 **运行说明**：模块需要**多个文件**（模块接口单元 + 使用它的翻译单元）并显式开启编译器/构建系统的模块支持，不能当成单个文件直接编译。下面用示意图展示结构。
 
 ```cpp
 // C++20模块：替代头文件的新的代码组织方式
@@ -974,20 +977,25 @@ int main() {
     
     // ========== 日历支持 ==========
     
-    // 年-月-日
-    year_month_day today = floor<days>(system_clock::now());
+    // sys_days 就是"以天为单位的时间点"，最方便做日期加减
+    sys_days today = floor<days>(system_clock::now());
     std::cout << "今天是: " << std::format("{:%Y-%m-%d}", today) << std::endl;
     
     // 获取星期几
-    weekday wd = floor<days>(system_clock::now());
+    weekday wd = today;
     std::cout << "今天是: " << wd << std::endl;  // 输出类似: Sun/Mon/Tue...
     
-    // 日期运算
+    // 日期运算：sys_days 支持加减 days/weeks 这类"天级"时长
     auto tomorrow = today + days{1};
     auto lastWeek = today - weeks{1};
     
     std::cout << "明天是: " << std::format("{:%Y-%m-%d}", tomorrow) << std::endl;
     std::cout << "上周今天是: " << std::format("{:%Y-%m-%d}", lastWeek) << std::endl;
+
+    // 如果要把 sys_days 转成年-月-日，再按"月/年"加减：
+    year_month_day ymd{today};
+    auto nextMonth = year_month_day{ymd.year(), ymd.month() + months{1}, ymd.day()};
+    std::cout << "下个月的今天: " << std::format("{:%Y-%m-%d}", nextMonth) << std::endl;
     
     // ========== 时区支持 ==========
     
@@ -1131,7 +1139,8 @@ int main() {
     
     // 从子范围创建span
     // span支持first(n)、last(n)、subspan(offset, count)等视图操作
-    printSpan(v.data() + 1, 3);  // v[1]到v[3]：2 3 4
+    // 注意：span(指针, 长度) 要显式构造，不能直接把两个实参传给函数
+    printSpan(std::span<int>(v.data() + 1, 3));  // v[1]到v[3]：2 3 4
     
     // span本身不拥有数据，只是视图
     // 这对于函数参数特别有用——可以接受数组、vector、甚至string_view
@@ -1169,8 +1178,11 @@ int main() {
     // C++20: char8_t 用于UTF-8字符
     // char8_t 是 unsigned char 的别名，但语义完全不同
     
-    // char8_t c1 = 'A';  // ASCII字符
-    char8_t c2 = u8'中';  // UTF-8中文字符（需要源文件保存为UTF-8编码）
+      // ⚠️ char8_t 只有 1 个字节，只能装下 UTF-8 编码的单个字节。
+      //    u8'中' 这样的多字节字符放不进去，会报
+      //    "character too large for enclosing character literal type"。
+      char8_t c1 = u8'A';   // ✅ ASCII字符：UTF-8 下就是一个字节
+      // char8_t c2 = u8'中';  // ❌ 一个"中"字在UTF-8里是3个字节
     
     // char8_t 配合 u8"..." 字符串字面量
     const char8_t* u8str = u8"你好，C++20！";  // UTF-8字符串

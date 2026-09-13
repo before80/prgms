@@ -332,7 +332,9 @@ int main() {
     } catch (const std::bad_variant_access& e) {
         std::cout << "Oops! Tried to get int but variant holds string: "
                   << e.what() << std::endl;
-        // 输出: Oops! Tried to get int but variant holds string: ...
+        // 输出: Oops! Tried to get int but variant holds string: bad_variant_access
+        // （e.what() 就是 "bad_variant_access"，标准只保证它可读，
+        //   不同标准库给出的文字可能略有差异）
     }
 
     return 0;
@@ -394,6 +396,263 @@ int main() {
 
 这个`std::visit`的技巧在处理"多种类型但要统一操作"的场景时特别有用，比如写一个表达式求值器、状态机、或者JSON解析器。
 
+---
+
+## 34.4 枚举进阶技巧
+
+### 34.4.1 using enum（C++20）
+
+写 `switch` 时反复敲 `Color::Red`、`Color::Green` 很啰嗦。C++20 的 `using enum` 可以把某个枚举的成员一次性"请"进当前作用域：
+
+```cpp
+#include <iostream>
+
+enum class Color { Red, Green, Blue };
+
+const char* toString(Color c) {
+    switch (c) {
+        using enum Color;      // C++20：把这个枚举的成员引入当前作用域
+        case Red:   return "Red";
+        case Green: return "Green";
+        case Blue:  return "Blue";
+    }
+    return "Unknown";
+}
+
+int main() {
+    std::cout << toString(Color::Green) << std::endl;  // 输出: Green
+    return 0;
+}
+```
+
+> ⚠️ **版本要求**：`using enum` 是 **C++20** 引入的。用 `-std=c++17` 编译会报
+> `error: using enum declarations are a C++20 extension`，请改用 `-std=c++20` 及以上。
+
+### 34.4.2 枚举与字符串互转
+
+C++ 至今没有内置的"枚举 ⇄ 字符串"反射（这是 enum 最经典的痛点），标准做法就是自己写一对转换函数：
+
+```cpp
+#include <iostream>
+#include <optional>
+#include <string_view>
+
+enum class Color { Red, Green, Blue };
+
+// 枚举 -> 字符串
+constexpr std::string_view to_string(Color c) {
+    switch (c) {
+        using enum Color;
+        case Red:   return "Red";
+        case Green: return "Green";
+        case Blue:  return "Blue";
+    }
+    return "Unknown";
+}
+
+// 字符串 -> 枚举：失败时返回 std::nullopt，而不是靠"魔法值"
+constexpr std::optional<Color> to_color(std::string_view s) {
+    if (s == "Red")   return Color::Red;
+    if (s == "Green") return Color::Green;
+    if (s == "Blue")  return Color::Blue;
+    return std::nullopt;
+}
+
+int main() {
+    std::cout << to_string(Color::Green) << std::endl;   // 输出: Green
+
+    if (auto c = to_color("Blue")) {
+        std::cout << "解析成功，序号 = " << static_cast<int>(*c) << std::endl;  // 输出: 2
+    }
+    if (!to_color("Purple")) {
+        std::cout << "解析失败：没有这个颜色" << std::endl;
+    }
+    return 0;
+}
+```
+
+用 `std::optional<Color>` 表示失败，比返回 `static_cast<Color>(-1)` 这种"魔法值"清楚得多——调用方一个 `if` 就能判断，编译器也没法帮你写出漏判。
+
+> 💡 **实战提示**：`constexpr` 版本的 `to_string` 既能在运行期用，也能在编译期用。但要注意 `switch` 覆盖全部成员时不要写 `default`，否则以后新增枚举成员时编译器**就不会再提醒你漏了分支**。
+
+---
+
+## 34.5 union 的陷阱与正确用法
+
+前面说过 union "同一时刻只有一个成员是活跃的"。这句话听起来简单，但踩坑的人特别多。
+
+### 34.5.1 类型双关（type punning）是未定义行为
+
+很多人用 union 来"看浮点数的二进制长什么样"：
+
+```cpp
+#include <bit>        // std::bit_cast
+#include <cstdint>
+#include <iostream>
+
+union Pun {
+    std::uint32_t i;
+    float f;
+};
+
+int main() {
+    Pun p;
+    p.f = 1.0f;                 // 活跃成员是 f
+
+    // ❌ 读 p.i 是读"非活跃成员"，标准 C++ 里属于未定义行为
+    //    编译器完全可以把它优化掉，或者给出一个你以为"对"的旧值
+    // std::cout << p.i << std::endl;
+
+    // ✅ C++20 的正解：std::bit_cast
+    std::uint32_t bits = std::bit_cast<std::uint32_t>(p.f);
+    std::cout << "0x" << std::hex << bits << std::dec << std::endl;  // 输出: 0x3f800000
+
+    return 0;
+}
+```
+
+`std::bit_cast` 明确告诉编译器"我要按位重解释，而且我知道自己在干什么"，而且能在 `constexpr` 里使用。看到旧的 `memcpy` 或 union 写法，都可以换成它。
+
+### 34.5.2 非平凡类型必须手动构造/析构
+
+如果 union 的成员里有 `std::string` 这类**非平凡类型**，编译器就不再替你生成构造/析构函数了，必须自己写，还要手动控制活跃成员的生死：
+
+```cpp
+#include <iostream>
+#include <new>        // placement new
+#include <string>
+
+struct S { std::string name; int id; };   // 非平凡类型
+
+union U {
+    int i;
+    S s;
+    U() {}          // 成员含非平凡类型时，这两个函数必须显式提供
+    ~U() {}         // 否则它们会被定义为 = delete，连声明对象都不行
+};
+
+int main() {
+    U u;
+    new (&u.s) S{"Alice", 1};              // placement new：构造活跃成员
+    std::cout << u.s.name << " #" << u.s.id << std::endl;  // 输出: Alice #1
+    u.s.~S();                              // 手动析构，千万别漏
+    return 0;
+}
+```
+
+漏掉 `u.s.~S()` 就是内存泄漏；忘记写 `U(){}` / `~U(){}` 则直接编译不过。这也是为什么现代 C++ 代码里裸 union 越来越少见。
+
+### 34.5.3 什么时候真的该用 union？
+
+裸 union 仍然有它的位置，但要认准场景：
+
+- **和 C 代码 / 硬件打交道**：协议报文、寄存器映射、`ioctl` 参数这类"内存布局就是规格"的地方；
+- **匿名 union 给同一块内存起多个名字**：例如 `union { uint32_t raw; struct { uint8_t a, b, c, d; } bytes; };`
+- **其他所有情况**：请直接用 `std::variant`。
+
+> **一句话原则**：union 省的是内存，付出的是"必须自己保证类型正确"的代价。除非内存布局是被外部规定的，否则用 `std::variant`。
+
+---
+
+## 34.6 std::variant 进阶
+
+### 34.6.1 std::visit + overloaded：像模式匹配一样写代码
+
+`std::visit` 的真正威力，是和"overloaded"惯用法配合——把若干 lambda 打包成一个重载集：
+
+```cpp
+#include <iostream>
+#include <variant>
+
+// "overloaded" 惯用法：继承所有 lambda 的 operator()
+template<class... Ts>
+struct overloaded : Ts... { using Ts::operator()...; };
+// C++20 起不再需要显式的推导指引
+
+struct Circle { double r; bool operator==(const Circle&) const = default; };
+struct Rect   { double w, h; bool operator==(const Rect&) const = default; };
+
+using Shape = std::variant<Circle, Rect, std::monostate>;
+
+double area(const Shape& s) {
+    return std::visit(overloaded{
+        [](const Circle& c) { return 3.141592653589793 * c.r * c.r; },
+        [](const Rect&   r) { return r.w * r.h; },
+        [](std::monostate)  { return 0.0; }        // 还没有放入任何图形
+    }, s);
+}
+
+int main() {
+    Shape a = Circle{1.0};
+    Shape b = Rect{2.0, 3.0};
+    Shape c;                      // 默认构造得到 std::monostate
+
+    std::cout << "圆面积   = " << area(a) << std::endl;   // 输出: 圆面积   = 3.14159
+    std::cout << "矩形面积 = " << area(b) << std::endl;   // 输出: 矩形面积 = 6
+    std::cout << "空形状   = " << area(c) << std::endl;   // 输出: 空形状   = 0
+
+    // index()：当前是第几个备选类型（从 0 开始）
+    std::cout << "b 的索引 = " << b.index() << std::endl;  // 输出: 1
+
+    // C++17 起 variant 支持 == 和 <，先比索引再比值
+    std::cout << "a == b ? " << (a == b ? "true" : "false") << std::endl;  // 输出: false
+
+    // 极少数情况：赋值过程中抛异常，variant 会进入"无值"状态
+    std::cout << "c 是否无值 = " << c.valueless_by_exception() << std::endl;  // 输出: 0
+
+    return 0;
+}
+```
+
+> ⚠️ **注意**：`overloaded` 这一招要求**每个 lambda 都覆盖到所有备选类型**，否则 `std::visit` 会因为"找不到匹配的重载"而编译失败。这正是它的价值所在——**漏掉一种类型，编译期就报错**，而不是运行期才发现。
+
+### 34.6.2 std::monostate：让 variant 可以"空着"
+
+`std::variant<Ts...>` 默认构造的是**列表中第一个类型**，不是"空"。如果第一个类型不方便默认构造，或者你确实想要一个"什么都没有"的状态，就用 `std::monostate` 占位：
+
+```cpp
+#include <iostream>
+#include <string>
+#include <variant>
+
+int main() {
+    // 把 std::monostate 放在列表第一位，默认构造就是"空"状态
+    std::variant<std::monostate, std::string, int> config;
+    std::cout << config.index() << std::endl;   // 输出: 0，指向 monostate
+
+    config = "debug";
+    std::cout << config.index() << std::endl;   // 输出: 1，现在是 string
+
+    config = 8080;
+    std::cout << config.index() << std::endl;   // 输出: 2，现在是 int
+    return 0;
+}
+```
+
+`std::monostate` 只有一个值、大小 1 字节，专门当"空标签"用。
+
+| 类型 | 表达"没有值"的方式 | 能否默认构造 |
+|---|---|---|
+| 裸 `union` | 没有——必须自己用一个额外字段记类型 | 取决于成员 |
+| `std::optional<T>` | `std::nullopt` | 可以（为空） |
+| `std::variant<...>` | 把 `std::monostate` 放进类型列表 | 可以（构造第一个类型） |
+| `std::variant<...>` | `valueless_by_exception()` | 只会在异常时出现，**不是正常状态** |
+
+### 34.6.3 小结：三者怎么选
+
+```mermaid
+graph TD
+    A["需要把不同东西放进同一个位置？"] --> B{"需要记住当前是哪一个吗？"}
+    B -->|不需要，只要一组命名常量| C["enum class"]
+    B -->|需要，且要类型安全| D["std::variant（C++17，推荐）"]
+    B -->|不需要，但内存布局被外部规定| E["union（谨慎使用）"]
+    C --> C1["底层类型可选<br/>不会隐式转 int"]
+    D --> D1["std::get / std::get_if / std::visit<br/>用 std::monostate 表示空"]
+    E --> E1["同一时刻只有一个活跃成员<br/>非平凡类型要手动构造与析构"]
+```
+
+> **老程序员的忠告（补）**：裸 union 是"把内存布局的钥匙交给别人"的做法，只有当你必须和 ABI/硬件对齐时才动它；剩下的场景，`std::variant` 在编译期就把大部分错误挡在门外了。
+
 ## 本章小结
 
 本章我们深入探索了C++中两种重要的"数据容器"——枚举（Enum）和联合体（Union），它们就像是程序员工具箱里的多功能瑞士军刀，各有各的用途。
@@ -413,6 +672,14 @@ int main() {
 - 提供`std::get<T>`和`std::get_if<T>`两种访问方式
 - 支持`std::visit`进行类型分发的操作
 - 是现代C++处理"异构数据"的首选方案
+
+**进阶技巧**：
+- `using enum`（C++20）能把枚举成员"请"进当前作用域，`switch` 里不必再写前缀
+- 枚举与字符串互转没有标准反射，自己写一对函数、用 `std::optional` 表示失败最稳妥
+- 读 union 的"非活跃成员"是未定义行为，按位重解释请用 `std::bit_cast`（C++20）
+- union 的成员含非平凡类型时，构造/析构函数必须自己写，还要用 placement new 手动管理成员生命周期
+- `std::visit` + "overloaded" 惯用法能让编译器替你检查"漏掉某一种类型"
+- `std::variant` 用 `std::monostate` 表达"空"，而不是依赖 `valueless_by_exception()`
 
 > **老程序员的忠告**：能用强类型枚举就别用无作用域枚举，能用std::variant就别用裸union。这些"升级版"工具在编译时就给你更多的保护，省得你在debug时流下没有技术含量的眼泪。
 

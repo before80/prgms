@@ -604,10 +604,10 @@ TARGET = test_calculator
 SRC = calculator.c test_calculator.c
 
 $(TARGET): $(SRC)
-    $(CC) $(CFLAGS) -o $(TARGET) $(SRC) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRC) $(LDFLAGS)
 
 clean:
-    rm -f $(TARGET)
+	rm -f $(TARGET)
 
 .PHONY: clean
 ```
@@ -619,10 +619,14 @@ make && ./test_calculator
 输出：
 ```
 Running suite(s): Calculator
-0%: Checks: 4, Failures: 0, Errors: 0
+100%: Checks: 4, Failures: 0, Errors: 0
 ```
 
 全部通过！🎉 如果 `divide(10, 2)` 返回了 `5.001`，测试就会失败并告诉你："期望 5.0，但得到了 5.001"。
+
+> **小提示：** `100%` 表示"所有测试都通过了"；如果有测试失败，这里的百分比会小于 100%，并列出具体哪条断言不满足。
+>
+> **关于链接参数：** 上面 Makefile 里的 `-lsubunit -lrt` 是 **Linux（glibc）** 上需要的（较新的 glibc 把部分符号挪进了 `libsubunit`/`librt`）。**macOS 上没有这两个库**，直接写会导致链接失败；Mac 用户可以先试 `-lcheck`（缺符号时用 `pkg-config --cflags --libs check` 让系统帮你算准确的参数），并去掉 `-lsubunit -lrt`。
 
 #### Check 的常用断言
 
@@ -639,6 +643,16 @@ Running suite(s): Calculator
 在嵌入式开发中（想想智能手环、汽车 ECU 🏎️），硬件资源极其有限——没有操作系统、没有文件系统、连内存都只有几 KB。这种环境下，Check 框架太"重"了，跑不动。
 
 **Unity** 就是为这种场景设计的——轻量、简单、无依赖、纯 C 实现，是嵌入式测试的事实标准。Arduino、STM32、ESP32 都能用！
+
+> **怎么拿到 Unity**：Unity 不像 Check/CMocka 那样有系统包，标准做法是把源码"vendor"进你自己的工程：
+>
+> ```bash
+> git clone https://github.com/ThrowTheSwitch/Unity.git
+> # 然后在构建系统里把 Unity/src/unity.c 加进去，
+> # 并把 Unity/src 加入头文件搜索路径
+> ```
+>
+> 用 PlatformIO 的话更省事，直接在 `platformio.ini` 里写 `test_framework = unity`；Arduino 用户也可以直接用官方仓库里的 Unity 版本。
 
 #### Unity 基本用法
 
@@ -924,63 +938,32 @@ libFuzzer 的优点：
 #### libFuzzer 使用示例
 
 ```c
-/* libfuzzer_demo.c */
+/* libfuzzer_demo.c
+
+   ⚠️ 关键点：入口函数的名字必须严格是 LLVMFuzzerTestOneInput
+   （大小写敏感，一个字母都不能差）。libFuzzer 链接时会去找这个名字，
+   写错成 LLVM_FUZZER_SIZED_INPUT 之类，它就直接"找不到入口"。
+   下面是一个故意留有缓冲区溢出的例子。 */
 #include <stdint.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <string.h>
 
-/* 这是我们要 fuzz 的目标函数 */
-/* LLVM_FUZZER_SIZED_INPUT 是 libFuzzer 提供的宏 */
-int LLVM_FUZZER_SIZED_INPUT(const char* data, size_t size) {
+/* Fuzzer 入口函数：libFuzzer 会自动调用它无数次，喂各种随机数据 */
+int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     if (size < 2) return 0;
 
     char buffer[10];
 
-    /* 这里故意制造一个缓冲区溢出 */
-    /* 如果 data 长度 >= 10，就会溢出 */
-    memcpy(buffer, data, size > 10 ? 10 : size);
-    buffer[10] = '\0';  // 危险！buffer 只有 10 字节
-
-    /* 解析逻辑... */
-    if (data[0] == 'A' && size > 5) {
-        /* 检查是否有特殊标记 */
-        if (data[4] == 'X') {
-            printf("找到特殊标记！\n");
-        }
-    }
-
-    return 0;
-}
-
-/* libFuzzer 入口函数 */
-int main(int argc, char** argv) {
-    /* 告诉 libFuzzer 要测试的函数 */
-    /* 我们用一个包装函数 */
-    return 0;
-}
-```
-
-实际上 libFuzzer 的标准写法是这样的：
-
-```c
-#include <stdint.h>
-#include <stddef.h>
-
-/* Fuzzer 入口函数，libFuzzer 会自动调用它无数次，喂各种随机数据 */
-int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
-    if (size < 2) return 0;
-
-    char buffer[10];
-
-    /* 缓冲区溢出！ */
-    memcpy(buffer, data, size);
-    buffer[10] = '\0';
+    /* 故意制造缓冲区溢出：size 完全可能远大于 10 */
+    memcpy(buffer, data, size);   // 💥 这就是 fuzzer 要帮你抓出来的 bug
+    buffer[9] = '\0';
 
     /* 使用 buffer... */
     return 0;
 }
 ```
+
+> **注意：** libFuzzer 的程序**不写 `main`**——`main` 由 libFuzzer 自己提供（这就是 `-fsanitize=fuzzer` 帮你链接进来的东西）。你只负责写 `LLVMFuzzerTestOneInput`。
 
 用 clang 编译（需要 LLVM 工具链）：
 
@@ -993,12 +976,29 @@ libFuzzer 会自动生成海量随机输入，直到发现 crash：
 
 ```
 INFO: Seed: 1353768643
-INFO: Loaded 1 modules   (12 guards): 12
-INFO: -max_len is not provided, using 64
-Running: /home/user/crash_adfeb1234abcd
-ALARM: executing /home/user/libfuzzer_demo took too long, killing
+INFO: Loaded 1 modules   (12 inline 8-bit counters): 12 [0x... , 0x...)
+INFO: Loaded 1 PC tables (12 PCs): 12 [0x... , 0x...)
+INFO: A corpus is not provided, starting from an empty corpus
+#2      INITED cov: 3 ft: 3 corp: 1/1b exec/s: 0 rss: 30Mb
+#128    NEW    cov: 4 ft: 4 corp: 2/2b lim: 4 exec/s: 0 rss: 30Mb
 ...
+==12345==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7ffd...
+WRITE of size 10 at 0x7ffd... thread T0
+    #0 0x... in LLVMFuzzerTestOneInput libfuzzer_demo.c:14:5
+    #1 0x... in fuzzer::Fuzzer::ExecuteCallback(...)
+    ...
+SUMMARY: AddressSanitizer: stack-buffer-overflow libfuzzer_demo.c:14:5 in LLVMFuzzerTestOneInput
+artifact_prefix='./'; Test unit written to ./crash-0eb8e4ed029b774d80f2b66408203801cb95f898
+Base64: AEFHSU...
 ```
+
+> 看到没？fuzzer 只跑了不到 200 次就"撞"出了那个 `memcpy` 溢出，并把它**触发的那串字节**存成了 `crash-...` 文件。拿到这个文件后，你可以直接用它复现：
+>
+> ```bash
+> ./libfuzzer_demo crash-0eb8e4ed029b774d80f2b66408203801cb95f898
+> ```
+>
+> 这就是模糊测试的威力：**你不需要猜"哪个输入会让它崩"，让机器去暴力搜索。**
 
 ### AFL++ vs libFuzzer 对比
 
@@ -1023,7 +1023,7 @@ ALARM: executing /home/user/libfuzzer_demo took too long, killing
 
 ### gcov：GCC 内置的覆盖率工具
 
-**gcov** 是 GCC 自带的代码覆盖率工具，配合 `-fprofile-arcs -ftest-profile` 编译选项使用。
+**gcov** 是 GCC 自带的代码覆盖率工具，配合 `-fprofile-arcs -ftest-coverage` 两个编译选项使用（前者生成运行时计数，后者生成 `.gcno` 图文件）。
 
 #### 示例：有问题的代码和测试
 
@@ -1043,32 +1043,7 @@ int classify_number(int n) {
 }
 
 int main(void) {
-    int input;
-    printf("请输入一个整数: ");
-    scanf("%d", &input);
-
-    int result = classify_number(input);
-
-    if (result == 1) {
-        printf("正数\n"); // 正数
-    } else if (result == -1) {
-        printf("负数\n"); // 负数
-    } else {
-        printf("零\n"); // 零
-    }
-
-    return 0;
-}
-```
-
-```c
-/* coverage_test.c - 测试程序 */
-#include <stdio.h>
-
-int classify_number(int n);  // 声明待测函数
-
-int main(void) {
-    /* 测试用例：只测了正数和零，没测负数！ */
+    /* 测试用例：只测了正数和零，故意没测负数！ */
     printf("测试结果: %d\n", classify_number(5));   // 1
     printf("测试结果: %d\n", classify_number(0));   // 0
     printf("测试结果: %d\n", classify_number(10));  // 1
@@ -1081,11 +1056,11 @@ int main(void) {
 #### 编译并运行覆盖率测试
 
 ```bash
-# 用覆盖率信息编译
-gcc -fprofile-arcs -ftest-profile -O0 -g coverage_test.c coverage_demo.c -o coverage_test
+# 用覆盖率信息编译（注意是两个选项：-fprofile-arcs 和 -ftest-coverage）
+gcc -fprofile-arcs -ftest-coverage -O0 -g coverage_demo.c -o coverage_demo
 
 # 运行测试
-./coverage_test
+./coverage_demo
 
 # 生成覆盖率报告
 gcov coverage_demo.c
@@ -1094,11 +1069,11 @@ gcov coverage_demo.c
 输出：
 ```
 File 'coverage_demo.c'
-Lines executed: 66.67% of 6
-coverage_demo.c:creating 'coverage_demo.c.gcov'
+Lines executed: 92.31% of 13
+Creating 'coverage_demo.c.gcov'
 ```
 
-看！代码覆盖率是 **66.67%**！说明有三分之一的代码没有被执行到——这正是我们故意漏掉的"负数"分支！
+注意这里的百分比：它算的是"**可执行行数**"的比例，而不是字符比例，所以不要纠结具体数字是多少，**关键是看哪几行没被执行到**。往下看详细报告就一目了然了。
 
 查看详细报告：
 ```bash
@@ -1109,39 +1084,34 @@ cat coverage_demo.c.gcov
       -:    0:Source:coverage_demo.c
       -:    0:Graph:coverage_demo.gcno
       -:    0:Data:coverage_demo.gcda
+      -:    0:Runs:1
       -:    1:#include <stdio.h>
       -:    2:#include <stdlib.h>
       -:    3:
-      -:    4:int classify_number(int n) {
-      4:    5:    if (n > 0) {
-      4:    6:        return 1;  // 正数
-      2:    7:    } else if (n < 0) {
+       4:    4:int classify_number(int n) {
+       4:    5:    if (n > 0) {
+       2:    6:        return 1;  // 正数
+       2:    7:    } else if (n < 0) {
       #####:    8:        return -1;  // 负数 ← 从未被执行！
       -:    9:    } else {
-      2:   10:        return 0;  // 零
+       2:   10:        return 0;  // 零
       -:   11:    }
-      -:   12:}
+       4:   12:}
       -:   13:
-      -:   14:int main(void) {
-      2:   15:    int input;
-      2:   16:    printf("请输入一个整数: ");
-      -:   17:    scanf("%d", &input);
-      -:   18:
-      2:   19:    int result = classify_number(input);
+       1:   14:int main(void) {
+      -:   15:    /* 测试用例：只测了正数和零，故意没测负数！ */
+       1:   16:    printf("测试结果: %d\n", classify_number(5));   // 1
+       1:   17:    printf("测试结果: %d\n", classify_number(0));   // 0
+       1:   18:    printf("测试结果: %d\n", classify_number(10));  // 1
+       1:   19:    printf("测试结果: %d\n", classify_number(0));   // 0
       -:   20:
-      2:   21:    if (result == 1) {
-      2:   22:        printf("正数\n"); // 正数
-      -:   23:    } else if (result == -1) {
-    #####:   24:        printf("负数\n"); // 负数 ← 从未被执行！
-      -:   25:    } else {
-      2:   26:        printf("零\n"); // 零
-      -:   27:    }
-      -:   28:
-      2:   29:    return 0;
-      -:   30:}
+       1:   21:    return 0;
+      -:   22:}
 ```
 
 每一行前面的数字表示该行被执行的次数。`#####` 表示从未被执行——这正是被漏掉的负数分支！
+
+> **小提示：** 在 macOS 上用 Apple Clang 时，生成的 `.gcno` 文件名会带上可执行文件名（例如 `coverage_demo-coverage_demo.gcno`），直接 `gcov coverage_demo.c` 可能报"找不到 `.gcno`"；此时可以用 `xcrun llvm-cov gcov`，或先把 `.gcno`/`.gcda` 重命名成 `coverage_demo.gcno` / `coverage_demo.gcda`。本节按 Linux + GCC 的常见情形展示。
 
 ### lcov：可视化覆盖率报告
 
@@ -1149,13 +1119,16 @@ cat coverage_demo.c.gcov
 
 ```bash
 # 安装 lcov
-sudo apt-get install lcov
+sudo apt-get install lcov     # Ubuntu/Debian
+brew install lcov             # macOS（Homebrew）
 
-# 生成 HTML 报告
-genhtml coverage_demo.gcda -o coverage_report
+# 第一步：把 gcov 数据收集成 lcov 的 .info 文件
+lcov --capture --directory . --output-file coverage.info
 
-# 用浏览器打开
-# firefox coverage_report/index.html
+# 第二步：把 .info 渲染成 HTML 报告
+genhtml coverage.info --output-directory coverage_report
+
+# 用浏览器打开 coverage_report/index.html
 ```
 
 生成的报告会显示：
@@ -1165,8 +1138,8 @@ genhtml coverage_demo.gcda -o coverage_report
 
 ```mermaid
 pie title 代码覆盖率统计
-    "已覆盖 (66.67%)" : 4
-    "未覆盖 (33.33%)" : 2
+    "已覆盖" : 12
+    "未覆盖" : 1
 ```
 
 ---
@@ -1422,7 +1395,12 @@ gcc -DNDEBUG -O2 my_program.c -o my_program
 
 ### static_assert：编译期断言
 
-C11 引入了 **`static_assert`**（也叫 `_Static_assert`），它是**编译期**的断言——如果条件不满足，程序**根本无法编译**！
+C11 引入了**编译期断言**——如果条件不满足，程序**根本无法编译**！它的写法有个小坑需要说清楚：
+
+- **C11 / C17**：关键字其实是 `_Static_assert`；`<assert.h>` 会额外把它定义成更好看的宏 `static_assert`（所以你**必须先 `#include <assert.h>`** 才能写 `static_assert`）。
+- **C23**：`static_assert` 升级为正式关键字（两个拼写都能用，`_Static_assert` 被视为过时写法），而且**消息参数变成可选**——`static_assert(cond)` 也合法了。
+
+本项目以 C23 为准，下面直接用 `static_assert`。
 
 这就像是在盖房子之前📐，质检员说："地基的钢筋数量不够！不许开工！"
 
@@ -1454,18 +1432,28 @@ error: static assertion failed: "char 不应该是 4 字节！"
 #### static_assert 的常见用途
 
 ```c
-/* 确保结构体大小符合预期（跨平台兼容性） */
+#include <assert.h>
+#include <stdint.h>
+
+/* 确保基本类型大小符合预期（跨平台兼容性） */
+static_assert(sizeof(int) == 4, "int 不是 4 字节");
+static_assert(sizeof(void *) == 8, "假定运行在 64 位平台上");
+
+/* 确保结构体大小符合预期（防止不小心改动字段后忘记更新协议） */
+struct PacketHeader {
+    uint32_t magic;
+    uint16_t version;
+    uint16_t length;
+    uint64_t timestamp;
+};
 static_assert(sizeof(struct PacketHeader) == 16,
-    "PacketHeader 结构体大小必须是 16 字节");
+              "PacketHeader 大小必须是 16 字节");
 
-/* 确保枚举类型大小 */
-static_assert(sizeof(enum Color) == 4,
-    "枚举类型大小不符合预期");
-
-/* 验证字节序（endianness） */
-static_assert(1 == *(char*)&(int){1},
-    "仅支持小端序系统");
+/* C23 起消息参数可省略 */
+static_assert(sizeof(char) == 1);
 ```
+
+> **⚠️ 注意：** `static_assert` 的条件必须是**整数常量表达式**。所以像"判断本机是不是小端"这种要在运行时读内存才能知道的事情，**没法**用 `static_assert` 检测——那得用第 18 章讲的联合体方法在运行时判断。
 
 ### assert vs static_assert 对比
 
@@ -1535,37 +1523,47 @@ int main(void) {
 #include <stdio.h>
 #include <string.h>
 
-/* 危险版本：只分配了 5 字节，但 "Hello" 需要 6 字节（含 \0） */
+/* ❌ 危险版本：这里其实叠了两个错误 ——
+ *   1) 把局部数组的地址返回出去（函数一返回，buffer 这块内存就失效了）
+ *   2) buffer 里根本没有 '\0'，即使内存还有效，它也不是一个合法字符串
+ */
 char* get_message(void) {
     char buffer[5];
-    /* 循环拷贝字符串，但没有确保 null 结尾 */
     const char* msg = "Hello";
     for (int i = 0; i < 5; i++) {
-        buffer[i] = msg[i];  // 没有拷贝 '\0'！
+        buffer[i] = msg[i];  // 没有拷贝结尾的 '\0'！
     }
-    /* buffer 末尾没有 '\0'！ */
-    return buffer;  // 返回悬空指针/未终止字符串！
+    return buffer;  // ⚠️ 悬空指针 + 未终止字符串，双重错误
 }
 
-/* 安全版本 */
-char* safe_get_message(void) {
-    char buffer[6];
-    memset(buffer, 0, sizeof(buffer));
-    const char* msg = "Hello";
-    strncpy(buffer, msg, sizeof(buffer) - 1);
-    buffer[sizeof(buffer) - 1] = '\0';  // 确保 null 结尾
+/* ✅ 正确做法 A：由调用者提供缓冲区，并告诉函数它有多大 */
+void get_message_ok(char* out, size_t out_size) {
+    /* snprintf 一定会补上 '\0'（空间够的话），也不会写越界 */
+    snprintf(out, out_size, "%s", "Hello");
+}
+
+/* ✅ 正确做法 B：确实想"返回字符串"，就用 static 数组或 malloc */
+char* get_message_static(void) {
+    static char buffer[8] = "Hello";  // static：生命周期贯穿整个程序
     return buffer;
 }
 
 int main(void) {
-    /* 危险版本会导致未定义行为！ */
-    /* printf("%s\n", get_message()); */
+    /* 危险版本会导致未定义行为，这里故意注释掉：
+     * printf("%s\n", get_message());  // 可能输出乱码，也可能直接崩溃
+     */
 
-    /* 安全版本 */
-    printf("%s\n", safe_get_message());  // Hello
+    char buf[16];
+    get_message_ok(buf, sizeof(buf));
+    printf("%s\n", buf);            // Hello
+
+    printf("%s\n", get_message_static());  // Hello
+
     return 0;
 }
 ```
+
+> ⚠️ **注意"安全版本"也各有代价**：做法 A 要求调用者自己管理缓冲区（这在 C 里是最常见、最推荐的风格）；做法 B 里的 `static` 数组是**全局共享**的，多线程并发调用会互相覆盖，而且下一次调用会改掉上一次的结果。如果确实需要"每次返回一块独立的字符串"，那就用 `malloc` 分配，并**在文档里写清楚由调用者负责 `free`**——把所有权交给谁，一定要写明白，否则就是内存泄漏的源头。
 
 #### FLP32-C：避免精度丢失导致的意外行为
 
@@ -1786,6 +1784,7 @@ pc-lint -MISRA(2012) my_code.c
 /* 这段代码有什么问题？ */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>   // strcpy
 
 void process_data(char* input) {
     char buffer[100];

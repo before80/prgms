@@ -627,23 +627,15 @@ await Bun.build({
 
 ## 5.9 代码质量工具
 
-Bun 自带格式化工具，虽然生态不如 ESLint/Prettier 丰富，但对于中小项目已经够用。
-
-### bun fmt - 代码格式化
+Bun 提供的是运行环境和包管理器，不负责替代所有格式化、lint 工具。更常见的做法是用 `bunx` 直接运行生态中的 Prettier、ESLint：
 
 ```bash
-bun fmt                # 格式化当前目录所有文件
-bun fmt ./src          # 格式化指定目录
-bun fmt --check        # 只检查，不修改（适合 CI）
+bunx prettier --write .        # 格式化当前目录
+bunx prettier --check .        # 只检查，不修改（适合 CI）
+bunx eslint .                  # 运行 ESLint
 ```
 
-### bun lint - 代码检查
-
-```bash
-bun lint               # 检查代码问题
-```
-
-> Bun 的 lint 目前还在积极开发中，规则集不如 ESLint 丰富。有复杂 lint 需求的项目建议继续使用 ESLint。
+> ⚠️ “`bun fmt`”和“`bun lint`”不是 Bun 官方内置命令。代码质量工具仍应通过 `bunx`、`bun run` 或项目依赖来调用。
 
 ---
 
@@ -823,7 +815,7 @@ Bun.serve({
 
 **WebSocket**：`server.upgrade()` 升级连接，`ws.subscribe/publish` 做 Pub/Sub 广播。
 
-**代码质量**：`bun fmt` + `bun lint`，开箱即用，虽然生态不如 ESLint/Prettier 丰富，但对简单项目足够。
+**代码质量**：用 `bunx prettier`、`bunx eslint` 等调用生态工具，而不是使用不存在的 `bun fmt`、`bun lint` 命令。
 
 学完这一章，你应该已经可以：
 - 用 Bun 跑 TypeScript 代码
