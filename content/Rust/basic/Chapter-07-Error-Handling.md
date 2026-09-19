@@ -425,14 +425,15 @@ fn main() {
     
     // 失败时，闭包会被调用
     let fail: Result<i32, &str> = Err("主方案失败");
-    let result = fail.or_else(create_backup);
+    // 注意：or_else 的闭包会收到错误值，所以要用 |_| 接收参数
+    let result = fail.or_else(|_| create_backup());
     println!("or_else 失败示例: {:?}", result);
     // 输出: 创建备用方案中...
     // 输出: or_else 失败示例: Ok(9527)
     
     // 成功时，闭包不会被调用
     let success: Result<i32, &str> = Ok(42);
-    let result = success.or_else(create_backup);
+    let result = success.or_else(|_| create_backup());
     println!("or_else 成功示例: {:?}", result);
     // 输出: or_else 成功示例: Ok(42)  （没有打印"创建备用方案中..."）
 }
@@ -1087,6 +1088,7 @@ mod tests {
 `unreachable!` 宏用于标记那些**理论上永远不应该执行到**的代码。如果代码执行到了 `unreachable!`，那说明程序已经进入了某种未定义状态——理论上不应该发生的事情发生了。
 
 ```rust
+#[derive(Debug)]
 enum TrafficLight {
     Red,
     Yellow,
@@ -1400,8 +1402,8 @@ anyhow = "1.0"
 
 然后，在代码中使用：
 
-```rust
-use anyhow::{Context, Result};
+```rust,ignore
+use anyhow::{Context, Result};   // 依赖：anyhow = "1.0"（见 7.4.1 开头的 Cargo.toml）
 use std::fs::File;
 use std::io::Read;
 
@@ -1438,7 +1440,7 @@ fn main() {
 
 `with_context` 方法是 `anyhow` 的杀手级功能——它允许你在错误"路过"的时候附加额外的上下文信息，就像是在包裹上贴上越来越详细的快递单。
 
-```rust
+```rust,ignore
 use anyhow::{Context, Result};
 
 fn level1() -> Result<()> {
@@ -1474,8 +1476,8 @@ fn main() {
 
 `anyhow::anyhow!` 宏可以快速创建一个简单的错误：
 
-```rust
-use anyhow::{anyhow, Result};
+```rust,ignore
+use anyhow::{anyhow, Result};   // 依赖：anyhow = "1.0"
 
 fn validate(age: i32) -> Result<()> {
     if age < 0 {
@@ -1552,8 +1554,8 @@ enum DatabaseError {
 
 `thiserror` 让你用最少的代码写出专业的错误类型：
 
-```rust
-use thiserror::Error;
+```rust,ignore
+use thiserror::Error;   // 依赖：thiserror = "1.0"（见 7.4.2 开头的 Cargo.toml）
 use std::fmt;
 
 // 定义应用错误
@@ -1622,8 +1624,8 @@ fn main() {
 - `transparent` 表示直接转发底层错误，不添加额外消息
 - `#[from]` 属性自动生成 `From` trait 实现，方便 `?` 操作符
 
-```rust
-use thiserror::Error;
+```rust,ignore
+use thiserror::Error;   // 依赖：thiserror = "1.0"
 
 // 定义一个包含嵌套错误的类型
 #[derive(Debug, Error)]

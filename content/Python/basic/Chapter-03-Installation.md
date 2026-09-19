@@ -130,15 +130,26 @@ cursor = conn.cursor()
 
 #### `pathlib` 模块增强
 
+`pathlib` 在 3.14 里补齐了几块长期缺失的能力，正好补上"标准库里的 `os.path`/`shutil` 与 `Path` 之间来回横跳"的尴尬。注意 `suffix`、`stem`、`parent` 这些属性**很早就有了**，不要误以为它们是新特性。
+
 ```python
 from pathlib import Path
 
-# Python 3.14 中 pathlib 的新方法
-p = Path("example.txt")
-# 新增的方法让路径操作更流畅
-print(p.suffix)        # .txt
-print(p.stem)          # example
-print(p.parent.name)   # 上级目录名
+# 这些老属性一直都在，随时能用（不是 3.14 的新东西）
+print(Path("example.txt").suffix)       # .txt
+print(Path("example.txt").stem)         # example
+print(Path("example.txt").parent.name)  # 上级目录名
+
+# Python 3.14 真正给 pathlib 加的是这些：
+src = Path("a.txt")
+# 1. copy()/move()：复制与移动文件，语义对标 shutil.copy2/shutil.move
+src.copy("b.txt")        # 复制（保留元数据）
+src.move("c.txt")        # 移动/改名
+# 2. info 属性：集中暴露 stat 信息，跨平台、无需再拼 os.stat
+print(src.info.size, src.info.mtime)   # 文件大小、修改时间
+# 3. walk()（3.12 起）：自顶向下遍历目录树，替代 os.walk
+for root, dirs, files in Path(".").walk():
+    print(root, len(dirs), len(files))
 ```
 
 ---
@@ -407,6 +418,8 @@ C:\Users\你的用户名\AppData\Local\Programs\Python\Python314\
 
 #### 3.2.5.2 输入 python --version 验证
 
+验证安装的第一件事就是让解释器自报家门。`python --version` 会打印版本号，看到它说明 Windows 已经能在 PATH 里找到解释器了。
+
 ```cmd
 C:\Users\你的用户名> python --version
 Python 3.14.0
@@ -416,6 +429,8 @@ Python 3.14.0
 > 💡 **注意大小写！** 是 `python --version`，不是 `Python --Version`，也不是 `python --VERSION`。Linux/macOS 命令行是区分大小写的（Windows 文件系统虽然不区分，但命令行工具名通常是区分的）。
 
 #### 3.2.5.3 输入 where python 查看安装路径
+
+`where` 是 Windows 自带的查找命令（Linux/macOS 上的对应物是 `which` 或 `type -a`）：它在 PATH 里按顺序搜索同名程序，把它们**全部**列出来。当机器上装了多个 Python 时，`where python` 能立刻告诉你现在敲 `python` 到底会跑哪一个。
 
 ```cmd
 C:\Users\你的用户名> where python
@@ -427,9 +442,11 @@ C:\Users\你的用户名\AppData\Local\Programs\Python\Python314\python.exe
 
 #### 3.2.5.4 输入 pip --version 验证 pip 安装
 
+`pip --version` 除了版本号，还会打印出 pip 自己所在的位置。这一行信息非常关键：它直接暴露了"这个 pip 属于哪个 Python 环境"，是排查"包装到别处去了"的第一手线索。
+
 ```cmd
 C:\Users\你的用户名> pip --version
-pip 24.x from C:\Users\你的用户名\AppData\Local\Programs\Python\Python314\lib\site-packages\pip (Python 3.14)
+pip 26.x from C:\Users\你的用户名\AppData\Local\Programs\Python\Python314\lib\site-packages\pip (Python 3.14)
 # pip 也成功安装了！
 ```
 
@@ -716,11 +733,13 @@ brew update
 
 #### 3.3.3.3 安装 Python 3.14：brew install python@3.14
 
+Homebrew 里的 Python 是按大版本号分装的（`python@3.14`、`python@3.13`……），这样多个版本可以共存。装完它会被链接到 `/opt/homebrew/bin`（Intel Mac 上是 `/usr/local/bin`），但**不会**去抢占系统的 `python3`。
+
 ```bash
 brew install python@3.14
 ```
 
-Homebrew 会自动下载 Python 3.14 以及它的所有依赖项。下载和编译需要一些时间（Homebrew 从源码编译软件），可以泡杯咖啡等着。
+Homebrew 会自动下载 Python 3.14 以及它的所有依赖项。绝大多数情况下它下载的是官方预先编译好的 **bottle**（二进制包），解压即用、几秒到几十秒就完事；只有在你的系统版本太新/太旧、没有现成 bottle 时，Homebrew 才会退化成从源码编译（那时候确实要等上十几分钟）。
 
 ```bash
 # 看到类似这样的输出就说明安装成功了：
@@ -731,6 +750,8 @@ Homebrew 会自动下载 Python 3.14 以及它的所有依赖项。下载和编�
 
 #### 3.3.3.4 验证：python3 --version 和 pip3 --version
 
+Homebrew 装置完成后默认只提供 `python3.14` 这个带版本号的命令，`python3` 一般也已经指向它；`pip3` 同理。如果 `python3 --version` 显示的还是系统自带版本，多半是 PATH 顺序问题，而不是没装上。
+
 ```bash
 # 验证 Python 版本
 python3 --version
@@ -738,7 +759,7 @@ Python 3.14.0
 
 # 验证 pip 版本
 pip3 --version
-pip 24.x from /opt/homebrew/lib/python3.14/site-packages (python 3.14)
+pip 26.x from /opt/homebrew/lib/python3.14/site-packages (python 3.14)
 ```
 
 > 🎉 **完美！** Homebrew 安装的 Python 3.14 可以通过 `python3` 和 `pip3` 命令使用了！
@@ -883,6 +904,8 @@ file $(which python3)
 ```
 
 #### 3.3.5.4 验证架构：uname -m
+
+`uname -m` 打印的是当前机器的硬件架构：Apple Silicon 是 `arm64`，Intel Mac 是 `x86_64`。这条信息决定了你该下载哪种架构的安装包——Apple Silicon 上跑 x86_64 程序要靠 Rosetta 2 转译，能跑但会慢，也没必要。
 
 ```bash
 # 在终端输入：
@@ -1095,7 +1118,7 @@ make -j$(nproc)
 sudo make altinstall
 ```
 
-### 3.4.1.5 make altinstall 的重要性（永远不要用 make install）
+#### 3.4.1.5 make altinstall 的重要性（永远不要用 make install）
 
 > ⚠️ **这是整章最重要的一个提示！请认真阅读！**
 
@@ -1121,7 +1144,9 @@ sudo make altinstall
 # /usr/bin/python3 保持不变，仍然是系统 Python
 ```
 
-### 3.4.1.6 验证安装
+#### 3.4.1.6 验证安装
+
+源码编译安装时用 `altinstall`，命令名会带版本后缀（`python3.14`），所以验证时也要带上后缀。顺手确认 `python3.14 -m pip --version` 能用，说明 pip 也一起装好了。
 
 ```bash
 # 查看版本（注意有版本后缀）
@@ -1130,7 +1155,7 @@ Python 3.14.0
 
 # 验证 pip
 python3.14 -m pip --version
-pip 24.x from /usr/local/lib/python3.14/site-packages (python 3.14)
+pip 26.x from /usr/local/lib/python3.14/site-packages (python 3.14)
 
 # 进入交互模式
 python3.14
@@ -1147,6 +1172,8 @@ CentOS、RHEL（Red Hat Enterprise Linux）和 Fedora 都是基于 Red Hat 的�
 
 #### 3.4.2.1 安装开发工具
 
+编译 Python 之前先准备好编译工具链：RHEL/CentOS/Fedora 系用 `dnf groupinstall "Development Tools"`（CentOS 7 上换成 `yum`），Debian/Ubuntu 系则是 `apt install build-essential`。没有这一步，`./configure` 或 `make` 会在半路报一堆看不懂的错。
+
 ```bash
 # CentOS/RHEL 8+ 或 Fedora：
 sudo dnf groupinstall -y "Development Tools"
@@ -1156,6 +1183,8 @@ sudo yum groupinstall -y "Development Tools"
 ```
 
 #### 3.4.2.2 安装依赖库
+
+除了编译器，Python 还需要一堆**开发库**（带 `-devel`/`-dev` 后缀的那些）：`zlib` 管压缩，`openssl` 管 HTTPS，`readline` 管交互式补全，`libffi` 管 `ctypes`。漏装哪一个，对应的标准库模块就会被静默跳过——`make` 后面那几行 "The necessary bits to build these optional modules were not found" 就是在提醒你这一点。
 
 ```bash
 sudo dnf install -y \
@@ -1180,6 +1209,8 @@ sudo dnf install -y \
 ```
 
 #### 3.4.2.3 编译安装步骤
+
+自己编译 CPython 永远是这四步：下载源码、解压、`./configure`、`make` 加 `make altinstall`。`--enable-optimizations` 会启用 PGO 优化（运行测试程序来指导编译），能让解释器快一些，代价是编译时间明显变长。
 
 ```bash
 # 同样是四步走：
@@ -1220,16 +1251,20 @@ yay -S python314
 
 #### 3.4.4.1 make install：覆盖系统 Python（危险！）
 
+`make install` 和 `make altinstall` 的差别只有一行命令，后果却完全不同：前者会把 `python3`、`pip3` 这些**不带版本号的命令**一起装进去，从而"顶替"系统原有的解释器。在 Linux 上，这是新手最容易把系统折腾坏的操作之一。
+
 ```bash
-# 绝对不要这样做！
+# 不要在系统 Python 的源码目录里这样做
 sudo make install
-# 这会把 Python 安装到 /usr/local/bin/
-# 如果 /usr/local/bin 在你的 PATH 中比 /usr/bin 更靠前
-# 那么 python 和 python3 命令就会被替换成新版本
-# 后果：apt、dpkg、unattended-upgrades 等系统工具可能全部挂掉！
+# 这会把 Python 装进 /usr/local/bin/
+# 而 /usr/local/bin 通常排在 /usr/bin 前面，于是 python3 命令被换成了新版本
+# 系统自带的脚本大多直接写死 /usr/bin/python3，所以未必马上出事，
+# 但任何依赖 PATH 里 python3 的工具都可能开始报错，且极难排查
 ```
 
 #### 3.4.4.2 make altinstall：安装为 python3.14（安全）
+
+`make altinstall` 的规则很简单：只创建带完整版本号的命令（`python3.14`、`pip3.14`），绝不碰 `python3`。要指定版本时明确写出来，就永远不会误伤系统工具——这是自己编译 Python 时应该养成的唯一习惯。
 
 ```bash
 # 正确做法！
@@ -1239,6 +1274,8 @@ sudo make altinstall
 ```
 
 #### 3.4.4.3 为什么系统包管理器依赖系统 Python？
+
+Ubuntu/Debian 的包管理工具链里，很多脚本是用 Python 写的，而且直接写死了 `/usr/bin/python3` 这个路径。它们依赖的正是"系统 Python 里装了哪些包"这一既定事实——所以往里乱装包、或者把它替换成另一个版本，都可能让 apt、dpkg 这类基础工具出问题。
 
 ```
 Ubuntu/Debian 的软件包管理系统架构：
@@ -1391,7 +1428,7 @@ Python 3.14.0
 
 # pip 也已经包含在内
 pip --version
-pip 24.x
+pip 26.x
 ```
 
 > 🎉 **太棒了！** 在 Termux 里安装 Python 就是这么简单，全程只需要几个命令！

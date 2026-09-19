@@ -215,6 +215,8 @@ print(15 >> 2)   # 3 —— 15 / 4 = 3.75，向下取整得 3
 
 #### 12.2.1.4 bit_length()、to_bytes()、from_bytes()
 
+`bit_length()` 看二进制有几位，`to_bytes()` / `from_bytes()` 负责整数与字节序列的互转。
+
 ```python
 # bit_length()：返回整数的二进制表示的位数
 x = 15
@@ -320,6 +322,8 @@ Python 原生支持**复数**（complex number），妈妈再也不用担心我�
 
 #### 12.2.3.1 复数创建：3 + 4j
 
+Python 直接用 `j` 表示虚部单位（不是数学课本上的 `i`）。
+
 ```python
 # 复数的创建：使用 j（不是 i！）
 z = 3 + 4j
@@ -336,6 +340,8 @@ print(pure_img)     # 5j
 ```
 
 #### 12.2.3.2 .real、.imag、conjugate()
+
+复数有三个常用成员：`real`、`imag`，以及取共轭的 `conjugate()`。
 
 ```python
 z = 3 + 4j
@@ -395,6 +401,8 @@ print(float(price1) + float(price2))  # 0.30000000000000004
 
 #### 12.2.4.2 精度控制
 
+`decimal` 用十进制浮点做精确计算，适合金额等不能出现二进制误差的场景。
+
 ```python
 from decimal import Decimal, getcontext
 
@@ -451,6 +459,8 @@ print(Fraction(math.pi).limit_denominator(1000))
 
 #### 12.2.6.1 数值函数（ceil、floor、sqrt、pow、exp、log 等）
 
+`math` 模块提供常用的数值函数，注意它们大多只接受浮点数。
+
 ```python
 import math
 
@@ -495,6 +505,8 @@ print(math.trunc(-3.9))   # -3 —— 向0取整
 
 #### 12.2.6.2 常量（pi、e、tau、inf、nan）
 
+`math` 里还有一组数学常量，比手写近似值更准确。
+
 ```python
 import math
 
@@ -506,6 +518,8 @@ print(math.nan)   # nan —— 不是一个数
 ```
 
 #### 12.2.6.3 三角函数
+
+三角函数吃的是弧度，所以经常要先做角度到弧度的换算。
 
 ```python
 import math
@@ -542,6 +556,8 @@ print(math.tanh(1))    # 0.7615941559557649
 
 #### 12.2.7.1 基本随机数（random、randint、uniform 等）
 
+`random` 生成的是伪随机数，实验要复现时记得先 `seed()`。
+
 ```python
 import random
 
@@ -559,6 +575,8 @@ print(random.randrange(0, 101, 2))  # 随机偶数，0到100之间
 ```
 
 #### 12.2.7.2 随机选择与打乱（choice、sample、shuffle 等）
+
+除了生成数值，`random` 还能随机挑选、抽样和原地打乱。
 
 ```python
 import random
@@ -585,6 +603,8 @@ print(random.choices(range(1, 7), weights=weights, k=10))
 ```
 
 #### 12.2.7.3 随机分布（gauss、expovariate 等）
+
+需要特定分布时用这些函数，例如正态分布 `gauss`、指数分布 `expovariate`。
 
 ```python
 import random
@@ -668,6 +688,8 @@ print(statistics.geometric_mean(data)) # 几何平均数
 
 #### 12.3.1.1 列表创建（[]、list()、列表推导式）
 
+列表可以用字面量、`list()` 或推导式三种方式创建。
+
 ```python
 # 方法1：直接用方括号
 empty = []
@@ -686,6 +708,8 @@ evens = [x for x in range(10) if x % 2 == 0]  # [0, 2, 4, 6, 8]
 ```
 
 #### 12.3.1.2 索引访问与切片
+
+列表支持正向/反向索引与切片，切片返回的是新列表。
 
 ```python
 fruits = ["苹果", "香蕉", "橘子", "葡萄", "西瓜"]
@@ -712,6 +736,8 @@ print(fruits[1:2])  # ['香蕉'] —— 只取索引1，不包括索引2
 > 💡 记住切片公式：`list[start:stop:step]`，其中 `start` 包含，`stop` 不包含！
 
 #### 12.3.1.3 增删改操作（append、insert、pop、remove、del）
+
+增删改的常用方法：`append`、`insert`、`pop`、`remove`，以及 `del` 语句。
 
 ```python
 nums = [1, 2, 3]
@@ -748,6 +774,8 @@ print(nums)
 ```
 
 #### 12.3.1.4 排序（sort、sorted、reverse）
+
+`sort()` 原地排序，`sorted()` 返回新列表，`reverse()` 就地翻转。
 
 ```python
 numbers = [3, 1, 4, 1, 5, 9, 2, 6]
@@ -844,6 +872,8 @@ print(char_count)  # {'h': 1, 'e': 1, 'l': 2, 'o': 1}
 
 #### 12.3.1.7 性能分析：append O(1)、insert O(n) 等
 
+了解各操作的复杂度，能帮你避开「在循环里 insert」这类性能陷阱。
+
 ```python
 # 时间复杂度分析
 # O(1) - 常数时间：不管数据多大，操作时间不变
@@ -872,6 +902,8 @@ lst.sort()          # O(n log n) —— 最好的比较排序算法
 ### 12.3.2 tuple（元组）—— 不可变的序列
 
 #### 12.3.2.1 元组创建与索引
+
+元组用小括号创建；单个元素的元组必须写成 `(42,)`，关键是那个逗号。
 
 ```python
 # 创建元组
@@ -915,6 +947,8 @@ print(t)  # (1, [2, 3, 99], 4)
 > 3. **语义明确**：向其他程序员声明"这些数据不应该被改变"
 
 #### 12.3.2.3 命名元组（namedtuple）
+
+`namedtuple` 让元组字段可以按名字访问，兼顾可读性与不可变性。
 
 ```python
 from collections import namedtuple
@@ -994,6 +1028,8 @@ print(b)  # 'o'
 
 #### 12.3.3.1 range(start, stop, step)
 
+`range` 是左闭右开区间，第三个参数是步长。
+
 ```python
 # range(start, stop, step)
 # 注意：是左闭右开区间 [start, stop)
@@ -1031,6 +1067,8 @@ print(big_range[100])  # 100 —— 但只占用极少的内存
 
 #### 12.3.3.3 range 与 list 互转
 
+`range` 与列表可以互相转换，`list(range(5))` 得到 `[0, 1, 2, 3, 4]`。
+
 ```python
 # range 转 list
 r = range(5)
@@ -1044,6 +1082,8 @@ print(r)  # range(0, 5)
 ```
 
 #### 12.3.3.4 range 的性能优势
+
+`range` 是惰性序列，只保存起点、终点和步长，占用内存极小。
 
 ```python
 import time
@@ -1082,6 +1122,8 @@ graph LR
 
 #### 12.4.1.1 字典创建（{}、dict()、dict comprehension）
 
+字典可以用花括号字面量、`dict()` 或字典推导式创建。
+
 ```python
 # 方法1：花括号
 d1 = {}
@@ -1099,6 +1141,8 @@ print(squares)  # {0: 0, 1: 1, 2: 4, 3: 9, 4: 16}
 
 #### 12.4.1.2 键值访问（d["key"]、d.get("key")）
 
+`d[key]` 在键不存在时抛异常，`d.get(key, default)` 则返回默认值。
+
 ```python
 person = {"name": "小明", "age": 18, "city": "北京"}
 
@@ -1113,6 +1157,8 @@ print(person.get("gender", "未知"))  # 未知 —— 提供默认值
 ```
 
 #### 12.4.1.3 增删改操作
+
+字典的增删改都直接通过键操作，`del` 与 `pop` 用来删除。
 
 ```python
 d = {"name": "张三"}
@@ -1139,6 +1185,8 @@ print(d)  # {}
 ```
 
 #### 12.4.1.4 视图对象（keys、values、items）
+
+`keys()`/`values()`/`items()` 返回的是视图对象，会随字典变化而更新。
 
 ```python
 d = {"a": 1, "b": 2, "c": 3}
@@ -1191,6 +1239,8 @@ print(d)  # {([1, 2],): '嵌套列表的元组键'}
 
 #### 12.4.1.6 字典推导式
 
+字典推导式用 `键: 值` 的形式批量构造字典。
+
 ```python
 # 数字平方的字典
 squares = {x: x**2 for x in range(5)}
@@ -1209,6 +1259,8 @@ print(evens_sq)  # {2: 4, 4: 16, 6: 36}
 
 #### 12.4.1.7 合并字典（| 和 |=，Python 3.9+）
 
+Python 3.9 起可以用 `|` 合并字典，`|=` 则是原地更新。
+
 ```python
 # Python 3.9+ 的字典合并运算符
 d1 = {"a": 1, "b": 2}
@@ -1224,6 +1276,8 @@ print(d1)  # {'a': 1, 'b': 3, 'c': 4}
 ```
 
 #### 12.4.1.8 性能分析：访问/设置平均 O(1)
+
+哈希表让字典的查找与插入平均都是 O(1)，这是它最常被使用的理由。
 
 ```python
 # 字典的操作复杂度
@@ -1244,6 +1298,8 @@ for key in d:         # O(n)
 > ⚡ **为什么字典这么快？** 因为 Python 字典底层是**哈希表**。当你访问键时，Python 先计算键的哈希值，然后用哈希值直接找到存储位置，不需要遍历整个字典！
 
 #### 12.4.1.9 字典遍历顺序（Python 3.7+ 保证按插入顺序）
+
+Python 3.7 起字典保证按插入顺序遍历，这一点已经写进语言规范。
 
 ```python
 # Python 3.7+，字典保持插入顺序
@@ -1287,6 +1343,8 @@ print(dd_dict)  # defaultdict(<class 'dict'>, {'user1': {'name': '张三'}})
 
 #### 12.4.2.2 与 dict.setdefault() 的对比
 
+`defaultdict` 会自动为缺失的键生成默认值，省掉 `setdefault` 的样板代码。
+
 ```python
 # 传统 dict 的写法
 d = {}
@@ -1323,6 +1381,8 @@ print(list(d.keys()))  # ['z', 'a', 'b'] —— 有序！
 
 #### 12.4.3.2 move_to_end() 的用处
 
+`move_to_end()` 可以把某个键挪到末尾，实现 LRU 缓存时很好用。
+
 ```python
 from collections import OrderedDict
 
@@ -1342,6 +1402,8 @@ print(list(od.keys()))  # ['c', 'b', 'a']
 ### 12.4.4 Counter（计数器）
 
 #### 12.4.4.1 most_common(n)、elements()、运算操作
+
+`Counter` 专门用来计数，`most_common` 可以直接拿到出现次数最多的元素。
 
 ```python
 from collections import Counter
@@ -1370,6 +1432,8 @@ print(c1 | c2)   # Counter({'a': 3, 'b': 2}) —— 并集（取较大值）
 ### 12.4.5 ChainMap（字典链）
 
 #### 12.4.5.1 多个字典链式访问
+
+`ChainMap` 把多个字典当成一个来查，写在前面的优先命中。
 
 ```python
 from collections import ChainMap
@@ -1408,6 +1472,8 @@ print(config["language"])  # zh —— 回退到默认配置
 
 #### 12.5.1.1 集合创建（{}、set()）
 
+集合用花括号或 `set()` 创建；注意空集合只能写 `set()`，`{}` 是空字典。
+
 ```python
 # 注意：创建空集合不能用 {}，那会创建字典！
 empty_set = set()          # 空集合
@@ -1421,6 +1487,8 @@ print(from_string) # {'h', 'e', 'l', 'o'}
 ```
 
 #### 12.5.1.2 增删操作（add、remove、discard、pop）
+
+集合的增删方法有四个，注意 `remove` 与 `discard` 在「元素不存在」时的行为不同。
 
 ```python
 s = {1, 2, 3}
@@ -1442,6 +1510,8 @@ print(s)
 ```
 
 #### 12.5.1.3 集合运算（&、|、-、^）
+
+集合支持交、并、差、对称差这四种运算，运算符与对应的方法名可以互相替代。
 
 ```python
 a = {1, 2, 3, 4}
@@ -1465,6 +1535,8 @@ print(a ^ b)   # {1, 2, 5, 6}
 
 #### 12.5.1.4 集合关系判断（issubset、issuperset、isdisjoint）
 
+集合比较方法可以判断子集、超集以及两者是否互不相交。
+
 ```python
 a = {1, 2, 3}
 b = {1, 2, 3, 4, 5}
@@ -1485,6 +1557,8 @@ print(a.isdisjoint(b))  # False —— 有交集
 
 #### 12.5.1.5 集合推导式
 
+集合推导式与列表推导式写法一致，只是换成花括号，结果自动去重。
+
 ```python
 # 基本语法：{表达式 for 项目 in 可迭代对象}
 squares = {x ** 2 for x in range(10)}
@@ -1496,6 +1570,8 @@ print(evens)  # {0, 2, 4, 6, 8, 10, 12, 14, 16, 18}
 ```
 
 #### 12.5.1.6 性能分析：成员检查 O(1)
+
+集合基于哈希，成员检查平均是 O(1)，比列表逐个扫描快得多。
 
 ```python
 # 集合的成员检查是 O(1) —— 极快！
@@ -1512,6 +1588,8 @@ print(999999 in lst)  # True —— 需要遍历整个列表！
 ### 12.5.2 frozenset（不可变集合）
 
 #### 12.5.2.1 可作为字典的键
+
+`frozenset` 不可变，因此可以放进集合或作为字典的键。
 
 ```python
 # frozenset 是不可变的集合，可以作为字典的键！
@@ -1547,6 +1625,8 @@ print(set_of_frozensets)
 
 #### 12.6.1.1 bytes：不可变字节序列
 
+`bytes` 是不可变的字节序列，每个元素都是 0~255 的整数。
+
 ```python
 # bytes 是不可变的字节序列
 b = b"hello"
@@ -1566,6 +1646,8 @@ b3 = "中文".encode("utf-8")            # 字符串编码
 
 #### 12.6.1.2 bytearray：可变字节序列
 
+`bytearray` 与 `bytes` 的唯一区别就是可变，适合需要原地修改字节的场景。
+
 ```python
 # bytearray 是可变的字节序列
 ba = bytearray(b"hello")
@@ -1581,6 +1663,8 @@ print(ba)            # bytearray(b'Hello world!')
 ```
 
 #### 12.6.1.3 bytes 与 str 的转换
+
+str 与 bytes 之间靠 `encode()` / `decode()` 转换。
 
 ```python
 # str -> bytes：编码（encode）
@@ -1605,6 +1689,8 @@ print(b.hex())  # e4bda0e5a5bd
 
 #### 12.6.2.1 type() 查看类型
 
+`type()` 返回对象所属的类型。
+
 ```python
 print(type(42))          # <class 'int'>
 print(type(3.14))        # <class 'float'>
@@ -1617,6 +1703,8 @@ print(type(None))        # <class 'NoneType'>
 ```
 
 #### 12.6.2.2 isinstance() 类型检查
+
+`isinstance()` 会考虑继承关系，是类型检查的推荐做法。
 
 ```python
 # isinstance() 是最推荐的类型检查方式
@@ -1632,6 +1720,8 @@ print(isinstance("hello", (int, str)))  # True
 ```
 
 #### 12.6.2.3 type() vs isinstance() 的区别
+
+注意 `type(True) == int` 是 `False`，但 `isinstance(True, int)` 是 `True`：布尔是整数的子类。
 
 ```python
 # type() 严格匹配类型
@@ -1652,6 +1742,8 @@ print(issubclass(bool, int))   # True —— 在 Python 中，bool 是 int 的�
 ### 12.6.3 切片对象 slice
 
 #### 12.6.3.1 s = slice(start, stop, step)
+
+`slice` 对象把「起点、终点、步长」打包起来，便于复用切片规则。
 
 ```python
 # 创建一个切片对象
@@ -1683,6 +1775,8 @@ print({k: d[k] for k in keys[s]})  # {'a': 1, 'b': 2}
 ### 12.7.1 文件打开与关闭
 
 #### 12.7.1.1 open() 函数：open(file, mode='r', encoding='utf-8')
+
+`open()` 的参数依次是路径、模式和编码，模式决定读写方式。
 
 ```python
 # 基本语法
@@ -1726,6 +1820,8 @@ f = open("file.txt", "a+")   # 读写，指针在末尾
 
 #### 12.7.1.3 编码：utf-8 / gbk / latin-1
 
+跨平台读写文本时始终显式写 `encoding="utf-8"`，避免踩到系统默认编码。
+
 ```python
 # 推荐使用 UTF-8（万国码）
 f = open("file.txt", "r", encoding="utf-8")
@@ -1759,12 +1855,16 @@ with open("test.txt", "r", encoding="utf-8") as f:
 
 ### 12.7.2 文件读取
 
+下面依次看几种读取方式，先准备好一个样本文件。
+
 ```python
 with open("sample.txt", "w", encoding="utf-8") as f:
     f.write("第一行\n第二行\n第三行\n第四行\n")
 ```
 
 #### 12.7.2.1 read()：读取全部
+
+`read()` 一次读入整个文件；文件很大时不要这么用。
 
 ```python
 with open("sample.txt", "r", encoding="utf-8") as f:
@@ -1779,6 +1879,8 @@ with open("sample.txt", "r", encoding="utf-8") as f:
 
 #### 12.7.2.2 readline()：读取一行
 
+`readline()` 每次读一行，返回的内容包含行尾换行符。
+
 ```python
 with open("sample.txt", "r", encoding="utf-8") as f:
     line1 = f.readline()
@@ -1789,6 +1891,8 @@ with open("sample.txt", "r", encoding="utf-8") as f:
 ```
 
 #### 12.7.2.3 readlines()：读取所有行
+
+`readlines()` 一次读入所有行，返回一个列表。
 
 ```python
 with open("sample.txt", "r", encoding="utf-8") as f:
@@ -1803,6 +1907,8 @@ with open("sample.txt", "r", encoding="utf-8") as f:
 ```
 
 #### 12.7.2.4 迭代读取：for line in f
+
+直接迭代文件对象是最推荐的方式：逐行读取，内存占用固定。
 
 ```python
 # 最推荐的读取方式——逐行迭代
@@ -1821,6 +1927,8 @@ with open("sample.txt", "r", encoding="utf-8") as f:
 
 #### 12.7.3.1 write()：写入字符串
 
+`write()` 不会自动加换行，需要自己写 `\n`。
+
 ```python
 with open("output.txt", "w", encoding="utf-8") as f:
     f.write("Hello, world!\n")  # 写入字符串（注意手动加换行）
@@ -1830,6 +1938,8 @@ with open("output.txt", "w", encoding="utf-8") as f:
 
 #### 12.7.3.2 writelines()：写入多行
 
+`writelines()` 接收字符串序列依次写入，同样不会补换行。
+
 ```python
 lines = ["第一行\n", "第二行\n", "第三行\n"]
 
@@ -1838,6 +1948,8 @@ with open("output.txt", "w", encoding="utf-8") as f:
 ```
 
 #### 12.7.3.3 print() 输出到文件
+
+`print()` 加上 `file=` 参数就能写进文件，还顺手处理了换行。
 
 ```python
 with open("output.txt", "w", encoding="utf-8") as f:
@@ -1851,6 +1963,8 @@ with open("output.txt", "w", encoding="utf-8") as f:
 
 #### 12.7.4.1 tell()：当前位置
 
+`tell()` 返回当前的读写位置。
+
 ```python
 with open("sample.txt", "r", encoding="utf-8") as f:
     print(f.read(5))   # 读5个字符
@@ -1859,6 +1973,8 @@ with open("sample.txt", "r", encoding="utf-8") as f:
 ```
 
 #### 12.7.4.2 seek()：移动指针
+
+`seek()` 用来移动读写位置，文本模式下建议只相对文件开头定位。
 
 ```python
 with open("sample.txt", "r", encoding="utf-8") as f:
@@ -1882,6 +1998,8 @@ with open("sample.txt", "r", encoding="utf-8") as f:
 
 #### 12.7.5.1 Path() 创建路径对象
 
+`pathlib.Path` 用对象表示路径，是现在处理文件路径的首选方式。
+
 ```python
 from pathlib import Path
 
@@ -1896,6 +2014,8 @@ print(p)  # docs\chapter12.md
 
 #### 12.7.5.2 路径拼接：Path() / / operator
 
+路径拼接用 `/` 运算符，Windows 与 Unix 都能正确工作。
+
 ```python
 from pathlib import Path
 
@@ -1909,6 +2029,8 @@ docs = base.joinpath("Documents", "Python", "chapter12.md")
 ```
 
 #### 12.7.5.3 读取写入：read_text() / write_text()
+
+`read_text()` / `write_text()` 把「打开、读写、关闭」三步合为一步。
 
 ```python
 from pathlib import Path
@@ -1928,6 +2050,8 @@ data = p.read_bytes()
 
 #### 12.7.5.4 路径检查：exists() / is_file() / is_dir()
 
+这几个方法用来判断路径是否存在、是文件还是目录。
+
 ```python
 from pathlib import Path
 
@@ -1945,6 +2069,8 @@ print(d.is_file())   # False
 ```
 
 #### 12.7.5.5 目录操作：mkdir() / rmdir() / iterdir()
+
+`Path` 也能创建和遍历目录，不必再回到 `os` 模块的函数。
 
 ```python
 from pathlib import Path
@@ -1976,6 +2102,8 @@ p.unlink()  # 删除文件
 
 #### 12.7.6.1 copy() / copy2() / copyfile()
 
+`shutil` 提供文件复制：`copy` 保留权限，`copy2` 连时间戳一起保留。
+
 ```python
 import shutil
 from pathlib import Path
@@ -1997,6 +2125,8 @@ shutil.copyfile("source.txt", "test_folder/dest3.txt")
 
 #### 12.7.6.2 move() / rename()
 
+移动文件用 `shutil.move()`，重命名用 `Path.rename()`。
+
 ```python
 import shutil
 from pathlib import Path
@@ -2014,6 +2144,8 @@ shutil.move("file.txt", "subfolder/file.txt")
 ```
 
 #### 12.7.6.3 remove() / rmtree()
+
+删除单个文件用 `remove()`，删除整棵目录树用 `rmtree()`，后者要格外小心。
 
 ```python
 import shutil

@@ -14,6 +14,8 @@ draft = false
 
 ## 16.1 抽象类
 
+> 📌 **本章代码的组织方式**：抽象类/接口的例子天然是"一个父类型 + 若干实现类"，因此本章会出现多个代码块互相引用的写法。请把它们视为**同一个目录下的一组 `.java` 文件**，一起编译运行。
+
 ### 什么抽象类？先别被名字吓到
 
 **抽象类**（Abstract Class）是什么？说白了，它就是一个"不完整的类"。就像你设计一辆汽车的图纸，图纸上可能只画了"这里放发动机"、"这里放方向盘"，但具体发动机长什么样、方向盘什么形状，图纸上并没有画出来——因为那不是你的职责，你只管设计汽车的"架子"。
@@ -374,8 +376,8 @@ public final class Teacher implements Person {
     }
 }
 
-// sealed 类：只能被指定的类继承
-public sealed class Student implements Person {
+// sealed 类：只能被指定的类继承（sealed 必须写明 permits）
+public sealed class Student implements Person permits HighSchoolStudent {
     private String name;
     private int grade;
 
@@ -677,7 +679,8 @@ public interface Calculator {
 
 如果你的接口有两个抽象方法，加了 `@FunctionalInterface` 注解后会编译报错：
 
-```java
+```java,ignore
+// ❌ 下面这个接口编译不过：@FunctionalInterface 要求"有且只有一个抽象方法"
 @FunctionalInterface
 public interface InvalidInterface {
     void method1();
@@ -827,8 +830,9 @@ import java.util.function.*;
 public class CheatSheet {
     public static void main(String[] args) {
         // ===== 生产者 =====
-        Supplier<int[]> emptyArray = int[]::new;  // 无参构造
-        int[] arr = emptyArray.get();  // 创建空数组
+        // 数组构造器引用需要"长度"参数，所以对应的是 IntFunction 而不是 Supplier
+        IntFunction<int[]> makeArray = int[]::new;
+        int[] arr = makeArray.apply(5);  // 创建一个长度为 5 的 int 数组
 
         // ===== 消费者 =====
         Consumer<String> print = System.out::println;

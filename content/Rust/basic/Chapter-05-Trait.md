@@ -172,15 +172,18 @@ struct Coffee {
 // 为 Water 实现 Describable
 impl Describable for Water {
     fn describe(&self) -> String {
-        if self.temperature < 0.0 {
-            "冰块警告！".to_string()
+        let desc = if self.temperature < 0.0 {
+            "冰块警告！"
         } else if self.temperature < 30.0 {
             "凉白开，养生首选"
         } else if self.temperature < 60.0 {
             "温水，暖胃"
         } else {
             "热水，烫嘴预警"
-        }.to_string()
+        };
+        // ⚠️ 注意：不能把 `.to_string()` 直接写在 `}` 后面（写成 `} else { ... }.to_string()`），
+        // 因为方法调用只会绑定到最后一个 else 块，导致各分支类型不一致。
+        desc.to_string()
     }
 }
 
@@ -204,7 +207,7 @@ fn main() {
     println!("咖啡: {}", coffee.describe());
     // 打印结果:
     // 水: 温水，暖胃
-    // 咖啡: 咖啡因250毫克，今晚别想睡了
+    // 咖啡：浓郁度7级，咖啡因250毫克，今晚别想睡了
 }
 ```
 
@@ -213,6 +216,16 @@ fn main() {
 当你在泛型函数中使用 trait 约束时，Rust 会在编译时为每种具体类型生成专门的代码。这种方式叫做**静态分发（Static Dispatch）**——因为具体调用哪个实现，在编译阶段就决定了，没有运行时的查找开销。
 
 ```rust
+// 假设前面已经定义好这两个 trait（本节只展示约束的写法）
+trait Greeting {
+    fn say_hello(&self) -> String;
+    fn say_goodbye(&self) -> String;
+}
+
+trait Printable {
+    fn format(&self) -> String;
+}
+
 // T: Greeting 是一个 trait 约束
 // 意思是："T 必须实现了 Greeting 这个 trait"
 fn print_greeting<T: Greeting>(item: &T) {
@@ -252,6 +265,12 @@ impl Greeting for Robot {
         format!("再见，人类！{}下线了", self.name)
     }
 }
+impl Printable for Robot {
+    fn format(&self) -> String {
+        format!("机器人档案：{}", self.name)
+    }
+}
+
 
 fn main() {
     let robot = Robot { name: "R2-D2".to_string() };
@@ -386,7 +405,9 @@ fn main() {
 有时候在你的自定义实现中，你可能想调用默认方法，然后再做一些额外的事情。这种情况下，你可以在 impl 块中使用 `<Type as Trait>::method()` 语法来显式调用默认实现。
 
 ```rust
-trait Printable {
+// 注意：默认实现里用到了 `format!("{:?}", self)`，所以这里要声明
+// `Debug` 作为 supertrait，否则会报 E0277 "`Self` doesn't implement `Debug`"。
+trait Printable: std::fmt::Debug {
     fn format(&self) -> String {
         // 默认实现就是简单粗暴的 Debug 格式
         format!("{:?}", self)
@@ -398,6 +419,7 @@ trait Printable {
     }
 }
 
+#[derive(Debug)]
 struct Book {
     title: String,
     pages: u32,
@@ -428,6 +450,8 @@ fn main() {
 在 Rust 中，trait 可以"继承"其他 trait。这意味着如果你想让类型实现子 trait，它必须同时实现所有父 trait。这就像是你发布了一个"高级厨师"的职位描述，但其中写着"必须先有厨师资格证"——想要高级职位？先把基础要求满足了。
 
 #### 5.1.4.1 trait Sub: Base 语法
+
+父 trait 可以写在自己定义的后方，实现子 trait 的类型必须同时实现父 trait 的全部方法。
 
 ```rust
 // 父 trait：基础能力
@@ -484,6 +508,15 @@ fn main() {
 当你在泛型中使用继承了其他 trait 的 trait 时，你需要列出完整的约束。
 
 ```rust
+// 接续上一节：假设 CanRead / CanWrite 已经定义好
+trait CanRead {
+    fn read(&self) -> String;
+}
+
+trait CanWrite {
+    fn write(&self, content: &str) -> String;
+}
+
 // 继续上面的例子，加入更多层级
 trait CanSpeak: CanRead {
     fn speak(&self) -> String;
@@ -948,6 +981,8 @@ fn main() {
 
 #### 5.2.2.1 Display trait 定义
 
+`Display` 只有一个方法 `fmt`，它把值写进 `Formatter`；实现之后就能用 `{}` 打印。
+
 ```rust
 pub trait Display {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error>;
@@ -1056,6 +1091,8 @@ fn main() {
 Clone 是 Rust 中用于创建"完整副本"的 trait。如果你需要复制一个值的所有权，而不只是借用，Clone 就是你的好帮手。
 
 #### 5.2.3.1 Clone trait 定义
+
+`Clone` 提供显式的 `clone` 方法，是「复制出一个新值」的通用接口。
 
 ```rust
 pub trait Clone {
@@ -1170,6 +1207,8 @@ fn main() {
 Copy 是 Rust 中一个"神奇"的 trait —— 它没有方法，只是一个标记 trait（marker trait）。实现了 Copy 的类型，在赋值时会发生"按位复制"，不需要显式调用任何方法，这种复制对用户来说是完全隐式的。
 
 #### 5.2.4.1 Copy trait 定义
+
+`Copy` 是一个标记 trait，它继承自 `Clone`，表示按位复制即可安全地得到副本。
 
 ```rust
 pub trait Copy: Clone {}
@@ -1329,6 +1368,8 @@ Drop trait 让你在值离开作用域前执行一些清理工作，比如释放
 
 #### 5.2.5.1 Drop trait 定义
 
+`Drop` 只有一个 `drop` 方法，在值离开作用域时被自动调用。
+
 ```rust
 pub trait Drop {
     fn drop(&mut self);
@@ -1482,6 +1523,8 @@ Default trait 提供了一个创建"默认值"的方式。这在你需要初始�
 
 #### 5.2.6.1 Default trait 定义
 
+`Default` 提供无参构造，`Default::default()` 造出该类型的「默认值」。
+
 ```rust
 pub trait Default {
     fn default() -> Self;
@@ -1587,6 +1630,8 @@ From trait 定义了类型之间的转换关系。如果你能从类型 A 转换
 
 #### 5.2.7.1 From trait 定义
 
+`From` 定义「从另一种类型构造自己」，是整个转换生态的基石。
+
 ```rust
 pub trait From<T> {
     fn from(value: T) -> Self;
@@ -1597,52 +1642,46 @@ pub trait From<T> {
 
 #### 5.2.7.2 From 实现举例
 
+标准库已经为常用类型写好了大量 `From` 实现，下面只是其中的几个例子。
+
 ```rust
-// 1. 从 String 到 String（其实不需要，但可以展示）
-impl From<String> for String {
-    fn from(s: String) -> String {
-        s
-    }
-}
+// ⚠️ 下面这些 From 实现标准库都已经提供了，比如：
+//     impl From<&str> for String
+//     impl From<i32> for f64
+//     impl From<[T; N]> for Vec<T>
+// 而且根据「孤儿规则」(orphan rule)，我们也不能在外部 crate 里
+// 为「标准库类型 × 标准库 trait」写实现，否则会报 E0117。
+// 想自定义转换，只能为「本地定义的类型」实现 From：
 
-// 2. 从 &str 到 String
-impl From<&str> for String {
-    fn from(s: &str) -> String {
-        String::from(s)
-    }
-}
+#[derive(Debug)]
+struct Celsius(f64);   // 摄氏度
 
-// 3. 从 i32 到 f64
-impl From<i32> for f64 {
-    fn from(n: i32) -> f64 {
-        n as f64
-    }
-}
-
-// 4. 从数组到 Vec
-impl From<[i32; 3]> for Vec<i32> {
-    fn from(arr: [i32; 3]) -> Vec<i32> {
-        vec![arr[0], arr[1], arr[2]]
+impl From<f64> for Celsius {
+    fn from(t: f64) -> Self {
+        Celsius(t)
     }
 }
 
 fn main() {
-    // 使用 .into() 方法，Rust 会自动推断使用哪个 From 实现
+    // 使用 .into() 时，由目标类型决定调用哪个 From 实现
     let s1: String = String::from("hello");
-    let s2: String = "world".into();
-    let n: f64 = 42.into();
-    let v: Vec<i32> = [1, 2, 3].into();
+    let s2: String = "world".into();          // &str -> String
+    let n: f64 = 42.into();                   // i32 -> f64
+    let v: Vec<i32> = [1, 2, 3].into();       // [i32; 3] -> Vec<i32>
+    let c: Celsius = 25.0.into();             // f64 -> Celsius（自定义）
 
     println!("s1 = {}", s1);
     println!("s2 = {}", s2);
     println!("n = {}", n);
     println!("v = {:?}", v);
+    println!("c = {:?}", c);
 
     // 打印结果:
     // s1 = hello
     // s2 = world
     // n = 42
     // v = [1, 2, 3]
+    // c = Celsius(25.0)
 }
 ```
 
@@ -1680,6 +1719,8 @@ fn main() {
 Into 是 From 的"镜像"，它让你可以用 `value.into()` 的方式转换类型。
 
 #### 5.2.8.1 Into trait 定义
+
+`Into` 是 `From` 的镜像；实现层面只建议手写 `From`，`Into` 会自动得到。
 
 ```rust
 pub trait Into<T> {
@@ -1721,18 +1762,22 @@ fn main() {
 
     // 通用转换
     let s: String = convert("你好");
-    let i: i32 = convert(3.14_f64);  // f64 到 i32 会截断
+    let i: i32 = convert(42_u8);  // u8 实现了 Into<i32>
+    // 注意：f64 -> i32 没有 From/Into 实现（浮点转整数可能溢出），
+    // 必须显式用 `as` 转换：let i = 3.14_f64 as i32;
     println!("s = {}, i = {}", s, i);
 
     // 打印结果:
     // hello
     // world
     // 123
-    // s = 你好, i = 3
+    // s = 你好, i = 42
 }
 ```
 
 #### 5.2.8.3 与 From 的选用原则
+
+选取原则：在自己的类型上定义转换就实现 `From`，只有在泛型约束里需要时才提 `Into`。
 
 ```text
 选 From：
@@ -1752,6 +1797,8 @@ AsRef 和 AsMut 提供了"廉价借用转换"的抽象。它们是 Rust 用来�
 
 #### 5.2.9.1 AsRef trait 定义
 
+`AsRef<T>` 表示「可以从 `&self` 借出一个 `&T`」，是比 `From` 更轻量的借用型转换。
+
 ```rust
 pub trait AsRef<T: ?Sized> {
     fn as_ref(&self) -> &T;
@@ -1761,6 +1808,8 @@ pub trait AsRef<T: ?Sized> {
 `AsRef<T>` 意味着"可以借用成 T 的引用"。注意 `?Sized` 约束允许 T 是动态大小的类型（如 str）。
 
 #### 5.2.9.2 AsMut trait 定义
+
+`AsMut<T>` 是可变借用版本，提供 `&mut T`。
 
 ```rust
 pub trait AsMut<T: ?Sized> {
@@ -1843,6 +1892,8 @@ Borrow 和 BorrowMut 类似于 AsRef/AsMut，但它们额外承诺了**哈希稳
 
 #### 5.2.10.1 Borrow trait 定义
 
+`Borrow` 的要求比 `AsRef` 更强：转出来的值必须在相等性与哈希上与原值保持一致。
+
 ```rust
 pub trait Borrow<Borrowed> {
     fn borrow(&self) -> &Borrowed;
@@ -1852,6 +1903,8 @@ pub trait Borrow<Borrowed> {
 Borrow 返回一个借用，但比 AsRef 更严格：它要求"借用的值在哈希时等于原值"。
 
 #### 5.2.10.2 BorrowMut trait 定义
+
+`BorrowMut` 是 `Borrow` 的可变版本，并且以 `Borrow` 为前提。
 
 ```rust
 pub trait BorrowMut<Borrowed>: Borrow<Borrowed> {
@@ -1892,6 +1945,8 @@ fn main() {
 
 #### 5.2.10.4 Borrow vs AsRef
 
+关键差别在于：`AsRef` 只要求能转换，`Borrow` 还额外要求哈希与相等性等价——这正是 `HashMap` 能用 `&str` 查 `String` 键的依据。
+
 ```text
 关键区别：
 - AsRef：只要求"可以转换"，不保证哈希等价
@@ -1908,7 +1963,9 @@ use std::borrow::Borrow;
 use std::hash::{Hash, Hasher};
 use std::collections::hash_map::DefaultHasher;
 
-fn hash<T: Hash>(value: &T) -> u64 {
+// 注意 `+ ?Sized`：下面会用 `&str` 调用，此时 T = str（无固定大小类型），
+// 不加 ?Sized 会报 E0277 "the size for values of type `str` cannot be known"。
+fn hash<T: Hash + ?Sized>(value: &T) -> u64 {
     let mut hasher = DefaultHasher::new();
     value.hash(&mut hasher);
     hasher.finish()
@@ -1924,8 +1981,8 @@ fn main() {
     // Borrow 保证哈希等价
 
     // 打印结果:
-    // String hash: 9835680345717941425
-    // str hash: 9835680345717941425
+    // String hash: <某个哈希值>
+    // str hash: <与上面完全相同的值>
     // 相等: true
 }
 ```
@@ -1935,6 +1992,8 @@ fn main() {
 相等性比较是 Rust 中最常用的操作之一。PartialEq 允许"部分相等"（可以有 NaN 这样的情况），Eq 则是"完全相等"。
 
 #### 5.2.11.1 PartialEq trait 定义
+
+`PartialEq` 定义 `eq`，以及默认委托给它的 `ne`，是所有比较的起点。
 
 ```rust
 pub trait PartialEq<Rhs: ?Sized = Self> {
@@ -1946,6 +2005,8 @@ pub trait PartialEq<Rhs: ?Sized = Self> {
 `PartialEq` 的"Partial"来自于数学上的"偏序关系"——它不要求自反性（a == a 在浮点数中不一定成立）。
 
 #### 5.2.11.2 #[derive(PartialEq)] 派生
+
+派生 `PartialEq` 会逐字段比较；顺便派生的 `Debug` 只负责打印。
 
 ```rust
 #[derive(PartialEq, Debug)]
@@ -2000,6 +2061,8 @@ Eq 要求 `PartialEq` 满足：
 
 #### 5.2.11.4 f32 / f64 不是 Eq 的原因
 
+`f32`/`f64` 不实现 `Eq`，因为 NaN 不等于它自己，相等性并非完全自反。
+
 ```rust
 fn main() {
     // 浮点数的 NaN 是著名的"不等于自己"
@@ -2030,6 +2093,8 @@ fn main() {
 
 #### 5.2.12.1 PartialOrd trait 定义
 
+`PartialOrd` 以 `PartialEq` 为前提，用 `Option<Ordering>` 表示「也可能无法比较」。
+
 ```rust
 pub trait PartialOrd<Rhs: ?Sized = Self>: PartialEq<Rhs> {
     fn partial_cmp(&self, other: &Rhs) -> Option<Ordering>;
@@ -2044,6 +2109,8 @@ pub trait PartialOrd<Rhs: ?Sized = Self>: PartialEq<Rhs> {
 
 #### 5.2.12.2 Ordering 枚举
 
+`Ordering` 只有三个取值：`Less`、`Equal`、`Greater`。
+
 ```rust
 pub enum Ordering {
     Less,       // self < other
@@ -2055,6 +2122,10 @@ pub enum Ordering {
 Ordering 是比较结果的枚举，用于精确表达"谁大谁小"。
 
 ```rust
+// Ordering 是 std::cmp 里的枚举：Less / Equal / Greater。
+// 这里要先导入，否则会报 E0433 "cannot find type `Ordering` in this scope"。
+use std::cmp::Ordering;
+
 fn compare<T: Ord>(a: &T, b: &T) -> Ordering {
     a.cmp(b)
 }
@@ -2081,6 +2152,8 @@ fn main() {
 ```
 
 #### 5.2.12.3 #[derive(PartialOrd)] 派生
+
+派生 `PartialOrd` 会按字段声明顺序逐层比较，前一个字段分不出胜负才比较下一个。
 
 ```rust
 #[derive(PartialOrd, PartialEq, Debug)]
@@ -2126,6 +2199,8 @@ Ord 和 PartialOrd 的区别：
 
 #### 5.2.12.5 Ord 的完全性要求
 
+`Ord` 要求全序：自反、反对称、传递，而且任意两个值都能比出大小。
+
 ```text
 Ord 要求：
 1. 自反：cmp(a, a) == Equal
@@ -2136,7 +2211,9 @@ Ord 要求：
 ```
 
 ```rust
-#[derive(Eq, PartialEq, Ord, Debug)]
+// 注意：derive(Ord) 要求同时有 PartialOrd/Eq/PartialEq，否则会报
+// "can't compare `Student` with `Student`"（E0277）。
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Student {
     name: String,
     score: u32,
@@ -2150,18 +2227,18 @@ fn main() {
         Student { name: "赵六".to_string(), score: 92 },
     ];
 
-    // 排序（按 score 降序，score 相同时按 name 升序）
-    students.sort();
+    // 排序：按 score 降序，score 相同时按 name 升序
+    students.sort_by(|a, b| b.score.cmp(&a.score).then_with(|| a.name.cmp(&b.name)));
 
     for s in &students {
         println!("{:?}", s);
     }
 
     // 打印结果:
-    // Student { name: "王五", score: 78 }
-    // Student { name: "张三", score: 85 }
     // Student { name: "李四", score: 92 }
     // Student { name: "赵六", score: 92 }
+    // Student { name: "张三", score: 85 }
+    // Student { name: "王五", score: 78 }
 }
 ```
 
@@ -2170,6 +2247,8 @@ fn main() {
 Hash trait 允许你把值哈希成一个字节序列，用于 HashMap、HashSet 等哈希数据结构的键。
 
 #### 5.2.13.1 Hash trait 定义
+
+`Hash` 把值喂给 `Hasher`；它必须与 `Eq` 保持一致，否则哈希表会找不到数据。
 
 ```rust
 pub trait Hash {
@@ -2183,6 +2262,8 @@ pub trait Hash {
 
 #### 5.2.13.2 #[derive(Hash)] 派生
 
+`Hash` 与 `Eq` 一起派生是最常见的组合；用作 `HashMap` 键时必须保证两者的语义一致。
+
 ```rust
 #[derive(Hash, Eq, PartialEq, Debug)]
 struct CacheKey {
@@ -2192,7 +2273,7 @@ struct CacheKey {
 
 fn main() {
     use std::collections::hash_map::DefaultHasher;
-    use std::hash::Hash;
+    use std::hash::{Hash, Hasher};   // Hasher 提供 finish()
 
     let key1 = CacheKey {
         namespace: "users".to_string(),
@@ -2281,6 +2362,8 @@ ToOwned 提供了从借用数据创建有所有权数据的能力，是 Clone �
 
 #### 5.2.14.1 ToOwned trait 定义
 
+`ToOwned` 定义「从借用得到拥有所有权的版本」，可以看作 `Clone` 的泛化（`Clone` 只适用于定长类型）。
+
 ```rust
 pub trait ToOwned {
     type Owned: Borrow<Self>;
@@ -2294,6 +2377,8 @@ pub trait ToOwned {
 ToOwned 允许你从 `&T` 创建 `T` 的所有者版本。
 
 #### 5.2.14.2 to_owned vs clone
+
+`to_owned()` 面向借用类型，`clone()` 要求原类型可克隆；对 `&str` 而言两者都通向 `String`，但语义来源不同。
 
 ```rust
 fn main() {
@@ -2338,6 +2423,8 @@ fn main() {
 Iterator 是 Rust 中最强大的 trait 之一，它定义了迭代器的基本行为。通过实现 Iterator，你可以让任何类型成为可迭代的。
 
 #### 5.2.15.1 Iterator trait 定义
+
+`Iterator` 的核心只有 `next`，其余几十个方法都由它派生而来。
 
 ```rust
 pub trait Iterator {
@@ -2421,7 +2508,7 @@ pub trait IntoIterator<Item = Self::Item> {
 }
 ```
 
-实现 IntoIterator 后，你就可以用 `for` 循环遍历你的类型。
+实现了 `Iterator` 之后，`for` 循环就可以直接遍历你的类型了——这背后是靠标准库为所有迭代器准备的毯式 `IntoIterator` 实现。也可以显式调用 `.into_iter()`。
 
 ```rust
 struct Fibonacci {
@@ -2446,14 +2533,11 @@ impl Iterator for Fibonacci {
     }
 }
 
-impl IntoIterator for Fibonacci {
-    type Item = u64;
-    type IntoIter = Fibonacci;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self
-    }
-}
+// ⚠️ 注意：不要自己为迭代器写 `impl IntoIterator`。
+// 标准库已经有一条毯式实现：
+//     impl<I: Iterator> IntoIterator for I
+// 你自己再写一次会直接报 E0119（实现冲突）。
+// 所以只要实现了 Iterator，上面的 for 循环就已经可用了。
 
 fn main() {
     let fib = Fibonacci::new();
@@ -2483,14 +2567,14 @@ fn main() {
 
 ```rust
 fn main() {
+    // 第一个循环会消费（move）v
     let v = vec![1, 2, 3];
-
-    // 这是
     for item in v {
         println!("{}", item);
     }
 
     // 展开后等价于：
+    let v = vec![1, 2, 3];   // 重新准备一份数据
     let mut iter = v.into_iter();
     while let Some(item) = iter.next() {
         println!("{}", item);
@@ -2626,6 +2710,8 @@ fn main() {
 
 #### 5.2.16.4 三者的继承关系
 
+`FnOnce` 是 `FnMut` 的父 trait，`FnMut` 又是 `Fn` 的父 trait；能力越弱的闭包能被越多调用方式接受。
+
 ```text
 FnOnce
   ↑
@@ -2701,7 +2787,7 @@ fn main() {
 
     // 场景2：修改捕获 -> FnMut
     let mut b = 10;
-    let fnmut_closure = || { b *= 2; b };  // FnMut
+    let mut fnmut_closure = || { b *= 2; b };  // FnMut，闭包内部修改了 b，所以变量本身必须声明为 mut
     println!("fnmut_closure(): {}", fnmut_closure());
 
     // 场景3：消耗捕获 -> FnOnce
@@ -2732,6 +2818,8 @@ fn main() {
 `dyn Trait` 是 Rust 中表示"trait 对象"的语法。它代表"实现了某个 trait 的任意类型"。
 
 #### 5.3.1.1 trait 对象定义
+
+`dyn Trait` 表示「某个实现了该 trait 的类型」，因为大小未知，通常写作 `&dyn Trait` 或 `Box<dyn Trait>`。
 
 ```rust
 // 使用 dyn Trait 作为类型
@@ -2805,7 +2893,7 @@ trait 对象内存布局：
 │  - make_sound: 0x1000 (地址)        │
 │  - ...                              │
 ├─────────────────────────────────────┤
-│  vtable for Cat:                   │
+│  vtable for Cat:                    │
 │  - make_sound: 0x2000 (地址)        │
 │  - ...                              │
 └─────────────────────────────────────┘
@@ -3091,6 +3179,22 @@ dyn Trait 使用**动态分发**：运行时通过 vtable 查找方法。
 
 ```rust
 // 动态分发：trait 对象
+// 接续上一节：这里假设 Animal / Dog / Cat 已经定义好
+trait Animal {
+    fn speak(&self) -> String;
+}
+
+struct Dog;
+struct Cat;
+
+impl Animal for Dog {
+    fn speak(&self) -> String { "汪！".to_string() }
+}
+
+impl Animal for Cat {
+    fn speak(&self) -> String { "喵~".to_string() }
+}
+
 fn animal_speak_dynamic(animal: &dyn Animal) {
     println!("{}", animal.speak());
 }
@@ -3111,6 +3215,8 @@ fn main() {
 ```
 
 #### 5.3.3.3 何时选择
+
+静态分发（泛型）适合不关心类型多样性又追求零开销的场合；动态分发则用来换取灵活性并缩小代码体积。
 
 ```text
 选择静态分发（泛型 <T: Trait>）的场景：
@@ -3234,6 +3340,26 @@ fn main() {
 `&dyn Trait` 是借用 trait 对象，不获取所有权。
 
 ```rust
+// 接续上一节：这里假设 Drawable / Circle / Square 已经定义好
+trait Drawable {
+    fn draw(&self);
+}
+
+struct Circle { x: f64, y: f64, radius: f64 }
+struct Square { x: f64, y: f64, side: f64 }
+
+impl Drawable for Circle {
+    fn draw(&self) {
+        println!("绘制圆形: 圆心({},{}), 半径{}", self.x, self.y, self.radius);
+    }
+}
+
+impl Drawable for Square {
+    fn draw(&self) {
+        println!("绘制正方形: 左上角({},{}), 边长{}", self.x, self.y, self.side);
+    }
+}
+
 fn describe(shape: &dyn Drawable) {
     // 只借用，不需要所有权
     shape.draw();
@@ -3428,9 +3554,11 @@ struct Handler;
 impl Flexible for Handler {
     fn process_boxed(&self, value: Box<dyn std::any::Any>) {
         // 可以尝试 downcast
-        if let Ok(n) = value.downcast_ref::<i32>() {
+        // 注意：`&dyn Any` 的 downcast_ref 返回 Option<&T>；
+        // 只有 `Box<dyn Any>` 的 downcast 才返回 Result<Box<T>, Box<dyn Any>>。
+        if let Some(n) = value.downcast_ref::<i32>() {
             println!("收到 i32: {}", n);
-        } else if let Ok(s) = value.downcast_ref::<String>() {
+        } else if let Some(s) = value.downcast_ref::<String>() {
             println!("收到 String: {}", s);
         }
     }

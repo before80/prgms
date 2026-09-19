@@ -20,19 +20,21 @@ draft = false
 
 ### 20.1.1 常见模型（GPT / Claude / Gemini / 通义 / 文心）
 
+> ⚠️ **先读这条**：大模型的版本号是这一章里**最容易过期**的东西。下面列出的具体型号（GPT-4、Claude 3、Gemini 1.5、Qwen-7B……）是本文写作时（2025 年初）的主流版本，属于"帮你认门"的举例，不代表今天的最强阵容。真要选模型，请以各家官网的当前列表为准。
+
 大模型的世界里，有几个响当当的名字：
 
 **GPT 系列（OpenAI）**
 
-GPT 是 Generative Pre-trained Transformer 的缩写，中文叫"生成式预训练Transformer"。它就像是班里的学霸，见多识广，什么都能聊。GPT-4 是目前最旗舰的版本，智商在线，但价格也"在线"。它的兄弟 GPT-3.5 则走性价比路线，便宜量大。
+GPT 是 Generative Pre-trained Transformer 的缩写，中文叫"生成式预训练Transformer"。它就像是班里的学霸，见多识广，什么都能聊。GPT 系列一直保持着"一代旗舰 + 一代亲民"的双线节奏：早期是 GPT-4 打头阵、GPT-3.5 走性价比；之后旗舰线又经历了 GPT-4o、GPT-4.1、o 系列推理模型，再到 GPT-5 系列。能力越强的那条线，价格一般也越"在线"。
 
 **Claude（Anthropic）**
 
-Claude 是由 Anthropic 公司打造的大模型，特色是**对齐训练**做得很好——换句话说，它更听话，更不容易"发疯"或者输出有害内容。Claude 3 系列包括 Haiku（轻量级）、Sonnet（中等）、Opus（旗舰级），名字取得很有艺术感。Claude 特别擅长写作、编程和长文本分析。
+Claude 是由 Anthropic 公司打造的大模型，特色是**对齐训练**做得很好——换句话说，它更听话，更不容易"发疯"或者输出有害内容。Claude 的命名很有意思：Haiku（俳句，轻量级）、Sonnet（十四行诗，中等）、Opus（大作，旗舰级），这套三档命名从 Claude 3 一直沿用下来（后续已迭代到更新的版本号）。Claude 特别擅长写作、编程和长文本分析。
 
 **Gemini（Google）**
 
-Google 的亲儿子，原生支持多模态（能看图、看视频、听声音）。Gemini 1.5 版本的上下文窗口可以达到 100 万 token，相当于能一口气读完一整本《战争与和平》还有余。
+Google 的亲儿子，原生支持多模态（能看图、看视频、听声音）。Gemini 1.5 的上下文窗口就已经达到 100 万 token，相当于能一口气读完一整本《战争与和平》还有余；后续几代继续沿着"超长上下文 + 多模态"这条路线走。
 
 **通义千问（阿里）**
 
@@ -88,7 +90,7 @@ Google 的亲儿子，原生支持多模态（能看图、看视频、听声音�
 
 上下文窗口是指模型一次能"看到"的最大 token 数量，包括你输入的问题和它输出的回答。如果你的输入超过了上下文窗口，模型就会"忘记"前面说过的话（严格来说是直接截断前面的内容）。
 
-GPT-4 的上下文窗口是 128K tokens（约 10 万汉字），Claude 3 Opus 是 200K tokens，Gemini 1.5 更是高达 100 万 tokens。这就好比是模型的"工作记忆"——记忆越长，能处理的任务越复杂。
+以写作时的版本为例：GPT-4 的上下文窗口是 128K tokens（约 10 万汉字），Claude 3 Opus 是 200K tokens，Gemini 1.5 Pro 甚至高达 100 万 tokens。这就好比是模型的"工作记忆"——记忆越长，能处理的任务越复杂。（各家新版本的窗口大小请查官方文档，数字一直在涨。）
 
 > 一个小技巧：如果你要处理一本 10 万字的小说，要选上下文窗口至少 10 万 token 的模型，否则模型会"记不住"前面看过的内容。
 
@@ -295,6 +297,8 @@ print(chat("那宇宙的意义呢？"))
 Claude 是 Anthropic 公司的明星产品，它和 OpenAI 的 API 风格略有不同，但 SDK 也很好用。
 
 ### 20.3.1 anthropic Python SDK
+
+Anthropic 的官方 SDK 就是 `anthropic` 这个包，客户端默认从环境变量 `ANTHROPIC_API_KEY` 读取密钥——所以代码里不应该出现明文 key。
 
 ```bash
 pip install anthropic
@@ -632,7 +636,7 @@ pip install langchain langchain-openai langchain-anthropic
 
 Prompt 模板让你不用每次都手写完整的提示词，只要准备一个"填空模板"就行：
 
-```python
+````python
 from langchain.prompts import PromptTemplate
 
 # 定义一个带变量的模板
@@ -657,7 +661,7 @@ print(prompt)
 # 请把下面的句子翻译成中文：
 # 原文：The quick brown fox jumps over the lazy dog.
 # 翻译：
-```
+````
 
 ### 20.6.3 Chain（链式调用）
 
@@ -1122,7 +1126,7 @@ response = client.chat.completions.create(
 输出：[期望结果]
 ```
 
-```python
+````python
 from langchain.prompts import PromptTemplate
 
 code_review_prompt = PromptTemplate.from_template("""【角色】你是一位资深代码审查员
@@ -1150,7 +1154,7 @@ code_review_prompt = PromptTemplate.from_template("""【角色】你是一位资
 """)
 
 prompt = code_review_prompt.format(language="python", code="print('hello')")
-```
+````
 
 ### 20.8.4 输出结构化（JSON 模式）
 
@@ -1368,7 +1372,7 @@ agent = Agent(
 
 ```mermaid
 flowchart TD
-    A[冻结的预训练权重 W] -->|+[加法] F[更新后的权重]
+    A["冻结的预训练权重 W"] -->|"+"| F["更新后的权重"]
     B[LoRA: 矩阵 A] --> C[矩阵 B]
     B --> F
     C --> F

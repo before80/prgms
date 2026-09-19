@@ -125,8 +125,8 @@ RUN apt-get update && \
 # 清理pip缓存
 RUN pip install --no-cache-dir mypackage
 
-# 清理npm缓存
-RUN npm ci --only=production && \
+# 清理npm缓存（npm 7+ 中 --only=production 已废弃，改用 --omit=dev）
+RUN npm ci --omit=dev && \
     npm cache clean --force
 
 # 清理yum缓存
@@ -151,16 +151,22 @@ node_modules/   # 如果不是构建需要
 
 ### 优化策略五：合并镜像层
 
-使用 `squash` 插件合并所有层：
+镜像层数太多时，可以用"压扁"（squash）把多层合成一层：
 
 ```bash
-# 安装squash插件
-docker plugin install docker/squash:latest
+# 方式一：docker build 自带 --squash（需要开启实验特性/使用 BuildKit）
+export DOCKER_BUILDKIT=1
+docker build --squash -t myapp:v1 .
 
-# 构建后合并层
-docker build -t myapp .
-docker squash myapp -t myapp:squashed
+# 方式二：用独立的 docker-squash 工具（无需守护进程配置）
+pip install docker-squash
+docker-squash -t myapp:squashed myapp:v1
 ```
+
+> 提醒：squash 会丢掉中间层的复用能力（其他镜像没法再共享这些层），
+> 反而可能让**总磁盘占用变大**，而且构建缓存也会失效。
+> 所以它适合"最后一层打包交付"，不适合当作日常优化手段——
+> 日常优化优先靠多阶段构建和合并 `RUN`。
 
 ### 优化策略六：使用压缩的基础镜像
 
@@ -168,12 +174,16 @@ docker squash myapp -t myapp:squashed
 # ❌ 不推荐：完整镜像
 FROM ubuntu:22.04
 
-# ✅ 推荐：slim镜像
-FROM ubuntu:22.04-slim
+# ✅ 推荐：slim镜像（注意：只有 debian、python、node 这类镜像有 slim 变体）
+FROM debian:bookworm-slim
 
 # ✅ 更推荐：alpine镜像
 FROM alpine:3.18
 ```
+
+> ⚠️ 常见误区：**Ubuntu 官方镜像并没有 `-slim` 标签**，写 `FROM ubuntu:22.04-slim` 会直接报
+> `manifest unknown` 找不到镜像。想瘦身就选 `debian:bookworm-slim` 或 `alpine`；
+> 如果非要用 Ubuntu，只能用完整的 `ubuntu:22.04`，或者自己从 `debian` 起步装需要的包。
 
 ### 镜像优化实战：Python应用
 
@@ -935,6 +945,10 @@ docker run -d --name app \
 | `--memory-swappiness` | 容器使用swap的倾向（0-100） |
 | `--oom-kill-disable` | 禁用OOM杀进程 |
 
+> ⚠️ `--oom-kill-disable` 只有在**同时设置了 `--memory`** 时才有意义，
+> 而且一旦内存真的耗尽，被"保护"的容器会和宿主机一起卡死（甚至拖垮整台机器）。
+> 生产环境一般**不要**用它，正确做法是把内存限制设得合理，再加监控告警。
+
 ### CPU限制
 
 ```bash
@@ -1008,9 +1022,13 @@ docker inspect app | grep -A 20 "HostConfig"
 ### 资源限制实战：WordPress + MySQL
 
 ```bash
+# 先建一个自定义网络，让两个容器能用容器名互相访问（不要再用已废弃的 --link）
+docker network create app-net
+
 # 启动MySQL，限制资源
 docker run -d \
     --name mysql \
+    --network app-net \
     --memory="512m" \
     --cpus="1.0" \
     -e MYSQL_ROOT_PASSWORD=secret \
@@ -1019,12 +1037,14 @@ docker run -d \
 # 启动WordPress，限制资源
 docker run -d \
     --name wordpress \
+    --network app-net \
     --memory="256m" \
     --cpus="0.5" \
-    --link mysql \
     -p 80:80 \
     wordpress:latest
 ```
+
+> WordPress 连接数据库时，把主机名填成容器名 `mysql` 即可——同一个自定义网络里的容器可以通过容器名解析到彼此。
 
 ### 资源限制最佳实践
 
@@ -1196,18 +1216,17 @@ flowchart LR
 ### 在Dockerfile中定义健康检查
 
 ```dockerfile
-# 定义健康检查
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=5s \
-    CMD curl -f http://localhost:8080/health || exit 1
-
+# 注意：FROM 必须是最前面的一条有效指令，
+# 所以健康检查要写在 FROM 之后，不能像有些教程那样写在文件开头
 FROM node:18-alpine
 
 WORKDIR /app
 COPY . .
 EXPOSE 8080
 
-# 健康检查脚本
-HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+# 健康检查脚本：返回0表示健康，返回非0表示不健康
+# 一个构建阶段里写多条 HEALTHCHECK 时，只有最后一条生效
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 --start-period=5s \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
 CMD ["node", "server.js"]
@@ -1264,12 +1283,17 @@ HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
 ```bash
 docker run -d \
     --name mysql \
-    --health-cmd="mysqladmin ping -h localhost" \
+    --health-cmd="mysqladmin ping -h 127.0.0.1" \
     --health-interval=10s \
     --health-timeout=5s \
     --health-retries=3 \
     mysql:8.0
 ```
+
+> 为什么写 `-h 127.0.0.1` 而不是 `localhost`：这里要检查的是"服务端口真的能连上"，
+> 走 TCP 更接近真实连接场景；而且 `mysqladmin ping` 只要进程活着就返回成功，
+> 要连"能登录"一起检查，可以换成
+> `--health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p$MYSQL_ROOT_PASSWORD"`。
 
 ### 健康检查与Swarm
 
@@ -1339,29 +1363,34 @@ docker run -d --name myapp \
 ### 3. 安全加固的Dockerfile
 
 ```dockerfile
-# 使用轻量基础镜像
+# 使用轻量基础镜像（Debian 系）
 FROM python:3.11-slim
 
-# 设置只读文件系统
-USER root
-RUN chmod 444 /etc/passwd
-
-# 不使用root用户
-RUN addgroup -g 1001 -S appuser && \
-    adduser -S appuser -u 1001
+# 创建非root用户
+# 注意：adduser -S 是 Alpine(busybox) 的写法，
+# 在 Debian/Ubuntu 镜像里要用 groupadd / useradd
+RUN groupadd -g 1001 appuser && \
+    useradd -u 1001 -g appuser -m -s /usr/sbin/nologin appuser
 
 WORKDIR /app
 COPY --chown=appuser:appuser . .
 
+# 安装完依赖后再切换用户
+RUN pip install --no-cache-dir -r requirements.txt
+
 USER appuser
 
-# 禁止执行shell
-RUN chmod 000 /bin/sh
-
-# 设置只读文件系统
-USER root
-CMD ["node", "app.js"]
+CMD ["python", "app.py"]
 ```
+
+> ⚠️ **千万不要照抄网上那种"加固"写法**：
+> - `chmod 444 /etc/passwd` 会让系统再也查不到用户名，很多程序直接启动失败；
+> - `chmod 000 /bin/sh` 既会破坏健康检查、`docker exec`、入口脚本，而且在切换成普通用户后
+>   根本没权限执行 `chmod`（`USER appuser` 之后再 `RUN` 会直接构建失败）；
+> - 最后再 `USER root` 更是把前面的非 root 设计全部作废。
+>
+> 真正有用的加固做法是：**用非 root 用户运行 + 丢弃不必要的能力 + 限制资源 + 只读根文件系统
+> （`--read-only` 配合 `--tmpfs` 挂载临时目录）**，而不是去改 `/etc/passwd` 或删除 `/bin/sh`。
 
 ### 4. 资源限制（安全）
 
@@ -1381,9 +1410,12 @@ docker run -d --name myapp \
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
     aquasec/trivy image myapp:latest
 
-# 扫描已知漏洞
-docker scan myapp:latest
+# 用 Docker Scout 扫描（Docker 自带；老的 docker scan 已在 2024 年被移除）
+docker scout quickview myapp:latest
 ```
+
+> 注意：`docker scan` 依赖 Snyk，已随 Docker Desktop 的更新被**废弃并移除**，
+> 现在请改用 `docker scout`（Docker 官方，部分功能需要登录）或直接使用 Trivy、Grype 这类开源扫描器。
 
 ### 6. Docker安全最佳实践清单
 
@@ -1565,7 +1597,7 @@ Docker Registry要点：
 
 ### Harbor是什么？
 
-Harbor是VMware开源的企业级**Docker Registry**，提供：
+Harbor是CNCF托管的开源企业级**镜像仓库**（最初由 VMware 中国团队发起，2020 年从 CNCF 毕业），提供：
 - Web界面
 - 镜像安全扫描
 - 访问控制
@@ -1575,11 +1607,11 @@ Harbor是VMware开源的企业级**Docker Registry**，提供：
 ### Harbor安装
 
 ```bash
-# 下载Harbor
-wget https://github.com/goharbor/harbor/releases/download/v2.9.0/harbor-online-installer-v2.9.0.tgz
+# 下载Harbor（版本号请到 release 页取最新，这里以 2.13 为例）
+wget https://github.com/goharbor/harbor/releases/download/v2.13.0/harbor-online-installer-v2.13.0.tgz
 
 # 解压
-tar xzf harbor-online-installer-v2.9.0.tgz
+tar xzf harbor-online-installer-v2.13.0.tgz
 
 # 配置
 cd harbor
@@ -1589,6 +1621,10 @@ nano harbor.yml
 # 安装
 sudo ./install.sh
 ```
+
+> `harbor-online-installer` 只带安装脚本，安装时会去 Docker Hub 拉取各个组件的镜像，
+> 所以必须先装好 Docker 和 `docker compose`。如果目标机器不能访问外网，
+> 请改用 `harbor-offline-installer-*.tgz`（体积大得多，但所有镜像都在包里）。
 
 ### Harbor配置
 
@@ -1676,5 +1712,3 @@ COPY --from=builder /app/myapp .
 > Kubernetes来了，说："你太天真了，还是我来吧！"
 >
 > 记住：**容器生态里，没有最好的工具，只有最适合的工具！** 🐋
-
-

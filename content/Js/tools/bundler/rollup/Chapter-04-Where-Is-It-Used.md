@@ -218,7 +218,6 @@ graph LR
     C --> D["浏览器请求 ES Module<br/>（已预转译）"]
     D --> E["热更新 HMR<br/>仅重新加载变化的部分"]
 
-graph LR
     F["生产阶段<br/>执行 vite build"] --> G["Rollup 打包"]
     G --> H["优化产物<br/>Tree-Shaking + 压缩"]
     H --> I["部署到服务器"]

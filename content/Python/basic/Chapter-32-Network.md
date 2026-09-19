@@ -95,6 +95,8 @@ Python 在网络编程方面堪称"瑞士军刀"，无论是写个小爬虫爬�
 
 #### HTTP 请求和响应结构
 
+HTTP 是"一问一答"的文本协议：请求由请求行、若干头部、一个空行和可选的请求体组成，响应结构与之对称。把这段格式看明白之后，浏览器、`curl`、`requests` 在你眼里就不再是黑盒。
+
 ```
 # HTTP 请求格式
 请求方法  URL  HTTP版本
@@ -203,6 +205,8 @@ Python 的 `socket` 模块是标准库，无需安装，直接 `import socket` �
 
 #### TCP 服务器
 
+TCP 服务器的流程固定得像模板：创建 socket → `bind` 绑定地址端口 → `listen` 开始排队 → 循环 `accept` 取出连接 → 收发数据 → 关闭。`AF_INET` 加 `SOCK_STREAM` 就是"IPv4 + TCP"的标准搭配。
+
 ```python
 import socket
 
@@ -241,6 +245,8 @@ while True:
 > 💡 **形象理解**：TCP 服务器就像一个火锅店老板，`bind` 是租下店面，`listen` 是挂上"营业中"的牌子，`accept` 是等待客人进门。来了客人就开一个包间（新的 socket）专门服务他，原来的 socket 继续在门口等下一位。
 
 #### TCP 客户端
+
+客户端比服务器少两步（不 bind、不 listen）：创建 socket 之后直接 `connect` 到服务器地址，剩下就像读写文件一样收发数据。注意 `recv()` 返回空字节串意味着对端已经关闭连接。
 
 ```python
 import socket
@@ -435,6 +441,8 @@ pip install requests
 
 #### GET 请求
 
+GET 用来"取数据"，参数一般放在 URL 的查询串里。`requests.get()` 返回的是响应对象，状态码、文本、JSON、响应头都从它身上取。
+
 ```python
 import requests
 
@@ -464,6 +472,8 @@ print(response.headers['Content-Type'])  # application/json; charset=utf-8
 
 #### POST 请求
 
+POST 用来"提交数据"。提交表单用 `data=`（默认编码成 `application/x-www-form-urlencoded`），提交 JSON 用 `json=`——后者会自动序列化并设置正确的 `Content-Type`，比手工拼字符串稳妥得多。
+
 ```python
 import requests
 
@@ -486,6 +496,8 @@ print(response.json())
 ```
 
 #### 处理响应
+
+响应对象上最常用的几件事：`status_code` 判断结果、`text` 看原始文本、`json()` 解析 JSON、`headers` 读响应头。想要"状态码不对就直接抛异常"，用 `response.raise_for_status()`。
 
 ```python
 import requests
@@ -521,6 +533,8 @@ pip install httpx
 
 #### 同步模式
 
+httpx 的同步接口刻意做得和 requests 几乎一样——这正是它的设计目标：**同一个库**既能写同步代码也能写异步代码，迁移成本最低。
+
 ```python
 import httpx
 
@@ -541,6 +555,8 @@ print(response.json())
 ```
 
 #### 异步模式
+
+异步版用 `AsyncClient` 配合 `async with`，再用 `asyncio.gather` 把多个请求并发发出去。I/O 密集型场景下，等待网络的时间被用来推进别的请求，总耗时能大幅下降。
 
 ```python
 import httpx
@@ -574,6 +590,8 @@ asyncio.run(fetch_data())
 ### 32.3.3 文件上传与下载
 
 #### 文件下载
+
+下载大文件要加 `stream=True` 然后分块读取，否则 requests 会先把整个文件塞进内存。配合 `iter_content()` 边收边写，几百 MB 的文件也不会把内存撑爆。
 
 ```python
 import requests
@@ -613,6 +631,8 @@ download_with_progress(
 ```
 
 #### 文件上传
+
+上传用 `files=` 参数，值是 `(文件名, 文件对象, MIME 类型)` 的元组。requests 会自动拼出 multipart/form-data 的请求体——也就是浏览器上传文件时用的那种格式。
 
 ```python
 import requests
@@ -663,6 +683,8 @@ with open('avatar.jpg', 'rb') as f:
 
 #### RESTful URL 设计
 
+REST 的核心约定：URL 里放**名词**（资源），动作交给 HTTP 方法来表达。所以是 `GET /users`、`POST /users`、`DELETE /users/1`，而不是 `/getUsers`、`/deleteUser`。
+
 ```
 # ❌ 不好的设计（RESTful 之前的"黑暗时代"）
 GET /getUsers              # 动词+名词
@@ -699,6 +721,8 @@ DELETE /users/1            # 删除 ID 为 1 的用户
 Python 有很多 Web 框架可以快速搭建 API，这里介绍两个最流行的：**Flask**（轻量级）和 **FastAPI**（现代化、高性能）。
 
 #### Flask：微框架，简单直接
+
+Flask 的起手式就是十几行：建应用、写路由函数、返回 JSON。它不预设项目结构，也不自带 ORM 和后台——想要什么自己加，这正是"微框架"三个字的含义。
 
 ```bash
 pip install flask
@@ -798,6 +822,8 @@ if __name__ == '__main__':
 ```
 
 #### FastAPI：现代化、高性能、自动文档
+
+FastAPI 靠类型提示工作：参数上写了 `int`、写了 Pydantic 模型，框架就自动完成参数解析、类型转换和校验，并把这些信息汇总成 OpenAPI 文档，`/docs` 页面上还能直接点着试。
 
 ```bash
 pip install fastapi uvicorn
@@ -916,8 +942,10 @@ def create_token(user_id: int, username: str) -> str:
     payload = {
         'user_id': user_id,
         'username': username,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24),  # 24 小时过期
-        'iat': datetime.datetime.utcnow()  # 签发时间
+        # ⚠️ datetime.utcnow() 已废弃（Python 3.12 起），而且它给的是无时区的 naive 时间。
+        #    JWT 的 exp/iat 语义上是 UTC 时间戳，用带时区的 now(timezone.utc) 更准确。
+        'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24),  # 24 小时过期
+        'iat': datetime.datetime.now(datetime.timezone.utc)  # 签发时间
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return token
@@ -944,6 +972,8 @@ except Exception as e:
 ```
 
 #### Flask + JWT 实现登录认证
+
+这段例子演示 JWT 认证的完整闭环：登录接口校验用户名密码后签发 token，受保护接口从 `Authorization` 头里取出 token 验证签名。密钥务必从环境变量读取，绝不能写死在代码里。
 
 ```python
 from flask import Flask, request, jsonify
@@ -975,7 +1005,7 @@ def login():
     token = jwt.encode({
         'username': username,
         'role': users[username]['role'],
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24)
     }, SECRET_KEY, algorithm=ALGORITHM)
     
     return jsonify({'token': token})

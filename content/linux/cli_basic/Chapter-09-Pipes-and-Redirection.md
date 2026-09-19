@@ -69,18 +69,23 @@ graph LR
 # 1. 查找进程，排除 grep 自身
 ps aux | grep python | grep -v grep
 
-# 2. 统计当前目录文件数量
-ls -l | wc -l
+# 2. 统计当前目录下的条目数量
+ls -1 | wc -l
 
-# 3. 查看内存使用情况，按使用量排序
-free -h | sort -rh | head -n 5
+# 3. 查看最占内存的 5 个进程（按内存占用倒序）
+ps aux --sort=-%mem | head -n 6
 
 # 4. 查看日志最新10行，搜索 error
-tail -f /var/log/syslog | grep error
+tail -f /var/log/syslog | grep --line-buffered error
 
 # 5. 统计命令输出中有多少个"error"
 dmesg | grep -i error | wc -l
 ```
+
+> ⚠️ **上面第 2、3 条是老教材里的经典错误，值得单独说明**：
+> - `ls -l | wc -l` 数出来的行数**比文件数多 1**，因为 `ls -l` 的第一行是 `total 48` 这种汇总行。要数条目请用 `ls -1 | wc -l`（每个条目一行），或者更严谨的 `find . -maxdepth 1 -type f | wc -l`。
+> - `free -h | sort -rh` **根本不会按内存占用排序**。`free` 的输出只有三四行（Mem/Swap），`sort -rh` 只会把这几行按数值大小重排——排序对象是"行"，而不是"进程"。真要找内存大户应该对进程列表排序：`ps aux --sort=-%mem | head`，或者直接用 `top`/`htop` 按 `M` 键。
+> - 第 4 条的 `--line-buffered` 是个实用技巧：`grep` 发现输出不是终端时会启用块缓冲，`tail -f` 配合它可能"半天不出字"。加上 `--line-buffered` 让它逐行输出，监控才跟得上。
 
 > 管道是 Unix 哲学的体现：**一个程序只做一件事，但做好它**。多个简单程序通过管道组合，就能完成复杂任务！
 
@@ -188,6 +193,19 @@ command > all_output.txt 2>&1
 
 > ⚠️ **兼容性注意**：`&>` 是 **bash 的语法糖**，在 `dash`、`sh` 等传统 shell 中不支持。写脚本时建议用 `> file 2>&1` 这种通用写法，兼容性更好！
 
+> 🔑 **顺序不能颠倒**：`> file 2>&1` 和 `2>&1 > file` 是**两个完全不同的意思**。重定向是按**从左到右**依次生效的：
+>
+> ```bash
+> # 正确：先把 stdout 指向 file，再让 stderr 复制 stdout 的目标 → 两个都进 file
+> command > file 2>&1
+>
+> # 错误：先让 stderr 指向"当时的 stdout"（也就是终端），再把 stdout 改到 file
+> # 结果：stderr 仍然打在屏幕上，只有 stdout 进了 file
+> command 2>&1 > file
+> ```
+>
+> 记法：**`2>&1` 表示"stderr 跟着 stdout 走"，所以必须先确定 stdout 去哪儿。**
+
 ### 9.4.2 &>> 追加所有输出
 
 ```bash
@@ -224,6 +242,15 @@ wc < file.txt
 wc file.txt
 # （但 < 重定向更明确地表示"从文件读取"）
 ```
+
+> ⚠️ **这两者其实并不完全等价**，这个差别经常出现在脚本里：
+>
+> ```bash
+> wc file.txt     # 输出： 12  34 210 file.txt   ← 带文件名
+> wc < file.txt   # 输出： 12  34 210            ← 不带文件名
+> ```
+>
+> 原因是：`wc` 能拿到文件名时才显示它。用 `<` 时，进程只知道"标准输入是个文件"，并不知道它叫什么。所以在脚本里想让输出干净（方便 `awk`/`cut` 取值），`wc -l < file.txt` 反而更常用。
 
 ### 9.5.2 命令 << EOF
 
@@ -307,10 +334,15 @@ find . -name "*.txt" | xargs -n 1 mv -t ./backup/
 find . -name "*.txt" | xargs -I {} mv {} ./backup/
 # {} 是占位符，代表找到的文件名
 
-# -p 显示将要执行的命令（interactive）
+# -p 交互式确认（每次执行前询问 y/n）
 find . -name "*.txt" | xargs -p rm
 # 执行前会询问：rm file1.txt file2.txt ...? y/n
+
+# -t 只打印将要执行的命令，不询问（verbose，适合先"试运行"看看）
+find . -name "*.txt" | xargs -t -n 1 echo
 ```
+
+> 补充：`-p` 是"问你要不要执行"，`-t` 是"执行前把命令打出来"。排查 `xargs` 到底拆成了什么命令时，`-t` 比 `-p` 更顺手。
 
 ```mermaid
 graph TD
@@ -353,7 +385,7 @@ cat file.txt
 
 ```bash
 # 场景1：安装软件时同时记录日志
-sudo apt install nginx | tee install_log.txt
+sudo apt install -y nginx 2>&1 | tee install_log.txt
 
 # 场景2：管道链中使用 tee
 echo "Starting process" | tee -a log.txt && \
@@ -381,14 +413,16 @@ echo "data" | tee file1.txt file2.txt file3.txt
 grep -i "error" /var/log/syslog | wc -l
 
 # 如果有多个日志文件：
-cat /var/log/*.log | grep -i error | wc -l
+grep -i error /var/log/*.log | wc -l
+# 不用先 cat：grep 自己就能一次读多个文件（少起一个进程，这就是常说的"无用 cat"）
 ```
 
 ### 9.8.2 实时监控错误
 
 ```bash
 # 实时显示最新的 error 日志
-tail -f /var/log/syslog | grep -i error
+tail -f /var/log/syslog | grep --line-buffered -i error
+# 别忘了 --line-buffered，否则 grep 会攒一大块才输出，看着像"卡住了"
 
 # 或者只显示最近的50条错误
 tail -n 100 /var/log/syslog | grep -i error
@@ -504,7 +538,7 @@ graph LR
 
 ```bash
 # 统计
-ls | wc -l              # 统计文件数
+find . -maxdepth 1 -type f | wc -l   # 统计当前目录的文件数（比 ls | wc -l 靠谱）
 grep -c "error" log.txt # 统计匹配行数
 
 # 过滤

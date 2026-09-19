@@ -21,8 +21,8 @@ draft = false
 
 你以为代码写得漂亮就能运行？不好意思，忘掉一个分号，Java 就会让你知道什么叫"一丝不苟"。
 
-```java
-// 错误示例
+```java,ignore
+// ❌ 错误示例：下面两行都忘了分号，编译会直接报 ';' expected
 public class MissingSemicolon {
     public static void main(String[] args) {
         System.out.println("Hello")
@@ -493,20 +493,21 @@ public class BitOperatorPrecedence {
         int x = 1;
         int y = 2;
 
-        // 表达式  x & y == 1  被解析为  x & (y == 1)
-        System.out.println(x & y == 1);   // false，不是 0！
+        // ❌ 陷阱：== 的优先级高于 &，所以下面这行会被解析成
+        //    x & (y == 1)  ——  即 int 和 boolean 做位运算，直接编译报错！
+        // System.out.println(x & y == 1);
 
-        // 应该加括号
-        System.out.println((x & y) == 1);  // false
-
-        // 验证：x & y 的值
-        System.out.println("x & y = " + (x & y));  // 0
-
-        // 正确写法
+        // ✅ 正确做法：位运算整体加括号
+        System.out.println((x & y) == 1);  // false（1 & 2 == 0，不等于 1）
+        System.out.println("x & y = " + (x & y));  // x & y = 0
         System.out.println((x & y) == 0);  // true
+
+        // 记忆口诀：== / != 优先级高于 & ^ |，混用时宁可多加括号
     }
 }
 ```
+
+> 📌 **为什么报错**：`==` 是关系运算符，优先级高于按位运算符 `&`。所以 `x & y == 1` 等价于 `x & (y == 1)`：右边得到布尔值，左边是 `int`，`int & boolean` 无法运算，编译器会给出 "bad operand types for binary operator '&'"。加上括号写成 `(x & y) == 1` 就正常了。
 
 ---
 
@@ -1043,17 +1044,15 @@ import java.util.Set;
 
 public class EqualsHashCodeDemo {
     public static void main(String[] args) {
+        // ❌ 没有重写 equals / hashCode：两个"内容相同"的对象互不相等
         Set<Point> points = new HashSet<>();
-        Point p1 = new Point(1, 2);
-        Point p2 = new Point(1, 2);
+        points.add(new Point(1, 2));
+        System.out.println(points.contains(new Point(1, 2)));  // false
 
-        points.add(p1);
-        System.out.println(points.contains(p2));  // false！如果没有正确实现 hashCode
-
-        // 正确实现后
-        points.clear();
-        points.add(new GoodPoint(1, 2));
-        System.out.println(points.contains(new GoodPoint(1, 2)));  // true
+        // ✅ 正确重写 equals / hashCode 后：内容相同即视为同一个键
+        Set<GoodPoint> goodPoints = new HashSet<>();
+        goodPoints.add(new GoodPoint(1, 2));
+        System.out.println(goodPoints.contains(new GoodPoint(1, 2)));  // true
     }
 }
 
@@ -1099,22 +1098,27 @@ class GoodPoint {
 继承是强耦合，用组合更灵活。
 
 ```java
-// 不推荐：继承用于"是"的关系，不是用于"有"的关系
-class Dog extends Animal {
-    // Dog is Animal，可以
-}
+class Animal { }
+class Engine { void start() { System.out.println("引擎启动"); } }
 
-class Car extends Animal {  // 这就不合理了
-    // Car has Engine，应该用组合
-}
+// ✅ 合理的继承：Dog is an Animal（"是一个"的关系）
+class Dog extends Animal { }
 
-// 推荐：组合
+// ❌ 不合理的继承：Car is an Animal？显然说不通
+// Car has an Engine，这才是真实关系，应该用组合
+// class BadCar extends Animal { }   // 别这么写
+
+// ✅ 推荐：组合（"有一个"的关系）
 class Car {
-    private Engine engine;  // Car has Engine
-    private Wheel[] wheels;
+    private final Engine engine = new Engine();  // Car has an Engine
+    private int wheelCount = 4;                  // Car has Wheels
 
     public void start() {
-        engine.start();
+        engine.start();   // 把活儿委托给 engine
+    }
+
+    public static void main(String[] args) {
+        new Car().start();  // 引擎启动
     }
 }
 ```
@@ -1165,11 +1169,6 @@ public class InnerClassAccess {
     private int outerField = 10;
     private static int staticField = 20;
 
-    public static void main(String[] args) {
-        // 静态内部类可以直接访问外部类的静态成员
-        System.out.println(InnerClassAccess.staticField);
-    }
-
     public void instanceMethod() {
         // 实例内部类可以访问外部类的一切成员
         class LocalClass {
@@ -1178,6 +1177,7 @@ public class InnerClassAccess {
                 System.out.println(staticField);  // OK
             }
         }
+        new LocalClass().display();
     }
 
     // 非静态内部类持有外部类引用
@@ -1192,9 +1192,14 @@ public class InnerClassAccess {
     }
 
     public static void main(String[] args) {
+        // 静态成员可以直接通过类名访问（注意：普通静态方法里读不到实例字段 outerField）
+        System.out.println(InnerClassAccess.staticField);
+
         InnerClassAccess outer = new InnerClassAccess();
         Inner inner = outer.new Inner();
         inner.accessOuter();
+
+        outer.instanceMethod();
     }
 }
 ```
@@ -2449,7 +2454,7 @@ public class ThreadLocalDemo {
     // ThreadLocal 变量
     private static final ThreadLocal<String> tl = new ThreadLocal<>();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         tl.set("主线程值");
 
         Thread t = new Thread(() -> {
@@ -2706,8 +2711,11 @@ public class CompletableFutureDemo {
         }
 
         // 正确做法：用 exceptionally 或 handle 处理异常
+        // 注意：链式调用时编译器可能推断不出泛型参数，
+        // 这时要用 CompletableFuture.<String> 这种"显式指定类型参数"的写法，
+        // 否则 exceptionally 会把结果推断成 Object，后面的 s.toUpperCase() 就编译不过了。
         CompletableFuture<String> safeCf = CompletableFuture
-            .supplyAsync(() -> {
+            .<String>supplyAsync(() -> {
                 throw new RuntimeException("错误");
             })
             .exceptionally(ex -> "默认值")
@@ -2725,6 +2733,9 @@ public class CompletableFutureDemo {
 ### 坑86：捕获具体异常而非 Exception
 
 ```java
+import java.io.IOException;
+import java.sql.SQLException;
+
 public class CatchSpecificException {
     public static void main(String[] args) {
         // 反面教材：捕获 Exception 太宽泛
@@ -2760,7 +2771,7 @@ public class SwallowException {
     // 反面教材
     public void badMethod() {
         try {
-            // 可能抛异常
+            throw new SpecificException();   // 假设这里会出错
         } catch (Exception e) {
             // 什么都没做，异常消失了！
             // e.printStackTrace();  // 最多打印一下日志
@@ -2770,10 +2781,10 @@ public class SwallowException {
     // 正确做法
     public void goodMethod() {
         try {
-            // 可能抛异常
+            throw new SpecificException();   // 假设这里会出错
         } catch (SpecificException e) {
             // 记录日志
-            Logger.getLogger().log(Level.SEVERE, "操作失败", e);
+            Logger.getLogger().log(java.util.logging.Level.SEVERE, "操作失败", e);
             // 或者转换异常重新抛出
             throw new BusinessException("业务操作失败", e);
             // 或者恢复并给出默认值
@@ -3020,6 +3031,9 @@ public class AssertDemo {
 catch 块按顺序匹配，先捕获子类再捕获父类。
 
 ```java
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 public class ExceptionCatchOrder {
     public static void main(String[] args) {
         try {
@@ -3076,15 +3090,17 @@ public class TypeErasureDemo {
 
 ```java
 public class GenericPrimitiveDemo {
-    // 错误：泛型不能是基本类型
-    // List<int> intList = new ArrayList<>();
+    public static void main(String[] args) {
+        // ❌ 错误：泛型的类型参数不能是基本类型，下面这行编译不过
+        // List<int> intList = new ArrayList<>();
 
-    // 正确：使用包装类
-    java.util.List<Integer> intList = new java.util.ArrayList<>();
-    intList.add(42);  // 自动装箱
+        // ✅ 正确：使用包装类（Java 5 起支持自动装箱/拆箱）
+        java.util.List<Integer> intList = new java.util.ArrayList<>();
+        intList.add(42);          // 42 自动装箱成 Integer
 
-    // 获取时自动拆箱
-    int val = intList.get(0);  // 自动拆箱
+        int val = intList.get(0); // 取出时自动拆箱成 int
+        System.out.println("val = " + val);
+    }
 }
 ```
 
@@ -3166,6 +3182,10 @@ public class WildcardDemo {
 Java 不允许创建具体类型的泛型数组，但可以创建通配符数组。
 
 ```java
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class GenericArrayDemo {
     // 错误：不能 new T[]
     // public static <T> T[] createArray() {

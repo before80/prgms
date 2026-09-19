@@ -402,7 +402,7 @@ configs = {
 }
 ```
 
-```python
+```ini
 # .env - 环境变量文件（不上传git！）
 SECRET_KEY=your-super-secret-production-key
 DATABASE_URL=postgresql://user:pass@localhost/mydb
@@ -411,7 +411,7 @@ LOG_LEVEL=INFO
 API_KEY=your-api-key-here
 ```
 
-```python
+```text
 # .gitignore - 忽略这些文件
 .env
 __pycache__/
@@ -617,9 +617,11 @@ if __name__ == "__main__":
 > - 自动处理传递依赖，生成 `poetry.lock`
 > - 语义化版本控制（`^`, `~`, `>=` 等）
 
-### 17.2.4 PDM（PEP 582 支持）
+### 17.2.4 PDM（PEP 621 原生支持，可选 PEP 582 模式）
 
-**PDM**（Python Development Master）是一个支持 **PEP 582** 的包管理器。PEP 582 是 Python 官方提出的一种"本地 `__pypackages__` 目录"方案，类似于 Node.js 的 `node_modules`，不需要虚拟环境。
+**PDM**（Python Development Master）是一个现代化的包管理器，特色是**原生支持 PEP 621**（把项目元数据写进 `pyproject.toml`）。它早期主打的 **PEP 582** 方案（在项目根目录放一个 `__pypackages__/`，像 Node.js 的 `node_modules` 那样免虚拟环境）**在标准层面已经被否决**——PEP 582 的状态是 **Rejected**，不会被 CPython 采纳。
+
+不过 PDM 自己仍然保留了这个模式：默认走虚拟环境，想要 `__pypackages__` 得显式打开 `pdm config python.use_venv false`。所以把它当成"PDM 的一个可选玩法"，而不是"官方规范"就好。
 
 ```bash
 # 安装 PDM
@@ -663,7 +665,7 @@ my-project/
 ```
 
 > **PDM vs Poetry**：
-> - PDM 支持 PEP 582（实验性），Poetry 不支持
+> - PDM 默认用虚拟环境，可选 PEP 582 模式（`__pypackages__`）；Poetry 始终走虚拟环境
 > - PDM 对 PEP 621 原生支持
 > - 两者功能相似，选择哪个更多是个人偏好
 > - PDM 在国内的使用率正在上升
@@ -724,6 +726,8 @@ uv 在 2024-2025 年迅速走红，很多新项目都推荐使用 uv 作为包�
 
 ### 依赖管理工具对比
 
+这张表最关键的结论是：**有没有锁文件**才是"能不能复现环境"的分水岭。没有锁文件的方案，在不同时间、不同机器上装出来的依赖树可能完全不同。
+
 ```
 ┌─────────────┬────────────┬────────┬──────────┬──────────────┬─────────────┐
 │   工具      │   速度     │ PEP 582│  锁定文件 │   打包发布   │   学习曲线  │
@@ -732,8 +736,10 @@ uv 在 2024-2025 年迅速走红，很多新项目都推荐使用 uv 作为包�
 │ pip-tools   │    慢      │   ❌   │   ✅     │     ❌       │     低      │
 │ Poetry      │    中      │   ❌   │   ✅     │     ✅       │     中      │
 │ PDM         │    中      │   ✅   │   ✅     │     ✅       │     中      │
-│ uv          │   极快     │   ✅   │   ✅     │     ✅       │     低      │
+│ uv          │   极快     │   ❌   │   ✅     │     ✅       │     低      │
 └─────────────┴────────────┴────────┴──────────┴──────────────┴─────────────┘
+
+> "PEP 582" 一列指的是"能不能用 `__pypackages__` 免虚拟环境"。PDM 是唯一提供这个**可选**模式的主流工具；uv 虽然快，但并不支持它。
 ```
 
 ---
@@ -2085,6 +2091,8 @@ clean:
 
 #### 打包到 PyPI
 
+发布分两步：`python -m build` 生成 sdist 和 wheel，`twine` 负责上传。两者都不要求项目里保留 `setup.py`——元数据全部来自 `pyproject.toml`。
+
 ```bash
 # 安装构建工具
 pip install build
@@ -2101,6 +2109,8 @@ twine upload dist/*
 ```
 
 #### 自动发布 workflow
+
+这段 workflow 的触发条件是"推送 tag"，动作是构建 + 上传。凭据放在 GitHub Secrets 里，绝不能写进仓库；想彻底免掉长期 token，可以用 PyPI 的 Trusted Publishing（基于 OIDC 的临时凭据）。
 
 ```yaml
 # .github/workflows/release.yml
@@ -2143,7 +2153,7 @@ jobs:
 
 Markdown 是最流行的轻量级标记语言，GitHub、GitLab、Notion 都原生支持。Python 项目的 README、CHANGELOG、贡献指南等都用 Markdown 写。
 
-```markdown
+````markdown
 # 项目名称
 
 [![CI](https://github.com/you/project/actions/workflows/ci.yml/badge.svg)](https://github.com/you/project/actions)
@@ -2188,7 +2198,7 @@ print(result)
 ## 许可证
 
 MIT License
-```
+````
 
 > **README 的黄金法则**：
 > - 前三行决定别人会不会继续看
@@ -2264,7 +2274,7 @@ mkdocs gh-deploy   # 部署到 GitHub Pages
 mkdocs --help
 ```
 
-```markdown
+````markdown
 <!-- docs/index.md - 首页 -->
 # 欢迎使用
 
@@ -2295,7 +2305,7 @@ client = Client()
 result = client.query("你好")
 print(result)
 ```
-```
+````
 
 ### 17.7.3 Sphinx + Read the Docs
 
@@ -2498,7 +2508,7 @@ class DataProcessor:
         return [{"processed": True, "item": item} for item in data]
 ```
 
-```python
+```rst
 # Sphinx autodoc - 在 docs/api.rst 中引用
 # docs/api.rst
 
@@ -2548,7 +2558,7 @@ cd docs && make html
 - `requirements.txt` 是最基础的依赖文件，但不够灵活
 - `pip-tools`（`pip-compile`）解决"开发时用灵活版本，部署时锁定版本"的问题
 - **Poetry** 是现代 Python 项目的首选工具，一个工具搞定依赖+打包+发布
-- **PDM** 支持 PEP 582，适合想尝鲜的开发者
+- **PDM** 默认走虚拟环境，可选用 PEP 582 模式（注意 PEP 582 已被官方否决），适合喜欢把项目配置集中在 `pyproject.toml` 的开发者
 - **uv** 是速度最快的包管理器（Rust 编写），2024-2025 年迅速走红，推荐尝试
 
 ### 测试

@@ -515,10 +515,10 @@ flowchart TD
     B --> C["启动开发服务器<br/>http://localhost:3000"]
     C --> D["Webpack 监听文件变化"]
     D --> E{"文件变了？"}
-    E -->|"是"--> F["重新打包变化的文件"]
+    E -->|"是"| F["重新打包变化的文件"]
     F --> G["浏览器自动更新"]
     G --> D
-    E -->|"否"--> D
+    E -->|"否"| D
     
     style A fill:#d4edda
     style C fill:#cce5ff

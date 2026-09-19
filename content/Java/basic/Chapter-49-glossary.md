@@ -17,11 +17,15 @@ draft = false
 
 ### JDK（Java Development Kit）
 
-Java 开发工具包，写代码的人离不开它。包含了编译器、调试器、JRE，还有一堆命令行工具。没有它，Java 代码就是一堆天书。形象地说，JDK 就是厨师的整套厨具，没有锅碗瓢盆怎么做饭？
+Java 开发工具包，写代码的人离不开它。里面包含编译器 `javac`、调试器 `jdb`、运行程序用的 JVM，还有 `jps`、`jcmd` 等一堆命令行工具。没有它，Java 代码就是一堆天书。形象地说，JDK 就是厨师的整套厨具，没有锅碗瓢盆怎么做饭？
+
+> 注意：**JDK 9 之后 Oracle/OpenJDK 不再单独发布 JRE 了**，运行环境就打包在 JDK 里。想要一个"精简版运行时"，得用 `jlink` 自己裁剪。
 
 ### JRE（Java Runtime Environment）
 
-Java 运行环境。如果你的电脑只需要运行 Java 程序，而不是开发它，那装个 JRE 就够了。可以理解为做好了菜要上桌，你只需要一个餐桌，不需要整个厨房。
+Java 运行环境，只负责"跑"程序，不含编译器。JDK 8 时代它还是一个独立的安装包，可以理解为做好了菜要上桌，你只需要一个餐桌，不需要整个厨房。
+
+> 从 JDK 9 起 JRE 不再单独发行：想跑 Java 程序，直接装 JDK 就行；如果嫌 JDK 太大，用 `jlink` 生成一个只含所需模块的自定义运行时（几十 MB）是现在更常见的做法。
 
 ### JVM（Java Virtual Machine）
 
@@ -53,7 +57,7 @@ JVM 能读懂的语言。不是纯粹的机器码，也不是高级语言源代�
 
 ### 接口（Interface）
 
-一种完全抽象的类型，用 `interface` 关键字声明。接口里只有方法签名（抽象方法）、常量、和默认方法（Java 8 之后）。类通过 `implements` 关键字来实现接口。接口用来定义"能做什么"，而抽象类可以定义"是什么"。一个类可以实现多个接口，但只能继承一个类。
+一种完全抽象的类型，用 `interface` 关键字声明。接口里可以放抽象方法、常量、默认方法（Java 8 引入）和静态方法（Java 8 引入），Java 9 起还允许写 `private` 辅助方法。类通过 `implements` 关键字来实现接口。接口用来定义"能做什么"，而抽象类可以定义"是什么"。一个类可以实现多个接口，但只能继承一个类。
 
 ### 重写（Override）
 
@@ -75,7 +79,7 @@ JVM 能读懂的语言。不是纯粹的机器码，也不是高级语言源代�
 
 三重身份，关键字多用的典范：
 
-- 修饰变量：变成常量，值不能改变
+- 修饰变量：变成常量。基本类型的值不能改；引用类型则是指针不能再指向别的对象，但对象内部的状态仍然可以变
 - 修饰方法：方法不能被重写
 - 修饰类：类不能被继承
 
@@ -86,11 +90,13 @@ JVM 能读懂的语言。不是纯粹的机器码，也不是高级语言源代�
 - `this`：指向当前对象，就是"我自己"
 - `super`：指向父类对象，就是"我爸爸"
 
-在构造方法中，`this()` 可以调用本类的其他构造方法，`super()` 可以调用父类的构造方法。而且 `this` 和 `super` 在构造方法中必须是第一条语句。
+在构造方法中，`this(...)` 可以调用本类的其他构造方法，`super(...)` 可以调用父类的构造方法。要注意的是：**构造方法里的 `this(...)` / `super(...)` 调用必须是方法体中的第一条语句**（两者只能选一个，不能同时出现）。
 
 ### 反射（Reflection）
 
-程序在运行时可以访问、检测和修改它自身状态或行为的能力。Java 提供了 java.lang.reflect 包支持反射。通过反射可以在运行时获取类的结构（属性、方法、构造器），可以调用任意方法，可以绕过访问修饰符的限制。Spring 框架、IDE 的智能提示都用到了反射。
+程序在运行时可以访问、检测和修改它自身状态或行为的能力。Java 提供了 `java.lang.reflect` 包支持反射。通过反射可以在运行时获取类的结构（属性、方法、构造器），可以调用任意方法，配合 `setAccessible(true)` 还能访问私有成员。Spring 框架的依赖注入、IDE 的智能提示都用到了反射。
+
+> 小提醒：Java 9 引入模块系统后，如果某个包没有对调用方 `opens`，`setAccessible(true)` 会失败并抛出 `InaccessibleObjectException`——这也是很多老框架升级到新 JDK 时要加 `--add-opens` 的原因。
 
 ### 注解（Annotation）
 
@@ -236,7 +242,7 @@ Callable<String> task2 = () -> "干完了";
 
 ### Executors
 
-创建线程池的工具类，提供了各种便捷工厂方法。但阿里 Java 规范不推荐使用 Executors 创建线程池，因为默认的拒绝策略可能有问题，建议使用 ThreadPoolExecutor 手动创建以便更好地控制参数。
+创建线程池的工具类，提供了各种便捷工厂方法。但阿里 Java 规范不推荐用 Executors 创建线程池，原因不是"拒绝策略有问题"，而是它隐藏了关键参数：`newFixedThreadPool` / `newSingleThreadExecutor` 用的是**无界队列**（`LinkedBlockingQueue`，默认容量 `Integer.MAX_VALUE`），任务堆积时会一直排队直到 OOM；`newCachedThreadPool` 的最大线程数是 `Integer.MAX_VALUE`，高并发下会创建海量线程。建议直接用 `ThreadPoolExecutor` 手动指定核心线程数、最大线程数、队列容量和拒绝策略。
 
 ### 线程安全（Thread Safety）
 
@@ -256,7 +262,7 @@ Callable<String> task2 = () -> "干完了";
 
 ### ABA 问题
 
-CAS 的一个经典陷阱：线程1读取到 A，线程2把 A 改成 B 又改回 A，线程1的 CAS 操作仍然成功，但线程1并不知道数据已经被修改过。解决方案是使用版本号（AtomicStampedReference）或者加时间戳（AtomicMarkableReference）。
+CAS 的一个经典陷阱：线程 1 读取到 A，线程 2 把 A 改成 B 又改回 A，线程 1 的 CAS 操作仍然成功，但线程 1 并不知道数据已经被修改过。解决方案是加**版本号**：`AtomicStampedReference` 维护一个 int 版本的 stamp，`AtomicMarkableReference` 则只维护一个 boolean 标记，适合只关心"有没有被改过"的场景。
 
 ### AQS（AbstractQueuedSynchronizer）
 
@@ -296,7 +302,7 @@ CAS 的一个经典陷阱：线程1读取到 A，线程2把 A 改成 B 又改回
 
 ### 死锁（Deadlock）
 
-两个或多个线程相互等待对方持有的资源，导致谁都無法继续执行。产生死锁必须同时满足四个条件：互斥、占有并等待、不可抢占、循环等待。解决思路是打破其中任意一个条件。
+两个或多个线程相互等待对方持有的资源，导致谁都无法继续执行。产生死锁必须同时满足四个条件：互斥、占有并等待、不可抢占、循环等待。解决思路是打破其中任意一个条件。
 
 ### 活锁（Livelock）
 
@@ -322,7 +328,7 @@ JVM 在运行时把内存划分成若干区域，各司其职：
 - **虚拟机栈（VM Stack）**：每个方法执行时都会创建一个栈帧（Stack Frame），用于存储局部变量表、操作数栈、动态链接、方法出口等信息。线程私有，生命周期与线程相同。
 - **本地方法栈（Native Method Stack）**：为 JVM 使用到的 Native 方法服务，跟虚拟机栈类似。
 - **堆（Heap）**：最大的一块内存区域，几乎所有对象实例和数组都在这里分配。是 GC 的主要管理区域，也叫"GC 堆"。线程共享。
-- **方法区（Method Area）**：存储类信息（类的元数据）、常量、静态变量、即时编译器编译后的代码。JDK 8 之前用永久代（PermGen）实现，JDK 8 之后改用元空间（Metaspace），使用本地内存而不是堆内存。
+- **方法区（Method Area）**：存储类信息（类的元数据）、常量、静态变量、即时编译器编译后的代码。注意方法区是**规范**，怎么实现由虚拟机决定：HotSpot 在 JDK 8 之前用永久代（PermGen）实现（属于堆内存），JDK 8 之后改用元空间（Metaspace），落在本地内存里。
 
 ### 栈帧（Stack Frame）
 
@@ -416,11 +422,11 @@ JDK 8 之前，方法区使用永久代实现，位于 JVM 堆内存中，容易
 
 ### Serial 收集器
 
-最古老、最简单的单线程收集器。GC 时必须暂停所有用户线程（Stop The World）。适合单核 CPU 或小内存场景。现在基本不用了。
+最古老、最简单的单线程收集器。GC 时必须暂停所有用户线程（Stop The World）。适合单核 CPU、小内存或对停顿不敏感的客户端场景。它是客户端模式（`-client`）和内存很小的容器的默认选择，不能说"完全不用了"，但服务端基本不会选它。
 
 ### ParNew 收集器
 
-Serial 的多线程版本，多个线程并行进行 GC。GC 时同样需要 Stop The World。是 CMS 收集器的搭档，JDK 9 之前配合 CMS 使用。
+Serial 的多线程版本，多个线程并行进行 GC。GC 时同样需要 Stop The World。它曾是 CMS 收集器的新生代搭档，随着 CMS 在 JDK 14 被移除，ParNew 也一起退场——在 JDK 21 及之后的版本里写 `-XX:+UseParNewGC` 会直接报"Unrecognized VM option"。
 
 ### Parallel Scavenge 收集器
 
@@ -432,19 +438,21 @@ Serial 的多线程版本，多个线程并行进行 GC。GC 时同样需要 Sto
 
 ### G1（Garbage-First）收集器
 
-JDK 7 引入，JDK 9 之后成为默认垃圾收集器。它把堆划分为多个大小相等的 Region（区域），每个 Region 可以独立作为 Eden、Survivor 或老年代。优先回收垃圾最多的区域，因此叫 Garbage-First。兼顾吞吐量和停顿时间，是目前最先进的 GC 之一。
+JDK 7 引入，JDK 9 之后成为**默认**垃圾收集器。它把堆划分为多个大小相等的 Region（区域），每个 Region 可以独立作为 Eden、Survivor 或老年代。它设置了一个可预测的停顿时间目标（`-XX:MaxGCPauseMillis`），优先回收"收益最高"（垃圾最多）的区域，因此叫 Garbage-First。它在吞吐量和停顿时间之间取得了不错的平衡，是绝大多数服务端应用的默认选择。
 
 ### ZGC（Z Garbage Collector）
 
-JDK 11 引入的超低延迟 GC。目标是将 Stop The World 的停顿时间控制在毫秒级以内，且不随堆大小增加而增加停顿时间。支持并发标记、并发压缩、使用着色指针实现读屏障。
+JDK 11 引入（JDK 15 起生产可用）的超低延迟 GC。目标是把 Stop The World 的停顿时间控制在毫秒级以内，且停顿时间不随堆大小增长——即使堆开到 TB 级，停顿依然只有几毫秒。它使用着色指针和读屏障实现了并发标记、并发压缩。JDK 21 引入分代 ZGC（JEP 439），JDK 23 起分代模式成为默认（JEP 474）。
 
 ### 类加载器（ClassLoader）
 
-负责将 .class 文件加载到 JVM 中。Java 中有三层类加载器：
+负责将 .class 文件加载到 JVM 中。JDK 8 时代是经典的三层结构：
 
-- **Bootstrap ClassLoader**：启动类加载器，加载 Java 核心类库（%JAVA_HOME%/lib）
-- **Extension ClassLoader**：扩展类加载器，加载 %JAVA_HOME%/lib/ext 目录下的类
+- **Bootstrap ClassLoader**：启动类加载器，加载 Java 核心类库（`%JAVA_HOME%/jre/lib`）
+- **Extension ClassLoader**：扩展类加载器，加载 `%JAVA_HOME%/jre/lib/ext` 目录下的类
 - **Application ClassLoader**：应用程序类加载器，加载用户 classpath 上的类
+
+> ⚠️ **JDK 9 之后的重大变化**：模块化（JPMS）把上面这套结构改掉了。启动类加载器只加载核心模块（不再是 `rt.jar`/`lib` 目录），**Extension ClassLoader 被平台类加载器（Platform ClassLoader）取代**，`lib/ext` 目录和 `-Djava.ext.dirs` 参数都被移除；除启动类加载器外，其余加载器都由 `jdk.internal.loader.ClassLoaders` 实现。所以在新 JDK 上排查类加载问题时，看到的会是 Bootstrap / Platform / App / 自定义加载器。
 
 ### 双亲委派模型（Parent Delegation Model）
 
@@ -506,8 +514,8 @@ Java 生态中最核心的企业级开发框架。提供 IoC 容器和 AOP 支�
 
 Spring 的核心，负责对象的创建、组装和管理。两大主流实现：
 
-- **BeanFactory**：最基础的容器，延迟加载
-- **ApplicationContext**：功能更强大，启动时就加载所有 Bean，企业开发常用
+- **BeanFactory**：最基础的容器，按需延迟加载
+- **ApplicationContext**：功能更强大，是 BeanFactory 的超集（多了事件发布、国际化、资源加载等能力），默认会在启动时把单例 Bean 全部创建好（提前暴露配置错误），企业开发基本都用它
 
 ### Bean
 
@@ -546,7 +554,9 @@ Spring 中用于声明 Bean 的注解：
 
 ### 动态代理（Dynamic Proxy）
 
-AOP 的实现基础。JDK 动态代理基于接口，Spring 默认用它来代理实现了接口的类；CGLIB 通过继承生成子类来代理，不需要接口但无法代理 final 类和 final 方法。
+AOP 的实现基础。JDK 动态代理**基于接口**，只能代理接口中声明的方法；CGLIB 通过继承生成子类来代理，不需要接口，但无法代理 final 类和 final 方法。
+
+> 注意：**Spring Boot 2.x 起默认使用 CGLIB**（等价于 `spring.aop.proxy-target-class=true`），即使目标类实现了接口也会走 CGLIB，这样注入实现类本身时不会踩到"JDK 代理注入失败"的坑。想用回 JDK 动态代理，把它设为 `false` 即可。
 
 ### Spring MVC
 
@@ -562,15 +572,19 @@ Spring MVC 的前端控制器，所有的请求都经过它来分发。它是整
 
 ### Spring Cloud
 
-微服务框架，基于 Spring Boot 构建。提供了一整套分布式系统的解决方案：服务注册与发现（Eureka/Nacos）、负载均衡（Ribbon）、服务调用（Feign/OpenFeign）、熔断器（Hystrix/Sentinel）、配置中心（Config/Nacos）、网关（Gateway）等。
+微服务框架，基于 Spring Boot 构建。提供了一整套分布式系统的解决方案：服务注册与发现（Eureka/Nacos）、负载均衡（Spring Cloud LoadBalancer）、服务调用（Feign/OpenFeign）、熔断器（Resilience4j/Sentinel）、配置中心（Config/Nacos）、网关（Gateway）等。
+
+> 别被老教程带偏：Netflix 的 Ribbon、Hystrix、Zuul 都已停止新功能开发，Spring Cloud 官方对应的替代品分别是 Spring Cloud LoadBalancer、Resilience4j 和 Spring Cloud Gateway。
 
 ### Hibernate
 
-全自动的 ORM（对象关系映射）框架。定义实体类后，Hibernate 自动生成 SQL、自动执行、自动映射结果到对象。配置简单但 SQL 控制力弱一些。JPA（Java Persistence API）就是以 Hibernate 为参考实现的。
+全自动的 ORM（对象关系映射）框架。定义实体类后，Hibernate 自动生成 SQL、自动执行、自动映射结果到对象。上手成本低，但对 SQL 的精细控制弱一些。JPA 规范在制定时就参考了 Hibernate 等 ORM 的实践经验，Hibernate 本身也是 JPA 最主要的实现之一。
 
 ### JPA（Java Persistence API）
 
-Java 持久化规范，定义了 ORM 的标准接口。Hibernate、 EclipseLink 是 JPA 的实现。用了 JPA 注解（@Entity、@Table、@Column 等），理论上换一个 JPA 实现不用改代码。
+Java 持久化规范，定义了 ORM 的标准接口。Hibernate、EclipseLink 都是 JPA 的实现。用了 JPA 注解（`@Entity`、`@Table`、`@Column` 等），理论上换一个 JPA 实现不用改代码。
+
+> 名字变化提醒：JPA 的包名在 Java EE 时代是 `javax.persistence`，Jakarta EE 9 之后改成了 `jakarta.persistence`。Spring Boot 3.x 只支持后者，所以从 2.x 升级时最常见的报错之一就是"`javax.persistence` 找不到"。
 
 ### MyBatis
 
@@ -612,6 +626,8 @@ Spring MVC 提供的组件，类似于 Filter 但只针对 Spring MVC 的请求�
 ### Ribbon
 
 Netflix 提供的客户端负载均衡组件。配合服务发现（Eureka）使用，在发起服务调用时自动选择一个可用的服务器节点。
+
+> ⚠️ Ribbon 已进入维护状态，新项目请直接用 **Spring Cloud LoadBalancer**（Spring Cloud 官方替代品，用法更简洁，也支持响应式）。
 
 ### Hystrix / Resilience4j
 
@@ -667,7 +683,7 @@ Netflix 提供的客户端负载均衡组件。配合服务发现（Eureka）使
 
 ### 索引（Index）
 
-数据库中用于加速查询的数据结构。类似于书的目录，索引越大，查找越快。但索引不是免费的——它会占用额外的存储空间，且写入数据时要同步维护索引，增加写入开销。
+数据库中用于加速查询的数据结构。作用类似于书的目录：有了它，数据库不必逐行扫描整张表，而是先在索引里定位，再直接跳到目标行。但索引不是免费的——它占用额外的存储空间，写入数据时还要同步维护索引，增加写入开销。所以索引不是"越大越好、越多越好"，而是要刚好覆盖高频查询。
 
 ### 聚簇索引（Clustered Index）
 
@@ -729,7 +745,7 @@ Netflix 提供的客户端负载均衡组件。配合服务发现（Eureka）使
 
 ### 意向锁（Intention Lock）
 
-表级锁，表示事务即将在某一行的某列上加锁。InnoDB 自动加的，分为 IS（意向共享锁）和 IX（意向排他锁）。方便表锁和行锁的兼容性判断。
+表级锁，表示"事务打算在表中的某些行上加锁"。它不是用户手动加的，而是 InnoDB 在给行加锁前自动加上的，分为 IS（意向共享锁）和 IX（意向排他锁）。它的价值在于：想加表锁时，只要看到表上已有意向锁，就知道有人正握着行锁，不必逐行检查。
 
 ### 死锁（Deadlock）
 
@@ -807,7 +823,9 @@ TCP 建立连接的过程：客户端发送 SYN → 服务器回复 SYN+ACK → 
 
 ### 序列化（Serialization）
 
-把 Java 对象转换为字节流的过程，可以存储到磁盘或通过网络传输。反序列化就是从字节流恢复出对象。常见序列化协议：Java 原生序列化（ObjectOutputStream，兼容性最好但效率低且不安全）、JSON（文本格式，人类友好）、Protobuf（Google 高效二进制协议）、Kryo（高性能）。
+把 Java 对象转换为字节流的过程，可以存储到磁盘或通过网络传输。反序列化就是从字节流恢复出对象。常见序列化协议：Java 原生序列化（`ObjectOutputStream`，只在 Java 之间通用，且要求两端类版本一致，效率一般，历史上多次成为反序列化漏洞的入口）、JSON（文本格式，人类可读、跨语言）、Protobuf（Google 的高效二进制协议，需预先定义 schema）、Kryo（JVM 内高性能序列化，多用于缓存和 RPC 框架内部）。
+
+> 安全提醒：**永远不要反序列化不可信来源的 Java 原生字节流**。只要数据能被反序列化，攻击者就可能借助 gadget 链执行任意代码——这也是很多框架默认禁用 Java 原生反序列化、改用 JSON 的原因。
 
 ### REST（Representational State Transfer）
 
@@ -839,7 +857,7 @@ Google 开源的高性能 RPC 框架，基于 HTTP/2 协议和 Protocol Buffers 
 
 ### 负载均衡（Load Balancing）
 
-把请求分配到多个服务器上，避免单点过载。负载均衡器可以工作在四层（TCP/UDP）或七层（HTTP）。常用算法：轮询、加权轮询、最少连接、IP 哈希。常见组件：Nginx（反向代理 + 七层负载均衡）、LVS（四层负载均衡）、Ribbon（客户端负载均衡）、Gateway（Spring Cloud 的网关层）。
+把请求分配到多个服务器上，避免单点过载。负载均衡器可以工作在四层（TCP/UDP）或七层（HTTP）。常用算法：轮询、加权轮询、最少连接、IP 哈希。常见组件：Nginx（反向代理 + 七层负载均衡）、LVS（四层负载均衡）、Spring Cloud LoadBalancer（客户端负载均衡，Ribbon 的替代品）、Gateway（Spring Cloud 的网关层）。
 
 ### CDN（Content Delivery Network）
 
@@ -858,7 +876,7 @@ Google 开源的高性能 RPC 框架，基于 HTTP/2 协议和 Protocol Buffers 
 
 限制单位时间内的请求数量，保护系统不被冲垮。常用算法：
 
-- **计数器算法**：最简单的滑动窗口
+- **固定窗口计数器**：把时间切成固定长度的窗口，每个窗口独立计数并清零。实现最简单，但窗口边界处可能瞬间放过两倍流量（比如前一秒最后 100ms 和后一秒前 100ms 各放行一轮）
 - **令牌桶算法**：以固定速率往桶里放令牌，请求来了先取令牌，取到才能处理。Redis 的令牌桶实现用得很多
 - **漏桶算法**：请求以任意速率进入漏桶，漏桶以固定速率漏出，超出容量就丢弃
 
@@ -955,6 +973,6 @@ Google 开源的高性能 RPC 框架，基于 HTTP/2 协议和 Protocol Buffers 
 6. **数据库术语**：从 SQL 基础到事务隔离、索引原理，再到连接池和分库分表
 7. **网络与分布式术语**：补全了 RPC、分布式事务、消息队列、CAP/BASE 等现代架构知识
 
-这些术语不是孤立的，它们彼此关联、互相支撑。建议结合代码实践和项目经验来加深理解，死记硬背不如动手实验。下一章我们将进入新的专题，继续深化对 Java 各领域知识的理解。
+这些术语不是孤立的，它们彼此关联、互相支撑。建议结合代码实践和项目经验来加深理解，死记硬背不如动手实验。遇到读不懂的术语，回到它所在的章节看完整的例子，往往比背定义有效得多。
 
 > 📺 配套视频正在持续更新中，欢迎关注！

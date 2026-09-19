@@ -62,10 +62,10 @@ React 的数据流是**单向的**——数据只能从父组件流向子组件�
 ```mermaid
 flowchart TD
     A["App 组件\n数据拥有者"]
-    A -->|"props 传递| name, age"| B["UserCard 组件"]
-    A -->|"props 传递| title, onClick"| C["Button 组件"]
-    B -->|"props 传递| user, onEdit"| D["Avatar 组件"]
-    B -->|"props 传递| name, onClick"| E["UserName 组件"]
+    A -->|"props 传递<br/> name, age"| B["UserCard 组件"]
+    A -->|"props 传递<br/> title, onClick"| C["Button 组件"]
+    B -->|"props 传递<br/> user, onEdit"| D["Avatar 组件"]
+    B -->|"props 传递<br/> name, onClick"| E["UserName 组件"]
 ```
 
 **特点：**

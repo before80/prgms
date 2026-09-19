@@ -96,11 +96,17 @@ tar -xvf archive.tar documents/file1.txt
 # 解压多个文件（通配符）
 tar -xvf archive.tar --wildcards "*.txt"
 
-# 只更新已存在的文件（保持原有时区）
+# 解压时保留文件的权限信息
 tar -xvpf archive.tar
 
-# 注意：-p（小写）保留文件权限，-P（大写P）保留绝对路径
+# 注意：-p（小写）= preserve-permissions，按归档里记录的权限还原文件，
+# 一般只对 root 有意义（普通用户无法把文件"还"成别人的所有者）。
+# 而 -P（大写）= --absolute-names，表示不要剥掉路径开头的 "/"。
 ```
+
+> ⚠️ **关于 `-P` 的警告**：默认情况下 tar 会主动去掉归档里路径开头的 `/`，把 `/etc/passwd` 还原成 `etc/passwd`（相对当前目录），这是**故意的安全设计**——否则解压一个别人给的包就可能直接覆盖系统文件。请把 `-P` 当成危险选项，只在完全清楚包内容时使用。
+
+> 💡 **解压前先看一眼**：拿到来源不明的 `.tar.gz`，先用 `tar -tvf` 列一遍内容，确认里面没有 `../` 这类向上跳的路径（这种叫 tar 路径穿越 / tar slip），再解压。更稳妥的写法是加上 `--no-absolute-filenames` 或先解到空目录里检查。
 
 ---
 
@@ -175,8 +181,16 @@ tar -czvf backup.tar.gz /home/user
 tar -cJvf backup.tar.xz /home/user
 
 # 时间紧迫：gzip -1（最快压缩）
-tar -czvf -1 backup.tar.gz /home/user
+# ⚠️ tar 没有"把压缩级别直接写在 -czvf 后面"的语法：
+#    写成 tar -czvf -1 backup.tar.gz 会把 "-1" 当成归档文件名！
+#    正确做法是把级别交给 gzip，用 GZIP 环境变量：
+GZIP=-1 tar -czf backup.tar.gz /home/user
+
+# 或者手动接一根管子，效果一样且更直观：
+tar -cf - /home/user | gzip -1 > backup.tar.gz
 ```
+
+> **记住这个坑**：`tar` 只负责打包，压缩级别是 `gzip`/`xz` 的参数，tar 会把 `-f` 后面紧挨着的那个词当**文件名**，所以 `-czvf` 后面必须直接跟归档名。想调级别就用 `GZIP=-9`，或者 `--use-compress-program='gzip -9'`。
 
 ---
 
@@ -283,7 +297,7 @@ bunzip2 -k file.txt.bz2
 
 ## 10.6 xz 压缩
 
-**xz** 是最新的压缩格式，压缩比最高。
+**xz** 基于 LZMA2 算法，压缩比在常见工具里数一数二，代价是压缩（尤其解压）都更吃 CPU 和时间。
 
 ### 10.6.1 xz 文件
 
@@ -319,6 +333,35 @@ xz -l archive.tar.xz
 xz -T 4 bigfile.tar
 ```
 
+### 10.6.4 补充：zstd——现在更常用的选择
+
+如果只挑一个"现代"压缩工具，那应该是 **zstd**（Zstandard，Facebook 于 2016 年开源）。它的定位很务实：**压缩比接近 xz，速度却和 gzip 一个量级**，还支持多线程、字典和 1~19 的可调级别。
+
+```bash
+# 安装
+sudo apt install zstd          # Ubuntu/Debian
+sudo dnf install zstd          # RHEL/Rocky
+
+# 压缩 / 解压（zstd 默认会删除原文件，这点和 gzip 一致）
+zstd bigfile.log
+unzstd bigfile.log.zst
+
+# 保留原文件
+zstd -k bigfile.log
+
+# 用 zstd 直接解压 gzip 文件（它能识别 .gz）
+unzstd file.log.gz
+
+# 和 tar 配合（GNU tar 1.31+ 支持 --zstd）
+tar --zstd -cvf logs.tar.zst /var/log/
+tar --zstd -xvf logs.tar.zst
+
+# 对比一下压缩比与耗时
+zstd -b bigfile.log
+```
+
+> 实用经验：**给别人打包用 xz（体积最小、兼容性最好），自己机器上的日志和备份用 zstd（快）**。如今 Arch 的软件包、systemd 的 coredump、ZFS 等都已经默认使用 zstd 了。
+
 ---
 
 ## 10.7 zip/unzip 压缩
@@ -334,12 +377,17 @@ sudo apt install zip unzip
 # 创建压缩包
 zip -r backup.zip documents/
 
-# 排除某些文件
-zip -r backup.zip documents/ --exclude "*.tmp"
+# 排除某些文件（zip 的排除选项是 -x，不是 --exclude！）
+zip -r backup.zip documents/ -x "*.tmp"
+
+# -x 的匹配范围是"归档内的路径"，所以只排根一级的 .tmp 要写 "documents/*.tmp"
+zip -r backup.zip documents/ -x "documents/*.tmp"
 
 # 设置压缩级别（0-9）
 zip -9 -r backup.zip documents/
 ```
+
+> **`--exclude` 不是 zip 的选项**：很多教程照抄 rsync/tar 的写法写成 `zip ... --exclude "*.tmp"`，zip 会把它当成"要打包的文件名"，然后报 `zip warning: name not matched: --exclude`。**zip 用的是 `-x`**。
 
 ### 10.7.2 unzip archive.zip
 
@@ -372,6 +420,13 @@ unzip secure.zip
 # 会提示输入密码
 ```
 
+> **⚠️ zip 的密码保护很弱**：`zip -e` 用的是老的 ZipCrypto 算法，早已被证明容易被破解（有成熟工具能在短时间内跑出弱密码）。**涉及敏感数据时不要用它**，改用：
+> ```bash
+> 7z a -p -mhe=on secure.7z sensitive.txt     # 7z 支持 AES-256，-mhe 还能加密文件名
+> gpg -c sensitive.txt                         # 直接用 GPG 加密（最稳妥）
+> ```
+> 另外，`gzip` 和 `tar` **完全没有加密功能**，`tar.gz` 里的内容任何人拿到都能直接解开。别把 `.tar.gz` 当成"加密的压缩包"。
+
 ---
 
 ## 10.8 7z 格式
@@ -382,7 +437,13 @@ unzip secure.zip
 
 ```bash
 # Ubuntu 安装
-sudo apt install p7zip-full
+sudo apt install p7zip-full     # 老包名，Debian 12/Ubuntu 22.04 及以前
+sudo apt install 7zip           # 新包名，Ubuntu 24.04+/Debian 13 起
+```
+
+> **包名换过一次**：老的 `p7zip-full` 已经停止维护，新发行版改用 `7zip`（提供同一个 `7z` 命令）。如果 `apt install p7zip-full` 提示找不到包，就换成 `7zip`。两条命令装完都能直接用 `7z`。
+
+```bash
 
 # 创建 7z 压缩包
 # a = add，添加文件到压缩包
@@ -416,12 +477,14 @@ sudo apt install p7zip-full
 7z a -mx=9 archive.7z bigfile/
 
 # 分卷压缩（将大文件分割成多个小文件）
-7z a -v100m backup.tar.gz
-# 生成 backup.tar.gz.001, backup.tar.gz.002 ...
+7z a -v100m backup.7z bigfile/
+# 生成 backup.7z.001, backup.7z.002 ...
 
 # 解压分卷
-7z x backup.tar.gz.001
+7z x backup.7z.001
 ```
+
+> 注意：**7z 没法把内容"追加"进一个 `.tar.gz`**。`-v100m` 是 7z 自己的分卷参数，输出文件名必须是 7z 归档（`.7z`）。如果写成 `7z a backup.tar.gz`，你只会得到一个"名字叫 .tar.gz、内容却是 7z 格式"的四不像文件，以后用 tar 根本打不开。
 
 ---
 

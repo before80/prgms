@@ -149,6 +149,22 @@ console.log(fibonacciMemo(100)); // 354224848179262000000（能正常计算）
 // fibonacci(100) 会直接卡死
 ```
 
+> 不过要注意精度：`fib(100)` 的真实值是 `354224848179261915075`，已经远超 `Number.MAX_SAFE_INTEGER`（2^53 - 1），所以上面打印出来的末几位是错的。需要精确结果时请用 `BigInt`：
+
+```javascript
+// 用 BigInt 写记忆化斐波那契，结果完全精确
+function fibBig(n, memo = new Map()) {
+  if (n <= 2n) return 1n;
+  if (memo.has(n)) return memo.get(n);
+  const value = fibBig(n - 1n, memo) + fibBig(n - 2n, memo);
+  memo.set(n, value);
+  return value;
+}
+
+console.log(fibBig(100n).toString()); // "354224848179261915075"（一位不差）
+console.log(fibBig(100n) === 354224848179261915075n); // true
+```
+
 #### 汉诺塔
 
 汉诺塔是经典的递归问题：有 A、B、C 三根柱子，A 柱子上有 n 个盘子（从上到下依次变大），需要把盘子全部移动到 C 柱子，每次只能移动一个盘子，且大盘子不能放在小盘子上面。
@@ -192,20 +208,22 @@ hanoi(3, "A", "C", "B");
 **尾递归**（Tail Recursion）是递归的一种特殊形式——在函数的最后一步直接返回递归调用的结果，不做任何其他操作。
 
 ```javascript
-// ❌ 普通递归：返回后还要做乘法
-function factorial(n, result = 1) {
-  if (n <= 1) return result;
-  return factorial(n - 1, n * result); // 返回后还需要乘以 n，但已经包含在参数里了
+// ❌ 非尾递归：递归调用返回之后还要「再乘一次 n」，所以当前栈帧必须保留
+function factorial(n) {
+  if (n <= 1) return 1;
+  return n * factorial(n - 1); // 调用之后还有乘法要算
 }
 
-// ✅ 尾递归版本
+// ✅ 尾递归版本：把中间结果通过参数传下去，递归调用是最后一步动作
 function factorialTail(n, result = 1) {
   if (n <= 1) return result;
   return factorialTail(n - 1, n * result); // 最后一步就是递归调用
 }
+
+console.log(factorial(5), factorialTail(5)); // 120 120
 ```
 
-尾递归的好处是：有些 JavaScript 引擎（尤其是 ES6+ 的引擎）会对尾递归进行**优化**，避免创建新的栈帧，从而防止栈溢出。
+尾递归的好处是：如果引擎实现了**尾调用优化**（TCO），就可以复用当前栈帧、不新增栈空间，从而彻底避免栈溢出。
 
 ```javascript
 // 普通递归：调用栈不断增长
@@ -221,7 +239,48 @@ function sumTailRecursive(n, acc = 0) {
 }
 ```
 
-> ⚠️ 重要提示：截至目前，大多数 JavaScript 引擎（包括 V8）还没有实现尾调用优化（Tail Call Optimization）。所以尾递归在浏览器中可能仍然会导致栈溢出。这个特性在 Scheme 等语言中很重要，但在 JavaScript 中还需要等待引擎支持。
+> ⚠️ 重要提示：ES2015 规范确实规定了「严格模式下必须实现尾调用优化」，但现实中只有 Safari 的 JavaScriptCore 落地了；**Chrome / Edge / Node 使用的 V8 至今没有实现**（官方态度是「不支持」，短期内也不会改变）。所以在实际部署时，别指望写成尾递归就能省下栈空间。
+
+```javascript
+// 无论是不是尾递归，V8 里递归深了都会栈溢出
+function sumTail(n, acc = 0) {
+  if (n <= 0) return acc;
+  return sumTail(n - 1, acc + n);
+}
+
+// 10 万层左右就会崩（具体阈值和引擎、可用栈大小有关）
+try {
+  console.log(sumTail(100000));
+} catch (e) {
+  console.log(e.name, e.message); // RangeError Maximum call stack size exceeded
+}
+
+// 工程上的替代方案一：改成循环（最省心）
+function sumLoop(n) {
+  let acc = 0;
+  for (let i = n; i > 0; i--) acc += i;
+  return acc;
+}
+console.log(sumLoop(100000)); // 5000050000（超了 32 位但没超安全整数）
+
+// 工程上的替代方案二：蹦床（trampoline）——用循环驱动「返回下一个函数」的写法
+function trampoline(fn) {
+  return function (...args) {
+    let result = fn(...args);
+    while (typeof result === "function") {
+      result = result();
+    }
+    return result;
+  };
+}
+
+const sumTrampolined = trampoline(function sumStep(n, acc = 0) {
+  return n <= 0 ? acc : () => sumStep(n - 1, acc + n);
+});
+console.log(sumTrampolined(100000)); // 5000050000（不会栈溢出）
+```
+
+> 结论：写递归时把终止条件写对、控制递归深度（几万层以内），比纠结「尾递归能不能被优化」更实际。
 
 ---
 
@@ -291,16 +350,16 @@ test("add 纯函数", () => {
 ```javascript
 // 记忆化函数（自动缓存）
 function memoize(fn) {
-  const cache = {};
+  const cache = new Map(); // 用 Map，才能安全地缓存 0、""、NaN 这类值
 
   return function(...args) {
     const key = JSON.stringify(args);
-    if (cache[key]) {
+    if (cache.has(key)) {
       console.log("命中缓存");
-      return cache[key];
+      return cache.get(key);
     }
     const result = fn.apply(this, args);
-    cache[key] = result;
+    cache.set(key, result);
     return result;
   };
 }
@@ -313,6 +372,11 @@ const slowAdd = (a, b) => {
 const memoizedAdd = memoize(slowAdd);
 console.log(memoizedAdd(1, 2)); // 第一次计算
 console.log(memoizedAdd(1, 2)); // 命中缓存
+
+// 如果用 `if (cache[key])` 判断，返回值是 0 / "" / false 时就会被误判成「没缓存」
+const memoizedZero = memoize(() => 0);
+console.log(memoizedZero()); // 第一次计算，返回 0
+console.log(memoizedZero()); // 命中缓存（用 Map.has 判断才正确）
 ```
 
 3. **易于并行**：不需要共享状态，可以安全并行执行
@@ -430,13 +494,15 @@ console.log(result); // 6800
    - 函数调用自身
    - 必须有终止条件
    - 经典应用：阶乘、斐波那契数列、汉诺塔
-   - 尾递归：特殊形式，可能被引擎优化
+   - 朴素递归的斐波那契是 O(2^n)，要用记忆化（缓存）或改成迭代；结果超出 2^53 时请用 `BigInt`
+   - 尾递归：把中间结果放进参数、递归调用作为最后一步；但 **V8 没有实现尾调用优化**，深度太大照样栈溢出，实用替代是循环或蹦床
+   - 递归深度受调用栈限制，几十万层这种需求应该改成循环
 
 2. **函数式编程**：
-   - 纯函数：相同输入相同输出，无副作用
-   - 纯函数优势：可测试、可缓存、易并行、易推理
-   - `map`/`filter`/`reduce` 三剑客
-   - 链式调用写出声明式代码
+   - 纯函数：相同输入相同输出、无副作用；副作用（改外部状态、I/O、DOM 操作、打印）尽量推到程序边界
+   - 纯函数优势：可测试、可缓存（记忆化）、易并行、易推理
+   - `map`（转换）/ `filter`（过滤）/ `reduce`（聚合）三剑客，链式调用写出声明式代码
+   - 写缓存时用 `Map.has` 或 `Object.hasOwn` 判断，别用 `if (cache[key])`——返回值是 `0` / `""` / `false` 时会误判
 
 > 📊 图示：map/filter/reduce 的数据流
 >
@@ -454,4 +520,3 @@ console.log(result); // 6800
 ---
 
 **下章预告**：下一章我们将揭开 **JavaScript 事件循环** 的神秘面纱——为什么 setTimeout 不一定能准时执行？为什么 Promise 比 setTimeout 先执行？答案就在事件循环！ ⏰
-

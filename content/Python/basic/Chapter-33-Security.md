@@ -244,13 +244,13 @@ result = login_safe("' OR '1'='1' --", "anypassword")
 flowchart LR
     subgraph 危险做法
         A1[用户输入] --> B1[直接拼接到 SQL]
-        B1 --> C1[SELECT * FROM users WHERE name='{input}']
+        B1 --> C1["SELECT * FROM users WHERE name='{input}'"]
         C1 --> D1[可能执行恶意命令]
     end
     
     subgraph 安全做法
         A2[用户输入] --> B2[作为参数传递]
-        B2 --> C2[execute 'SELECT...WHERE name=?', input]
+        B2 --> C2["execute 'SELECT ... WHERE name=?', input"]
         C2 --> D2[数据库知道这是数据不是命令]
     end
 ```
@@ -840,13 +840,13 @@ flowchart LR
     subgraph 对称加密
         A1["发送方"] -->|"用同一密钥加密"| B1["加密数据"]
         B1 -->|"用同一密钥解密"| A2["接收方"]
-        A1 -->|"密钥安全传输难题| A2"
+        A1 -->|"密钥安全传输难题"| A2
     end
     
     subgraph 非对称加密
         C1["发送方"] -->|"用公钥加密"| D1["加密数据"]
         D1 -->|"用私钥解密"| C2["接收方"]
-        C2 -->|"公钥可公开| C1"
+        C2 -->|"公钥可公开"| C1
     end
 ```
 
@@ -984,14 +984,14 @@ flowchart LR
     subgraph 加密 - 保密性
         A["发送方"] -->|"用接收方公钥加密"| B["密文"]
         B -->|"用接收方私钥解密"| C["接收方"]
-        C -->|"只有接收方能看| A"
+        C -->|"只有接收方能看"| A
     end
     
     subgraph 签名 - 认证
         D["发送方"] -->|"用发送方私钥签名"| E["签名"]
         E -->|"附加在消息上"| F["消息+签名"]
         F -->|"用发送方公钥验证"| G["接收方"]
-        G -->|"确认是发送方发的| D"
+        G -->|"确认是发送方发的"| D
     end
 ```
 
@@ -1201,7 +1201,7 @@ print("   3. 窃取密码、cookie 等敏感信息")
 import ssl
 import socket
 import certifi  # 著名的 CA 证书集合包
-from datetime import datetime
+from datetime import datetime, timezone
 
 def get_certificate_info(host: str, port: int = 443) -> dict:
     """
@@ -1218,7 +1218,12 @@ def get_certificate_info(host: str, port: int = 443) -> dict:
             # 检查证书有效期
             not_before = datetime.strptime(cert_dict['notBefore'], '%b %d %H:%M:%S %Y %Z')
             not_after = datetime.strptime(cert_dict['notAfter'], '%b %d %H:%M:%S %Y %Z')
-            now = datetime.utcnow()
+            # 证书里的时间本来就是 UTC（那个 %Z 就是 GMT），
+            # 所以两边都补上 UTC 时区再比较，语义才对得上。
+            # 注意 datetime.utcnow() 在 Python 3.12 起已废弃，别再用它。
+            not_before = not_before.replace(tzinfo=timezone.utc)
+            not_after = not_after.replace(tzinfo=timezone.utc)
+            now = datetime.now(timezone.utc)
             is_valid = not_before <= now <= not_after
             
             return {
@@ -1250,7 +1255,8 @@ for website in websites:
 # 检查: www.example.com
 #   主题: (('countryName', 'US'), ('stateOrProvinceName', 'California'), ...)
 #   颁发者: (('countryName', 'US'), ('organizationName', "Let's Encrypt"), ...)
-#   有效期: 2023-08-01T00:00:00 ~ 2024-08-01T23:59:59
+#   有效期: 2023-08-01T00:00:00+00:00 ~ 2024-08-01T23:59:59+00:00
+#   （末尾的 +00:00 表示这两个时间带 UTC 时区，是我们主动补上的）
 #   当前状态: ✅ 有效
 ```
 
@@ -1261,7 +1267,7 @@ for website in websites:
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import secrets
 
 def generate_self_signed_cert(common_name="localhost", days_valid=365):
@@ -1272,7 +1278,7 @@ def generate_self_signed_cert(common_name="localhost", days_valid=365):
     from cryptography import x509
     from cryptography.x509.oid import NameOID
     from cryptography.hazmat.primitives import hashes
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, timezone
 
     # 生成密钥
     key = RSA.generate(2048)
@@ -1293,8 +1299,9 @@ def generate_self_signed_cert(common_name="localhost", days_valid=365):
         .issuer_name(issuer)
         .public_key(key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.utcnow())
-        .not_valid_after(datetime.utcnow() + timedelta(days=days_valid))
+        # 用带时区的 UTC 时间（utcnow() 已废弃；cryptography 也推荐传 aware 时间）
+        .not_valid_before(datetime.now(timezone.utc))
+        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=days_valid))
         .add_extension(
             x509.SubjectAlternativeName([
                 x509.DNSName(common_name),

@@ -56,14 +56,13 @@ fn main() {
     
     // 看到了吗？同一个函数，处理了三种不同的类型！
     // 这就是泛型的威力！
-
-> ⚠️ **勘误**：早期版本文档中可能出现 `T: Comparable` 这样的约束，但 Rust 标准库并没有 `Comparable` trait。正确的约束应该是 `T: PartialOrd`（表示可以比较大小）。请读者注意辨别。
 }
 ```
 
+> ⚠️ **勘误**：早期版本文档中可能出现 `T: Comparable` 这样的约束，但 Rust 标准库并没有 `Comparable` trait。正确的约束应该是 `T: PartialOrd`（表示可以比较大小）。请读者注意辨别。
+
 > **小贴士**：`<T>` 中的 T 只是惯例命名，你可以用任何名字，比如 `<Item>`、`<Type>`、`<MyType>`。不过大家都用 T，所以你也用 T 吧，合群很重要！
 
-mermaid
 ```mermaid
 flowchart LR
     A[泛型函数] --> B["<T> 类型占位符"]
@@ -95,7 +94,7 @@ fn trio<T, U, V>(a: T, b: U, c: V) -> (T, U, V) {
 }
 
 // 甚至可以玩出更多花样
-fn mixed_output<T, U>(t: T, u: U) -> (String, T, U) {
+fn mixed_output<T: std::fmt::Debug, U: std::fmt::Debug>(t: T, u: U) -> (String, T, U) {
     // 混合类型返回
     (format!("{:?} and {:?}", t, u), t, u)
 }
@@ -218,7 +217,6 @@ fn main() {
 
 > **等等，字符也能当坐标？** 当然！Rust 的 `char` 是 4 字节的 Unicode 标量值，可以是任何字符，包括中文、日文、甚至 emoji！虽然实际编程中不太会用到字符坐标，但这说明了 Rust 泛型的灵活性。
 
-mermaid
 ```mermaid
 classDiagram
     class Point~T~ {
@@ -247,6 +245,7 @@ classDiagram
 ```rust
 // 两个类型参数的结构体
 // 想象成一个"万能信封"，可以装任何两种东西
+#[derive(Debug)] // 想用 {:?} 打印，就必须先派生 Debug
 struct Pair<T, U> {
     // first 可以是任何类型
     first: T,
@@ -452,8 +451,8 @@ fn main() {
         }
     }
     
-    println!("{}", describe_result(Either::Left(100)));
-    println!("{}", describe_result(Either::Right("fallback")));
+    println!("{}", describe_result(Either::<i32, &str>::Right("fallback")));
+    println!("{}", describe_result(Either::<i32, &str>::Both(100, "extra")));
     println!("{}", describe_result(Either::Both(100, "extra")));
 }
 ```
@@ -514,7 +513,6 @@ fn main() {
 
 > **为什么要为泛型实现方法？** 因为泛型结构体的方法不一定需要是泛型的。比如 `get()` 方法，`T` 是什么类型不重要，重要的是返回 `&T`。这种"在 impl 中定义方法"的方式让你的 API 更加简洁。
 
-mermaid
 ```mermaid
 flowchart TB
     A["impl<T> Wrapper<T>"] --> B["new(value: T) -> Wrapper<T>"]
@@ -607,7 +605,7 @@ fn print<T: fmt::Display>(value: T) {
 }
 
 // T: Clone 约束表示：T 必须可以被克隆
-fn clone_and_print<T: Clone>(value: &T) -> T {
+fn clone_and_print<T: Clone + fmt::Debug>(value: &T) -> T {
     let cloned = value.clone();
     println!("克隆前: {:?}", value);
     cloned
@@ -755,8 +753,8 @@ where
 // 甚至可以约束之间的关系
 fn related<T, U>(t: T, u: U)
 where
-    T: Clone,
-    U: Clone + From<T>,  // U 可以从 T 构造
+    T: Clone + std::fmt::Debug,
+    U: Clone + From<T> + std::fmt::Debug,  // U 可以从 T 构造，并且能打印
 {
     let u2 = U::from(t.clone());
     println!("t = {:?}, u = {:?}", t, u2);
@@ -886,15 +884,11 @@ trait Config<T = String> {
     fn value(&self) -> &T;
 }
 
-// 简单调用：不指定类型，使用默认
-fn simple() -> impl Config {
-    // 返回默认的 Config<String>
-}
-
-// 复杂调用：指定类型
-fn complex() -> impl Config<Vec<i32>> {
-    // 返回 Config<Vec<i32>>
-}
+// 下面这两个函数只是签名示意。
+// `impl Trait` 必须有一个真正的返回值和具体类型，只写签名是编译不过的，
+// 所以这里把它们注释掉；真正可运行的实现就是下面两个 struct。
+// fn simple() -> impl Config { SimpleConfig { value: String::new() } }
+// fn complex() -> impl Config<Vec<i32>> { ComplexConfig { value: vec![] } }
 
 struct SimpleConfig {
     value: String,
@@ -1012,13 +1006,15 @@ impl Display for Person {
     }
 }
 
-// 因为 Person 实现了 Display，所以自动实现了 Printable
-impl Printable for Person {
-    fn print(&self) {
-        // 这里重写了默认实现！
-        println!("👤 {} - {}岁", self.name, self.age);
-    }
-}
+// ⚠️ 注意：上面已经写了"为所有实现了 Display 的类型实现 Printable"（覆盖实现），
+// 所以这里不能再为 Person 单独实现一次——那会触发 E0119（实现冲突）。
+// Rust 稳定版不支持"特化"，即不能覆盖某个类型的默认实现。
+// impl Printable for Person {
+//     fn print(&self) { println!("👤 {} - {}岁", self.name, self.age); }
+// } // 编译错误：conflicting implementations of trait `Printable` for type `Person`
+//
+// 想给某个类型定制行为，标准做法是：别用覆盖实现，
+// 而是在 trait 里留一个"可被覆盖的钩子方法"，或者干脆不用覆盖实现。
 
 fn main() {
     // 整数自动实现了 Printable（因为 i32 实现了 Display）
@@ -1027,12 +1023,12 @@ fn main() {
     // 字符串也一样
     "hello".print(); // hello
     
-    // 自定义类型有自己的实现
+    // Person 也实现了 Display，所以用的同样是那个默认实现
     let person = Person {
         name: String::from("张三"),
         age: 30,
     };
-    person.print(); // 👤 张三 - 30岁
+    person.print(); // 张三 (30岁)
 }
 ```
 
@@ -1135,7 +1131,6 @@ fn main() {
 }
 ```
 
-mermaid
 ```mermaid
 flowchart LR
     A[泛型] --> B[静态分发<br/>编译时生成具体代码]
@@ -1212,8 +1207,10 @@ fn main() {
 
 ```rust
 // 这两个函数声明是等价的！
-fn foo<T>(x: &T) { } // 隐含了 T: Sized
-fn foo<T: Sized>(x: &T) { } // 显式写出
+// ⚠️ `T: Sized` 是"默认就带"的约束，显式写出来不改变语义，
+// 但同一个函数不能定义两次——下面第二行会报 E0428（重复定义）：
+fn foo<T>(x: &T) { } // 隐含了 T: Sized，与下一行等价
+// fn foo<T: Sized>(x: &T) { } // 编译错误：the name `foo` is defined multiple times
 
 // 在实际使用中，&T 总是 Sized
 // 因为引用本身的大小是固定的（一个指针）
@@ -1273,7 +1270,7 @@ fn bad_example<T: ?Sized>(v: &mut T) {
 }
 
 // 正确做法：如果需要修改，应该限制为 Sized
-fn good_example<T: Sized>(v: &mut T) {
+fn good_example<T: Sized + std::fmt::Debug>(v: &mut T) {
     // 这里可以对 v 做任何事，因为 T 的大小是已知的
     println!("值: {:?}", v);
 }
@@ -1330,7 +1327,6 @@ fn main() {
 }
 ```
 
-mermaid
 ```mermaid
 flowchart LR
     A["&T (Sized)"] --> B["8字节<br/>数据指针"]
@@ -1469,8 +1465,11 @@ fn main() {
 
 ```rust
 // 带默认类型的 trait
+// ⚠️ 关联类型的默认值是 nightly 功能（issue #29661），
+// 在稳定版上编译会报 E0658：associated type defaults are unstable
 trait IteratorWithDefault {
-    type Item = i32; // 默认是 i32
+    // type Item = i32; // 稳定版上必须把这一行注释掉，改在 impl 里指定
+    type Item;
     
     fn next(&mut self) -> Option<Self::Item>;
 }
@@ -1478,7 +1477,7 @@ trait IteratorWithDefault {
 struct DefaultIter;
 
 impl IteratorWithDefault for DefaultIter {
-    // 不指定 Item，使用默认的 i32
+    type Item = i32; // 稳定版上必须显式指定
     fn next(&mut self) -> Option<Self::Item> {
         Some(42)
     }
@@ -1495,10 +1494,10 @@ impl IteratorWithDefault for StringIter {
 }
 
 fn main() {
-    let default = DefaultIter;
+    let mut default = DefaultIter;
     println!("默认类型: {:?}", default.next()); // Some(42)
     
-    let string = StringIter;
+    let mut string = StringIter;
     println!("指定类型: {:?}", string.next()); // Some("hello")
 }
 ```
@@ -1573,8 +1572,9 @@ fn main() {
 const 泛型也支持一些编译期运算！
 
 ```rust
-// const fn 可以接受类型参数（不是 const 泛型参数），返回类型的值
-const fn make_zero<T: From<u8>>() -> T {
+// 注意：`const fn` 里不能调用 trait 方法（T::from 不是 const 的），
+// 所以这里的 make_zero 只能是普通函数；想在编译期用，得让约束本身是 const 的
+fn make_zero<T: From<u8>>() -> T {
     T::from(0)
 }
 
@@ -1603,7 +1603,7 @@ fn main() {
 const 泛量可以比较！
 
 ```rust
-fn largest_array<const N: usize>() -> usize {
+const fn largest_array<const N: usize>() -> usize {
     N
 }
 
@@ -1655,9 +1655,13 @@ fn main() {
 
 特化让你可以为特定类型提供更优的实现。
 
-```rust
-// 这是一个实验性功能，需要开启 feature
-// #![feature(min_specialization)]
+> ⚠️ 特化（specialization）**不是稳定特性**：下面这段代码在 stable 上会直接报
+> `error[E0119]: conflicting implementations of trait `Greet` for type `String``，
+> 必须使用 nightly 编译器并开启 `#![feature(min_specialization)]` 才能通过，因此本块标记为 `ignore`。
+
+```rust,ignore
+// ⚠️ 需要在 nightly 上开启 #![feature(min_specialization)]
+#![feature(min_specialization)]
 
 trait Greet {
     fn greet(&self) -> String;
@@ -1714,6 +1718,8 @@ fn main() {
 ```
 
 #### 4.6.2.2 特化的使用场景
+
+特化（specialization）允许为特定类型提供更「特殊」的实现，但它目前仍是 nightly 特性；稳定版只能用宏或 trait 组合来模拟。
 
 ```rust
 // 特化常用于：

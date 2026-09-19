@@ -60,7 +60,7 @@ graph LR
     style C fill:#90EE90
 ```
 
-### 34.1.1.1 TypeOf
+#### 34.1.1.1 TypeOf
 
 **TypeOf**——获取任意变量的类型信息。
 
@@ -99,7 +99,7 @@ fmt.Println(t)        // <nil>, interface类型
 
 ---
 
-### 34.1.1.2 类型信息
+#### 34.1.1.2 类型信息
 
 **类型信息**——reflect.Type提供了丰富的类型信息。
 
@@ -177,14 +177,18 @@ import (
 func main() {
     // ValueOf 获取值
     v := reflect.ValueOf(42)
-    fmt.Println("值:", v)              // 42
-    fmt.Println("类型:", v.Type())     // int
-    fmt.Println("种类:", v.Kind())     // int
+    fmt.Println("值:", v)          // 值: 42
+    fmt.Println("类型:", v.Type()) // 类型: int
+    fmt.Println("种类:", v.Kind()) // 种类: int
 
-    // 指针的值需要Elem()获取
-    p := reflect.ValueOf(&42)
-    fmt.Println("指针值:", p)          // 0xc00000...
-    fmt.Println("指向的值:", p.Elem()) // 42
+    // 想取地址，必须先有一个可寻址的变量。
+    // reflect.ValueOf(&42) 是编译错误：cannot take address of 42
+    n := 42
+    p := reflect.ValueOf(&n)
+    fmt.Println("指针值:", p)                // 指针值: &42
+    fmt.Println("指针的种类:", p.Kind())     // 指针的种类: ptr
+    fmt.Println("指向的值:", p.Elem())       // 指向的值: 42
+    fmt.Println("指向的值是否可修改:", p.Elem().CanSet()) // 指向的值是否可修改: true
 
     // 结构体值
     type Person struct {
@@ -193,7 +197,9 @@ func main() {
     }
     person := Person{Name: "Alice", Age: 25}
     vp := reflect.ValueOf(person)
-    fmt.Println("Person值:", vp)  // {Alice 25}
+    fmt.Println("Person值:", vp)                 // Person值: {Alice 25}
+    fmt.Println("字段个数:", vp.NumField())       // 字段个数: 2
+    fmt.Println("第一个字段:", vp.Field(0))       // 第一个字段: Alice
 }
 ```
 
@@ -439,6 +445,7 @@ import (
 
 type Person struct {
     Name string
+    Age  int
 }
 
 func (p Person) Greet() string {
@@ -446,21 +453,28 @@ func (p Person) Greet() string {
 }
 
 func (p Person) AddAge(years int) {
+    // 值接收者拿到的是副本，改 age 不会影响调用方
     p.Age += years
 }
 
 func main() {
-    p := Person{Name: "Alice"}
+    p := Person{Name: "Alice", Age: 25}
 
-    // 获取方法
+    // 获取方法：Method(i) 的下标顺序是按方法名**字典序**排列的，
+    // 所以 Method(0) 是 "AddAge" 而不是 "Greet"。
     t := reflect.TypeOf(p)
-    greetMethod := t.Method(0)
-    fmt.Println("方法名:", greetMethod.Name)
+    fmt.Println("方法总数:", t.NumMethod())        // 方法总数: 2
+    fmt.Println("Method(0):", t.Method(0).Name)  // Method(0): AddAge
+    fmt.Println("Method(1):", t.Method(1).Name)  // Method(1): Greet
 
-    // 调用方法
+    // 按名字找方法，语义更清晰
+    greetMethod, ok := t.MethodByName("Greet")
+    fmt.Println("方法名:", greetMethod.Name, "存在:", ok) // 方法名: Greet 存在: true
+
+    // 调用方法（值接收者对应的是 func(Person) string，所以第一个参数是接收者本身）
     v := reflect.ValueOf(p)
     result := v.MethodByName("Greet").Call(nil)
-    fmt.Println("调用结果:", result[0])  // Hello, Alice!
+    fmt.Println("调用结果:", result[0]) // 调用结果: Hello, Alice!
 }
 ```
 
@@ -775,10 +789,9 @@ package main
 import (
     "fmt"
     "reflect"
-    "strconv"
 )
 
-// 简单的对象转Map
+// 简单的对象转 Map
 func ObjectToMap(obj interface{}) map[string]interface{} {
     result := make(map[string]interface{})
     v := reflect.ValueOf(obj)
@@ -805,7 +818,10 @@ type Person struct {
 func main() {
     p := Person{Name: "Alice", Age: 25}
     m := ObjectToMap(p)
-    fmt.Println("Map:", m)  // map[Name:Alice Age:25]
+    fmt.Println("Map:", m) // Map: map[Age:25 Name:Alice]
+
+    // 只导出字段（首字母大写）才能被 value.Interface() 读取
+    fmt.Println("字段数:", len(m)) // 字段数: 2
 }
 ```
 
@@ -1117,7 +1133,7 @@ var typeCache = make(map[string]*cachedType)
 var cacheMutex sync.Mutex
 
 type cachedType struct {
-    fields map[string]int  // 字段名 -> 索引
+    fields map[string]int // 字段名 -> 索引
 }
 
 func GetCachedFields(t reflect.Type) map[string]int {
@@ -1138,6 +1154,20 @@ func GetCachedFields(t reflect.Type) map[string]int {
 
     typeCache[key] = &cachedType{fields: fields}
     return fields
+}
+
+type Person struct {
+    Name string
+    Age  int
+}
+
+func main() {
+    fields := GetCachedFields(reflect.TypeOf(Person{}))
+    fmt.Println("字段索引:", fields) // 字段索引: map[Age:1 Name:0]
+
+    // 第二次调用直接命中缓存
+    again := GetCachedFields(reflect.TypeOf(Person{}))
+    fmt.Println("缓存命中数量:", len(again)) // 缓存命中数量: 2
 }
 ```
 
@@ -1537,18 +1567,3 @@ graph LR
 ```
 
 恭喜你完成了第34章的学习！反射是Go语言中一个强大的特性，合理使用可以让代码更加灵活，但要避免过度使用导致的性能问题和可维护性问题。
-
----
-
-*第34章 反射 Reflect 内容已完成*
-
-
-
-
-
-
-
-
-
-
-

@@ -31,7 +31,9 @@ function oldSchool() {
   console.log('外面:', pizza);  // 外面: 意大利披萨 —— 居然还能访问到！
 }
 oldSchool();
-console.log(pizza);  // 意大利披萨 —— 纳尼？！函数外面的 var 居然是全局变量！
+// console.log(pizza);  // ReferenceError: pizza is not defined
+// var 只是「函数作用域」——它能穿透 if 块，但穿不出函数。
+// 想变成全局变量，得在函数外声明，或者（非严格模式下）不带声明符直接赋值。
 ```
 
 ```javascript
@@ -94,7 +96,7 @@ const fruits = ['苹果', '香蕉'];
 fruits.push('橙子');        // 数组添加元素，完全OK
 fruits[0] = '鸭梨';         // 修改数组元素，也没毛病
 console.log(fruits);       // [ '鸭梨', '香蕉', '橙子' ]
-// fruits = ['葡萄'];       // 重新赋值？ReferenceError 伺候！
+// fruits = ['葡萄'];       // 重新赋值？TypeError: Assignment to constant variable.
 ```
 
 ```javascript
@@ -376,7 +378,7 @@ const { title, author = '匿名作者', price = 0 } = {
 };
 
 console.log('书名:', title);    // JavaScript 高级教程
-console.log('作者:', author);   // 张张三 —— 有默认值就用原值
+console.log('作者:', author);   // 张三（对象里有这个属性，所以默认值不生效）
 console.log('价格:', price);    // 0 —— 没有这个属性，用默认值
 ```
 
@@ -616,7 +618,7 @@ function greet({
   name = '陌生人',
   age = 0,
   isVip = false
-}) {
+} = {}) {   // 这个「= {}」很关键，没有它 greet() 会直接抛 TypeError
   const vipTag = isVip ? '（VIP用户）' : '';
   console.log(`你好，${name}${vipTag}！${age ? `你${age}岁了。` : ''}`);
 }
@@ -625,6 +627,13 @@ greet({ name: '王五', age: 35, isVip: true });  // 你好，王五（VIP用户
 greet({ name: '赵四' });                          // 你好，赵四！你0岁了。（年龄没传就用默认值0）
 greet({});                                        // 你好，陌生人！你0岁了。
 greet();                                          // 你好，陌生人！你0岁了。（参数都没传）
+
+// 去掉「= {}」之后是这样的：
+function greetNoDefault({ name = '陌生人' }) {
+  return `你好，${name}`;
+}
+// greetNoDefault();  // TypeError: Cannot destructure property 'name' of 'undefined'
+// 因为解构 undefined 一定失败，默认值只能救「属性缺失」，救不了「整个参数缺失」
 ```
 
 ```javascript
@@ -748,7 +757,7 @@ const {
   titles: [primaryTitle]
 } = getFullName();
 
-console.log(`姓名: ${lastName}${firstName}（${nickname}）`);  // 姓名: 欧阳锋（西毒）
+console.log(`姓名: ${firstName}${lastName}（${nickname}）`);  // 姓名: 欧阳锋（西毒）
 console.log('称号:', primaryTitle);                          // 称号: 白驼山主人
 ```
 
@@ -1049,11 +1058,15 @@ Object.setPrototypeOf(child, parent);  // 设置原型
 const expanded = { ...child };
 console.log('展开结果:', expanded);  // { own: '自己的' } —— 继承的属性没了！
 
-// 2. Symbol 类型的属性不会被展开
+// 2. Symbol 类型的「可枚举」属性会被展开（这点和 JSON.stringify 不同）
 const sym = Symbol('test');
 const objWithSym = { [sym]: 'symbol值', normal: '普通值' };
 const expandedSym = { ...objWithSym };
-console.log('Symbol属性:', expandedSym);  // { normal: '普通值' } —— Symbol 丢失了！
+console.log('Symbol属性:', expandedSym);  // { normal: '普通值', Symbol(test): 'symbol值' }
+console.log(Object.getOwnPropertySymbols(expandedSym).length); // 1 —— Symbol 键被复制过来了
+
+// 真正会让 Symbol 消失的是 JSON.stringify
+console.log(JSON.stringify(objWithSym)); // {"normal":"普通值"}
 
 // 3. 不可枚举的属性也不会被展开
 const unenumerable = {};
@@ -1072,9 +1085,18 @@ const obj = { a: 4, b: 5 };
 
 // 数组可以展开为参数，对象可以合并
 const mixed = [...arr, obj];      // 数组展开 + 对象作为整体
-const mixed2 = [...arr, ...obj]; // 数组展开 + 对象展开（会变成索引）
 console.log('混合1:', mixed);    // [ 1, 2, 3, { a: 4, b: 5 } ]
-console.log('混合2:', mixed2);    // [ 1, 2, 3, 4, 5 ] —— 对象被转成了可枚举的 [a, b]
+
+// 反过来「把对象展开进数组」是语法错误：普通对象不是可迭代对象
+// const mixed2 = [...arr, ...obj]; // TypeError: obj is not iterable
+
+// 想达到「把对象的值塞进数组」的效果，得显式取 values
+const mixed3 = [...arr, ...Object.values(obj)];
+console.log('混合3:', mixed3);   // [ 1, 2, 3, 4, 5 ]
+
+// 更常见的做法是用 Object.entries 保留键名
+const mixed4 = [...arr, ...Object.entries(obj)];
+console.log('混合4:', mixed4);   // [ 1, 2, 3, [ 'a', 4 ], [ 'b', 5 ] ]
 ```
 
 ---
@@ -1356,8 +1378,10 @@ const counter = {
   // 普通函数：有自己的 this
   incrementOld: function() {
     setTimeout(function() {
-      this.count++;  // 这里的 this 指向谁？指向 setTimeout（Node 环境）或 window（浏览器环境）
-      console.log('普通函数 count:', this.count);  // NaN 或报错
+      // 回调是「普通函数调用」，this 不再指向 counter：
+      // 非严格模式的浏览器脚本里是 window，严格模式 / ES 模块里是 undefined（访问属性会抛错）
+      this.count++;
+      console.log('普通函数 count:', this.count);  // 浏览器非严格模式下是 NaN
     }, 100);
   },
   // 箭头函数：继承外部的 this
@@ -1407,7 +1431,8 @@ console.log('普通函数有 prototype?', function(){}.hasOwnProperty('prototype
 
 ```javascript
 // 箭头函数的实际应用场景
-// 场景1：React 中的事件处理（class component）
+// 场景1：React 中的事件处理（class component —— 属旧写法，仅用于理解 this 绑定）
+// 注意：现代 React 推荐用函数组件 + Hooks，这段代码需要先 import React 才能运行
 class Counter extends React.Component {
   constructor(props) {
     super(props);
@@ -1679,39 +1704,31 @@ console.log('安全的HTML:', safe);
 
 ```javascript
 // 另一个标签模板应用：国际化
-// 注意：这是一个简化示例，实际项目中请使用专业的 i18n 库
-const i18n = (strings, ...values) => {
-  const translations = {
-    'en': {
-      'Hello': 'Hello',
-      'years old': 'years old',
-      'you are': 'you are'
-    },
-    'zh': {
-      'Hello': '你好',
-      'years old': '岁',
-      'you are': '你'
-    }
-  };
-  const lang = 'zh';
-  const dict = translations[lang];
+// 注意：这是一个简化示例，实际项目请使用专业的 i18n 库（如 i18next、vue-i18n）
+// 关键思路：把模板的「静态部分」还原成带占位符的原文，用它当作查字典的键
+const translations = {
+  'Hello {}, you are {} years old!': '你好，{}，你今年 {} 岁！'
+};
 
-  return strings.reduce((result, str, i) => {
-    const value = values[i - 1];
-    // 简单的翻译逻辑（实际项目用 i18next 等专业库）
-    let translated = str;
-    // 使用正则更精确地匹配并替换
-    translated = translated.replace(/Hello/g, dict['Hello']);
-    translated = translated.replace(/you are/g, dict['you are']);
-    translated = translated.replace(/years old/g, dict['years old']);
-    return result + translated + (value !== undefined ? value : '');
-  }, '');
+const i18n = (strings, ...values) => {
+  // 1. 还原出「原文 + 占位符」，作为翻译条目的键
+  let raw = strings[0];
+  for (let i = 0; i < values.length; i++) {
+    raw += '{}' + strings[i + 1];
+  }
+
+  // 2. 查字典，查不到就保持原文
+  const translated = translations[raw] ?? raw;
+
+  // 3. 把占位符按顺序替换回真实的值
+  let index = 0;
+  return translated.replace(/\{\}/g, () => String(values[index++]));
 };
 
 const name = '小明';
 const age = 18;
 console.log(i18n`Hello ${name}, you are ${age} years old!`);
-// 你好小明, 你是18岁!
+// 你好，小明，你今年 18 岁！
 ```
 
 > 💡 **本章小结（第20章第4节-模板字符串）**
@@ -1962,7 +1979,9 @@ const key2 = Symbol('id');
 console.log('key1 === key2:', key1 === key2);  // false！即使描述相同
 console.log('key1 == key2:', key1 == key2);    // false！
 
-// 这意味着可以用 Symbol 来创建"私有"属性
+// 这意味着用 Symbol 当属性键，几乎不可能和别人的键撞名
+// 但请记住：它不是「私有」的 —— 拿到这个 Symbol 的人照样能读写，
+// Object.getOwnPropertySymbols() 也能把它挖出来。真正的私有要用 # 字段或闭包。
 ```
 
 ```javascript
@@ -1997,6 +2016,17 @@ console.log('Object.entries:', Object.entries(user)); // [ ['name', '李四'], [
 for (const key in user) {
   console.log('for...in:', key);  // name, email
 }
+```
+
+> 常见误解：Symbol 属性并不是「不可枚举」。它的 `enumerable` 依然是 `true`，只是 `Object.keys` / `for...in` / `JSON.stringify` 这些 API 按约定只看字符串键。想拿到 Symbol 键，要用 `Object.getOwnPropertySymbols` 或 `Reflect.ownKeys`：
+
+```javascript
+const sym = Symbol('demo');
+const o = { normal: 1, [sym]: 2 };
+
+console.log(Object.getOwnPropertyDescriptor(o, sym));
+// { value: 2, writable: true, enumerable: true, configurable: true }  ← enumerable 是 true！
+console.log(Reflect.ownKeys(o)); // [ 'normal', Symbol(demo) ] —— 一个都跑不掉
 ```
 
 ```javascript
@@ -2057,8 +2087,13 @@ class MyClass {
 
 const instance = new MyClass();
 console.log('公开字段:', instance.publicField);  // 公开的
-// console.log(instance[_privateField]);  // 访问不到！
+console.log('从外部用 Symbol 访问:', instance[_privateField]); // "私有的" —— 拿得到 Symbol 就能读！
+// 真正访问不到的是这种写法：instance.privateField（属性名根本不叫这个）
+console.log('instance.privateField:', instance.privateField); // undefined
 console.log('通过方法获取私有:', instance.getPrivate());  // 私有的
+
+// 这也说明：Symbol 带来的是「不易冲突」，不是「无法访问」。
+// 想真正私有，请用 class 的 # 私有字段（详见第 19 章）。
 ```
 
 ```javascript
@@ -2155,7 +2190,7 @@ const objWithSymbol = {
 
 const json = JSON.stringify(objWithSymbol);
 console.log('JSON输出:', json);  // {"name":"测试","data":{"value":123}}
-// Symbol 属性能正常序列化，但它不会被 JSON.stringify 访问到
+// Symbol 属性能被正常读写，但 JSON.stringify 会直接跳过它（它只看字符串键）
 ```
 
 ```mermaid
@@ -2166,7 +2201,7 @@ graph TD
     
     A --> C["特性"]
     C --> C1["唯一性"]
-    C --> C2["不可枚举"]
+    C --> C2["可枚举，但常规遍历看不见"]
     C --> C3["不参与 JSON 序列化"]
     
     A --> D["应用场景"]
@@ -2189,23 +2224,24 @@ graph TD
 ### 1. 块级作用域
 - `let` 和 `const` 带来了块级作用域，告别了 `var` 的"海纳百川"
 - **暂时性死区（TDZ）**是 let/const 的保护罩，声明前访问会报错
-- **变量提升**让 var 看起来"飘"，但实际上只提升声明不提升值
+- **变量提升**让 var 看起来"飘"，但实际上只提升声明不提升值；`var` 只是函数作用域，穿得出 `if` 块，穿不出函数
+- `const` 阻止的是「重新赋值」（抛 `TypeError`），不是「修改内容」——对象的属性、数组的元素都还能改
 
 ### 2. 解构赋值
 - 对象解构按属性名匹配，数组解构按位置匹配
 - 支持默认值、变量别名、剩余模式
-- 函数参数解构让配置对象的使用变得优雅
+- 函数参数解构让配置对象的使用变得优雅；注意 `function f({ a } = {})` 里的 `= {}`，缺了它 `f()` 会抛 `TypeError`
 
 ### 3. 展开与剩余
-- 展开运算符 `...` 在赋值时"拆"开集合
+- 展开运算符 `...` 在赋值时"拆"开集合（对象展开会连 Symbol 键一起复制，但只复制自有可枚举属性）
 - 剩余参数 `...rest` 在声明时"收"集元素
-- 数组、对象、函数参数都可以使用
+- 数组、对象、函数参数都可以使用；普通对象不能展开进数组（不是可迭代对象，会抛 `TypeError`）
 
 ### 4. 其他核心特性
-- **箭头函数**：没有自己的 this，适合回调函数，不适合对象方法
-- **模板字符串**：反引号包裹，支持插值和多行文本，标签模板可以自定义处理逻辑
+- **箭头函数**：没有自己的 this / arguments / prototype，适合回调函数，不适合对象方法，也不能 new
+- **模板字符串**：反引号包裹，支持插值和多行文本；标签模板可以自定义处理逻辑（XSS 转义、国际化）
 - **for...of**：遍历可迭代对象，可以用 break/continue，比 forEach 更灵活
-- **Symbol**：创建唯一标识符，用于属性键、私有成员、常量定义
+- **Symbol**：创建唯一标识符，用于属性键、常量定义；它带来的是「不易冲突」，**不是「私有」**——`Object.getOwnPropertySymbols` 就能挖出来，真私有要用 `#` 字段
 
 ### 记忆口诀
 ```
@@ -2223,5 +2259,7 @@ Symbol 创建唯一键，属性私有它来帮
 2. **优先使用解构**，让代码更简洁优雅
 3. **箭头函数不是万能的**，需要 this 或 constructor 的场景别用它
 4. **Symbol 不是用来"加密"的**，它是用来创建唯一标识的
+5. **别把 `for...in` 用在数组上**，它会连自定义属性、原型链属性一起给你，数组请用 `for...of` 或数组方法
+6. **展开运算符只做浅拷贝**，嵌套对象依旧是共享引用，需要独立副本时用 `structuredClone`（详见第 8 章）
 
 这些核心语法是现代 JavaScript 的基石，熟练掌握它们，你就能写出更简洁、更优雅、更专业的代码！

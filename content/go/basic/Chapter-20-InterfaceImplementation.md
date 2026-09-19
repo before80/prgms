@@ -53,7 +53,9 @@ func main() {
 
 ### 20.1.2 方法匹配规则
 
-Go的接口实现要求方法**完全匹配**：
+所谓“签名对上”，指的是**方法名、参数类型的顺序、返回值类型的顺序**都要完全一致；参数和返回值的**名字不重要**。
+
+先看一个正确的实现：
 
 ```go
 package main
@@ -78,6 +80,32 @@ func main() {
     fmt.Printf("读取了 %d 字节: %s\n", n, string(buf[:n])) // 读取了 12 字节: correct data
 }
 ```
+
+参数名不一样完全没关系——下面这个类型同样满足 `Reader`：
+
+```go
+type TolerantReader struct{}
+
+// 参数叫 buf、返回叫 count，都不影响实现关系
+func (t *TolerantReader) Read(buf []byte) (count int, err error) {
+    return copy(buf, []byte("ok")), nil
+}
+
+var _ Reader = (*TolerantReader)(nil) // 编译通过
+```
+
+但这些情况就**不满足** `Reader` 了（取消注释即可看到编译错误）：
+
+```go
+type BadReader struct{}
+
+// func (b *BadReader) Read(p []byte) int { return 0 }                 // ❌ 返回值个数不对
+// func (b *BadReader) Read(p string) (int, error) { return 0, nil }  // ❌ 参数类型不对
+// func (b *BadReader) Read(p []byte) (int32, error) { return 0, nil }// ❌ 返回值类型不对（int32 ≠ int）
+// func (b *BadReader) ReadAll(p []byte) (int, error) { return 0, nil }// ❌ 方法名不对
+```
+
+> 关于大小写：在**同一个包内**，未导出的方法（如 `read`）也能满足本包声明的接口；但接口定义在别的包时，你的方法名必须导出（首字母大写），否则那个包看不到它。标准库接口基本都是导出方法，所以实现时统一大写就好。
 
 ---
 
@@ -160,6 +188,8 @@ func main() {
 | 值类型 `T` | ✅ | ❌ |
 | 指针类型 `*T` | ✅ | ✅ |
 
+> 读这张表的正确姿势是：**`T` 的方法集只包含值接收者方法，`*T` 的方法集包含全部方法**。所以只要接口里有一个方法是指针接收者，就必须用 `*T` 来满足它。
+
 ```go
 package main
 
@@ -186,6 +216,10 @@ func main() {
     var ops1 Operations = &Counter{value: 10}
     ops1.Process()
     fmt.Printf("指针赋值: %d\n", ops1.GetValue()) // 指针赋值: 11
+
+    // 如果换成值类型，这行会编译失败：
+    // var ops2 Operations = Counter{value: 10}
+    // Counter does not implement Operations (method Process has pointer receiver)
 }
 ```
 
@@ -194,6 +228,8 @@ func main() {
 ## 20.3 接口实现的实际应用
 
 ### 20.3.1 同一类型实现多个接口
+
+Go 的类型可以同时满足多个接口——不需要显式声明“我实现了哪些接口”，能凑齐方法就自动算。下面这个 `*File` 同时满足 `Reader`、`Writer`、`Closer`，因此也可以直接交给标准库的 `io.ReadWriteCloser`：
 
 ```go
 package main
@@ -249,10 +285,15 @@ func main() {
 
 ### 20.3.2 验证接口实现
 
+接口实现是隐式的，代价是“写错了要等到真正赋值那一刻才报错”。惯用的解法是在包级别放一个空白标识符断言，把检查提前到编译期：
+
 ```go
 package main
 
-import "io"
+import (
+    "fmt"
+    "io"
+)
 
 type NullWriter struct{}
 
@@ -265,9 +306,11 @@ var _ io.Writer = (*NullWriter)(nil)
 func main() {
     w := &NullWriter{}
     n, _ := w.Write([]byte("test"))
-    println("写入字节数:", n) // 写入字节数: 4
+    fmt.Println("写入字节数:", n) // 写入字节数: 4
 }
 ```
+
+> `var _ io.Writer = (*NullWriter)(nil)` 这行的含义是：把 `nil` 转成 `*NullWriter` 并赋给 `io.Writer`，只为**触发编译期检查**。它不占内存、不产生代码，也不会被运行时用到。`io.Writer` 里如果将来调整了方法，这一行会立刻编译失败，比等到运行时报错早得多。
 
 ---
 
@@ -280,10 +323,10 @@ func main() {
 - 只要方法签名匹配，编译器就认为类型实现了接口
 
 **方法集规则：**
-- 值类型`T`只能实现值接收者方法
-- 指针类型`*T`可以实现所有方法
+- 值类型 `T` 的方法集只包含值接收者方法，所以含指针接收者方法的接口只能由 `*T` 满足
+- 指针类型 `*T` 的方法集包含全部方法（值接收者 + 指针接收者）
+- 反过来，如果一个接口只要求值接收者方法，那么 `T` 和 `*T` 都能满足它
 
 **实用技巧：**
 - 使用`var _ Interface = (*Type)(nil)`进行编译时接口验证
 - 同一类型可以实现多个接口
-

@@ -99,12 +99,12 @@ my_dict = {"name": "Python", "age": 30}
 
 **在 IPython 中内省一个对象：**
 
-```python
+```text
 # 使用 ? 查看对象的文档字符串（docstring）
 print?
 ```
 
-```python
+```text
 # 查看 print 函数的信息
 print?
 # 输出类似：
@@ -115,12 +115,12 @@ print?
 # Type:      builtin_function_or_method
 ```
 
-```python
+```text
 # 使用 ?? 查看函数的源代码（如果可以的话）
 print??
 ```
 
-```python
+```text
 # 查看一个自定义函数的信息
 def greet(name):
     """向某人打招呼"""
@@ -132,7 +132,7 @@ greet?
 # Type:           function
 ```
 
-```python
+```text
 # 使用 %pinfo 魔法命令（magic command）查看详细信息
 %pinfo print
 # 或者更简洁的方式：直接在对象后面加 ?
@@ -199,7 +199,7 @@ print(inspect.getsource(greet))
 
 单 `%` 开头的是**行魔法命令（Line Magic）**，作用于一行代码；双 `%%` 开头的是**单元格魔法命令（Cell Magic）**，作用于整个代码单元格。
 
-```python
+```text
 # ============================================
 # 计时相关魔法命令
 # ============================================
@@ -209,7 +209,7 @@ print(inspect.getsource(greet))
 # 10000 loops, best of 3: 43.2 µs per loop  （微秒级，速度惊人）
 ```
 
-```python
+```text
 # %%timeit - 测量整个单元格的执行时间
 %%timeit
 result = 0
@@ -219,13 +219,13 @@ result
 # 1000 loops, best of 3: 523 µs per loop
 ```
 
-```python
+```text
 # %time - 单次执行时间（适合慢速操作）
 %time sum(range(10000))
 # Wall time: 312 µs
 ```
 
-```python
+```text
 # ============================================
 # 代码执行相关魔法命令
 # ============================================
@@ -251,7 +251,7 @@ say_hello()
 #     print("Hello from another file!")
 ```
 
-```python
+```text
 # %cpaste - 粘贴多行代码（避免缩进问题）
 # 执行 %cpaste 后，你可以粘贴代码，以 "--" 结束
 %cpaste
@@ -265,7 +265,7 @@ say_hello()
 # 2
 ```
 
-```python
+```text
 # ============================================
 # 系统/Shell 相关魔法命令
 # ============================================
@@ -277,7 +277,7 @@ say_hello()
 # setuptools 68.x.x
 ```
 
-```python
+```text
 # %alias - 创建命令别名
 %alias myls ls -la
 myls
@@ -286,7 +286,7 @@ myls
 # -rwxr-xr-x  1 user  staff  1024 Apr  8 10:00 hello.py
 ```
 
-```python
+```text
 # %cd - 切换目录
 %cd /tmp
 # /private/tmp
@@ -295,7 +295,7 @@ myls
 # 切换回上一个目录
 ```
 
-```python
+```text
 # %pwd 和 %ls - 查看当前目录和文件列表
 %pwd
 # '/private/tmp'
@@ -304,7 +304,7 @@ myls
 # hello.py   temp.txt
 ```
 
-```python
+```text
 # ============================================
 # 代码编辑相关魔法命令
 # ============================================
@@ -321,7 +321,7 @@ myls
 # 4: greet?
 ```
 
-```python
+```text
 # ============================================
 # 可视化和输出相关魔法命令
 # ============================================
@@ -335,7 +335,7 @@ myls
 # 开启贪婪模式补全（会提示更多选项）
 ```
 
-```python
+```text
 # ============================================
 # 调试相关魔法命令
 # ============================================
@@ -357,13 +357,13 @@ divide(1, 0)
 # ipdb> q        # 退出调试器
 ```
 
-```python
+```text
 # %pdb - 设置自动调试模式（代码出错时自动进入调试器）
 %pdb on
 # Automatic pdb calling has been turned on
 ```
 
-```python
+```text
 # ============================================
 # 其他实用魔法命令
 # ============================================
@@ -384,7 +384,7 @@ c = [1, 2, 3]
 # c          list     [1, 2, 3]
 ```
 
-```python
+```text
 # %reset - 清除命名空间
 # %reset -f    # 强制清除，不需要确认
 
@@ -546,7 +546,7 @@ Ctrl + End        # 跳到单元格末尾
 Ctrl + 左/右箭头  # 按单词跳跃光标
 ```
 
-```python
+```text
 # ============================================
 # Jupyter 魔法命令（和 IPython 共享）
 # ============================================
@@ -572,7 +572,7 @@ def add(a, b):
 # %run my_script.py
 ```
 
-```python
+```text
 # %matplotlib inline - 在 Notebook 中显示图表
 %matplotlib inline
 import matplotlib.pyplot as plt
@@ -583,7 +583,7 @@ plt.show()
 # 图表会直接显示在 Notebook 下方
 ```
 
-```python
+```text
 # %config InlineBackend.figure_format = 'retina'
 # 高清图表（视网膜屏幕）
 
@@ -672,6 +672,8 @@ jupyter notebook --generate-config
 ```
 
 #### Jupyter 生态图
+
+这张图理顺了 Jupyter 的层次：最底下是内核（kernel，真正执行代码的那个进程），中间是 Notebook 文档格式与前端（Lab / Notebook），最上面才是各种第三方扩展。
 
 ```mermaid
 graph TD
@@ -1009,7 +1011,7 @@ isort my_module.py
 isort .
 ```
 
-```python
+````python
 # ============================================
 # isort 排序规则
 # ============================================
@@ -1048,6 +1050,7 @@ import requests
 from django.conf import settings
 from my_module import helper, models, utils, views
 ```
+````
 
 ```python
 # ============================================

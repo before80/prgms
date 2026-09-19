@@ -64,9 +64,11 @@ func main() {
 
 ```mermaid
 graph LR
-    A[内存中的数据结构<br/>struct Person] -->|序列化| B[字节流<br/>{"Name":"阿宝"...}]
-    B -->|反序列化| C[内存中的数据结构<br/>struct Person]
+    A["内存中的数据结构<br/>struct Person"] -->|"序列化"| B["字节流<br/>（例如 JSON 文本）"]
+    B -->|"反序列化"| C["内存中的数据结构<br/>struct Person"]
 ```
+
+> 以 JSON 为例，`Person{Name: "阿宝"}` 序列化后是一串字节：`{"Name":"阿宝"}`——它可以在网络上传输，也可以落盘保存；另一端再把它还原成 `Person`，这就是"序列化 / 反序列化"的完整闭环。
 
 ---
 

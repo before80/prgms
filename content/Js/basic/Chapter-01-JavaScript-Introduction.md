@@ -17,9 +17,9 @@ draft = false
 
 时间拨回到 **1995年**，那时的互联网还是一片蛮荒之地。网景公司（Netscape）正忙着做浏览器，心里琢磨着：「这网页也太无聊了，全是静态文字，能不能让它动起来？」
 
-于是，网景公司找到了一个叫 **Brendan Eich**（埃文·艾希）的大神，对他说：「给我们设计一门脚本语言，十天时间够不够？」
+于是，网景公司找到了一个叫 **Brendan Eich**（布兰登·艾奇）的大神，对他说：「给我们设计一门脚本语言，十天时间够不够？」
 
-埃文大神微微一笑：「够了。」
+布兰登微微一笑：「够了。」
 
 然后他用**十天**时间，硬生生撸出了一门编程语言——最早叫 **Mocha**（摸卡），然后改名叫 **LiveScript**（活脚本），最后才定名为 **JavaScript**。
 
@@ -33,7 +33,7 @@ draft = false
 // 来个简单的自我介绍
 console.log("我是 JavaScript，1995 年出生，网景公司出品！"); // 我是 JavaScript，1995 年出生，网景公司出品！
 console.log("我的官方名字叫 ECMAScript，但大家都叫我 JS"); // 我的官方名字叫 ECMAScript，但大家都叫我 JS
-console.log(" Brendan Eich 用十天创造了我，他是个狠人！"); //  Brendan Eich 用十天创造了我，他是个狠人！
+console.log("Brendan Eich 用十天创造了我，他是个狠人！"); // Brendan Eich 用十天创造了我，他是个狠人！
 ```
 
 ### JavaScript 与 Java 的关系
@@ -49,13 +49,18 @@ console.log(" Brendan Eich 用十天创造了我，他是个狠人！"); //  Bre
 | 出生时间 | 1995年 | 1995年（同年！） |
 | 老爸 | 网景公司（Brendan Eich） | Sun 公司（James Gosling） |
 | 运行环境 | 浏览器 + Node.js | 虚拟机（JVM） |
-| 类型系统 | 弱类型（不用声明类型） | 强类型（必须声明类型） |
-| 代码执行 | 解释执行 | 编译执行 |
+| 类型检查时机 | 运行期才知道类型（动态类型） | 编译期就检查类型（静态类型） |
+| 类型转换 | 隐式转换多，通常被描述为「弱类型」 | 隐式转换少，通常被描述为「强类型」 |
+| 代码执行 | 引擎 JIT 即时编译（不是纯解释） | 先编译成字节码，再由 JVM 的 JIT 编译 |
 | 用途 | 网页交互、后端、小程序... | 企业级应用、Android、大数据... |
+
+> 💡 这里有个常见的术语混淆：「动态/静态」说的是**什么时候确定类型**，「弱/强」说的是**隐式转换多不多**，两件事互不隶属。JavaScript 是「动态 + 弱类型」，Java 是「静态 + 强类型」，所以二者根本不是一个维度的对比。
+>
+> 另外「JavaScript 是解释型语言，Java 是编译型语言」也是过时说法：现代 JavaScript 引擎（V8、JSC、SpiderMonkey）都会把热点代码即时编译成机器码，Java 也需要先编译成字节码再由 JVM 编译执行。
 
 JavaScript 的创始人 Brendan Eich 曾经说过：「Java 跟 JavaScript 的关系，就跟「汽车」和「汽车脚垫」一样。」
 
-后来 Oracle 收购了 Sun 公司，顺手也把 JavaScript 的商标给收了。所以现在严格来说，只有 Mozilla 公司可以在官方场合使用「JavaScript」这个名字——但谁在乎呢？地球人都叫它 JavaScript。
+后来 Oracle 收购了 Sun 公司，也一并继承了「JavaScript」这个商标。所以严格来说，这门语言的**标准名**叫 ECMAScript；Oracle 持有商标，Mozilla 等组织通过与 Sun/Oracle 的协议获得使用许可，其他场合一般用 ECMAScript 来指代标准。当然，日常交流里大家还是叫它 JavaScript。
 
 ```javascript
 // 来个形象的比喻
@@ -194,12 +199,16 @@ console.log(add(1, 2)); // 3
 | ES2016 (ES7) | 2016 | `**` 指数运算符、`Array.prototype.includes()` |
 | ES2017 (ES8) | 2017 | `async/await`、字符串填充、共享内存 |
 | ES2018 (ES9) | 2018 | 异步迭代、对象展开运算符、正则表达式的命名捕获组 |
-| ES2019 (ES10) | 2019 | `Array.prototype.flat()`、`Object.fromEntries()`、可选捕获组 |
+| ES2019 (ES10) | 2019 | `Array.prototype.flat()`/`flatMap()`、`Object.fromEntries()`、可选的 `catch` 绑定（`catch {}`）、`String.prototype.trimStart/trimEnd` |
 | ES2020 (ES11) | 2020 | `BigInt`、`可选链` `?.`、`空值合并运算符` `??` |
 | ES2021 (ES12) | 2021 | 逻辑赋值运算符、Promise.any()、数字分隔符 |
 | ES2022 (ES13) | 2022 | 顶层 await、Class 私有字段、`at()` 方法 |
-| ES2023 (ES14) | 2023 | 数组-find-反向、Hashbang 语法 |
-| ES2024 (ES15) | 2024 | `Array.prototype.groupBy()`、正则表达式 `v` 标志 |
+| ES2023 (ES14) | 2023 | `findLast()`/`findLastIndex()`、不改动原数组的 `toSorted()`/`toReversed()`/`toSpliced()`/`with()`、Hashbang 语法 |
+| ES2024 (ES15) | 2024 | `Object.groupBy()`/`Map.groupBy()`、正则表达式 `v` 标志、`Promise.withResolvers()`、`ArrayBuffer.prototype.transfer()` |
+
+> ⚠️ 一个容易记错的点：分组方法在标准化过程中被改名了，最终落地的是 **`Object.groupBy()` 和 `Map.groupBy()`**，而不是早期提案里的 `Array.prototype.groupBy()`（那个名字已被放弃）。
+>
+> 另外要提醒：`ES7`/`ES8` 这类叫法并不严谨。ES6 之后标准改为「按年份命名」，ES2016 之后就没有官方认定的 ES7、ES8 编号了，ES2016 才是官方名称。
 
 ```javascript
 // ES2020 可选链：再也不用写这种噩梦了
@@ -698,12 +707,17 @@ sequenceDiagram
     P->>S3: 遇到 async，开始并行下载
     P->>P: 继续解析 HTML
     S2->>S2: 下载完成，等待
-    S3->>S2: 下载完成，立即执行（顺序不定）
+    S3->>S3: 下载完成，立即执行（可能早于 defer，顺序不定）
     P-->>S2: HTML 解析完成
     S2->>P: defer 脚本按顺序执行
     P->>S4: 遇到 body 中的同步脚本，执行
     Note over S4: DOM 已完全构建
 ```
+
+> 补充两个常被忽略的规则：
+>
+> - **`defer` / `async` 只对外部脚本（带 `src`）有意义**，写在内联脚本上会被忽略。
+> - **用 `document.createElement('script')` 动态插入的脚本默认是 `async` 行为**，即「下载完就执行、不保证顺序」；如果它同时设置了 `async = false`，就会变成类似 `defer` 的顺序执行。
 
 > **记住这个顺序：**
 >
@@ -842,8 +856,8 @@ console.log("点击预览区的按钮试试！"); // 点击预览区的按钮试
 | 书名 | 内容 |
 |------|------|
 | 《你不知道的 JavaScript（上卷）》 | 作用域、闭包、this 指向 |
-| 《你不知道的 JavaScript（中卷）》 | 异步、性能、ES6+ |
-| 《你不知道的 JavaScript（下卷）》 | 异步深入、并发 |
+| 《你不知道的 JavaScript（中卷）》 | 类型与语法、异步与性能 |
+| 《你不知道的 JavaScript（下卷）》 | ES6 及之后的新特性 |
 
 ```javascript
 // 这套书能帮你理解很多「为什么」
@@ -923,5 +937,3 @@ console.log(zhangsan instanceof Object); // true
 6. **学习资源**：MDN 文档是在线百科，JS Bin/CodePen/JSFiddle 是练手神器，《你不知道的 JavaScript》和《JavaScript 高级程序设计》是进阶必备。
 
 下一章，我们将搭建 JavaScript 的开发环境，拿起你的键盘，准备好你的 IDE，我们马上出发！
-
-

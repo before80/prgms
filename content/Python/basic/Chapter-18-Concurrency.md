@@ -78,12 +78,14 @@ for t in threads:
 for t in threads:
     t.join()
 
-print(counter)  # 结果经常不是 20000000！GIL 导致的竞态条件
+print(counter)  # 结果经常不是 20000000！
 # 期望: 20000000
 # 实际: 19945032（每次都不一样）
 ```
 
-> **GIL 的误解澄清**：GIL 只影响**纯 Python 代码执行**，不影响 **IO 操作**（网络请求、文件读写）和**调用外部 C 库**（NumPy、Pandas 的核心计算都在 C 里，GIL 在调用 C 扩展时会释放）。
+> **注意**：这里不是"GIL 导致"竞态条件，恰恰相反——GIL 让很多人**误以为**多线程写共享变量是安全的，可 `counter += 1` 在字节码层面是"读、加、写"三步，GIL 只在字节码之间切换，所以两个线程仍可能读到同一个旧值。这就是最经典的竞态条件。要安全地累加，得用 `threading.Lock` 或 `itertools.count()` 之类的原子手段。
+
+> **GIL 的误解澄清**：GIL 卡的是**纯 Python 字节码的执行**，IO 操作（网络请求、文件读写）在等待时会主动释放它；而 C 扩展（比如 NumPy 的核心计算）**是否**释放 GIL，取决于这个扩展自己有没有调用 `Py_BEGIN_ALLOW_THREADS`——NumPy 这类库通常会释放，但不是所有 C 扩展都会。
 
 **GIL 的解决方案**：
 
@@ -122,6 +124,8 @@ def io_bound():
 ```
 
 ### 18.1.4 适用场景选择
+
+这张判断图是最实用的结论：**CPU 密集 → 多进程**（绕开 GIL），**I/O 密集 → 线程或异步**。方向选错了，代码写得再对也不会有性能收益。
 
 ```mermaid
 flowchart LR
@@ -1438,6 +1442,8 @@ asyncio.run(main())
 
 ### 18.4.10 asyncio 常用函数
 
+这些 asyncio 工具函数几乎天天要用：`sleep` 让出控制权、`gather` 并发等待多个任务、`wait_for` 加超时、`create_task` 把协程变成任务。特别提醒：只有 `asyncio.sleep` 会让出控制权，`time.sleep` 会把整个事件循环卡死。
+
 ```python
 import asyncio
 
@@ -1552,7 +1558,10 @@ async def main():
         "https://httpbin.org/delay/1",
     ]
     
-    start = asyncio.get_event_loop().time()
+    # 取"当前正在运行的事件循环"的时间。别再用 asyncio.get_event_loop()——
+    # 它在没有运行中的循环时会抛 RuntimeError，官方推荐用 get_running_loop()。
+    # （纯粹想量耗时的话，time.perf_counter() 其实更直观。）
+    start = asyncio.get_running_loop().time()
     
     async with aiohttp.ClientSession() as session:
         results = await asyncio.gather(*[
@@ -1561,7 +1570,7 @@ async def main():
         for resp in results:
             print(f"状态码: {resp.status}")
     
-    elapsed = asyncio.get_event_loop().time() - start
+    elapsed = asyncio.get_running_loop().time() - start
     print(f"总耗时（并发）: {elapsed:.2f}秒")
     # 如果串行：4秒；并发：约2秒
 

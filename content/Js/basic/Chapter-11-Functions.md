@@ -59,25 +59,27 @@ console.log(greet("小红")); // "你好，小红！"
 **关键区别：函数表达式不会被完全提升！**
 
 ```javascript
-// ❌ 错误！
-console.log(greet("小明")); // TypeError: greet is not a function
+// ❌ 错误！用 const / let 声明时，变量会先进入「暂时性死区」
+console.log(greet("小明")); // ReferenceError: Cannot access 'greet' before initialization
 
 const greet = function(name) {
   return "你好，" + name + "！";
 };
 ```
 
-为什么？因为变量声明会被提升，但赋值不会！提升后的情况实际上是：
+为什么？因为 `const` / `let` 的声明会被提升到作用域顶部，但在「初始化」之前处于暂时性死区（TDZ），此时访问它会直接抛 `ReferenceError`，而不是拿到 `undefined`。
 
 ```javascript
-// JavaScript 引擎看到的代码（提升后）
-const greet;  // 变量声明被提升，值为 undefined
-console.log(greet("小明")); // greet 还是 undefined，当然不能调用！
-
-greet = function(name) {  // 赋值没有提升
+// 对比一下：如果用老式的 var，结果就不一样了
+console.log(hello("小明")); // TypeError: hello is not a function
+var hello = function(name) {
   return "你好，" + name + "！";
 };
+// 这里 var 的声明被提升、并初始化为 undefined，
+// 所以是「调用 undefined」的 TypeError，而不是 TDZ 的 ReferenceError
 ```
+
+> 一句话区分：**函数声明**是「整个函数都提前」，可以随便先调用；**函数表达式**只是「变量提前」，赋值这一步不会提前，所以要赋值之后再调用。
 
 **所以函数表达式必须先赋值再调用！**
 
@@ -173,10 +175,12 @@ const createUser = (name, age) => ({ name, age }); // ES6 对象属性简写
 
 ### 函数提升规则：函数声明完整提升，函数表达式只提升变量声明
 
-| 类型 | 声明提升 | 赋值提升 | 调用时机 |
-|------|---------|---------|---------|
-| 函数声明 | ✅ 完全（函数体也提升） | N/A | 任意位置 |
-| 函数表达式 | ✅ 变量声明 | ❌ 不提升 | 赋值之后 |
+| 写法 | 提升情况 | 提前调用会怎样 |
+|------|---------|---------------|
+| 函数声明 `function f(){}` | 整个函数（含函数体）提升 | 正常工作 |
+| 函数表达式 `const f = function(){}` | 只提升变量声明，且进入 TDZ | `ReferenceError` |
+| 函数表达式 `var f = function(){}` | 提升变量声明并初始化为 `undefined` | `TypeError` |
+| 箭头函数 `const f = () => {}` | 同 `const`，进入 TDZ | `ReferenceError` |
 
 ```javascript
 // 函数声明
@@ -185,8 +189,8 @@ function declared() {
   return "函数声明被调用";
 }
 
-// 函数表达式
-console.log(expressed()); // TypeError: expressed is not a function
+// 函数表达式（const）
+console.log(expressed()); // ReferenceError: Cannot access 'expressed' before initialization
 const expressed = function() {
   return "函数表达式被调用";
 };
@@ -342,9 +346,30 @@ console.log(sum());            // 0
 | 特性 | 剩余参数 `...args` | arguments |
 |------|-------------------|-----------|
 | 类型 | 真正的数组 | 类数组对象 |
-| 箭头函数 | 有效 | 无效 |
-| 包含剩余参数之后的参数 | 是 | 否 |
-| 可选参数之前的默认值 | 支持 | 不支持 |
+| 能否用于箭头函数 | ✅ 可以 | ❌ 不可以（箭头函数没有 arguments） |
+| 是否包含所有实参 | 只包含「剩余」的那些 | 包含本次调用的全部实参 |
+| 能否与默认参数/解构混用 | ✅ 可以 | ❌ 不能 |
+| 是否有数组方法（map/reduce 等） | ✅ 有 | ❌ 没有，得先转换 |
+| 与形参是否联动 | 不联动 | 非严格模式下会联动（历史包袱） |
+
+```javascript
+// 「联动」是什么意思？看看这个非严格模式下的老行为
+function legacy(a) {
+  arguments[0] = 99;  // 改 arguments
+  console.log(a);     // 99！形参 a 也跟着变了
+}
+legacy(1);
+
+// 用严格模式或者剩余参数就没有这个问题
+function modern(a, ...rest) {
+  rest[0] = 99;
+  console.log(a, rest[0]); // 1 99（a 不受影响）
+}
+modern(1, 2);
+
+// 另外，剩余参数必须是最后一个形参，下面这种写法是语法错误
+// function bad(...args, last) {}
+```
 
 ```javascript
 // 剩余参数可以和其他参数混用
@@ -371,6 +396,48 @@ parseCommand("send", "email", "user@example.com", "Hello!");
 // target = "user@example.com"
 // value = "Hello!"
 ```
+
+---
+
+### 参数是怎么传的：值传递与「引用共享」
+
+JavaScript 里只有**值传递**，但对象的「值」是引用，所以会产生「函数内部改对象、外面也变」的效果：
+
+```javascript
+// 1. 基本类型：传进去的是副本，改不到外面
+function changeNumber(n) {
+  n = 100; // 只是改了函数内部的副本
+}
+let count = 1;
+changeNumber(count);
+console.log(count); // 1（不受影响）
+
+// 2. 对象：传进去的是「引用的副本」，指向同一个对象
+function changeProperty(obj) {
+  obj.name = "被改了"; // 改的是同一个对象
+}
+const user = { name: "原值" };
+changeProperty(user);
+console.log(user.name); // "被改了"
+
+// 3. 但重新赋值形参，不会影响外面的变量
+function replaceObject(obj) {
+  obj = { name: "新对象" }; // 只是让局部变量指向了新对象
+}
+replaceObject(user);
+console.log(user.name); // "被改了"（还是上一次改过的那个对象）
+
+// 4. 想彻底不受影响，就在函数里先拷贝一份
+function changeCopy(obj) {
+  const copy = { ...obj };
+  copy.name = "副本改了";
+  return copy;
+}
+console.log(changeCopy(user).name); // "副本改了"
+console.log(user.name);             // "被改了"（原对象安全）
+```
+
+> 记住这句口诀：**基本类型传副本，对象传「指向同一对象的引用副本」**。所以「函数会不会修改我传进去的对象」取决于函数内部做了什么，而不是参数本身。
 
 ---
 
@@ -588,10 +655,15 @@ const person = {
 };
 
 person.sayHi();         // "你好，我是小明"
-person.waitAndSayHi();  // "你好，我是undefined"（1秒后）
+person.waitAndSayHi();  // 1 秒后打印，但内容取决于运行环境（见下）
 ```
 
-看看上面 `waitAndSayHi` 的问题——`setTimeout` 的回调函数是普通函数，`this` 指向 `window`（非严格模式），而 `window.name` 是空字符串！
+看看上面 `waitAndSayHi` 的问题——`setTimeout` 的回调是**普通函数**，它被当作普通调用执行，因此 `this` 不再指向 `person`：
+
+- 在浏览器的非严格模式脚本里，`this` 是 `window`。而 `window.name` 的默认值是空字符串 `""`，所以会打印出「你好，我是」。
+- 在 Node 或者任何严格模式（包括 ES 模块、`"use strict"`）下，`this` 是 `undefined`，访问 `this.name` 会直接抛 `TypeError`。
+
+不管哪种情况，这都不是你想要的结果 —— 这正是箭头函数要解决的问题。
 
 ```javascript
 // 箭头函数：继承外层的 this
@@ -651,6 +723,17 @@ console.log(calculator.subtract(3)); // 7
 console.log(calculator.add(3));      // NaN（this.value 是 undefined）
 ```
 
+> 说明：对象字面量里的箭头函数，`this` 取的是**定义它时外层作用域**的 `this`，跟调用者 `calculator` 毫无关系。上面的 `NaN` 是浏览器/CommonJS 等「外层 this 是全局对象」环境下的结果；在严格模式或 ES 模块里，外层 `this` 是 `undefined`，这里会直接抛 `TypeError`。
+
+```javascript
+// 如果确实想在对象里用箭头函数，可以让它还额外接收一个参数
+const calculator2 = {
+  value: 10,
+  add: ({ value }, n) => value + n // 不依赖 this，而是显式传入
+};
+console.log(calculator2.add(calculator2, 3)); // 13
+```
+
 ---
 
 ### 普通函数 vs 箭头函数对比
@@ -690,23 +773,142 @@ document.addEventListener("click", function() {
 
 ---
 
+## 11.5 函数的其他要点
+
+### 函数也是对象：name / length / toString
+
+函数是「可调用的对象」，所以它也有属性：
+
+```javascript
+function greet(name, age = 18, ...rest) {
+  return `你好，${name}`;
+}
+
+console.log(greet.name);   // "greet"（函数名，匿名函数是 ""，赋值给变量时可能取变量名）
+console.log(greet.length); // 1（注意：只数「第一个默认值之前」的形参个数）
+
+const f = (a, b, ...c) => {};
+console.log(f.name);   // "f"
+console.log(f.length); // 2
+
+console.log(typeof greet);        // "function"
+console.log(greet instanceof Function); // true
+
+// 函数可以挂自定义属性，也能作为参数、作为返回值（这就是「高阶函数」）
+greet.version = "1.0";
+console.log(greet.version); // "1.0"
+
+// toString 能看到源码（实现相关，别依赖它的具体格式）
+console.log(((a) => a * 2).toString()); // Node 里是 "(a)=>a*2"，浏览器可能带空格
+```
+
+### 立即执行函数表达式（IIFE）
+
+在 ES6 模块出现之前，IIFE 是最常用的「创建独立作用域」的手段：
+
+```javascript
+// 经典写法：函数表达式外面套一层括号，让它变成表达式，然后立刻调用
+(function () {
+  const secret = "只有这个作用域内能看见";
+  console.log("IIFE 执行了");
+})();
+// console.log(secret); // ReferenceError：外面拿不到
+
+// 箭头函数版本更清爽
+(() => {
+  console.log("箭头版 IIFE");
+})();
+
+// 带参数、带返回值的写法
+const result = (function (a, b) {
+  return a + b;
+})(1, 2);
+console.log(result); // 3
+
+// 常见用途：模块模式 —— 只把想暴露的部分挂到全局
+const counterModule = (function () {
+  let count = 0; // 外部访问不到
+  return {
+    increment: () => ++count,
+    getCount: () => count
+  };
+})();
+counterModule.increment();
+console.log(counterModule.getCount()); // 1
+// 现在的项目里，这个角色基本被 ES 模块（import / export）取代了
+```
+
+### 块级作用域中的函数声明
+
+```javascript
+// 在块（if / for / {}）里用函数声明，ES6 起它的作用域被限制在这个块内
+{
+  function inner() {
+    return "只在块内可见";
+  }
+  console.log(inner()); // "只在块内可见"
+}
+// console.log(inner()); // ReferenceError
+
+// 严格模式（含 ES 模块）下行为一致；老的非严格模式脚本里它会被「泄漏」到外面
+// 结论：想稳妥就写成 const inner = () => {...}，语义最清晰
+```
+
+### 默认参数的几个细节
+
+```javascript
+// 1. 默认值表达式在「每次调用」时才求值，不是定义时
+function append(item, list = []) {
+  list.push(item);
+  return list;
+}
+console.log(append(1)); // [1]
+console.log(append(2)); // [2]（每次都拿到全新的数组，不会互相污染）
+
+// 对比：如果默认值写在函数外面，就会共享同一个数组
+const shared = [];
+function appendShared(item, list = shared) {
+  list.push(item);
+  return list;
+}
+appendShared(1);
+console.log(appendShared(2)); // [1, 2] —— 这就是共享带来的坑
+
+// 2. 默认值可以使用前面的形参，但不能引用后面的（TDZ）
+function area(width, height = width) {
+  return width * height;
+}
+console.log(area(5)); // 25
+// function bad(a = b, b = 2) {} // ReferenceError: Cannot access 'b' before initialization
+
+// 3. 传 null 不会触发默认值，只有 undefined 会
+console.log(area(5, null)); // 0（null * 5 = 0）
+console.log(area(5, undefined)); // 25
+```
+
+---
+
 ## 本章小结
 
 本章我们深入学习了 JavaScript 函数的定义和调用：
 
-1. **函数定义方式**：函数声明（完整提升）、函数表达式（只提升变量声明）、箭头函数（简洁语法）
+1. **函数定义方式**：函数声明（整体提升，随便先调用）、函数表达式（只提升变量声明，`const`/`let` 会进 TDZ 抛 `ReferenceError`，`var` 则是 `TypeError`）、箭头函数（简洁语法）。
 
-2. **参数**：形参与实参的区别、默认参数（ES6+）、`arguments` 对象（类数组）、剩余参数 `...args`（真正的数组）
+2. **参数**：形参与实参的区别；默认参数只在实参为 `undefined` 时生效，每次调用都会重新求值；`arguments` 是类数组、箭头函数里没有、非严格模式下还会和形参联动；剩余参数 `...args` 是真正的数组，必须放在形参最后。
 
-3. **返回值**：`return` 语句、提前退出、未指定返回值时返回 `undefined`
+3. **参数传递**：JavaScript 只有值传递。基本类型传的是副本，改不到外面；对象传的是「引用的副本」，改属性会影响外部对象，但给形参重新赋值不影响外部变量。
 
-4. **箭头函数特性**：
+4. **返回值**：`return` 语句、提前退出、未指定返回值时返回 `undefined`。
+
+5. **箭头函数特性**：
    - 简写语法：单参数省略括号、单行省略 return
    - 返回对象需加括号
    - 无 `arguments`（用剩余参数代替）
    - `this` 词法绑定（继承外层）
    - 不能用作构造函数
    - 不能用作对象方法
+
+6. **其他要点**：函数也是对象（有 `name`、`length`、可挂自定义属性）；IIFE 用来造独立作用域，如今多被 ES 模块取代；块级作用域里的函数声明只在该块内可见；默认参数有求值时机、TDZ 和「`null` 不触发默认值」三个细节。
 
 > 📊 图示：函数定义方式对比
 >

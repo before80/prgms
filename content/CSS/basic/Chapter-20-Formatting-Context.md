@@ -58,9 +58,11 @@ BFC（Block Formatting Context，块级格式化上下文）是 CSS 布局中最
   /* 或 position: fixed */
 }
 
-/* 5. display 为 flex 或 grid 的直接子元素 */
-.flex-bfc {
-  display: flex;
+/* 5. flex 项目、grid 项目（注意是"项目/子元素"，不是容器本身）
+      项目的内容会形成独立的格式化上下文 */
+.flex-item-bfc {
+  /* 只要它是 flex 容器的子元素，就自动享有隔离效果 */
+  flex: 1;
 }
 
 /* 6. 多列布局 */
@@ -68,9 +70,9 @@ BFC（Block Formatting Context，块级格式化上下文）是 CSS 布局中最
   column-count: 2;  /* 形成 BFC */
 }
 
-/* 7. display: table */
+/* 7. display: table-cell（表格单元格） */
 .table-bfc {
-  display: table;  /* 也会形成 BFC */
+  display: table-cell;  /* 单元格会形成 BFC */
 }
 
 /* 8. float 不为 none */
@@ -83,6 +85,8 @@ BFC（Block Formatting Context，块级格式化上下文）是 CSS 布局中最
 
 触发 BFC 的方式有很多种，每种都有不同的适用场景。
 
+> 先纠正一个流传很广的说法：**`display: flex` / `display: grid` 的"容器"建立的是 flex 格式化上下文和 grid 格式化上下文，不是 BFC**。真正会建立独立格式化上下文的是它们的**项目（item）**。之所以网上的文章常把两者混为一谈，是因为在"包住浮动""阻止 margin 折叠"这些表现上它们的效果几乎一样。下文会分开说明。
+
 ```css
 /* 触发 BFC 的各种方式 */
 
@@ -90,6 +94,7 @@ BFC（Block Formatting Context，块级格式化上下文）是 CSS 布局中最
 .method-overflow {
   overflow: hidden;   /* 推荐用 hidden 或 auto */
   /* 注意：visible 会让 BFC 失效 */
+  /* 副作用：hidden 会裁掉溢出内容；auto 可能突然冒出滚动条 */
 }
 
 /* 方式2：display: flow-root */
@@ -109,12 +114,15 @@ BFC（Block Formatting Context，块级格式化上下文）是 CSS 布局中最
 }
 
 /* 方式5：display: flex 或 grid */
-.method-flex {
-  display: flex;  /* flex 容器内部形成 BFC */
+/* flex 容器的直接子元素（flex item）会形成独立格式化上下文 */
+.method-flex-item {
+  /* 父元素 display: flex；这个子元素内部自成一体 */
+  flex: 1;
 }
 
-.method-grid {
-  display: grid;  /* grid 容器内部形成 BFC */
+/* grid 项目同理 */
+.method-grid-item {
+  /* 父元素 display: grid；这个子元素内部自成一体 */
 }
 
 /* 方式6：column-count 或 column-width */
@@ -122,16 +130,28 @@ BFC（Block Formatting Context，块级格式化上下文）是 CSS 布局中最
   column-count: 2;  /* 多列容器形成 BFC */
 }
 
-/* 方式7：display: table */
+/* 方式7：display: table-cell（单元格），注意不是 display: table */
 .method-table {
-  display: table;  /* 也会形成 BFC */
+  display: table-cell;  /* 单元格形成 BFC */
 }
 
 /* 方式8：float 不为 none */
 .method-float {
   float: left;  /* 触发 BFC */
 }
+
+/* 方式9：contain 属性（现代写法，性能友好） */
+.method-contain {
+  contain: layout;  /* layout / paint / content 都会创建独立的格式化上下文，也常用于性能优化 */
+}
 ```
+
+**补充说明：`display: table` 到底算不算 BFC？**
+
+严格来说**不算**。`display: table` 生成的是表格盒子，建立的是**表格格式化上下文**。但它"看起来能包住浮动、能隔断 margin 折叠"，是因为它产生的匿名单元格（`display: table-cell`）建立了 BFC。所以：
+
+- 想从原理上讲清楚 → 记住"触发 BFC 的是**单元格**，不是表格本身"
+- 只是想解决问题 → 用 `display: flow-root` 更直接，也不必记住这些弯弯绕
 
 ### 20.1.3 BFC 的特性——包裹浮动元素（不塌陷）、阻止 margin 折叠、防止内部元素被外部浮动环绕
 
@@ -296,12 +316,21 @@ IFC 是行内元素排列的区域。当一行内容放不下时，会自动换�
 
 IFC 中行框（Line Box）的高度是由其内部所有行内元素共同决定的。
 
+先纠正一个常见的简化说法：**`line-height` 并不等于 `ascent + descent`**。字体的 ascent 和 descent 是字体自身的度量（由字体文件决定），而 `line-height` 是你可以任意指定的值。当 `line-height` 大于字体的 `ascent + descent` 时，多出来的部分叫 **leading（行距）**，会被平均分配到文字的上下方（各一半，即 half-leading）：
+
+```
+line-height = ascent + descent + leading
+              ↑ 字体自带      ↑ 均分到上下
+```
+
+这解释了为什么给文字加 `line-height` 后，背景色区域会上下都"胖"出来一圈——那一圈就是 half-leading。
+
 **行框高度计算原理：**
 
 ```css
 /* 行框高度的构成 */
 
-/* ascent + descent = line-height */
+/* 单个行内盒子的高度 = line-height（含 half-leading） */
 
 .ifc-line {
   line-height: 24px;  /* 定义行高 */
@@ -351,11 +380,15 @@ IFC 中行框（Line Box）的高度是由其内部所有行内元素共同决�
 }
 ```
 
+> 💡 **一个必须知道的实战推论**：行框高度取决于 `line-height`，**不取决于 `font-size`**。所以把某段文字的 `font-size` 调大后再调回来，行高可能不会变（因为 `line-height` 是独立的）；反过来，想精确控制行高，改 `line-height` 比改 `font-size` 靠谱。
+>
+> 顺带一个经典现象：**`inline-block` 元素之间那条几像素的"幽灵空隙"**，和这里的基线对齐有关——行内块默认按基线对齐，而基线下还要给"下伸部"（比如字母 g、y 的尾巴）留位置，所以父元素底部会多出一截。解决办法是给父元素设 `line-height: 0` 或 `font-size: 0`——这也是第 19 章里 `font-size: 0` 技巧的另一个理论来源。
+
 ## 20.3 flex/grid 格式化上下文
 
 ### 20.3.1 flex/grid 容器内部形成独立的格式化上下文，与 BFC 的作用有重叠但机制不同
 
-Flex 容器和 Grid 容器内部会形成独立的格式化上下文，它们与 BFC 有相似的功能，但机制不同。
+准确的说法分两层：**容器**建立的是 flex / grid 格式化上下文（内部的排布规则完全换了一套）；**项目**的内容则建立独立的格式化上下文，这一层和 BFC 效果一致。两者叠加的结果，就是下面这些"看起来像 BFC"的表现。
 
 ```css
 /* Flex/Grid 格式化上下文 */
@@ -371,6 +404,12 @@ Flex 容器和 Grid 容器内部会形成独立的格式化上下文，它们与
 }
 
 /* Flex/Grid 的特性与 BFC 类似但不同 */
+
+/* 注意：浮动对 flex 项目完全失效 */
+.flex-container > .float-child {
+  float: left;      /* ⚠️ 失效！flex 项目会被"块化"，float 直接被忽略 */
+  margin-top: 20px; /* ⚠️ 项目之间也不会发生 margin 折叠 */
+}
 
 /* 包裹浮动元素 */
 .flex-wrapper {
@@ -453,7 +492,7 @@ Flex/Grid 容器内部形成独立的布局区域，外部的布局变化不会�
 | BFC | Block Formatting Context，块级格式化上下文 |
 | IFC | Inline Formatting Context，行内格式化上下文 |
 | BFC 特性 | 包裹浮动、阻止 margin 折叠、阻挡外部环绕 |
-| 触发 BFC | overflow、flow-root、inline-block、table、float、position、flex/grid、columns |
+| 触发 BFC | `overflow` 非 `visible`、`display: flow-root`、`inline-block`、`table-cell`、`float` 非 `none`、`position: absolute/fixed`、多列容器、`contain: layout/paint/content`；**flex/grid 项目**（不是容器） |
 
 ### 格式化上下文图解
 
@@ -480,8 +519,8 @@ graph TD
 3. **复杂布局**：使用 Flexbox 或 Grid，它们自带格式化上下文
 4. **理解原理**：了解 BFC 的三个特性可以解释很多 CSS 布局问题
 
+> 最后提醒一句：**别把"触发 BFC"当成万金油**。它解决的是"浮动外溢""margin 折叠"这类由布局规则引起的问题；如果问题出在定位、层叠上下文或尺寸计算上，BFC 帮不上忙。诊断布局问题时，先用浏览器 DevTools 看清楚盒子的尺寸和位置，比凭直觉猜要快得多。
+
 ### 下章预告
 
 下一章我们将学习浮动布局，看看 float 是如何工作的，以及它的常见问题和使用场景！
-
-

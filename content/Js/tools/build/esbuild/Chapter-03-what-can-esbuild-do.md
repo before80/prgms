@@ -199,24 +199,30 @@ function App() {
 exports.App = App;
 ```
 
-### 3.2.3 ES 新语法降级（ES2020 → ES5 等）
+### 3.2.3 ES 新语法降级（能降到哪一版，有个重要前提）
 
 JavaScript 这门语言每年都在更新——ES2015、ES2016、ES2017……一直到现在的 ES2024。新语法用起来很爽，写起来很潮，但老浏览器（比如 IE）不认识——它还在固执地停留在上个世纪。
 
 **语法降级**（Downleveling / Transpiling）就是要把你的新语法转换成旧语法。
 
-比如，你用了 ES2020 的可选链操作符 `?.`：
+比如，你用了 ES2020 的可选链操作符 `?.` 和空值合并运算符 `??`：
 
 ```javascript
 const name = user?.profile?.name ?? '匿名用户';
 ```
 
-在老版本浏览器里，`?.` 和 `??` 可能不认识。esbuild 会自动把它们降级成等价的老语法：
+在老版本浏览器里，`?.` 和 `??` 可能不认识。esbuild 会降级成等价的老语法，实际产物大致长这样：
 
 ```javascript
-// 降级后
-const name = (user && user.profile && user.profile.name) || '匿名用户';
+// 降级后（简化示意，实际产物形如）
+var _user, _user$profile;
+var name = (_user$profile = (_user = user) === null || _user === void 0 ? void 0 : _user.profile) === null
+  || _user$profile === void 0
+    ? '匿名用户'
+    : _user$profile.name;
 ```
+
+> ⚠️ **这里有个极容易被写错的地方**：不少教程把上面这句"翻译"成 `(user && user.profile && user.profile.name) || '匿名用户'`，这是**错的**。`??` 只在左边是 `null` / `undefined` 时兜底，而 `||` 会在左边是任何"假值"时兜底——`''`、`0`、`false`、`NaN` 都会被它当成"没值"。如果 `user.profile.name` 恰好是空字符串或数字 `0`，两种写法结果完全不同。用 `||` 去替代 `??` 是实际项目里真实会出 bug 的写法。
 
 再比如，你用了 ES6 的箭头函数和模板字符串：
 
@@ -224,13 +230,29 @@ const name = (user && user.profile && user.profile.name) || '匿名用户';
 const greeting = (name) => `Hello, ${name}!`;
 ```
 
-降级后变成：
+降到 `es2015` 以下时，它会变成：
 
 ```javascript
 var greeting = function(name) { return "Hello, " + name + "!"; };
 ```
 
-esbuild 默认会根据你设置的 `target` 来决定需要降级到什么程度。比如 `target: "es2015"` 意味着生成代码需要支持 ES2015 以上的浏览器，那更老的语法就会被降级。
+esbuild 会根据你设置的 `target` 决定降级到什么程度。但**降级能力是有下限的**，这一点务必记住：
+
+> esbuild 官方原文：*"This is often the case when targeting the es5 language version, for example, since esbuild only supports transforming most newer JavaScript syntax features to es6."*（在把目标设为 es5 时经常遇到——esbuild 只支持把大多数新语法降到 **es6**。）
+
+也就是说：**esbuild 能降到 ES2015（es6），但"降到 ES5"这条路走不通**。一旦你写 `target: 'es5'`，遇到它无法转换的语法（典型的如 `class`、`async/await`、生成器、`let/const` 的部分场景），esbuild 会**直接报错**，而不是悄悄放过：
+
+```bash
+# 典型报错长这样
+# ERROR: Transforming class syntax to the configured target environment ("es5") is not supported yet
+esbuild app.js --target=es5
+```
+
+所以：
+
+- **要支持 IE11 及更早的浏览器**：esbuild 不是合适的选择，请用 Babel（或 SWC 等专门做降级链的工具），必要时再让 esbuild 负责打包；
+- **要支持"现代浏览器 + 旧一点但仍是 ES2015+"**（这也是当今绝大多数项目的实际情况）：`target: ['chrome80', 'firefox78', 'safari14']` 这类写法完全够用；
+- 如果你只想针对**个别语法特性**做取舍（比如"允许我保留 `async/await`，别的都降级"），esbuild 还提供了 `supported` 配置项，可以逐特性开关，比笼统设一个 `target` 更精细。
 
 ---
 

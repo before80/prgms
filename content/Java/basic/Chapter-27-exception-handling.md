@@ -19,6 +19,8 @@ Java 的异常处理机制，就是让程序在面对错误时能够"从容不�
 
 ## 27.1 异常的分类
 
+> 📌 **本章代码的组织方式**：异常处理的例子常常需要"自定义异常类 + 出问题的业务类 + 调用方"三部分配合，所以会出现多个代码块互相引用的写法。请把它们视为**同一个目录下的一组 `.java` 文件**，一起编译运行。
+
 Java 的异常体系就像一个大家族，根正苗红，所有的异常都继承自一个老祖宗——`Throwable` 类。这个家族主要分为两大门派：**Error（错误）** 和 **Exception（异常）**。
 
 ### 27.1.1 Error——程序无力回天的灾难
@@ -1233,6 +1235,8 @@ Java 已经提供了一套成熟的异常体系，在大多数情况下，**优�
 
 public class StandardExceptionUsage {
 
+    private int age;   // 被校验的字段
+
     public void setAge(int age) {
         // 参数校验
         if (age < 0) {
@@ -1262,19 +1266,23 @@ public class StandardExceptionUsage {
 每层代码只抛出跟自己层级相关的异常，不要让底层的技术细节泄漏到高层。
 
 ```java
+import java.sql.SQLException;
+
 /**
  * 最佳实践5：保持异常的抽象层次一致
  */
 
-// ❌ 错误示例：低层异常泄漏到高层
-class LowLevelService {
+// ❌ 错误示例：低层异常泄漏到高层（注意两个类名都带 Bad 前缀，和下面的正确版本区分开）
+class BadLowLevelService {
     public void doLowLevelThing() throws SQLException {
         // 低层代码直接抛出数据库异常
     }
 }
 
 // ❌ 高层代码被迫处理数据库细节
-class HighLevelService {
+class BadHighLevelService {
+    private final BadLowLevelService lowLevelService = new BadLowLevelService();
+
     public void businessMethod() throws SQLException { // 为什么要知道SQL？
         lowLevelService.doLowLevelThing();
     }
@@ -1338,6 +1346,24 @@ import java.util.logging.Logger;
  * 最佳实践7：日志记录和异常处理要合理分工
  */
 public class LoggingBestPractice {
+
+    // 两个示例异常：一个表示底层问题，一个表示业务问题
+    static class CustomException extends Exception {
+        CustomException(String message) {
+            super(message);
+        }
+    }
+
+    static class BusinessException extends RuntimeException {
+        BusinessException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    // 模拟底层操作，可能抛出 CustomException
+    private void doSomething() throws CustomException {
+        throw new CustomException("模拟底层失败");
+    }
 
     private static final Logger logger =
         Logger.getLogger(LoggingBestPractice.class.getName());

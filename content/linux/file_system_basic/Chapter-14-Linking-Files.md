@@ -50,7 +50,7 @@ graph LR
 
 **硬链接**是 Linux 里最"直接"的链接方式——**多个文件名，指向同一个 inode（数据存储位置）**！
 
-> 简单理解：硬链接就是给同一个文件起了多个"身份证号"！
+> 简单理解：**一个文件（一个 inode、一份"身份证"），可以有多个名字**。硬链接就是给同一份数据起了一个新的文件名。
 
 ### 14.2.1 创建硬链接：ln 源 目标
 
@@ -168,9 +168,16 @@ ls -l dangling_link.txt
 # lrwxrwxrwx 1 user user 12 Jan 15 10:40 dangling_link.txt -> /nonexistent.txt
 # （红色，表示断链）
 
-# 2. 用 -d 检查目录链接
+# 2. 用 file 或 readlink 查看它到底指向哪里
 file symlink.txt
 # symlink.txt: symbolic link to original.txt
+
+readlink symlink.txt
+# original.txt
+
+# 想看到"解引用后"的最终真实路径，用 -f（注意：对断链也会尽力拼出路径）
+readlink -f symlink.txt
+# /home/user/original.txt
 
 # 3. 读取链接会失败
 cat dangling_link.txt
@@ -213,9 +220,11 @@ graph TD
 
 ```bash
 # 场景1：同一个分区内，多个位置需要访问同一份数据
-# 比如：一个大数据库文件，数据库和备份脚本都要访问
-ln /data/huge_database.db /backup/huge_database_link.db
-# 两个路径，物理上只有一份数据！
+# 比如：一份很大的只读数据集，多个分析脚本都要读它
+ln /data/dataset_2026.csv /opt/analysis/dataset_2026.csv
+# 两个路径，物理上只有一份数据，不额外占用磁盘空间
+# ⚠️ 但如果你通过其中一个名字"写入/修改"，另一个名字看到的内容会同步变化——
+#    所以硬链接只适合"共享只读数据"，绝不能当备份用！
 
 # 场景2：协作开发
 # 两个人在同一个项目里工作，需要访问同一份代码
@@ -224,7 +233,8 @@ ln /shared/project_main.c /home/bob/project_main.c
 # 三个文件名，同一份代码！
 
 # 场景3：版本控制系统的"内部原理"
-# Git 内部就是用硬链接来共享内容的！
+# 比如 git clone --local（同一台机器上克隆本地仓库）时，
+# Git 会用硬链接共享对象文件，既快又省空间（后续写入时会自动断开共享）
 ```
 
 > 硬链接的"坑"：**修改任何一个硬链接，所有硬链接都会变**！因为它们本质上是同一个文件！
@@ -267,6 +277,8 @@ graph LR
     style C fill:#ff9999
     style H fill:#99ff99
 ```
+
+> 上面这张图想表达的核心只有一句话：**软链接本身只是一行"路径文本"**，它可以随时被改写成指向另一个版本；而 `python3.9`、`python3.10`、`python3.11` 这些真实文件彼此独立、谁也不指向谁。
 
 ---
 
@@ -334,9 +346,9 @@ file link_name
 
 ---
 
-## 本章小结
+## 14.6 硬链接与软链接全面对比
 
-本章我们学习了 Linux 中的链接文件！
+先把这一章的核心知识做个总览。
 
 **核心知识点：**
 
@@ -388,6 +400,87 @@ ln -s /home/user/documents/projects/linux/kernel/source /home/user/kernel
 # 4. 快速访问网络存储
 ln -s /mnt/nas-server/documents ~/documents
 ```
+
+---
+
+## 14.7 三个必须知道的软链接"坑"
+
+### 14.7.1 相对路径是相对于"链接所在目录"解析的
+
+这是软链接最经典的错误来源。软链接里存的路径是**相对于链接自己所在的目录**去解析的，而不是相对于你敲命令时所在的目录：
+
+```bash
+# 假设当前目录是 /home/user
+ln -s documents/report.txt /tmp/report_link
+
+# 链接内容就是 "documents/report.txt"（相对路径）
+readlink /tmp/report_link
+# documents/report.txt
+
+# 但 /tmp 下并没有 documents/ 目录 → 链接是断的！
+cat /tmp/report_link
+# cat: /tmp/report_link: No such file or directory
+```
+
+两种解决办法：
+
+```bash
+# 办法一：源用绝对路径（最不容易出错）
+ln -s /home/user/documents/report.txt /tmp/report_link
+
+# 办法二：让 ln 自己算出正确的相对路径（GNU coreutils 的 -r = --relative）
+ln -sr documents/report.txt /tmp/report_link
+readlink /tmp/report_link
+# ../home/user/documents/report.txt
+```
+
+> 什么时候故意用相对路径？**打包/迁移场景**。比如把整个项目目录（含链接）拷到另一台机器，相对链接只要内部结构不变就依然有效，绝对链接往往会断掉。
+
+### 14.7.2 目标已经是个目录时，`ln -s` 会把链接放进目录里
+
+```bash
+# 你想创建 /opt/app -> /srv/app-current，但 /opt/app 已经是个目录了
+ln -s /srv/app-current /opt/app
+# 结果不是"替换"，而是在里面多了一个链接：
+# /opt/app/app-current -> /srv/app-current
+```
+
+这时要用 `-T`（把目标当成普通文件处理）或 `-n`（目标本身是链接时不跟随）：
+
+```bash
+ln -sfn /srv/app-current /opt/app     # 推荐写法：强制 + 不跟随目录/链接
+```
+
+### 14.7.3 删除链接本身永远不会删除源文件
+
+```bash
+rm link.txt        # 只删掉链接（硬链接会减少一个链接计数）
+```
+
+但**真正危险的是带通配符的写法**：
+
+```bash
+# 假设 /srv/app-link 是指向 /srv/app-v2 的软链接
+rm -rf /srv/app-link/*     # ❌ 通配符由 shell 展开，会"穿透"链接，
+                           #    删掉的是 /srv/app-v2 里的真实文件！
+
+# 想删链接本身，就直接删链接（不加斜杠、不加通配符）
+rm /srv/app-link           # ✅ 只删掉这一个链接文件
+```
+
+一句话记住：**删软链接不要加斜杠或 `*`；执行 `rm -rf` 之前，先 `ls -l` 看一眼这个路径到底是不是链接。**
+
+---
+
+## 本章小结
+
+本章我们学习了 Linux 中的链接文件，重点记住这几条：
+
+- **硬链接**是"同一份数据的另一个名字"（共享 inode），不能跨分区、不能链接目录，适合同分区内共享只读数据
+- **软链接**存的是"目标路径"，能跨分区、能链接目录，适合做版本切换和路径别名；源文件没了就变"断链"
+- `ln 源 目标` 建硬链接，`ln -s 源 目标` 建软链接，`ln -sfn` 是覆盖软链接的推荐写法
+- 软链接的相对路径是"相对链接自身所在目录"解析的，拿不准就用绝对路径
+- **改名要看清楚是"文件"还是"链接"**：`du`、`rsync`、`tar`、`find -L` 对链接的处理方式都不一样，别想当然
 
 恭喜你完成了 Linux 基础教程第11-14章！🎉
 

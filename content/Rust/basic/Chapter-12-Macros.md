@@ -156,8 +156,9 @@ macro_rules! inspect_type {
 
 macro_rules! inspect_expr {
     // 接受一个表达式
+    // 这里用 {:?} 而不是 {}：因为数组等类型没有实现 Display，只能用 Debug
     ($e:expr) => {
-        println!("表达式的值是：{}", $e);
+        println!("表达式的值是：{:?}", $e);
     };
 }
 
@@ -319,6 +320,8 @@ fn bar() { ... }
 
 #### 12.2.1.1 macro_rules! name { ($pattern) => { $expansion }; }
 
+`macro_rules!` 的基本骨架就是「匹配器 → 展开器」：左边写模式，右边写替换后的代码。
+
 ```rust
 // 基本结构
 macro_rules! macro_name {
@@ -329,6 +332,8 @@ macro_rules! macro_name {
 ```
 
 #### 12.2.1.2 单分支宏
+
+最简单的宏不带参数，调用时直接展开成固定的代码。
 
 ```rust
 macro_rules! say_bye {
@@ -344,28 +349,43 @@ fn main() {
 
 #### 12.2.1.3 多分支宏（按顺序匹配）
 
+多个分支按书写顺序逐个尝试，第一个匹配成功的被采用；宏只按语法形状匹配，不支持「匹配守卫」，要按值分支就得把值交给展开出的 `if`/`match`。
+
 ```rust
-macro_rules! classify {
-    // 匹配整数
-    ($n:expr) if $n < 0 => {
-        println!("{} 是负数", $n);
-    };
-    ($n:expr) if $n == 0 => {
-        println!("{} 是零", $n);
-    };
-    ($n:expr) if $n > 0 => {
-        println!("{} 是正数", $n);
-    };
-    // 默认分支
+// ⚠️ 常见误区：macro_rules! 不支持 `($n:expr) if $n < 0 => ...` 这种「匹配守卫」。
+// 宏只在编译期按「语法形状」匹配，不能判断运行时的值。
+// 要按值分支，请直接写普通函数（或把值交给宏展开出的 match/if）：
+fn classify(n: i32) -> &'static str {
+    if n < 0 {
+        "负数"
+    } else if n == 0 {
+        "零"
+    } else {
+        "正数"
+    }
+}
+
+// 如果确实想用宏，可以让宏只负责接收表达式，再由展开出的代码做判断：
+macro_rules! classify_or_other {
     ($n:expr) => {
-        println!("{} 不是整数", $n);
+        if $n < 0 {
+            println!("{} 是负数", $n);
+        } else if $n == 0 {
+            println!("{} 是零", $n);
+        } else {
+            println!("{} 是正数", $n);
+        }
     };
 }
 
 fn main() {
-    classify!(-5);  // -5 是负数
-    classify!(0);   // 0 是零
-    classify!(42);  // 42 是正数
+    println!("{} 是负数", classify(-5));  // -5 是负数
+    println!("{} 是零", classify(0));     // 0 是零
+    println!("{} 是正数", classify(42));  // 42 是正数
+
+    classify_or_other!(-5);
+    classify_or_other!(0);
+    classify_or_other!(42);
 }
 ```
 
@@ -376,6 +396,8 @@ fn main() {
 ### 12.2.2 重复模式
 
 #### 12.2.2.1 $(...)* 零次或多次
+
+`$( ... )*` 表示重复零次或多次。
 
 ```rust
 macro_rules! print_all {
@@ -397,6 +419,8 @@ fn main() {
 
 #### 12.2.2.2 $(...)+ 一次或多次（至少一次）
 
+`$( ... )+` 表示至少重复一次，所以 `sum!()` 这样的空调用会直接报错。
+
 ```rust
 macro_rules! sum {
     ( $( $n:expr ),+ ) => {
@@ -414,6 +438,8 @@ fn main() {
 ```
 
 #### 12.2.2.3 $(...)? 零次或一次
+
+`$( ... )?` 表示零次或一次，常用来匹配可选的尾随逗号。
 
 ```rust
 macro_rules! optional_debug {
@@ -446,6 +472,8 @@ fn main() {
 
 #### 12.2.3.1 $name:expr（表达式）
 
+`$name:expr` 匹配一个表达式片段。
+
 ```rust
 macro_rules! eval {
     ($e:expr) => {
@@ -462,11 +490,15 @@ fn main() {
 
 #### 12.2.3.2 $name:stmt（语句）
 
+`$name:stmt` 匹配一条语句；注意 `stmt` 片段本身已经吃掉了结尾的分号。
+
 ```rust
+// ⚠️ stmt 片段本身已经「吃掉」了结尾的分号，所以重复子句里
+// 不能再写分隔符 `;`，展开时也不要额外补分号。
 macro_rules! run_statements {
-    ( $( $s:stmt );* ) => {
+    ( $( $s:stmt )* ) => {
         $(
-            $s;
+            $s
         )*
     };
 }
@@ -481,6 +513,8 @@ fn main() {
 ```
 
 #### 12.2.3.3 $name:ty（类型）
+
+`$name:ty` 匹配一个类型，常与 `std::any::type_name` 搭配做类型探针。
 
 ```rust
 macro_rules! type_info {
@@ -498,6 +532,8 @@ fn main() {
 ```
 
 #### 12.2.3.4 $name:pat（模式）
+
+`$name:pat` 匹配一个模式片段。
 
 ```rust
 macro_rules! match_pattern {
@@ -518,6 +554,8 @@ fn main() {
 
 #### 12.2.3.5 $name:ident（标识符）
 
+`$name:ident` 匹配单个标识符；因为宏可以「凭名字造东西」，它常用来生成变量名或函数名。
+
 ```rust
 macro_rules! create_var {
     ($name:ident, $value:expr) => {
@@ -533,6 +571,8 @@ fn main() {
 
 #### 12.2.3.6 $name:block（代码块）
 
+`$name:block` 匹配一对大括号包起来的代码块。
+
 ```rust
 macro_rules! time_it {
     ($block:block) => {{
@@ -545,18 +585,21 @@ macro_rules! time_it {
 }
 
 fn main() {
-    let result = time_it! {
+    // ⚠️ $block:block 匹配的是「带花括号的一块」，所以调用时要写成 ({ ... })
+    let result = time_it!({
         let mut sum = 0;
         for i in 0..1000000 {
             sum += i;
         }
         sum
-    };
+    });
     println!("结果: {}", result); // 结果: 499999500000
 }
 ```
 
 #### 12.2.3.7 $name:meta（元属性，如 #[attr]）
+
+`$name:meta` 匹配属性方括号里的内容，适合写接收 `#[...]` 的宏。
 
 ```rust
 macro_rules! with_attrs {
@@ -576,10 +619,14 @@ struct Point(i32, i32);
 
 #### 12.2.3.8 $name:tt（TokenTree，任意 token 树）
 
+`$name:tt` 匹配一棵 token 树；单个 `tt` 只吃一个 token，要匹配任意多个请用 `$($tt:tt)*`。
+
 ```rust
+// ⚠️ 单个 $tt 只能匹配「一个」token tree，写 dump_tt!(a + b * c) 会报
+// 「no rules expected `+`」。要匹配任意多个，请用 $($tt:tt)*。
 macro_rules! dump_tt {
-    ($tt:tt) => {
-        println!("TokenTree: {:?}", stringify!($tt));
+    ($($tt:tt)*) => {
+        println!("TokenTree: {:?}", stringify!($($tt)*));
     };
 }
 
@@ -592,21 +639,27 @@ fn main() {
 
 #### 12.2.3.9 $name:path（路径，如 std::vec::Vec）
 
+`$name:path` 匹配一条路径；它后面不能再直接跟 `<u32>` 或 `::`，需要时改用 `ty` 或 `ident` 片段。
+
 ```rust
+// ⚠️ $path:path 后面不能再直接跟 `<u32>`，也不能再跟 `::`（宏解析会失败）。
+// 类型用 $t:ty，把「类型名当函数调用」的那部分用 $c:ident。
 macro_rules! instantiate {
-    ($path:path) => {
-        let v: $path<u32> = $path::new();
+    ($t:ty, $c:ident) => {{
+        let v: $t = $c::new();
         v
-    };
+    }};
 }
 
 fn main() {
-    let vec: Vec<u32> = instantiate!(Vec);
+    let vec: Vec<u32> = instantiate!(Vec<u32>, Vec);
     println!("空 Vec: {:?}", vec); // 空 Vec: []
 }
 ```
 
 #### 12.2.3.10 $name:literal（字面量）
+
+`$name:literal` 匹配字面量（数字、字符串、字符、布尔值）。
 
 ```rust
 macro_rules! check_literal {
@@ -646,6 +699,8 @@ fn main() {
 ```
 
 #### 12.2.4.2 卫生宏的标识符解析（宏内部的变量名不与外部冲突）
+
+宏是「卫生」的：宏内部定义的变量不会与调用处的同名变量冲突，展开后不会互相踩到。
 
 ```rust
 macro_rules! safe_add {
@@ -740,6 +795,8 @@ fn main() {
 
 #### 12.2.5.2 println! 的简化实现（可变参数）
 
+下面用几条规则模拟 `println!` 的可变参数：先处理无参数的情况，再处理带格式串与参数的调用。
+
 ```rust
 macro_rules! my_println {
     // 匹配没有参数的情况
@@ -762,6 +819,8 @@ fn main() {
 ```
 
 #### 12.2.5.3 dbg! 的简化实现（调试输出）
+
+`dbg!` 的简化版演示了「打印表达式本身和它的值，再把它原样返回」这套调试习惯。
 
 ```rust
 macro_rules! my_dbg {
@@ -787,6 +846,8 @@ fn main() {
 
 #### 12.2.5.4 panic! 的简化实现
 
+`panic!` 的简化版演示如何在宏里把消息转成 panic。
+
 ```rust
 macro_rules! my_panic {
     // panic!("message")
@@ -807,6 +868,8 @@ fn main() {
 ```
 
 #### 12.2.5.5 concat! / stringify! 的实现
+
+`concat!`/`stringify!` 属于编译期字符串处理宏，下面用宏模拟它们的展开效果。
 
 ```rust
 // concat! 在编译期拼接字符串（这里用运行时实现模拟效果）
@@ -914,6 +977,8 @@ pub fn hello_derive(input: TokenStream) -> TokenStream {
 
 #### 12.3.2.2 DeriveInput 解析（enum / struct 变体）
 
+解析 `DeriveInput` 可以拿到结构体或枚举的名字、泛型参数和字段信息，具体形态由 `Data` 枚举区分。
+
 ```rust
 use syn::{parse_macro_input, DeriveInput, Data, Generics};
 
@@ -940,6 +1005,8 @@ pub fn my_derive(input: TokenStream) -> TokenStream {
 ```
 
 #### 12.3.2.3 生成 trait 实现代码
+
+拿到输入信息后，用 `quote!` 拼出要生成的 trait 实现代码，再交回给编译器。
 
 ```rust
 // lib.rs
@@ -989,6 +1056,8 @@ pub fn derive_display(input: TokenStream) -> TokenStream {
 
 #### 12.3.3.1 #[proc_macro_attribute]
 
+`#[proc_macro_attribute]` 声明属性宏，它同时接收属性参数和它所修饰的那段代码。
+
 ```rust
 use proc_macro::TokenStream;
 
@@ -1004,6 +1073,8 @@ pub fn my_attribute(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 #### 12.3.3.2 属性宏的输入（TokenStream 属性 + TokenStream 项目）
 
+属性宏的两个输入分别是属性括号里的内容和被修饰的代码，通常原样返回后者，中途插入生成的内容。
+
 ```rust
 // 使用方式
 #[my_attribute(key = "value")]
@@ -1011,6 +1082,8 @@ struct Foo { ... }
 ```
 
 #### 12.3.3.3 路由宏（如 axum 的 #[axum::routes]）
+
+Web 框架里的路由属性宏就是典型例子：读出属性里的路径信息，再生成注册路由的代码。
 
 ```rust
 // 简化版的路由宏
@@ -1047,6 +1120,8 @@ fn get_user() {
 
 #### 12.3.4.1 #[inline] / #[inline(always)] / #[inline(never)]
 
+`#[inline]` 交给编译器自行决定，`always`/`never` 则是强提示；它们只是建议，不构成语义保证。
+
 ```rust
 #[inline]                    // 编译器自己决定是否内联
 #[inline(always)]          // 强制内联
@@ -1060,6 +1135,8 @@ fn hot_function() {
 
 #### 12.3.4.2 #[cold]（提示编译器该路径不常执行）
 
+`#[cold]` 提示编译器这条路径很少执行，便于优化热路径的代码布局，不影响语义。
+
 ```rust
 #[cold]
 fn error_handler() {
@@ -1069,6 +1146,8 @@ fn error_handler() {
 ```
 
 #### 12.3.4.3 #[track_caller]（传递调用位置信息）
+
+`#[track_caller]` 让函数里取到的位置指向调用者，`panic!`/`unwrap` 的报错位置就靠它。
 
 ```rust
 fn inner() {
@@ -1086,6 +1165,8 @@ fn main() {
 ```
 
 #### 12.3.4.4 #[allow(...)] / #[warn(...)] / #[deny(...)]（lint 控制）
+
+`allow`/`warn`/`deny` 用来逐项调整 lint 级别，`deny` 会把警告升级成编译错误。
 
 ```rust
 #[allow(unused_variables)]
@@ -1106,6 +1187,8 @@ extern "C" {
 
 #### 12.3.4.5 #[deprecated] / #[must_use]（未使用时产生警告，应用于函数返回类型）
 
+`#[deprecated]` 让调用方使用该 API 时收到警告，`#[must_use]` 则在返回值被丢弃时发出警告。
+
 ```rust
 #[deprecated(since = "1.0.0", note = "请使用 new_function 代替")]
 fn old_function() {}
@@ -1122,6 +1205,8 @@ fn main() {
 ```
 
 #### 12.3.4.6 #[non_exhaustive]（禁止外部 crate 匹配全部变体，强制使用者依赖未来兼容性）
+
+`#[non_exhaustive]` 禁止外部 crate 穷尽匹配所有变体或字段，为日后的扩展留出余地。
 
 ```rust
 #[non_exhaustive]
@@ -1143,6 +1228,8 @@ fn main() {
 
 #### 12.3.4.7 #[repr(...)]（内存布局）
 
+`#[repr(...)]` 控制内存布局，例如 `#[repr(C)]` 保证字段顺序与 C 兼容。
+
 ```rust
 #[repr(C)]          // C 风格内存布局
 #[repr(Rust)]       // Rust 默认布局
@@ -1157,6 +1244,8 @@ struct CStyle {
 
 #### 12.3.4.8 #[link(...)]（链接外部库）
 
+`#[link(...)]` 告诉链接器需要链接哪个外部库，通常配合 `extern "C"` 的声明一起使用。
+
 ```rust
 #[link(name = "ssl")]
 extern "C" {
@@ -1165,6 +1254,8 @@ extern "C" {
 ```
 
 #### 12.3.4.9 #[no_mangle]（禁止编译器改名）
+
+`#[no_mangle]` 禁止编译器重命名符号，是导出给 C 侧调用的前提。
 
 ```rust
 #[no_mangle]
@@ -1175,6 +1266,8 @@ pub extern "C" fn Rust_exported_function() {
 
 #### 12.3.4.10 #[export_name]（自定义导出符号名）
 
+`#[export_name = "..."]` 可以指定导出符号的确切名字。
+
 ```rust
 #[export_name = "my_custom_name"]
 pub extern "C" fn exported() {
@@ -1183,6 +1276,8 @@ pub extern "C" fn exported() {
 ```
 
 #### 12.3.4.11 #[derive(...)]（标准派生宏）
+
+`#[derive(...)]` 是最常用的内建属性宏，一次挂上若干自动生成的 trait 实现。
 
 ```rust
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
@@ -1194,6 +1289,8 @@ struct Point {
 
 #### 12.3.4.12 #[cfg(...)]（条件编译）
 
+`#[cfg(...)]` 做条件编译，条件不成立时代码根本不会进入编译。
+
 ```rust
 #[cfg(target_os = "windows")]
 fn windows_only() {
@@ -1202,6 +1299,8 @@ fn windows_only() {
 ```
 
 #### 12.3.4.13 #[global_allocator]（自定义全局分配器）
+
+`#[global_allocator]` 用于替换全局分配器，属于 `unsafe` 领域，一个程序里只能有一个。
 
 ```rust
 use std::alloc::{GlobalAlloc, System, Layout};
@@ -1233,6 +1332,8 @@ fn main() {
 
 #### 12.3.5.1 宏导出到 crate 根（crate 级别 re-export）
 
+`#[macro_export]` 把 `macro_rules!` 宏导出到 crate 根，其他 crate 才能使用它。
+
 ```rust
 // lib.rs
 #[macro_export]
@@ -1247,7 +1348,12 @@ macro_rules! hello {
 
 #### 12.3.5.2 跨 crate 宏调用（use crate::macro_name!）
 
-```rust
+跨 crate 调用宏要求宏已被导出，调用方还要通过 `crate::宏名!` 或路径把它引入。
+
+```rust,ignore
+// ⚠️ 这段代码属于「库 crate 的调用方」，需要先把上面的宏导出到
+//    一个名为 my_crate 的 crate 里才能编译（本块标记为 ignore）。
+
 // 其他 crate 使用
 use my_crate::hello;
 
@@ -1264,6 +1370,8 @@ fn main() {
 
 #### 12.4.1.1 syn::parse_macro_input!（解析 TokenStream）
 
+`parse_macro_input!` 把 `TokenStream` 解析成 `syn` 的类型，解析失败会直接变成编译错误。
+
 ```rust
 use syn::parse_macro_input;
 
@@ -1271,6 +1379,8 @@ let input = parse_macro_input!(input as DeriveInput);
 ```
 
 #### 12.4.1.2 DeriveInput 解析（结构体 / 枚举信息）
+
+`DeriveInput` 里包含标识符、泛型和 `Data`；按 `Data::Struct` / `Data::Enum` 分支即可分别处理。
 
 ```rust
 use syn::{DeriveInput, Data, Fields};
@@ -1299,6 +1409,8 @@ fn parse_struct(data: &Data) -> String {
 
 #### 12.4.1.3 Item / Expr / Pat / Type 解析
 
+`syn` 为每种语法结构都准备了对应类型：`Item` 表示项、`Expr` 表达式、`Pat` 模式、`Type` 类型。
+
 ```rust
 use syn::{Item, Expr, Pat, Type};
 
@@ -1319,6 +1431,8 @@ fn handle_item(item: &Item) {
 
 #### 12.4.2.1 quote::quote!（生成 token）
 
+`quote!` 把写下的代码转成 `TokenStream`，是过程宏里生成代码的主力工具。
+
 ```rust
 use quote::quote;
 
@@ -1331,6 +1445,8 @@ let tokens = quote! {
 
 #### 12.4.2.2 #var（变量替换）
 
+在 `quote!` 里写 `#var`，会把变量插入到生成代码的对应位置。
+
 ```rust
 let name = "World";
 let expanded = quote! {
@@ -1342,6 +1458,8 @@ let expanded = quote! {
 ```
 
 #### 12.4.2.3 #(#var)*（迭代展开）
+
+`#(#var)*` 对可迭代的值做重复展开，常用于按字段列表批量生成代码。
 
 ```rust
 let fields = vec!["x", "y", "z"];
@@ -1361,16 +1479,18 @@ let expanded = quote! {
 // }
 ```
 
-#### 12.4.2.4 #var?（可选展开）
+#### 12.4.2.4 可选展开：直接插值 Option<T>
+
+`quote!` **没有** `#var?` 这种语法。需要「有就展开、没有就省略」时，直接插入 `Option<T>` 即可：quote 为 `Option<T: ToTokens>` 实现了 `ToTokens`，`None` 会输出空 token。
 
 ```rust
-let maybe_bound: Option<&TokenStream> = Some(quote! { : Clone });
+// 已用 quote 1.0 实测：Some 输出 ": Clone"，None 输出空
+let maybe_bound: Option<TokenStream> = Some(quote! { : Clone });
 
 let expanded = quote! {
-    fn foo #maybe_bound?() {
-        // 如果 maybe_bound 是 Some，就展开 : Clone
-        // 如果是 None，就不展开
-    }
+    fn foo #maybe_bound() {}
+    // Some → fn foo : Clone () {}
+    // None → fn foo () {}
 };
 ```
 
@@ -1379,6 +1499,8 @@ let expanded = quote! {
 ### 12.4.3 proc-macro2 跨平台支持
 
 #### 12.4.3.1 proc-macro2 的作用（解析后的 token 跨平台表示）
+
+`proc-macro2` 提供了一份脱离编译器进程也能使用的 `TokenStream`，让宏逻辑更容易写单元测试。
 
 ```rust
 use proc_macro2::TokenStream;
@@ -1395,6 +1517,8 @@ fn process(tokens: TokenStream) -> TokenStream {
 ### 12.4.4 编写完整的派生宏
 
 #### 12.4.4.1 proc-macro crate 项目结构
+
+过程宏 crate 要在 `Cargo.toml` 里写 `proc-macro = true`，并且单独放在一个 crate 中。
 
 ```bash
 my-derive-macro/
@@ -1415,6 +1539,8 @@ proc-macro2 = "1.0"
 ```
 
 #### 12.4.4.2 解析 DeriveInput
+
+派生宏的入口先解析 `DeriveInput`，再根据字段信息决定生成什么。
 
 ```rust
 // src/lib.rs
@@ -1448,6 +1574,8 @@ pub fn hello_derive(input: TokenStream) -> TokenStream {
 
 #### 12.4.4.3 生成代码
 
+最后把生成的 `TokenStream` 转成 `proc_macro::TokenStream` 返回，编译器就会用这段代码替换原来的派生属性。
+
 ```rust
 #[proc_macro_derive(Getters)]
 pub fn derive_getters(input: TokenStream) -> TokenStream {
@@ -1478,7 +1606,9 @@ pub fn derive_getters(input: TokenStream) -> TokenStream {
 }
 ```
 
-#### 12.4.4.4 测试派生宏（trybuild / trybuild2 crate）
+#### 12.4.4.4 测试派生宏（trybuild）
+
+派生宏的「编译失败场景」通常交给 `trybuild` crate 测试：把期望报错的源码放在 `tests/ui/` 下，用 `TestCases` 比对编译器输出（第一次运行会生成 `.stderr` 基准文件，之后便可逐字比对）。
 
 ```toml
 # Cargo.toml
@@ -1487,19 +1617,16 @@ trybuild = "1.0"
 ```
 
 ```rust
-// tests/test_my_macro.rs
-use my_macro_crate::MyMacro;
-
+// tests/compile_tests.rs
 #[test]
-fn test_macro() {
-    let code = r#"
-        #[my_macro]
-        struct Foo { x: i32 }
-    "#;
-    
-    trybuild::compile_fail(code).unwrap();
+fn ui() {
+    let t = trybuild::TestCases::new();
+    t.pass("tests/ui/pass/*.rs");         // 这些文件应当编译通过
+    t.compile_fail("tests/ui/fail/*.rs"); // 这些文件应当编译失败
 }
 ```
+
+注意这个 crate 就叫 `trybuild`，并不存在名为 `trybuild2` 的版本。
 
 ---
 
@@ -1509,6 +1636,8 @@ fn test_macro() {
 
 #### 12.5.1.1 stringify!(...)（转字符串）
 
+`stringify!` 在编译期把一段代码原样变成字符串字面量。
+
 ```rust
 fn main() {
     let code = stringify!(let x = 1 + 2;);
@@ -1517,6 +1646,8 @@ fn main() {
 ```
 
 #### 12.5.1.2 std::hint::black_box(b: T)（阻止编译器优化，消除死代码；用于性能测试）
+
+`black_box` 阻止编译器把输入当常量折叠、或把结果当死代码删掉，写基准测试时几乎必用。
 
 ```rust
 use std::hint::black_box;
@@ -1532,7 +1663,14 @@ fn main() {
 }
 ```
 
-#### 12.5.1.3 std::hint::unreachable_()（提示编译器当前代码路径不可达，消除 UB 时编译器警告）
+#### 12.5.1.3 std::hint::unreachable_unchecked()（声明某条路径不可达）
+
+要告诉编译器「这条路径永远走不到」，标准库提供两个工具：
+
+- `unreachable!()` 宏：安全，万一真的执行到会 panic。
+- `std::hint::unreachable_unchecked()` 函数：需要 `unsafe`，万一真的执行到就是未定义行为（UB）。
+
+下面这段 `if / else if / else` 已经覆盖了全部整数情况，但编译器不会替我们「证明」这一点，所以 `else` 分支不能直接省掉返回值：
 
 ```rust
 fn categorize(n: i32) -> &'static str {
@@ -1540,15 +1678,30 @@ fn categorize(n: i32) -> &'static str {
         "negative"
     } else if n == 0 {
         "zero"
+    } else if n > 0 {
+        "positive"
     } else {
-        // 编译器知道这已经覆盖了所有情况
-        // 但为了消除"函数可能不返回值"的警告，可以用 unreachable!()
-        std::hint::unreachable_();
+        // 只有 unsafe 才能宣称「不可能到这里」；返回类型是 !，可以强制转换成 &str
+        unsafe { std::hint::unreachable_unchecked() }
+    }
+}
+```
+
+实际工程里更推荐改写成 `match`，让编译器自己确认穷尽，完全不需要 UB：
+
+```rust
+fn categorize_safe(n: i32) -> &'static str {
+    match n {
+        i32::MIN..=-1 => "negative",
+        0 => "zero",
+        _ => "positive",
     }
 }
 ```
 
 #### 12.5.1.4 concat!("a", "b")（编译期拼接）
+
+`concat!` 在编译期把多个字面量拼成一个字符串，不产生任何运行时开销。
 
 ```rust
 fn main() {
@@ -1559,7 +1712,13 @@ fn main() {
 
 #### 12.5.1.5 env!("VAR_NAME")（读取环境变量，编译期求值（值运行时存在），不存在则编译错误）
 
-```rust
+`env!` 在编译期读取环境变量，读不到就直接编译失败；`CARGO_PKG_*` 由 Cargo 注入。
+
+```rust,ignore
+// ⚠️ CARGO_PKG_VERSION / CARGO_PKG_NAME 由 cargo 在编译期注入，
+//    直接用 rustc 编译会报「environment variable not defined」。
+//    请放进用 cargo 管理的项目里运行（本块标记为 ignore）。
+
 fn main() {
     let version = env!("CARGO_PKG_VERSION");
     let name = env!("CARGO_PKG_NAME");
@@ -1571,6 +1730,8 @@ fn main() {
 
 #### 12.5.1.6 option_env!("VAR_NAME")（读取环境变量，返回 Option，不存在为 None）
 
+`option_env!` 同样在编译期读取，但读不到时返回 `None` 而不是报错。
+
 ```rust
 fn main() {
     let git_commit = option_env!("GIT_COMMIT");
@@ -1579,6 +1740,8 @@ fn main() {
 ```
 
 #### 12.5.1.7 file!() / line!() / column!() / module_path!()（源码位置）
+
+这几个宏在编译期展开成源码位置信息，打日志时定位问题非常方便。
 
 ```rust
 fn main() {
@@ -1595,6 +1758,8 @@ fn main() {
 
 #### 12.5.2.1 cargo expand（展开宏查看结果）
 
+`cargo-expand` 把宏展开后的代码打印出来，是排查宏问题的第一工具。
+
 ```bash
 # 安装
 cargo install cargo-expand
@@ -1610,7 +1775,7 @@ cargo expand main        # 只展开 main 函数中的宏
 
 当宏展开出错时，看编译器的错误信息。错误会显示在展开后的代码上，不是在宏定义处：
 
-```rust
+```rust,compile_fail
 macro_rules! bad_macro {
     ($x:expr) => {
         let y: i32 = $x; // 如果 $x 不能转为 i32，这里会报错
@@ -1623,6 +1788,8 @@ fn main() {
 ```
 
 #### 12.5.2.3 宏调试日志
+
+在宏里打印「编译期能看到的信息」，是排查「为什么没匹配上」的常用手段。
 
 ```rust
 macro_rules! debug_macro {
@@ -1637,6 +1804,8 @@ macro_rules! debug_macro {
 ### 12.5.3 inline const 表达式（Rust 2024）
 
 #### 12.5.3.1 const { ... } 语法（编译期求值块，Rust 1.79+）
+
+`const { ... }` 块（Rust 1.79+）强制在编译期求值，可以把常量计算直接写在使用处。
 
 ```rust
 fn main() {
@@ -1676,4 +1845,3 @@ fn main() {
 ---
 
 > **温馨提醒**：过程宏的完整项目实践（比如写一个 `#[derive(Getters)]`）需要你创建一个单独的 crate 并且设置 `proc-macro = true`。纸上得来终觉浅，绝知此事要躬行——快去动手试试吧！
-

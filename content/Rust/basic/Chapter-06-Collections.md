@@ -87,6 +87,7 @@ fn main() {
     println!("names = {:?}", names); // names = ["Alice", "Bob", "Charlie"]
 
     // 创建一个存储自定义结构体的 Vec
+    #[derive(Debug)]
     struct Person {
         name: String,
         age: u32,
@@ -192,7 +193,7 @@ fn main() {
 
     // 结论：预分配合适的容量是王道
     println!("性能对比：预分配 vs 不预分配 = {:.2}x",
-             no_prealloc_duration.as_nanos() as f64 / with_prealloc.as_nanos() as f64);
+             no_prealloc_duration.as_nanos() as f64 / with_prealloc_duration.as_nanos() as f64);
 }
 ```
 
@@ -449,7 +450,7 @@ fn main() {
 
     let indices_to_remove: Vec<usize> = data.iter()
         .enumerate()
-        .filter(|(_, &c)| c == 'b' || c == 'd' || c == 'f')
+        .filter(|(_, c)| **c == 'b' || **c == 'd' || **c == 'f')   // Rust 2024 不允许在隐式借用模式里解引用
         .map(|(i, _)| i)
         .collect();
 
@@ -555,7 +556,7 @@ fn main() {
 
     // 例子：查找元素并返回前后元素
     let data: Vec<i32> = vec![10, 20, 30, 40, 50];
-    let target_index = 3;
+    let target_index: usize = 3;   // 不加类型标注时 wrapping_sub 无法确定整型宽度
 
     println!("\n查找目标索引 {} 的上下文", target_index);
     // 使用 get 安全地获取前一个、当前、后一个元素
@@ -1189,7 +1190,7 @@ fn main() {
     // 模拟读取 CSV
     for i in 0..csv_line_count {
         records.push(Record {
-            id: i,
+            id: i as u32,   // 字段是 u32，而循环变量 i 是 usize，需要显式转换
             name: format!("Record_{}", i),
             value: i as f64 * 1.5,
         });
@@ -1482,7 +1483,8 @@ fn main() {
     // 每次比较相邻两个元素：如果差值为 1，则后一个元素被移除
     // 结果：1 被保留，2, 3 因与前一个元素差值为 1 被移除
     //       6 被保留，7, 8, 9, 10 都因与前一个被移除元素差值为 1 被移除
-    numbers.dedup_by(|a, b| b - a == 1); // 如果 b = a + 1，认为是"重复"
+    // 闭包参数是 &mut i32，比较前要先解引用
+    numbers.dedup_by(|a, b| *b - *a == 1); // 如果 b = a + 1，认为是"重复"
     println!("dedup_by (移除连续递增) 后: {:?}", numbers);
     // dedup_by (移除连续递增) 后: [1, 6]
 
@@ -1938,7 +1940,7 @@ fn main() {
     // 按姓名排序后查找
     people.sort_by(|a, b| a.name.cmp(&b.name));
 
-    match people.binary_search_by(|p| p.name.cmp("Charlie")) {
+    match people.binary_search_by(|p| p.name.as_str().cmp("Charlie")) {
         Ok(index) => println!("找到 Charlie 在索引 {}，年龄 {}", index, people[index].age),
         // 找到 Charlie 在索引 1，年龄 35
         Err(_) => println!("没找到"),
@@ -2534,7 +2536,8 @@ fn main() {
 
     // 实际应用：与 C 语言交互
     println!("\n与 C 风格代码交互:");
-    extern "C" {
+    // Rust 2024 起，extern 块必须显式写成 unsafe extern
+    unsafe extern "C" {
         // 假设这是 C 库的函数
         fn c_allocate(size: usize) -> *mut i32;
         fn c_deallocate(ptr: *mut i32);
@@ -2582,9 +2585,11 @@ Box::pin() 是一个专门用于"固定"（pinning）数据的特殊方法。固
 
 ```rust
 fn main() {
+    use std::pin::Pin;
+
     // Box::pin 的基本用法
     println!("Box::pin 示例:");
-    let pinned: Box<Pin<i32>> = Box::pin(42);
+    let pinned: Pin<Box<i32>> = Box::pin(42);   // Box::pin 返回 Pin<Box<T>>，不是 Box<Pin<T>>
     println!("固定的值: {}", *pinned); // 固定的值: 42
 
     // Pin<Box<T>> 实现了 Deref，所以可以像普通 Box 一样使用
@@ -2656,7 +2661,9 @@ fn main() {
         data: *mut i32,
     }
 
-    impl !Unpin for NotUnpin {}
+    // ⚠️ `impl !Unpin for NotUnpin {}`（负实现）目前仍是 nightly 特性
+    // （feature(negative_impls)），稳定版请改用标记类型 PhantomPinned：
+    //     struct NotUnpin { data: *mut i32, _pin: std::marker::PhantomPinned }
 
     // Box<NotUnpin> 不能直接使用
     // 需要使用 Box::pin 来创建
@@ -2771,9 +2778,12 @@ fn main() {
 
 ### 链表的基本操作：头插法与头删法
 
+用 `Box` 手写链表的经典练习：头插法在表头插入节点，头删法把表头节点取下来。
+
 ```rust
 fn main() {
-    // 链表节点定义
+    // 链表节点定义（push_front 需要 clone，打印剩余链表需要 Debug）
+    #[derive(Clone, Debug)]
     enum List {
         Cons(i32, Box<List>),
         Nil,
@@ -2861,6 +2871,8 @@ fn main() {
 fn main() {
     // 二叉树节点定义
     // 每个节点有一个值，左子树，右子树
+    // insert 里用到了 left.clone()/right.clone()，所以 Tree 需要实现 Clone
+    #[derive(Clone)]
     enum Tree<T> {
         Node {
             value: T,
@@ -2887,17 +2899,18 @@ fn main() {
     //      2   6
     //     / \ / \
     //    1  3 5  7
+    // 注意：树的左右子树字段类型是 Box<Tree<T>>，所以要用 Box::new 包一层
     let tree = Node {
         value: 4,
         left: Box::new(Node {
             value: 2,
-            left: leaf(1),
-            right: leaf(3),
+            left: Box::new(leaf(1)),
+            right: Box::new(leaf(3)),
         }),
         right: Box::new(Node {
             value: 6,
-            left: leaf(5),
-            right: leaf(7),
+            left: Box::new(leaf(5)),
+            right: Box::new(leaf(7)),
         }),
     };
 
@@ -3158,12 +3171,12 @@ fn main() {
     // let duck = Box::new(Duck { weight: 3.5 });
     // println!("{}", duck.weight); // 错误！Trait 对象只能访问 Trait 中的方法
 
-    // 2. 返回具体类型时可以使用 impl Trait 语法
-    fn create_speaker(animal: &str) -> impl Speak {
+    // 2. 返回 Trait 对象：两个分支类型不同，必须装箱成 Box<dyn Speak>
+    fn create_speaker(animal: &str) -> Box<dyn Speak> {
         if animal == "dog" {
-            Dog { name: String::from("默认狗") }
+            Box::new(Dog { name: String::from("默认狗") })
         } else {
-            Cat { name: String::from("默认猫") }
+            Box::new(Cat { name: String::from("默认猫") })
         }
     }
 
@@ -3187,7 +3200,7 @@ fn main() {
 
 > 动态分发虽然灵活，但有性能成本。每次方法调用都需要通过 vtable 查找实际的方法地址，这比静态分发（直接调用）要慢一些。不过，在大多数应用场景下，这个开销可以忽略不计。
 
-### 6.2.3.2 &dyn Trait vs Box<dyn Trait>
+#### 6.2.3.2 &dyn Trait vs Box<dyn Trait>
 
 `&dyn Trait` 和 `Box<dyn Trait>` 都可以存储实现了 Trait 的类型，但它们有重要区别。
 
@@ -3353,7 +3366,8 @@ fn main() {
         ("Bob".to_string(), 87),
         ("Charlie".to_string(), 92),
     ];
-    let scores_from_vec: HashMap<_, _> = HashMap::from(data);
+    // Vec<(K, V)> 不能直接 HashMap::from，要走 into_iter().collect()
+    let scores_from_vec: HashMap<_, _> = data.into_iter().collect();
     println!("从 Vec 创建: {:?}", scores_from_vec);
     // 从 Vec 创建: {"Alice": 95, "Bob": 87, "Charlie": 92}
 
@@ -3540,10 +3554,11 @@ HashMap 的 remove 操作用于删除键值对。
 fn main() {
     use std::collections::HashMap;
 
+    // 键类型是 &str，直接传字符串字面量即可（'static 生命周期）
     let mut scores: HashMap<&str, i32> = HashMap::new();
-    scores.insert(String::from("Alice"), 95);
-    scores.insert(String::from("Bob"), 87);
-    scores.insert(String::from("Charlie"), 92);
+    scores.insert("Alice", 95);
+    scores.insert("Bob", 87);
+    scores.insert("Charlie", 92);
 
     println!("原始分数: {:?}", scores);
     // 原始分数: {"Alice": 95, "Bob": 87, "Charlie": 92}
@@ -3719,7 +3734,7 @@ fn main() {
     // 获取并修改
     println!("\n获取并修改:");
     let mut scores: HashMap<&str, i32> = HashMap::new();
-    scores.insert(String::from("TeamA"), 100);
+    scores.insert("TeamA", 100);
 
     // 修改已存在的值
     scores.entry("TeamA").and_modify(|score| *score += 50);
@@ -3775,7 +3790,8 @@ fn main() {
     let mut votes: HashMap<&str, i32> = HashMap::new();
 
     // 记录投票
-    fn record_vote(votes: &mut HashMap<&str, i32>, candidate: &str) {
+    // 显式写上生命周期：键是 &'a str，借用的 candidate 也必须是同一生命周期
+    fn record_vote<'a>(votes: &mut HashMap<&'a str, i32>, candidate: &'a str) {
         *votes.entry(candidate).or_insert(0) += 1;
     }
 
@@ -4516,7 +4532,7 @@ fn main() {
     heap.push(5);
 
     println!("Heap: {:?}", heap);
-    // Heap: [5, 4, 3, 1, 1]
+    // Heap: [5, 1, 3, 1, 4]（这是堆内部数组排布，属于实现细节，不要依赖它）
 
     // pop 获取并移除最大元素
     println!("\nPop 操作:");
@@ -4565,7 +4581,7 @@ fn main() {
     let data = vec![10, 2, 8, 7, 3, 5, 9, 1, 6, 4];
     let k = 3;
 
-    let mut heap: BinaryHeap<_> = data.iter().take(k).collect();
+    let mut heap: BinaryHeap<i32> = data.iter().copied().take(k).collect();
 
     // 保持只有 k 个最大元素
     for &num in data.iter().skip(k) {
@@ -4577,17 +4593,18 @@ fn main() {
 
     println!("  数据: {:?}", data);
     println!("  Top {}: {:?}", k, heap.into_sorted_vec());
-    // Top 3: [10, 9, 8]
+    // Top 3: [8, 9, 10]（into_sorted_vec 返回升序排列的 Vec）
 
     // 实际应用：优先级队列
     println!("\n优先级队列:");
-    #[derive(Debug)]
+    // 注意：放进 BinaryHeap 必须实现 Ord，所以 Task 要派生 Ord/PartialOrd/Eq/PartialEq
+    #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
     struct Task {
         priority: u8,
         name: String,
     }
 
-    let mut pq: BinaryHeap<_> = BinaryHeap::new();
+    let mut pq: BinaryHeap<Task> = BinaryHeap::new();
 
     pq.push(Task { priority: 2, name: String::from("普通任务") });
     pq.push(Task { priority: 1, name: String::from("低优先级") });
@@ -4753,8 +4770,8 @@ fn main() {
     println!("  pop(): {:?}", stack.pop()); // None
 
     // Vec::first / last
-    println!("  first(): {:?}", vec![].first()); // None
-    println!("  last(): {:?}", vec![].last()); // None
+    println!("  first(): {:?}", Vec::<i32>::new().first()); // None（空 Vec 需要标注元素类型）
+    println!("  last(): {:?}", Vec::<i32>::new().last()); // None
 }
 
 fn expensive_computation() -> i32 {
@@ -4962,7 +4979,7 @@ fn main() {
     println!("\n各种 Range:");
 
     // Range: start..end
-    let r: Range<i32> = 0..10;
+    let r: std::ops::Range<i32> = 0..10;   // Range 在 std::ops 中，也可以 use std::ops::Range
     println!("  Range<i32>: {:?}", r);
     println!("  包含 start，不包含 end");
 
@@ -5148,7 +5165,7 @@ fn main() {
 
     // Rc<T> + RefCell<T> 组合
     println!("\nRc<RefCell<T>> 组合:");
-    use std::cell::RefCell;
+    // 前面已经 use 过 RefCell，这里只需要再引入 Rc
     use std::rc::Rc;
 
     let shared = Rc::new(RefCell::new(vec![1, 2, 3]));
@@ -5318,12 +5335,13 @@ fn main() {
     // 实际应用：配置处理
     println!("\n配置处理:");
     #[derive(Debug)]
-    struct Config {
-        value: Cow<str>,
+    struct Config<'a> {
+        value: Cow<'a, str>,
     }
 
-    impl Config {
-        fn new(default: &str) -> Self {
+    impl<'a> Config<'a> {
+        // 返回值借用了 default，所以生命周期要和结构体参数一致
+        fn new(default: &'a str) -> Self {
             Config {
                 value: Cow::Borrowed(default),
             }

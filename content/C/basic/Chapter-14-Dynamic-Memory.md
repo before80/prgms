@@ -968,7 +968,7 @@ Slab 分配器的工作方式：
   5. 释放时：归还到 cache 的空闲链表
 
   ┌──────────────────────────────────┐
-  │   Cache for "task_struct"       │
+  │   Cache for "task_struct"        │
   ├──────────────────────────────────┤
   │  slab1: [obj][obj][obj][obj]...  │
   │  slab2: [obj][obj][obj][obj]...  │

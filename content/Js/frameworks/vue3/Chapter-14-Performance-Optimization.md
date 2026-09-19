@@ -399,13 +399,6 @@ Google 搜索"Vue 3 完全指南"，如果这个页面有 JSON-LD，搜索结果
 
 ### 14.4.4 SSR 方案（详见第 26 章 Nuxt 3）
 
-```typescript
-// 在 public/index.html 或路由组件的 mounted 里
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
-### 14.4.4 SSR 方案（详见第 26 章 Nuxt 3）
-
 服务端渲染（SSR）是 SEO 的终极解决方案，让搜索引擎能看到完全渲染好的 HTML。
 
 ## 14.5 Core Web Vitals
@@ -589,4 +582,3 @@ Sentry.init({
 - **错误处理**：全局 errorHandler、errorCaptured、Promise 错误上报、Sentry 集成。
 
 下一章我们会学习 **样式方案**——CSS 预处理器、Tailwind CSS、主题切换和暗色模式，让你的应用既有颜值又有性能！
-

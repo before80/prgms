@@ -84,13 +84,39 @@ fn main() {
 
 ```rust
 // T: 'a 意味着类型 T 中不能有任何生命周期短于 'a 的引用
-fn require_static<T>(value: &T) -> &T
+// ⭐ 注意：'a 必须在泛型参数表里先声明出来，否则编译器会报
+//    error[E0261]: use of undeclared lifetime name `'a`
+fn requires_outlives<'a, T>(value: &'a T) -> &'a T
 where
     T: 'a,
 {
     value
 }
+
+fn main() {
+    let n = 42;
+    println!("{}", requires_outlives(&n)); // 42
+
+    // 下面这种才是 T: 'a 真正想拦下来的情况：
+    // 局部字符串活不过 'a，编译器不会放行
+    // let short = String::from("短命");
+    // let r = requires_outlives(&short.as_str());
+}
 ```
+
+> 💡 顺带说明：`value: &'a T` 这个签名本身就已经隐含了 `T: 'a`
+> （一个 `&'a T` 要想成立，T 就必须活满 `'a`），所以这里的 `where T: 'a`
+> 属于"重复标注"。真正有价值的场景是**只有 T、没有 `&'a T`** 的时候：
+>
+> ```rust
+> // 这里没有任何 &'a T，T: 'a 约束才是必要信息
+> fn store_later<'a, T>(value: T) -> Box<dyn Fn() -> T + 'a>
+> where
+>     T: 'a + Clone,
+> {
+>     Box::new(move || value.clone())
+> }
+> ```
 
 这个约束在泛型编程中超级有用。比如，你想写一个函数，它接受一个结构体，这个结构体里可能有很多引用，但你希望这些引用至少跟你的函数一样"长寿"。
 
@@ -154,20 +180,42 @@ fn main() {
 
 **更坏的消息**：如果你手动标注错了，编译器会毫不客气地报错——报错信息有时候长得能绕地球三圈。
 
-好了，来看省略规则吧：
+好了，来看省略规则吧。规范里一共**三条**，顺序很重要——先看输入，再看输出：
 
-**输入生命周期省略规则（Input Lifetime Elision Rules）**：
-
-规则1：如果函数只有一个输入参数，且这个参数是引用，那么该引用的生命周期会自动成为返回引用的生命周期。
+**规则 1（输入侧）：每个被省略的输入生命周期，各自变成一个独立的生命周期参数。**
 
 ```rust
-// 编译器自动推断为 fn foo<'a>(x: &'a str) -> &'a str
-fn foo(x: &str) -> &str {
-    x
-}
+// 你写的：
+fn two_inputs(x: &str, y: &str) { }
+
+// 编译器眼里等价于（'a 和 'b 是两个不同的生命周期）：
+fn two_inputs<'a, 'b>(x: &'a str, y: &'b str) { }
+
+// ⭐ 这一条是"分成两个"，不是"共用同一个"，
+//    所以下面这种签名照样编译不过（返回类型不知道该用哪个）：
+// fn pick(x: &str, y: &str) -> &str { x }   // error[E0106]
 ```
 
-规则2：如果函数有多个输入参数，且其中有 `self` 或 `&self`，那么 `self` 的生命周期会自动成为返回引用的生命周期。
+**规则 2（输出侧）：如果输入侧只有一个生命周期（省略后的也算），那么所有被省略的输出生命周期都等于它。**
+
+```rust
+// 只有一个输入引用 → 输出自动取它的生命周期
+fn first_word(s: &str) -> &str {
+    s.split_whitespace().next().unwrap_or("")
+}
+// 等价于 fn first_word<'a>(s: &'a str) -> &'a str
+
+// 显式标注（没有省略）时，这条规则同样适用：
+// 只要"有效的输入生命周期"只有一个，输出省略后也取它
+fn first_word2<'a>(s: &'a str) -> &str {
+    first_word(s)
+}
+// ⚠️ 不过较新的 rustc 会对这种"输入写了 'a、输出又省略"的写法给出
+//    mismatched_lifetime_syntaxes 警告（说的是同一个生命周期，却用了两种写法）。
+//    能编译，但为了可读性，实际项目里建议写全：-> &'a str
+```
+
+**规则 3（输出侧补充）：如果有多个输入生命周期，但其中一个是 `&self` 或 `&mut self`，那么输出的生命周期取 `self` 的。**
 
 ```rust
 struct X;
@@ -180,11 +228,13 @@ impl X {
 }
 ```
 
+> ⚠️ **注意规则 3 的措辞**：只有 `self` 才能"独占"输出的生命周期。
+> 如果方法没有 `self`，哪怕参数里只有一个引用，规则 2 也能生效；
+> 但如果**没有 self 又有多个输入引用**，输出就必须显式标注了（见下一小节）。
+
 #### 9.1.3.2 输出生命周期省略规则（返回值引用从参数推断）
 
-**输出生命周期省略规则（Output Lifetime Elision Rules）**：
-
-规则3：如果函数只有一个输入引用参数（且满足规则1），那么返回引用的生命周期就是这个输入参数的生命周期。
+一句话总结上一节的规则 2/3：**输出生命周期只有在"能唯一确定来源"时才会被省略。**
 
 ```rust
 // 等价于 fn first_char<'a>(s: &'a str) -> &'a str
@@ -197,6 +247,33 @@ fn main() {
     println!("第一个字符是：{}", result); // 第一个字符是：h
 }
 ```
+
+> ⚠️ 上面这个 `&s[..1]` 只是"能跑"，并不是"写法正确"，它有两个隐藏的坑：
+>
+> ```rust
+> // 坑 1：空字符串会直接 panic（index out of bounds）
+> // first_char("");
+>
+> // 坑 2：多字节字符不是按"字符"切，而是按"字节"切，会 panic
+> // first_char("你好");   // byte index 1 is not a char boundary
+> ```
+>
+> 稳妥的写法是按字符取：
+>
+> ```rust
+> fn first_char(s: &str) -> &str {
+>     match s.char_indices().nth(1) {
+>         Some((idx, _)) => &s[..idx],   // 第一个字符的结束位置
+>         None => s,                     // 说明整个字符串就是一个字符
+>     }
+> }
+>
+> fn main() {
+>     println!("{}", first_char("hello")); // h
+>     println!("{}", first_char("你好"));   // 你
+>     println!("{}", first_char(""));      // （空）
+> }
+> ```
 
 #### 9.1.3.3 无法省略时的显式标注（编译器 E0106 / E0107）
 
@@ -272,28 +349,59 @@ fn longest<'long: 'short, 'short>(
     y: &'short str,
 ) -> &'short str {
     if x.len() > y.len() {
-        x // 警告：返回类型是 &'short，但 x 是 &'long
-          // 编译器会报错！因为返回类型和 x 的生命周期参数不匹配
+        x // ✅ 这行是完全合法的，不会报错！
     } else {
         y
     }
 }
+
+fn main() {
+    println!("{}", longest("aa", "b")); // aa
+}
 ```
 
-等等，我故意的，这个例子会报错。因为 `longest` 承诺返回 `&'short str`，但 `x` 是 `&'long str`——虽然有 `'long: 'short` 约束保证了 'long 不会比 'short 短，但 Rust 的生命周期系统要求返回引用时必须精确匹配声明的生命周期参数，不能简单地"向下兼容"。如果真的返回了 `x`，那返回的引用可能是个悬空引用！
+⭐ **这里要特别纠正一个常见误解**：很多人以为"返回 `x` 会报错，因为 `x` 是 `&'long str` 而返回类型是 `&'short str`"。
+实际上**不会报错**——因为 `'long: 'short` 保证了 `'long` 比 `'short` 长，
+所以 `&'long str` 可以**安全地当成** `&'short str` 用，编译器会自动做这层"缩短"转换。
 
-**正确的用法**：
+这就是所谓的**生命周期子类型**：生命周期更长 ⇒ 类型更强（是子类型）。
+方向千万别记反——是"长命引用可以当短命引用用"，而不是反过来。
+
+**反过来才会报错**：
 
 ```rust
-// 'long: 'short 意味着 'long 活得至少跟 'short 一样久
-// 这样就可以安全地返回 x 了，因为 'long 保证不会比 'short 短
-fn safe_return<'long: 'short, 'short>(
+// 把两个参数的约束关系写反，编译器立刻不答应
+fn bad_return<'long, 'short: 'long>(
     x: &'long str,
     _y: &'short str,
 ) -> &'short str {
-    x // OK！因为 'long 至少是 'short 那么长
+    x // ❌ 编译不通过
+      // 因为此时并没有 "x 比返回值活得久" 的保证
 }
+
+fn main() {}
 ```
+
+编译这份代码会得到：
+
+```
+error: lifetime may not live long enough
+ --> src/main.rs:5:5
+  |
+1 | fn bad_return<'long, 'short: 'long>(
+  |               -----  ------ lifetime `'short` defined here
+  |               |
+  |               lifetime `'long` defined here
+...
+5 |     x
+  |     ^ function was supposed to return data with lifetime `'short` but it is returning data with lifetime `'long`
+  |
+  = help: consider adding the following bound: `'long: 'short`
+
+error: aborting due to 1 previous error
+```
+
+💡 编译器给出的建议正好说明了问题：它让我们把约束改成 `'long: 'short`（也就是上面那个能通过的版本）。
 
 #### 9.1.4.2 生命周期子类型验证
 
@@ -368,11 +476,57 @@ fn main() {
         result = longest(s1.as_str(), s2.as_str());
         println!("最长的是：{}", result); // 最长的是：long string
     }
-    // 注意：result 绑定的是 s1 的引用（"long string"），不是 s2 的引用
-    // 因为 "long string".len() > "xyz".len()，longest 返回的是 s1
-    // 所以 result 在这里完全可以正常使用
+
+    // ⚠️ 这里如果把 result 拿到 s2 的作用域之外使用，会编译失败！
+    // println!("{}", result);   // ❌ error[E0597]: `s2` does not live long enough
 }
 ```
+
+⭐ **这段代码是理解生命周期的"分水岭"，值得停下来想清楚**：
+
+虽然运行时 `longest` 返回的确实是 `s1` 的引用（"long string" 更长），
+但**类型系统不看运行时**。函数签名承诺的是"返回值活得和**两个参数中较短的那个**一样久"，
+所以 `result` 的类型是 `&'a str`，而这里的 `'a` 被推断为 `s2` 的生命周期。
+`s2` 一离开作用域，`result` 就不能再用了——**哪怕它实际指向的是 `s1`**。
+
+真实的编译器报错：
+
+```
+error[E0597]: `s2` does not live long enough
+ --> src/main.rs:7:39
+  |
+6 |         let s2 = String::from("xyz");
+  |             -- binding `s2` declared here
+7 |         result = longest(s1.as_str(), s2.as_str());
+  |                                       ^^ borrowed value does not live long enough
+8 |     }
+  |     - `s2` dropped here while still borrowed
+9 |     println!("{}", result);
+  |                    ------ borrow later used here
+```
+
+**如果只想返回 `x`，就把签名写得精确一点**，这样返回值就只跟 `s1` 绑定：
+
+```rust
+// 返回值只来自 x，y 的生命周期与返回值无关
+fn first<'a>(x: &'a str, _y: &str) -> &'a str {
+    x
+}
+
+fn main() {
+    let s1 = String::from("long string");
+    let result;
+    {
+        let s2 = String::from("xyz");
+        result = first(s1.as_str(), s2.as_str());
+    } // s2 在这里被 drop，但已经没关系了
+    println!("{}", result); // ✅ 编译通过：long string
+}
+```
+
+> 💡 **经验法则**：函数签名里少写一个生命周期参数，往往就能让调用方"更自由"。
+> 在保证安全的前提下，让返回值的生命周期**尽量只绑定它真正来自的那个参数**，
+> 这样既表达了真实意图，也不会给调用方凭空加上不必要的约束。
 
 #### 9.1.5.3 多个参数的生命周期推导
 
@@ -508,16 +662,24 @@ impl<'a> Parser<'a> {
     }
     
     // 解析下一个单词
+    // ⭐ 返回的是 &'a str（绑定在 input 上），而不是 &self，
+    //    所以返回之后 self 的借用就结束了，调用方可以接着 &mut self。
     fn next_word(&mut self) -> Option<&'a str> {
-        let start = self.position;
         let bytes = self.input.as_bytes();
-        
+
+        // 第一步：跳过前导空白（少了这一步，第二次调用就会立刻返回 None）
+        while self.position < bytes.len() && bytes[self.position].is_ascii_whitespace() {
+            self.position += 1;
+        }
+
+        // 第二步：扫到下一个空白为止
+        let start = self.position;
         while self.position < bytes.len() && !bytes[self.position].is_ascii_whitespace() {
             self.position += 1;
         }
-        
+
         if start == self.position {
-            None
+            None // 已经到结尾了
         } else {
             Some(&self.input[start..self.position])
         }
@@ -773,8 +935,12 @@ impl<T> MyBox<T> {
 impl<T> Drop for MyBox<T> {
     fn drop(&mut self) {
         // 安全释放内存
+        // ⭐ 用 drop(...) 包一层而不是直接丢弃返回值：
+        //    Box::from_raw 的返回值带 #[must_use]，
+        //    直接写 `Box::from_raw(self.data);` 虽然也会释放内存，
+        //    但编译器会给出 unused_must_use 警告。
         unsafe {
-            Box::from_raw(self.data);
+            drop(Box::from_raw(self.data));
         }
     }
 }
@@ -812,7 +978,7 @@ fn main() {
 
 ### 9.4.2 NLL（Non-Lexical Lifetimes）
 
-#### 9.4.2.1 NLL 的改进（借用区域从声明处延伸至实际使用处；编译期从使用处向后（反控）分析求出区域边界）
+#### 9.4.2.1 NLL 的改进（借用区域从"声明处到作用域末尾"缩短为"声明处到最后一次使用处"）
 
 **NLL**，全称 **Non-Lexical Lifetimes**（非词法生命周期），是 Rust 借用检查器的一次重大升级。
 
@@ -860,6 +1026,14 @@ fn main() {
 
 > **小剧场**：想象你借了一本书，你跟图书馆说"我借到期末考试结束就还"。传统做法是你整个学期都得揣着这本书，即使你考完试早就看完了。NLL 就是图书馆聪明了一点，它会追踪你实际用这本书的时间段——你考完最后一门就自动标记为"可以还了"，不需要你特意声明。
 
+> 📌 **一个精确的说法**：NLL 并不是"运行时追踪"，而是**编译期做数据流分析**——
+> 从每个变量的所有使用点出发，反推出"这个借用必须存活的最小区间"（liveness 分析），
+> 而不是简单地取"从声明到作用域结束"这个语法区间。
+> 这也是它被叫作"**非词法**"（non-lexical）的原因：借用边界不再由花括号的位置决定。
+>
+> ⚠️ 另外要注意：NLL 解决的是**引用与借用**的检查，
+> 对于 `Rc`/`RefCell` 这类"运行时才检查"的类型它管不着；它们的借用规则在运行时才会 panic。
+
 ---
 
 ### 9.4.3 Polonius 项目
@@ -868,21 +1042,88 @@ fn main() {
 
 **Polonius** 是 Rust 团队正在开发的一个新的借用检查器实现。它的目标是：在保持内存安全的前提下，让借用规则更宽松一点，减少一些"过度保守"的编译错误。
 
-当前的借用检查器有时候会拒绝一些**实际上安全**的代码。比如经典的"卢瑟福问题"（Rutherford problem）：
+当前的借用检查器有时候会拒绝一些**实际上安全**的代码。最经典的就是"在函数里查表，没有就插入再返回"这个模式：
 
 ```rust
-fn main() {
-    let mut v = vec![1, 2, 3, 4, 5];
-    
-    // 如果不使用 first，这段逻辑是正确的（Rust 旧版本会报错）
-    let first = &v[0];
-    v.push(6);
-    // println!("{}", first); // 如果真的使用 first，这里才会报错
-    // 因为 first 可能已经变成悬空引用
+use std::collections::HashMap;
+
+// 想要：有就返回已有值的可变引用，没有就插入默认值再返回它
+fn get_or_insert<'r, K, V>(
+    map: &'r mut HashMap<K, V>,
+    key: K,
+    default: V,
+) -> &'r mut V
+where
+    K: std::hash::Hash + Eq + Clone,
+{
+    match map.get_mut(&key) {
+        Some(v) => v,
+        None => {
+            // ❌ 这里会报错：map 已经被上面的 get_mut 借走了
+            map.insert(key.clone(), default);
+            map.get_mut(&key).unwrap()
+        }
+    }
 }
+
+fn main() {}
 ```
 
-Polonius 的目标是识别出"first 虽然存在，但我们不使用它"这种情况，从而允许 push 操作。
+当前稳定的借用检查器会给出：
+
+```
+error[E0499]: cannot borrow `*map` as mutable more than once at a time
+  --> src/main.rs:14:13
+   |
+ 3 |   fn get_or_insert<'r, K, V>(
+   |                    -- lifetime `'r` defined here
+...
+11 |       match map.get_mut(&key) {
+   |       -     --- first mutable borrow occurs here
+   |  _____|
+   | |
+12 | |         Some(v) => v,
+13 | |         None => {
+14 | |             map.insert(key.clone(), default);
+   | |             ^^^ second mutable borrow occurs here
+...  |
+17 | |     }
+   | |_____- returning this value requires that `*map` is borrowed for `'r`
+```
+
+**这段代码其实是安全的**：`Some` 分支里 `v` 会被直接返回，`None` 分支里 `v`（那个借用）
+根本不会被用到。但 NLL 的算法在这一点上仍然偏保守——它只知道"借用可能被返回"，
+不敢断定 `None` 分支里那笔借用已经作废。
+
+> 💡 顺带澄清：以前常被拿来举例的"`let first = &v[0]; v.push(6);`（不使用 first）"
+> **现在的稳定版 Rust 已经能通过了**，那是 NLL 早就解决的场景，不需要 Polonius。
+> 真正还需要 Polonius 的，是上面这种"条件返回引用"的模式。
+
+**在 Polonius 稳定之前，现实中的绕法**通常是：
+
+```rust
+use std::collections::HashMap;
+
+fn get_or_insert<'r, K, V>(map: &'r mut HashMap<K, V>, key: K, default: V) -> &'r mut V
+where
+    K: std::hash::Hash + Eq + Clone,
+{
+    // 绕法一：先用不可变借用判断存在性，把"是否插入"决定完，再去做可变借用
+    if !map.contains_key(&key) {
+        map.insert(key.clone(), default);
+    }
+    map.get_mut(&key).unwrap()
+
+    // 绕法二：用 entry API（标准库专门为这个场景设计的，最推荐）
+    // map.entry(key).or_insert(default)
+}
+
+fn main() {
+    let mut m: HashMap<&str, i32> = HashMap::new();
+    println!("{}", get_or_insert(&mut m, "a", 1)); // 1
+    println!("{}", get_or_insert(&mut m, "a", 99)); // 1（已存在，不会被覆盖）
+}
+```
 
 #### 9.4.3.2 基于租借（Loan）的分析模型
 
@@ -905,10 +1146,14 @@ Polonius 目前还在开发中，预计会在未来的 Rust 版本中作为替�
 
 ```rust
 // 注意：Polonius 还在开发中，你需要使用 nightly 版本的 Rust
-// 并添加 -Zpolonius 标志来测试
+// 并通过 -Z 参数（只有 nightly 才接受）来启用它
 
-// 如果你想尝试 Polonius，在命令行运行：
-// rustup run nightly cargo build -Zpolonius
+// ⚠️ 注意 -Zpolonius 是传给 rustc 的，不是 cargo 的子命令参数。
+// 正确做法是通过 RUSTFLAGS 转发：
+// RUSTFLAGS="-Zpolonius" cargo +nightly build
+//
+// 或者直接调用 cargo rustc 把参数交给 rustc：
+// cargo +nightly rustc -- -Zpolonius
 
 fn main() {
     println!("等待 Polonius 稳定...");
@@ -924,9 +1169,9 @@ fn main() {
 这一章我们深入探索了 Rust 的生命周期系统。以下是关键知识点：
 
 1. **生命周期标注**：用 `'a` 这样的语法告诉编译器引用的"保质期"
-2. **省略规则**：编译器会自动推断一些简单的生命周期
-3. **生命周期约束**：`T: 'a` 意味着类型 T 中所有引用都不能比 `'a` 短
-4. **生命周期子类型**：`'a: 'b` 表示 `'a` 至少要活得跟 `'b` 一样久
+2. **省略规则**：一共三条——①每个省略的输入生命周期各自成为独立参数；②输入侧只有一个生命周期时，输出取它；③有 `&self`/`&mut self` 时，输出取 `self` 的
+3. **生命周期约束**：`T: 'a` 意味着类型 T 中所有引用都不能比 `'a` 短（注意 `'a` 必须先声明，否则报 E0261）
+4. **生命周期子类型**：`'a: 'b` 表示 `'a` 至少要活得跟 `'b` 一样久；因此 `&'a T` 可以当成 `&'b T` 用（长命可以当短命用，方向别记反）
 5. **结构体与生命周期**：包含引用的结构体必须标注生命周期
 6. **Trait 与生命周期**：Trait 可以有生命周期参数，实现时也需要声明
 7. **`'static`**：程序运行期间一直存在的引用，字符串字面量就是 `'static`
@@ -934,7 +1179,14 @@ fn main() {
 9. **NLL**：非词法生命周期，让借用检查更精确
 10. **Polonius**：未来的新一代借用检查器，会让规则更宽松
 
+### 几个容易踩的坑（本章示例已经全部用 `rustc` 实测过）
+
+- **返回引用的生命周期是"编译期承诺"，不是运行时事实**：`fn longest<'a>(x: &'a str, y: &'a str) -> &'a str` 即使实际上总是返回 `x`，只要签名这么写，缩短 `y` 的寿命就会让返回值失效（E0597）。想让返回值只跟 `x` 绑定，就把 `y` 的生命周期单独写出来。
+- **`&s[..1]` 不是"取第一个字符"**：空字符串会 panic，多字节字符（如"你"）会因为不在字符边界上 panic。按字符取请用 `char_indices()` 或 `chars().next()`。
+- **多参数且没有 `self` 时，返回引用必须显式标注生命周期**，否则报 E0106。
+- **手写 `Drop` 时不要丢弃 `Box::from_raw` 的返回值**，用 `drop(...)` 包一层，避免 `unused_must_use` 警告。
+- **旧教程里常见的"`let first = &v[0]; v.push(6);` 会报错"已经过时**，这是 NLL 早就解决的问题；真正需要 Polonius 的是"条件返回引用"（如 `get_or_insert`）。
+
 生命周期是 Rust 最独特的特性之一，它在编译期为你的程序加了一道强大的安全锁。虽然有时候写起来会觉得"怎么这么啰嗦"，但当你的程序跑起来稳如老狗的时候，你会感谢这个啰嗦的编译器。
 
 **记住**：在 Rust 的世界里，**没有编译通过的借用都是耍流氓**！
-

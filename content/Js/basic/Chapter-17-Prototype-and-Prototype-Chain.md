@@ -109,11 +109,9 @@ Person.call(obj, "小明"); // 或者 Person.apply(obj, arguments)
 
 ```javascript
 function myNew(constructor, ...args) {
-  // 1. 创建新对象
-  const obj = {};
-
-  // 2. 设置原型
-  Object.setPrototypeOf(obj, constructor.prototype);
+  // 1 + 2. 创建新对象并指定它的原型
+  //    Object.create 一步完成，等价于「新建空对象 + 把 __proto__ 指向构造函数的 prototype」
+  const obj = Object.create(constructor.prototype);
 
   // 3. 调用构造函数
   const result = constructor.apply(obj, args);
@@ -131,6 +129,26 @@ function Person(name) {
 const p = myNew(Person, "小明");
 console.log(p.name); // "小明"
 console.log(p instanceof Person); // true
+```
+
+几个容易忽略的细节：
+
+```javascript
+// 1. 构造函数的 prototype 不是对象时，会用 Object.prototype 兜底
+function Weird() {}
+Weird.prototype = 123;          // 赋成原始值会被忽略
+console.log(Object.getPrototypeOf(new Weird()) === Object.prototype); // true
+
+// 2. 构造函数显式返回「原始值」不会生效，只有返回「对象」才会覆盖默认结果
+function A() { this.name = "A"; return 42; }
+console.log(new A().name);      // "A"（数字被忽略）
+
+function B() { this.name = "B"; return { name: "被返回的对象" }; }
+console.log(new B().name);      // "被返回的对象"
+
+// 3. new 的目标必须是可构造的；箭头函数、对象方法简写都没有 [[Construct]]
+const Arrow = () => {};
+// new Arrow();                 // TypeError: Arrow is not a constructor
 ```
 
 ---
@@ -190,7 +208,7 @@ console.log(p.__proto__ === Person.prototype); // true
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  Person（构造函数）                                     │
-│  - prototype ────────┐                                 │
+│  - prototype ────────┐                                  │
 └───────────────────────┼─────────────────────────────────┘
                         ↓
               ┌─────────────────┐
@@ -334,7 +352,13 @@ console.log(Object.getPrototypeOf(p) === Person.prototype); // true
 console.log(Object.getPrototypeOf(p).constructor === Person); // true
 ```
 
-> 💡 推荐使用 `Object.getPrototypeOf()` 而不是直接访问 `__proto__`，因为 `__proto__` 并不是所有环境都支持的标准属性。
+> 💡 推荐使用 `Object.getPrototypeOf()` / `Object.setPrototypeOf()` 而不是 `__proto__`。原因不是「不支持」——`__proto__` 早已被各浏览器实现并被标准附录（Annex B）收录——而是它属于**历史遗留的访问器属性**：
+>
+> - 它的行为在「对象字面量里写 `__proto__: x`」和「用 `obj.__proto__ = x` 赋值」两种情况下语义不同，容易写出意外结果；
+> - 如果对象是用 `Object.create(null)` 创建的，它根本没有 `__proto__`；
+> - 一旦有人在数据里塞了一个名为 `__proto__` 的键，就可能引发原型污染问题。
+>
+> 一句话：**读原型用 `Object.getPrototypeOf`，建对象用 `Object.create`，改原型用 `Object.setPrototypeOf`（且尽量避免在运行时频繁改）。**
 
 ---
 
@@ -364,6 +388,29 @@ for (let key in p) {
 // name (自身)
 // greet (原型)
 ```
+
+关于 `hasOwnProperty` 有两个需要注意的地方：
+
+```javascript
+// 1. 它本身是 Object.prototype 上的方法，可以被覆盖，也会被 Object.create(null) 挡住
+const weird = Object.create(null);
+weird.name = "小明";
+// weird.hasOwnProperty("name");   // TypeError: weird.hasOwnProperty is not a function
+
+// ✅ 现代写法（ES2022）：Object.hasOwn 不受对象原型影响
+console.log(Object.hasOwn(weird, "name"));              // true
+console.log(Object.prototype.hasOwnProperty.call(weird, "name")); // true（旧写法）
+
+// 2. 用「谁的属性」做判断时，注意三种遍历的差别
+const demo = Object.create({ inherited: 1 });
+demo.own = 2;
+
+console.log(Object.keys(demo));    // ["own"]           只列自有可枚举（字符串键）
+console.log("inherited" in demo);  // true               in 会查原型链
+console.log(demo.propertyIsEnumerable("inherited")); // false（是原型上的）
+```
+
+另外，`p.hasOwnProperty('name')` 为 `true` 还有一个隐含前提：`name` 是在构造函数里通过 `this.name = ...` 加到自己身上的。如果只是读到了原型上的同名属性，`hasOwnProperty` 仍然返回 `false`——这正是区分「自己有的」和「继承来的」的可靠手段。
 
 ---
 
@@ -485,7 +532,13 @@ console.log(child1.hobbies); // ["阅读", "游戏"]
 console.log(child2.hobbies); // ["音乐"] ← 没有被影响！
 ```
 
-**问题**：方法无法复用（每个实例都有一份方法副本）。
+**问题**：借用构造函数只复制了「构造函数里写的实例属性」，**父类原型上的方法一个都没继承过来**。想在子类里用父类的方法，只能把方法也写进构造函数，那样每个实例又会各持一份副本——既费内存，`instanceof Parent` 也不成立。
+
+```javascript
+const child = new Child("小明", ["阅读"], 3);
+// child.sayHi();                   // Parent.prototype 上的方法根本不在它的原型链上
+console.log(child instanceof Parent); // false
+```
 
 ---
 
@@ -627,6 +680,128 @@ console.log(c instanceof Parent); // true
 
 ---
 
+## 17.5 常见误区与进阶细节
+
+### prototype 只属于「可构造的函数」
+
+```javascript
+function normal() {}
+console.log(typeof normal.prototype);   // "object"
+
+const arrow = () => {};
+console.log(arrow.prototype);           // undefined（箭头函数没有 prototype）
+// new arrow();                          // TypeError：箭头函数不能构造
+
+const obj = {
+  method() {},                          // 对象方法简写同样没有 prototype
+};
+console.log(obj.method.prototype);      // undefined
+
+class Person {}
+console.log(typeof Person.prototype);   // "object"（class 有 prototype）
+```
+
+### 函数自己也在原型链上：`Fn.__proto__ === Function.prototype`
+
+```javascript
+function Person() {}
+
+console.log(Person.__proto__ === Function.prototype);      // true
+console.log(Person.prototype.__proto__ === Object.prototype); // true
+console.log(Function.prototype.__proto__ === Object.prototype); // true
+console.log(Function.__proto__ === Function.prototype);    // true（Function 自己指向自己）
+```
+
+「实例的原型」和「构造函数自己的原型」是两条不同的链，这一点非常容易混淆。
+
+### 修改原型会影响所有已存在的实例
+
+```javascript
+function Person() {}
+const p = new Person();
+
+Person.prototype.greet = function () { return "你好"; };
+console.log(p.greet());        // "你好"：实例是「查」到原型的，不是复制
+
+Person.prototype = {};         // ❌ 直接替换整个 prototype
+console.log(p.greet);          // 仍然能读到（p 的原型还是旧对象）
+console.log(new Person().greet); // undefined（新实例用的是新对象）
+```
+
+第二条也解释了为什么「替换 `prototype` 对象」是个坏习惯：**已经创建的实例还连着旧原型**，新旧实例的行为会不一致。要扩展功能，就在原原型对象上添加方法。
+
+### 属性遮蔽（shadowing）
+
+```javascript
+function Person() {}
+Person.prototype.name = "原型上的名字";
+
+const p = new Person();
+console.log(p.name);          // "原型上的名字"（读的是原型）
+
+p.name = "自己的名字";         // 写操作会创建「自有属性」，不会改原型
+console.log(p.name);          // "自己的名字"
+console.log(Object.hasOwn(p, "name"));          // true
+console.log(Person.prototype.name);             // 仍是 "原型上的名字"
+
+delete p.name;                // 删掉自有属性后，又「露出」原型上的值
+console.log(p.name);          // "原型上的名字"
+```
+
+### 原型属性的可枚举性：class 与手动赋值不同
+
+```javascript
+// 手动赋值：属性是可枚举的，会被 for...in 遍历到
+function Old() {}
+Old.prototype.method = function () {};
+for (const k in new Old()) console.log(k);   // "method"
+
+// class 里定义的方法：不可枚举，不会出现在 for...in 中
+class NewCls {
+  method() {}
+}
+for (const k in new NewCls()) console.log(k);              // 什么都不打印
+console.log(Object.keys(NewCls.prototype));                // []（方法不可枚举）
+console.log(Object.getOwnPropertyDescriptor(NewCls.prototype, "method").enumerable); // false
+```
+
+### instanceof 的两个局限
+
+```javascript
+// 1. 跨 Realm（iframe、Node 的 vm 模块）时原型不同，instanceof 会失败
+//    这时候用 Array.isArray、typeof 等自带判断更可靠
+
+// 2. instanceof 可以被 Symbol.hasInstance 改写
+class Even {
+  static [Symbol.hasInstance](value) {
+    return typeof value === "number" && value % 2 === 0;
+  }
+}
+console.log(2 instanceof Even);   // true（跟原型链毫无关系）
+```
+
+### Object.create(null)：没有原型的「纯净字典」
+
+```javascript
+const dict = Object.create(null);
+dict.key = "value";
+
+console.log(Object.getPrototypeOf(dict));   // null
+console.log(Object.hasOwn(dict, "key"));    // true
+// dict.toString();                         // TypeError：没有继承任何方法
+
+// 适合当作纯粹的键值容器，用来避免「用户输入的键名撞上 Object.prototype」
+// 例如：把用户提供的 key 直接存进 {} 时，key 为 "__proto__" 可能造成原型污染
+```
+
+### 关于性能
+
+- **不要在运行时频繁调用 `Object.setPrototypeOf`**，它会让引擎放弃针对该对象的优化，规范也明确指出这是「慢操作」；原型应该在创建对象时就确定好。
+- 原型链越短，属性查找越快。绝大多数业务代码不必为此操心，但如果在极热的循环里访问深层原型属性，可以先把值取到局部变量再用。
+- `class` 语法在语义上就是原型继承，性能上没有额外魔法；不要为了「性能」而放弃 class。
+
+---
+
 ## 本章小结
 
 本章我们深入理解了原型与原型链：
@@ -634,17 +809,19 @@ console.log(c instanceof Parent); // true
 1. **构造函数**：
    - 工厂函数：简单但方法不共享
    - 构造函数：配合 `new`，`this` 指向实例
-   - `new` 的执行过程
+   - `new` 的执行过程（创建对象 → 关联原型 → 绑定 this 调用 → 返回对象）
 
 2. **原型**：
    - `prototype` 是构造函数的属性
    - `__proto__` 是对象的属性，指向原型
    - 方法放 prototype 上可共享
+   - 属性查找是「自上而下」：自有属性优先，找不到才沿原型链向上找（属性遮蔽）
 
 3. **原型链**：
    - 沿着 `__proto__` 形成链
    - 终点是 `null`
    - 属性查找沿链向上
+   - `hasOwnProperty` / `Object.hasOwn` / `in` / `for...in` 的差别
 
 4. **继承方式**：
    - 原型链继承
@@ -653,6 +830,13 @@ console.log(c instanceof Parent); // true
    - 原型式继承（Object.create）
    - 寄生式继承
    - 寄生组合式继承（最佳）
+
+5. **常见误区**：
+   - 箭头函数没有 `prototype`，不能 `new`
+   - 「函数自己的原型链」与「实例的原型链」是两条不同的链
+   - 替换整个 `prototype` 会让新旧实例行为不一致
+   - 不要在运行时频繁 `Object.setPrototypeOf`（性能代价高）
+   - 原型上的引用类型属性会被所有实例共享
 
 > 📊 图示：原型链结构
 >
@@ -668,4 +852,3 @@ console.log(c instanceof Parent); // true
 ---
 
 **下章预告**：下一章我们将学习 **this 指向**——JavaScript 中最让人困惑的话题之一！ 🔮
-

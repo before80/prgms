@@ -282,6 +282,8 @@ public class Student {
     public void evaluate() {
         if (score >= 90) {
             System.out.println(name + " 是个大学霸！");
+        } else if (score >= 80) {
+            System.out.println(name + " 表现良好，再接再厉！");
         } else if (score >= 70) {
             System.out.println(name + " 表现不错，继续加油！");
         } else if (score >= 60) {
@@ -377,12 +379,12 @@ public class StudentManager {
 ```
 ===== 全班成绩单 =====
 大家好，我叫张三，成绩是 85 分。
-张三 表现不错，继续加油！
-等级：C
+张三 表现良好，再接再厉！
+等级：B
 
 大家好，我叫李四，成绩是 92 分。
 李四 是个大学霸！
-等级：B
+等级：A
 
 大家好，我叫王五，成绩是 78 分。
 王五 表现不错，继续加油！
@@ -414,7 +416,7 @@ public class StudentManager {
 
 ### 12.2.4 为什么 Java 选择面向对象？
 
-Java 是一门**纯面向对象**的语言（连 `main` 方法都必须写在类里）。这有几个重要原因：
+Java 是一门**以面向对象为核心**的语言：它没有"游离在类之外的函数"，连程序的入口 `main` 都必须写在类里。严格来说 Java 并非"纯面向对象"（它保留了 `int`、`double` 等基本类型，也存在 `static` 方法），但它的类库、API 设计思路处处是面向对象的。选择这条路线有几个重要原因：
 
 1. **与现实世界对应**：现实中的事物就是对象，用面向对象来建模很自然。
 
@@ -606,12 +608,14 @@ public class AccessDemo {
 - 继承的类叫**子类（派生类）**
 - 关键字是 `extends`（扩展）
 
+下面这个例子由两个类组成。为了能在一个代码块里完整展示，我们把父类 `Animal` 写成包级私有（`class Animal`），子类 `Dog` 写成 `public`，把它保存为 `Dog.java` 就可以直接编译运行。（实际项目中习惯一个类一个文件，那样文件名必须与 `public` 类名一致。）
+
 ```java
 /**
  * 父类：动物
  * 定义所有动物共有的特征和行为
  */
-public class Animal {
+class Animal {
     // ============ 属性 ============
     protected String name;   // 名字（protected：子类可以直接访问）
     protected int age;       // 年龄
@@ -635,9 +639,7 @@ public class Animal {
         System.out.println(name + "，" + age + " 岁");
     }
 }
-```
 
-```java
 /**
  * 子类：狗 - 继承自动物
  * 狗除了有动物的基本特征，还有自己独特的行为
@@ -697,7 +699,7 @@ public class Dog extends Animal {
 ===== 狗狗档案 =====
 旺财，3 岁
 品种：金毛
-旺财（品种）汪汪汪！
+旺财（金毛）汪汪汪！
 旺财 正在看家护院！
 ```
 
@@ -726,11 +728,13 @@ public class Dog extends Animal {
 
 同一个方法，父类和子类有不同实现：
 
+同样地，为了让例子能整体编译运行，这里把父类 `Shape` 与三个子类写在一个代码块里：`Shape`、`Circle`、`Triangle`、`Square` 都是包级私有类，只有最后的测试类 `PolymorphismDemo` 是 `public`（保存为 `PolymorphismDemo.java` 即可运行）。
+
 ```java
 /**
  * 父类：形状
  */
-public class Shape {
+class Shape {
     public void draw() {
         System.out.println("画一个形状...");
     }
@@ -739,13 +743,11 @@ public class Shape {
         System.out.println("擦除形状...");
     }
 }
-```
 
-```java
 /**
  * 子类1：圆形
  */
-public class Circle extends Shape {
+class Circle extends Shape {
     @Override
     public void draw() {
         System.out.println("  ╭──────╮  ");
@@ -760,13 +762,11 @@ public class Circle extends Shape {
         System.out.println("擦除圆形... 完成！");
     }
 }
-```
 
-```java
 /**
  * 子类2：三角形
  */
-public class Triangle extends Shape {
+class Triangle extends Shape {
     @Override
     public void draw() {
         System.out.println("   /\\   ");
@@ -780,13 +780,11 @@ public class Triangle extends Shape {
         System.out.println("擦除三角形... 完成！");
     }
 }
-```
 
-```java
 /**
  * 子类3：正方形
  */
-public class Square extends Shape {
+class Square extends Shape {
     @Override
     public void draw() {
         System.out.println(" ┌────┐ ");
@@ -800,9 +798,7 @@ public class Square extends Shape {
         System.out.println("擦除正方形... 完成！");
     }
 }
-```
 
-```java
 /**
  * 多态演示：同一个方法，不同对象，不同行为
  */
@@ -956,12 +952,21 @@ public class Calculator {
 
 // ============ 员工父类 ============
 public class Employee {
-    protected String name;
-    protected double baseSalary;  // 基本工资
+    // 封装：把字段设为 private，外部和子类都只能通过方法访问
+    private String name;
+    private double baseSalary;  // 基本工资
 
     public Employee(String name, double baseSalary) {
         this.name = name;
         this.baseSalary = baseSalary;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getBaseSalary() {
+        return baseSalary;
     }
 
     // 计算月薪（被子类重写）
@@ -970,7 +975,7 @@ public class Employee {
     }
 
     public void showInfo() {
-        System.out.println("姓名：" + name + "，月薪：" + calculateMonthlySalary());
+        System.out.println("姓名：" + getName() + "，月薪：" + calculateMonthlySalary());
     }
 }
 
@@ -986,7 +991,7 @@ class Programmer extends Employee {
     @Override
     public double calculateMonthlySalary() {
         // 月薪 = 基本工资 + 奖金
-        return baseSalary + bonus;
+        return getBaseSalary() + bonus;
     }
 }
 
@@ -1002,7 +1007,7 @@ class Manager extends Employee {
     @Override
     public double calculateMonthlySalary() {
         // 经理有管理津贴
-        return baseSalary + teamSize * 500;
+        return getBaseSalary() + teamSize * 500;
     }
 }
 
@@ -1022,8 +1027,9 @@ class OOPDemo {
         emp3.showInfo();
 
         System.out.println("\n===== 封装演示 =====");
-        // 封装：工资数据被封装在 Employee 中，不能直接访问
-        // emp1.baseSalary = -10000;  // 编译错误！protected 不能直接访问
+        // 封装：工资数据被封装在 Employee 中，外部不能直接读写
+        // emp1.baseSalary = -10000;  // 编译错误！baseSalary 是 private，
+        //                           // 即使 Programmer 等子类也不能直接访问父类的私有字段
         System.out.println("封装保证：工资数据只能通过方法访问，安全可靠！");
 
         System.out.println("\n===== 继承演示 =====");

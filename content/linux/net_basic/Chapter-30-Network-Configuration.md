@@ -250,6 +250,9 @@ sudo systemctl restart networking
 sudo /etc/init.d/networking restart
 ```
 
+> ⚠️ **别在 Ubuntu 18.04+ 上白忙一场**：`/etc/network/interfaces` 是 **Debian 系传统** 的配置方式。从 Ubuntu 17.10/18.04 起，服务器版默认由 **Netplan** 接管网络，这个文件**要么不存在、要么写了也不生效**（真正生效的是 `/etc/netplan/*.yaml`）。判断方法：`ls /etc/netplan/` 如果有 yaml 文件，就按 30.4 节用 Netplan 配置，别去改 interfaces。
+> 另外 `dns-nameservers` 这一行依赖 `resolvconf` 软件包，没装的话它不会起作用。
+
 ### 30.3.2 CentOS：/etc/sysconfig/network-scripts/ifcfg-eth0
 
 CentOS/RHEL的网络配置文件在`/etc/sysconfig/network-scripts/`目录下，文件名格式是`ifcfg-<网卡名>`。
@@ -321,6 +324,16 @@ CentOS重启网络：
 sudo systemctl restart network
 ```
 
+> ⚠️ **版本提醒（RHEL 系）**：
+> - `/etc/sysconfig/network-scripts/ifcfg-*` 这套写法属于 **RHEL/CentOS 7 时代**；
+> - **CentOS Linux 7 已于 2024-06-30 EOL**、CentOS Linux 8 更早在 2021 年底停止维护，
+>   新环境请用 Rocky Linux 9 / AlmaLinux 9 / CentOS Stream 9；
+> - 从 **RHEL 9 起 `network-scripts` 包已被移除**，`systemctl restart network` 这个服务也不存在了。
+>   新系统请用 NetworkManager 的 `nmcli` / `nmtui` 管理网络：
+>   `nmcli connection show`、`nmcli connection modify <连接名> ipv4.addresses ...`、
+>   `nmcli connection up <连接名>`；
+> - 如果只是改了 ifcfg 文件想让它重新生效，用 `sudo nmcli connection reload` 或 `sudo nmcli device reapply <网卡>`。
+
 ## 30.4 Netplan 配置：Ubuntu 18.04+ 网络配置
 
 Ubuntu 17.10开始，引入了Netplan——一个用YAML声明式配置网络的工具。Netplan是"网络配置的革命"，把配置文件统一放在`/etc/netplan/`目录。
@@ -375,7 +388,9 @@ network:
       dhcp4: false
       addresses:
         - 192.168.1.100/24
-      gateway4: 192.168.1.1
+      routes:
+        - to: default
+          via: 192.168.1.1
       nameservers:
         addresses:
           - 8.8.8.8
@@ -387,8 +402,23 @@ network:
 
 - `dhcp4: false`：关闭DHCP，启用静态IP
 - `addresses: [192.168.1.100/24]`：IP地址和CIDR前缀
-- `gateway4: 192.168.1.1`：IPv4网关
+- `routes: [{to: default, via: 192.168.1.1}]`：默认网关
 - `nameservers.addresses`：DNS服务器列表
+
+> ⚠️ **重要变化（老教程必错点）**：你可能在很多文章里见过
+> `gateway4: 192.168.1.1` 这种写法——它**已经被废弃**：
+> netplan 0.103 起标记为不推荐，**netplan 1.0（Ubuntu 24.04 起）直接移除**，
+> 在 Ubuntu 24.04 上写 `gateway4` 会报错：
+> `The key 'gateway4' has been deprecated, use 'routes' instead`（甚至直接拒绝应用）。
+> 统一改成下面这种 `routes` 写法最保险：
+>
+> ```yaml
+>       routes:
+>         - to: default
+>           via: 192.168.1.1
+> ```
+>
+> 另外注意：**YAML 里必须用空格缩进，不能用 Tab**，否则 `netplan generate` 会直接报语法错误。
 
 **应用配置并生效**：
 
@@ -404,7 +434,7 @@ sudo netplan try
 # netplan try 会开启120秒超时，如果超时或按Ctrl+C，会自动回退配置
 ```
 
-> **Netplan的优雅之处**：你可以在`/etc/netplan/`目录下放多个配置文件，Netplan会按文件名顺序合并加载。数字小的先加载，所以可以用`01-`开头的自定义配置覆盖`00-`开头的默认配置。
+> **多个配置文件要小心**：你可以在 `/etc/netplan/` 下放多个 yaml，Netplan 会按**文件名字典序**依次读取并合并。但**同一个网卡、同一个键被两个文件重复定义时，结果容易乱**（不同版本行为不一致，还可能直接报冲突）。稳妥做法是：**一块网卡只在一个文件里定义**，需要保留安装程序生成的文件时，把它重命名成 `.bak`（Netplan 只读 `.yaml`，不会读 `.yaml.bak`），而不是靠"谁覆盖谁"。
 
 ## 30.5 NetworkManager：桌面环境网络管理
 
@@ -532,8 +562,14 @@ sudo vim /etc/hostname
 sudo hostnamectl set-hostname new-server-name
 
 # 方法3：用echo修改
-sudo echo new-server-name > /etc/hostname
+# ⚠️ 不能写 sudo echo xxx > /etc/hostname —— sudo 只作用于 echo，
+#    重定向（>）仍由当前普通用户执行，会直接报 Permission denied
+echo new-server-name | sudo tee /etc/hostname
 ```
+
+> 顺带记一下这个常识：**`sudo` 只管它后面那一条命令，管不到重定向（`>`、`>>`）和管道**。
+> 所以凡是"往只有 root 能写的文件里写内容"，都要用 `| sudo tee 文件`（追加用 `tee -a`），
+> 或者干脆 `sudo sh -c 'echo xxx > 文件'`。
 
 修改完后，新主机名不会立即在当前shell中生效，需要重新登录或手动执行：
 
@@ -591,7 +627,9 @@ nameserver 223.5.5.5
 nameserver 1.1.1.1
 ```
 
-`/etc/resolv.conf`中的`nameserver`指令告诉系统用哪个DNS服务器来解析域名。最多可以配置3个nameserver，系统会按顺序尝试解析。
+`/etc/resolv.conf`中的`nameserver`指令告诉系统用哪个DNS服务器来解析域名。glibc 解析器**默认最多只读取前 3 个** `nameserver`（`MAXNS` 限制），系统会按列出的顺序依次尝试；前一个超时才轮到下一个。
+
+> **写了 5 个也没用**：第 4 个及之后的会被忽略。所以别指望"多写几个更保险"，更重要的是把可靠、低延迟的 DNS 放在前面。
 
 ### 30.7.2 nameserver
 
@@ -599,7 +637,9 @@ nameserver 1.1.1.1
 
 ```bash
 # 在resolv.conf中添加DNS服务器
-echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+# ⚠️ 这是临时应急的写法（重启会被覆盖，见下一节），而且需要root权限
+#    注意重定向不受 sudo 管，得用 tee -a
+echo "nameserver 8.8.8.8" | sudo tee -a /etc/resolv.conf
 ```
 
 ### 30.7.3 resolv.conf 被覆盖的问题
@@ -619,6 +659,14 @@ lrwxrwxrwx 1 root root 27 Nov 15 10:00 /etc/resolv.conf -> ../run/resolvconf/res
 ```
 
 如果是符号链接，说明DNS由resolvconf管理。
+
+另一套很常见的指向是 **systemd-resolved**（Ubuntu 桌面版、部分服务器版默认）：
+
+```bash
+/etc/resolv.conf -> ../run/systemd/resolve/stub-resolv.conf
+```
+
+这种情况下，真正生效的 DNS 由 `resolvectl`/NetworkManager 决定，直接改 `/etc/resolv.conf` 一样会被覆盖。查看当前实际使用的 DNS：`resolvectl status`（或 `systemd-resolve --status`）。
 
 还有一种情况：
 
@@ -723,8 +771,8 @@ rtt min/avg/max/mdev = 11.8/12.0/12.3/0.2 ms
 
 - **`ip addr/link/route`**：新一代全能网络工具，`ip addr`查IP，`ip link`查网卡，`ip route`查路由表
 - **`ifconfig`**：老前辈，服务器运维必须认识，但生产环境推荐用`ip`
-- **Debian/Ubuntu网络配置**：`/etc/network/interfaces`文件
-- **CentOS网络配置**：`/etc/sysconfig/network-scripts/ifcfg-eth0`文件
+- **Debian/Ubuntu网络配置**：传统是 `/etc/network/interfaces`，但 Ubuntu 18.04+ 已被 Netplan 接管，改 interfaces 往往无效
+- **CentOS网络配置**：`/etc/sysconfig/network-scripts/ifcfg-eth0` 文件（RHEL 9 起该机制已被移除，改用 `nmcli`）
 - **Netplan**（Ubuntu 18.04+）：YAML声明式配置，配置写在`/etc/netplan/*.yaml`，用`netplan apply`生效
 - **NetworkManager**：桌面环境的网络神器，`nmcli`命令行和`nmtui`文本界面
 - **主机名**：`/etc/hostname`文件，`hostnamectl`命令管理

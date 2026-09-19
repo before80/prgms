@@ -123,7 +123,7 @@ Terminator 支持**鼠标拖拽调整面板大小**，也支持快捷键分割�
 
 ### 5.2.3 Konsole（KDE 默认）
 
-**Konsole** 是 KDE 桌面环境的默认终端，和 Konsole（ KDE Plasma）配合得天衣无缝。如果你用的是 Kubuntu 或者其他 KDE 发行版，Konsole 就是你的默认伙伴。
+**Konsole** 是 KDE 桌面环境的默认终端，和 KDE Plasma 配合得天衣无缝。如果你用的是 Kubuntu 或者其他 KDE 发行版，Konsole 就是你的默认伙伴。
 
 Konsole 的特点是有**标签页功能**，可以打开多个标签，每个标签独立运行。而且它还支持**书签**功能，把常用的目录保存起来，一键跳转。
 
@@ -177,11 +177,13 @@ tilix
 
 这招特别适合当你**已经在文件管理器里浏览到某个目录**，想快速在这个位置打开终端的情况。右键→点击→搞定！
 
-> 如果你的右键菜单里没有这个选项，可能需要安装 `nautilus-open-terminal` 插件：
+> **注意：老的 `nautilus-open-terminal` 插件早已停止维护**（GNOME 从 3.28 起移除了对它的支持），在新版 Ubuntu 上装不上或装了也没用。现在想恢复"右键在此打开终端"，可以装第三方扩展 `nautilus-terminal`，或直接用命令行：
 > ```bash
-> sudo apt install nautilus-open-terminal
-> nautilus -q  # 重启文件管理器
+> nautilus --version                      # 先看自己文件管理器的版本
+> sudo apt install nautilus-terminal      # 第三方扩展，装完需重启 nautilus
+> nautilus -q                             # 退出后台进程，下次打开即生效
 > ```
+> 如果只是想在当前目录开终端，也可以先 `cd` 到目标目录再按 `Ctrl+Alt+T`（Ubuntu 的终端默认就在当前目录打开）。
 
 ### 5.3.3 应用菜单搜索
 
@@ -212,23 +214,18 @@ graph LR
 
 **Shell** 的字面意思是"壳"，但它可不是什么好吃的坚果壳。Shell 是 Linux/Unix 系统中的一道桥梁，连接你和内核（kernel）。
 
-```
-┌─────────────────────────────────────────┐
-│              你（人类）                  │
-│         "ls -la /home"                   │
-└────────────────┬────────────────────────┘
-                 │  输入命令
-                 ▼
-┌─────────────────────────────────────────┐
-│           Shell（命令解释器）             │
-│    接收命令 → 解释命令 → 调用内核执行      │
-└────────────────┬────────────────────────┘
-                 │  系统调用
-                 ▼
-┌─────────────────────────────────────────┐
-│         Linux 内核（Kernel）             │
-│         真正干活的老板                    │
-└─────────────────────────────────────────┘
+```mermaid
+graph TD
+    A["你（人类）<br/>敲入：ls -la /home"] -->|"输入命令"| B["Shell（命令解释器）<br/>接收 → 解释 → 调用内核"]
+    B -->|"系统调用（syscall）"| C["Linux 内核（Kernel）<br/>真正干活的老板"]
+    C -->|"硬件 / 文件系统 / 进程"| D["磁盘、网卡、内存等"]
+    C -.->|"执行结果"| B
+    B -.->|"翻译回人类能看懂的文字"| A
+
+    style A fill:#ccffcc
+    style B fill:#ffffcc
+    style C fill:#ffcccc
+    style D fill:#dfe6e9
 ```
 
 形象地说：Shell 就像一个**同声传译员**。你说人话（命令），Shell 翻译成内核能听懂的话（系统调用），内核干完活，Shell 再把结果翻译回人话告诉你。
@@ -288,7 +285,7 @@ Fish 的设计理念就是**让 Shell 变得友好**，它的特点是：
 
 - **开箱即用的智能补全**：不用配置，自动提示
 - **语法高亮**：命令打错了会变红色
-- **网页式配置**：用浏览器配置终端主题）
+- **网页式配置**：用浏览器配置终端主题（运行 `fish_config`，它会打开一个网页界面）
 - **更自然的语法**：某些命令比 Bash 更好写
 
 ```bash
@@ -301,6 +298,14 @@ fish
 # 设置 Fish 为默认 Shell
 chsh -s /usr/bin/fish
 ```
+
+> **`chsh` 报错的常见原因**：如果提示 `chsh: /usr/bin/fish is not listed in /etc/shells`，说明 Fish 还没被登记为"合法登录 Shell"。先用 `which fish` 确认路径，再把它追加到 `/etc/shells`，然后重新执行 `chsh`：
+> ```bash
+> which fish                                  # 一般输出 /usr/bin/fish
+> echo /usr/bin/fish | sudo tee -a /etc/shells
+> chsh -s /usr/bin/fish
+> ```
+> 改完要**重新登录**（或新开一个终端）才生效。想改回 Bash：`chsh -s /bin/bash`。
 
 ```mermaid
 graph LR
@@ -427,12 +432,14 @@ PATH 里的目录用冒号 `:` 分隔。当你敲 `ls` 命令时，系统会按�
 
 ```mermaid
 graph TD
-    A[输入命令: ls] --> B[查找 /usr/local/bin]
-    B -->|没找到| C[查找 /usr/bin]
-    C -->|找到!| D[执行 /usr/bin/ls]
-    B -->|找到!| D
-    C -->|没找到| E[命令不存在报错]
+    A["输入命令：ls"] --> B["① 在 /usr/local/bin 里找"]
+    B -->|"没找到，继续下一个"| C["② 在 /usr/bin 里找"]
+    B -->|"找到了"| D["执行找到的那个 ls"]
+    C -->|"找到了（实际就是这里）"| D
+    C -->|"一直都没找到"| E["报错：command not found"]
 ```
+
+> **顺序决定一切**：PATH 是从**左往右**依次查找的，**先找到哪个就用哪个**。所以如果把某个目录放到 PATH 前面，里面又碰巧有个同名程序，就会"抢先执行"——这既是自定义命令的技巧，也是被恶意程序劫持的风险点（见下面的提醒）。
 
 > 趣闻：如果你不小心把当前目录（`.`）加到了PATH开头，`ls` 可能被替换成你当前目录下的恶意程序！这就是为什么**永远不要把 `.` 放在 PATH 的最前面**。
 
@@ -536,15 +543,17 @@ export PS1="\u@\h:\w\$ "
 如果你用 git，更想在提示符里显示当前分支（这样就知道自己在哪个分支上工作了）：
 
 ```bash
-# Ubuntu 安装 git-autocomplete 和 bash-git-prompt
+# 用 git 之前先确认装好了 git
 sudo apt install git
 
-# 一个流行的方案是使用 Oh My Zsh，它的 git 插件自带分支显示
-# 或者手动添加 git 分支到 PS1：
+# 现成的方案：Bash 可以装 bash-git-prompt（apt install bash-git-prompt），
+# 或者用 Oh My Zsh，它的 git 插件自带分支显示。
+# 不想装东西的话，自己动手也能加：
 
-# 编辑 ~/.bashrc，添加：
+# 编辑 ~/.bashrc，添加下面这段：
 parse_git_branch() {
-    git branch 2>/dev/null | grep '*' | sed 's/* //'
+    # git 2.22+ 直接有现成命令；老版本用 branch 列表里带 * 的那一行
+    git branch --show-current 2>/dev/null || git branch 2>/dev/null | sed -n 's/^\* //p'
 }
 
 export PS1="\u@\h:\w\$(parse_git_branch)\$ "
@@ -552,6 +561,8 @@ export PS1="\u@\h:\w\$(parse_git_branch)\$ "
 # 效果：
 # username@hostname:~/project (main)$
 ```
+
+> **提示符改动要放进 `~/.bashrc` 才永久生效**：直接在终端里 `export PS1=...` 只对当前这个窗口有效，关掉就恢复默认。另外 `\$(parse_git_branch)` 里的反斜杠和 `$` 必须照写——它保证每次显示提示符时都**重新**调用函数，而不是只在启动时算一次。
 
 ```mermaid
 graph TD
@@ -641,16 +652,18 @@ List information about the FILEs (the current directory by default).
 Sort entries alphabetically if none of -cftuvSUX nor --sort is specified.
 
 Mandatory arguments to long options are mandatory for short options too.
-  -a, --all             不隐藏以 . 开头的文件
-  -A, --almost-all      不显示 . 和 ..
-  -l                    使用长列表格式
-  -h, --human-readable  以人类可读的方式显示文件大小
-  -r, --reverse         反序排列
-  -S                    按文件大小排序
-  -t                    按修改时间排序
-      --help            显示此帮助信息并退出
-      --version         显示版本信息并退出
+  -a, --all                  do not ignore entries starting with .
+  -A, --almost-all           do not list implied . and ..
+  -l                         use a long listing format
+  -h, --human-readable       with -l and -s, print sizes like 1K 234M 2G etc.
+  -r, --reverse              reverse order while sorting
+  -S                         sort by file size, largest first
+  -t                         sort by time, newest first
+      --help        display this help and exit
+      --version     output version information and exit
 ```
+
+> **`--help` 的输出会跟着系统语言变**：上面是英文环境的输出。如果你的系统装了中文语言包且 `LANG=zh_CN.UTF-8`，它就是全中文的（不会中英混杂）。想强制看英文原版：`LANG=C ls --help`（这个技巧对所有命令都适用，查资料时对英文术语更友好）。
 
 ```mermaid
 graph TD
@@ -802,6 +815,14 @@ history
 #   4  grep "hello" file.txt
 #   5  man grep
 ```
+
+> **历史不是无限长的**：Bash 默认只在内存里留最近 1000 条（`HISTSIZE`），退出时写入 `~/.bash_history` 的条数由 `HISTFILESIZE` 控制。常用技巧：
+> ```bash
+> history | grep docker     # 只看跟 docker 有关的命令
+> history -c                # 清空当前会话的历史（~/.bash_history 文件还在）
+> history -w                # 立即把当前历史写进 ~/.bash_history
+> ```
+> ⚠️ **注意**：历史文件会**明文记录你敲过的所有命令**，包括 `mysql -p密码` 这种。所以别在命令行里直接写密码（用 `mysql -p` 让程序提示输入），否则密码就留在了 `~/.bash_history` 里。
 
 ### 5.11.3 !n：执行第 n 条命令
 

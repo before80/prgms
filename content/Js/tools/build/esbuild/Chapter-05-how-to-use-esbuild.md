@@ -29,6 +29,8 @@ node --version
 
 如果显示 `command not found` 或者错误信息，说明你还没装 Node.js。
 
+> ⚠️ **版本要求**：当前 esbuild（0.28.x）的 `package.json` 里写的是 `"engines": { "node": ">=18" }`，也就是**至少要 Node.js 18**。Node 16 及更早版本装上去可能报错或行为异常。选 LTS 版本最省心；如果你就是想用老 Node，可以退回到更早的 esbuild 版本，或者直接用后面 5.1.5 讲的原生二进制（那条路完全不需要 Node.js）。
+
 安装 Node.js 很简单，去官网 nodejs.org 下载安装包，选 **LTS（长期支持版）** 就行——这是最稳定的版本，不容易踩坑。
 
 ### 5.1.2 全局安装（`npm install -g esbuild`）

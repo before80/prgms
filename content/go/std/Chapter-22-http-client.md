@@ -2021,9 +2021,9 @@ Content-Type：application/json
 
 ```mermaid
 flowchart LR
-	A[httptest.NewServer] --> B[启动真实监听端口]
-	C[httptest.NewRecorder] --> D[不启动端口】
-	E[httptest.NewRequest] --> F[构造请求对象]
+    A["httptest.NewServer"] --> B["启动真实监听端口"]
+    C["httptest.NewRecorder"] --> D["不启动端口，纯内存记录响应"]
+    E["httptest.NewRequest"] --> F["构造请求对象"]
 ```
 
 **专业词汇解释：**

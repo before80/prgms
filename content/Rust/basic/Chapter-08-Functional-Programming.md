@@ -252,7 +252,8 @@ fn main() {
 
     // 这个闭包... 等等，如果你想修改 value，你需要用 mut
     let mut value = 10;  // 注意：这里是可变的 value
-    let read_and_increment = || {
+    // 这个闭包会修改捕获的 value，所以闭包变量本身要加 mut
+    let mut read_and_increment = || {
         value += 1;
         println!("value 变成了: {}", value);
     };
@@ -433,14 +434,15 @@ fn main() {
 
     // FnMut 不能传递给只接受 Fn 的函数
     // call_fn(increment);  // 错误：FnMut 不能传给 Fn
-    call_fn_mut(increment);   // OK: FnMut -> FnMut
-    call_fn_once(increment);  // OK: FnMut -> FnOnce
+    call_fn_mut(increment);   // OK: FnMut -> FnMut（increment 在这里被移动走）
+    let mut increment2 = || { count += 1; };
+    call_fn_once(increment2); // OK: FnMut -> FnOnce
 
     println!("\n--- 分割线 ---\n");
 
     // 演示 FnOnce 的例子
     let owned = vec![1, 2, 3];
-    let consume = move || { owned };  // FnOnce，捕获的值会被移动
+    let consume = move || { drop(owned); };  // FnOnce，捕获的值会被移动
 
     // FnOnce 只能传给 FnOnce
     // call_fn(consume);     // 错误
@@ -1225,8 +1227,10 @@ fn main() {
     use std::iter::successors;
 
     // 模拟浮点数 range
-    let float_range: Vec<f64> = successors(Some(0.0), |&x| {
-        Some((x + 0.5).min(2.5))
+    // ⚠️ 注意终止条件：如果一直返回 Some，successors 会变成无限迭代器，
+    // collect() 就永远停不下来。所以到达终点时要返回 None。
+    let float_range: Vec<f64> = successors(Some(0.0_f64), |&x| {
+        if x >= 2.5 { None } else { Some(x + 0.5) }
     }).collect();
 
     println!("浮点数序列: {:?}", float_range);
@@ -1455,7 +1459,8 @@ fn main() {
     // 跳过注释行
     let config_lines: Vec<&str> = lines
         .iter()
-        .skip(2)  // 跳过前两行
+        .copied()   // iter() 给的是 &&str，copied 后才是 &str
+        .skip(2)    // 跳过前两行
         .collect();
 
     println!("配置内容:");
@@ -1489,6 +1494,7 @@ fn main() {
     println!("前5个奇数: {:?}", result);  // [1, 3, 5, 7, 9]
 
     // 跳过前3个奇数，然后取2个
+    let numbers = 1..=20;  // Range 不是 Copy，被上面的 collect 消费后要重新创建
     let result2: Vec<i32> = numbers
         .filter(|x| x % 2 == 1)
         .skip(3)
@@ -1527,7 +1533,7 @@ fn main() {
     let numbers = vec![1, 2, 3, 4, 5];
     let words = vec!["一", "二", "三", "四", "五"];
 
-    let zipped: Vec<(&&i32, &&str)> = numbers.iter().zip(words.iter()).collect();
+    let zipped: Vec<(i32, &str)> = numbers.iter().copied().zip(words.iter().copied()).collect();
     println!("配对结果: {:?}", zipped);
     // [(1, "一"), (2, "二"), (3, "三"), (4, "四"), (5, "五")]
 
@@ -1537,7 +1543,7 @@ fn main() {
     let a = vec![1, 2, 3];
     let b = vec!["A", "B", "C", "D", "E"];
 
-    let zipped: Vec<(&i32, &str)> = a.iter().zip(b.iter()).collect();
+    let zipped: Vec<(i32, &str)> = a.iter().copied().zip(b.iter().copied()).collect();
     println!("长度不同: {:?}", zipped);
     // [(1, "A"), (2, "B"), (3, "C")]
 
@@ -1549,8 +1555,9 @@ fn main() {
 
     let total_prices: Vec<f64> = prices
         .iter()
-        .zip(quantities.iter())
-        .map(|(price, qty)| price * qty)
+        .copied()
+        .zip(quantities.iter().copied())
+        .map(|(price, qty)| price * qty as f64)
         .collect();
     println!("总价: {:?}", total_prices);  // [20.0, 60.0, 30.0]
 
@@ -1626,7 +1633,7 @@ fn main() {
     println!("\n--- 分割线 ---\n");
 
     // enumerate 返回 (索引, 元素) 的元组
-    let result: Vec<(usize, &str)> = fruits.iter().enumerate().collect();
+    let result: Vec<(usize, &str)> = fruits.iter().copied().enumerate().collect();
     println!("enumerate 结果: {:?}", result);
     // [(0, "苹果"), (1, "香蕉"), (2, "橙子"), (3, "葡萄")]
 
@@ -1649,7 +1656,7 @@ fn main() {
     let index = numbers
         .iter()
         .enumerate()
-        .find(|(_, &x)| x > 5)
+        .find(|(_, x)| **x > 5)
         .map(|(i, _)| i);
 
     println!("第一个大于5的数的索引: {:?}", index);  // Some(1) (数字7)
@@ -1698,7 +1705,7 @@ fn main() {
         .max_by_key(|(_, word)| word.len())
         .map(|(i, _)| i);
 
-    println!("最长的单词在索引 {}: {:?}", longest_index, text[longest_index.unwrap()]);
+    println!("最长的单词在索引 {:?}: {:?}", longest_index, text[longest_index.unwrap()]);
     // 最长的单词在索引 3: programming
 }
 ```
@@ -1781,10 +1788,13 @@ fn main() {
     println!("大于5的数字: {:?}", result);  // [6, 8, 7, 9]
 
     // 或者先平方再链接
-    let squares: Vec<i32> = evens.into_iter().map(|x| x * x);
-    let cubes: Vec<i32> = odds.into_iter().map(|x| x * x * x);
+    // 注意 evens/odds 在上一段已经被 into_iter() 消费掉了，这里重建一份
+    let evens = vec![2, 4, 6, 8];
+    let odds = vec![1, 3, 5, 7, 9];
+    let squares: Vec<i32> = evens.into_iter().map(|x| x * x).collect();
+    let cubes: Vec<i32> = odds.into_iter().map(|x| x * x * x).collect();
 
-    let math_results: Vec<i32> = squares.chain(cubes).collect();
+    let math_results: Vec<i32> = squares.into_iter().chain(cubes).collect();
     println!("数学运算结果: {:?}", math_results);
     // [4, 16, 36, 64, 1, 27, 125, 343, 729]
 }
@@ -2515,7 +2525,7 @@ fn main() {
 
     // 只有当我们消费迭代器时，计算才会发生
     println!("\n开始消费:");
-    let result: Vec<&i32> = lazy_chain.collect();
+    let result: Vec<i32> = lazy_chain.collect();
     println!("\n结果: {:?}", result);
 }
 ```
@@ -2580,13 +2590,19 @@ fn main() {
         port: u16,
     }
 
+    // SocketAddr 不是元组，要分别取 ip() 和 port()
     fn parse_config(raw: Option<&str>, default_port: u16) -> Option<Config> {
-        raw.and_then(|s| s.parse::<std::net::SocketAddr>().ok())
-            .map(|(host, port)| Config { host, port })
-            .or(Some(Config {
-                host: String::from("localhost"),
-                port: default_port,
-            }))
+        raw.and_then(|s| {
+            let addr: std::net::SocketAddr = s.parse().ok()?;
+            Some(Config {
+                host: addr.ip().to_string(),
+                port: addr.port(),
+            })
+        })
+        .or(Some(Config {
+            host: String::from("localhost"),
+            port: default_port,
+        }))
     }
 
     println!("解析配置:");
@@ -2642,19 +2658,19 @@ fn main() {
 
     // 链式调用
     let email = find_user(1)
-        .and_then(get_email)
+        .and_then(|u| get_email(&u))
         .map(|e| e.to_uppercase());
 
     println!("用户1的邮箱(大写): {:?}", email);  // Some("ALICE@EXAMPLE.COM")
 
     let email = find_user(2)
-        .and_then(get_email)
+        .and_then(|u| get_email(&u))
         .map(|e| e.to_uppercase());
 
     println!("用户2的邮箱: {:?}", email);  // None（用户2没有邮箱）
 
     let email = find_user(999)
-        .and_then(get_email)
+        .and_then(|u| get_email(&u))
         .map(|e| e.to_uppercase());
 
     println!("不存在的用户的邮箱: {:?}", email);  // None
@@ -2753,7 +2769,12 @@ fn main() {
         }
     }
 
-    let result = Ok(2).and_then(reciprocal).and_then(reciprocal);
+    // 注意：reciprocal 接收 i32，而第一次 and_then 之后值已经变成 f64，
+    // 所以第二次不能用同一个函数，要写一个新的闭包。
+    let result = Ok(2).and_then(reciprocal);
+    println!("1/2 = {:?}", result);  // Ok(0.5)
+
+    let result = result.and_then(|half| Ok(1.0 / half));
     println!("1/(1/2) = {:?}", result);  // Ok(2.0)
 
     let result = Ok(0).and_then(reciprocal);
@@ -2802,8 +2823,8 @@ fn main() {
     }));  // 42
 
     // or: 提供备选的 Result
-    println!("or: {:?}", ok.or(Ok(999)));  // Ok(42)
-    println!("or: {:?}", Err::<i32, _>("e").or(Ok(999)));  // Ok(999)
+    println!("or: {:?}", ok.or(Ok::<i32, &str>(999)));  // Ok(42)
+    println!("or: {:?}", Err::<i32, &str>("e").or(Ok::<i32, &str>(999)));  // Ok(999)
 
     // is_ok / is_err
     println!("is_ok: {}", ok.is_ok());  // true
@@ -2862,38 +2883,25 @@ fn main() {
         ("ssl", "true"),
     ];
 
-    let config: Result<ServerConfig, _> = config_data
-        .iter()
-        .map(|(key, value)| {
-            let parsed = match *key {
-                "host" => parse_host(value).map(|v| ("host", v)),
-                "port" => parse_port(value).map(|v| ("port", v)),
-                "ssl" => parse_ssl(value).map(|v| ("ssl", v)),
-                _ => Err(ParseError(format!("未知配置项: {}", key))),
-            };
-            (key, parsed)
-        })
-        .collect::<Result<Vec<_>, _>>()
-        .and_then(|items| {
-            let mut host = None;
-            let mut port = None;
-            let mut ssl = None;
+    // ⚠️ 三个字段的解析结果类型各不相同（String / u16 / bool），
+    // 混在同一个 match 里返回会命中「match 分支类型不一致」的错误。
+    // 正确做法是按字段逐个解析：
+    fn build_config(data: &[(&str, &str)]) -> Result<ServerConfig, ParseError> {
+        let get = |name: &str| {
+            data.iter()
+                .find(|(k, _)| *k == name)
+                .map(|(_, v)| *v)
+                .ok_or_else(|| ParseError(format!("缺少必需的配置项: {}", name)))
+        };
 
-            for (key, value) in items {
-                match key {
-                    "host" => host = Some(value),
-                    "port" => port = Some(value),
-                    "ssl" => ssl = Some(value),
-                    _ => {}
-                }
-            }
+        let host = parse_host(get("host")?)?;
+        let port = parse_port(get("port")?)?;
+        let ssl = parse_ssl(get("ssl")?)?;
 
-            match (host, port, ssl) {
-                (Some(h), Some(p), Some(s)) => Ok(ServerConfig { host: h, port: p, ssl: s }),
-                _ => Err(ParseError("缺少必需的配置项".to_string())),
-            }
-        });
+        Ok(ServerConfig { host, port, ssl })
+    }
 
+    let config = build_config(&config_data);
     println!("解析结果: {:?}", config);
 
     println!("\n--- 示例2: 成绩计算 ---");
@@ -3035,27 +3043,21 @@ fn main() {
         }
     }
 
-    // 使用 fold 累积所有错误
+    // 用「先各自校验，再统一收集错误」的方式，避免把不同类型塞进同一个 Vec
     fn validate_user(name: &str, age: i32, email: &str) -> Result<(String, i32, String), Vec<String>> {
-        let results = vec![
-            validate_name(name).map(|n| (1, n)),
-            validate_age(age).map(|a| (2, a)),
-            validate_email(email).map(|e| (3, e)),
-        ];
+        let name_r = validate_name(name);
+        let age_r = validate_age(age);
+        let email_r = validate_email(email);
 
-        let (names, errors): (Vec<_>, Vec<_>) = results
-            .into_iter()
-            .partition(Result::is_ok);
-
-        if errors.is_empty() {
-            Ok((
-                names[0].as_ref().unwrap().1.clone(),
-                names[1].as_ref().unwrap().1,
-                names[2].as_ref().unwrap().1.clone(),
-            ))
-        } else {
-            Err(errors.into_iter().filter_map(Result::err).collect())
+        if name_r.is_err() || age_r.is_err() || email_r.is_err() {
+            let mut errors = Vec::new();
+            errors.extend(name_r.err());
+            errors.extend(age_r.err());
+            errors.extend(email_r.err());
+            return Err(errors);
         }
+
+        Ok((name_r.unwrap(), age_r.unwrap(), email_r.unwrap()))
     }
 
     // 测试各种情况

@@ -24,7 +24,9 @@ draft = false
 
 ### 全局作用域
 
-全局作用域是最外层的 scope，在浏览器环境中 `window` 对象就是全局作用域，在 Node.js 中是 `global`。
+全局作用域是最外层的 scope。在浏览器里它的宿主对象是 `window`，在 Node.js 里是 `global`，而在任何环境里都可以用统一的 `globalThis` 访问它（ES2020 引入）。
+
+> 注意：ES 模块和严格模式下的「顶层 `this`」是 `undefined`，只有脚本/CommonJS 里顶层 `this` 才指向全局对象。所以判断环境时请用 `globalThis`，别依赖 `this`。
 
 ```javascript
 // 全局变量
@@ -351,6 +353,8 @@ heavyModule();
 // 因为 window.processData 还引用着它
 ```
 
+> 上面用到 `window`，请在浏览器控制台里试验。它的要点是：闭包让 `bigData` 一直可达，所以 GC 无法回收。下面这段则是同一个问题的反面 —— 主动断开最后一个引用，内存就能释放。
+
 **如何避免内存泄漏：**
 
 ```javascript
@@ -420,19 +424,21 @@ console.log(counter.reset());    // 0
 console.log(counter.count);      // undefined（外部无法直接访问）
 ```
 
-如果用 `var`，你无法阻止外部直接访问：
+关键不在于用 `const` 还是 `var`，而在于**变量有没有被暴露出去**。如果一个计数器把状态直接挂在返回的对象上，外部就能随意篡改：
 
 ```javascript
-// ❌ 用 var 的问题
-function createCounter() {
-  var count = 0; // 仍然是私有的，但返回方式不同
+// ❌ 没有封装的计数对象：外部可以绕过所有逻辑直接改状态
+function createOpenCounter() {
+  return { count: 0 };
 }
 
-const counter = createCounter();
-console.log(counter.count); // undefined
+const openCounter = createOpenCounter();
+openCounter.count = 999;          // 想怎么改就怎么改
+openCounter.count = "我不是数字";   // 类型也拦不住
+console.log(openCounter.count);   // "我不是数字"
 ```
 
-闭包让我们有了真正的"私有变量"！
+对比一下前面的 `createCounter`：`count` 只存在于闭包里，外部拿不到、也改不了，只能通过 `increment` / `reset` 这些方法操作 —— 这才是真正的"私有变量"。
 
 ---
 
@@ -563,8 +569,10 @@ console.log(Calculator.add(10));     // 10
 console.log(Calculator.multiply(2)); // 20
 console.log(Calculator.getResult()); // 20
 console.log(Calculator.result);      // undefined（私有，无法访问）
-Calculator.validate(5);              // Error: 私有方法，无法访问
+// Calculator.validate(5);           // TypeError: Calculator.validate is not a function
 ```
+
+> 注意这里抛的是 `TypeError`（属性不存在，不是可调用的函数），而不是自定义的 `Error`。另外 `validate` 内部的 `isNaN(number)` 建议换成 `Number.isNaN`，避免把 `"5"` 这类字符串误判成合法数字（详见第 10 章）。
 
 这个模式的好处：
 1. 私有变量 `result` 和 `validate` 无法从外部直接访问
@@ -708,7 +716,7 @@ const result = (function() {
   return temp + "的结果";
 })();
 
-console.log(result); // "我是临时变量"
+console.log(result); // "我是临时变量的结果"
 console.log(temp);   // ReferenceError: temp is not defined
 ```
 
@@ -752,6 +760,109 @@ console.log(myModule.privateVar); // undefined
 
 ---
 
+## 12.4 闭包的更多实战
+
+前面几个例子已经展示了闭包的基本用法，这里再补三个日常开发里真正会用到的形态。
+
+### once：只执行一次
+
+```javascript
+function once(fn) {
+  let called = false; // 闭包里的状态
+  let result;
+
+  return function (...args) {
+    if (called) return result; // 第二次起直接返回首次结果
+    called = true;
+    result = fn.apply(this, args);
+    return result;
+  };
+}
+
+const init = once(() => {
+  console.log("只初始化一次");
+  return { ready: true };
+});
+
+console.log(init()); // 打印"只初始化一次"，返回 { ready: true }
+console.log(init()); // 什么都不打印，直接返回 { ready: true }
+```
+
+### memoize：给纯函数加缓存
+
+```javascript
+function memoize(fn) {
+  const cache = new Map(); // 缓存活在闭包里，外部碰不到
+
+  return function (...args) {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    const value = fn.apply(this, args);
+    cache.set(key, value);
+    return value;
+  };
+}
+
+let callCount = 0;
+const slowSquare = (n) => {
+  callCount++;
+  return n * n;
+};
+
+const fastSquare = memoize(slowSquare);
+console.log(fastSquare(9), fastSquare(9), fastSquare(9)); // 81 81 81
+console.log(callCount); // 1 —— 只真正算了一次
+```
+
+> 注意：`memoize` 只适合**纯函数**（相同输入必然得到相同输出）。有副作用、依赖外部状态或参数是对象/函数时，`JSON.stringify` 做 key 并不可靠，需要自己设计缓存策略。
+
+### 柯里化：把多参数函数变成「参数逐步到位」
+
+```javascript
+// 手写一个简化版 curry
+function curry(fn) {
+  return function curried(...args) {
+    // 参数够了就执行，不够就继续收集
+    if (args.length >= fn.length) {
+      return fn.apply(this, args);
+    }
+    return (...rest) => curried.apply(this, [...args, ...rest]);
+  };
+}
+
+const add3 = (a, b, c) => a + b + c;
+const curriedAdd = curry(add3);
+
+console.log(curriedAdd(1)(2)(3));   // 6
+console.log(curriedAdd(1, 2)(3));   // 6
+console.log(curriedAdd(1)(2, 3));   // 6
+console.log(curriedAdd(1, 2, 3));   // 6
+
+// 实战里更常见的是「预置部分参数」这种轻量用法
+const withBaseUrl = (base) => (path) => new URL(path, base).toString();
+const api = withBaseUrl("https://api.example.com/");
+console.log(api("users"));  // https://api.example.com/users
+console.log(api("orders")); // https://api.example.com/orders
+```
+
+```javascript
+// 最后提醒一个容易踩的坑：不小心泄漏成全局变量
+function leak() {
+  accidental = "我没有被声明！"; // 严格模式下直接抛 ReferenceError
+}
+
+// 非严格模式下，这会在 globalThis 上凭空造一个全局变量
+// 在 ES 模块或 "use strict" 里，这会报错 —— 这也算严格模式的一大好处
+
+// 想验证请打开严格模式：
+// "use strict";
+// function leak2() { accidental2 = 1; } // ReferenceError: accidental2 is not defined
+```
+
+---
+
 ## 本章小结
 
 本章我们深入探索了 JavaScript 的作用域和闭包：
@@ -761,16 +872,21 @@ console.log(myModule.privateVar); // undefined
    - 函数作用域：`function` 创建
    - 块级作用域：`let`/`const` 在 `{}` 中创建
 
-2. **词法作用域**：由源代码位置决定，不是调用位置
+2. **词法作用域**：由源代码位置决定，不是调用位置（所以 `foo` 里访问的 `a` 只看它定义在哪，跟谁调用它无关）
 
 3. **闭包**：函数能记住并访问创建时的词法环境
-   - 原理：作用域链
-   - 应用：私有变量、防抖、节流、模块模式
+   - 原理：作用域链；只要内部函数还可达，外层作用域就不会被回收
+   - 经典问题：`for + var + setTimeout` 输出 3 个 3，用 `let` 或 IIFE 解决
+   - 应用：私有变量、计数器、防抖、节流、模块模式、`once`、`memoize`、柯里化
+   - 内存：闭包本身不会泄漏，泄漏的是「你以为不再需要、实际还被引用着」的数据
 
 4. **高阶函数**：
    - 回调函数：作为参数传递的函数
    - 函数工厂：返回函数的函数
    - IIFE：立即执行的函数表达式
+   - 柯里化：把多参数函数拆成可逐步传参的形式
+
+5. **别踩的坑**：非严格模式下给未声明变量赋值会凭空造出全局变量（严格模式会直接报错），这类「隐式全局」是作用域问题最常见的来源。
 
 > 📊 图示：闭包原理
 >
@@ -787,4 +903,3 @@ console.log(myModule.privateVar); // undefined
 ---
 
 **下章预告**：下一章我们将学习**递归与函数式编程**——如何用函数的思维来解决问题！ 🧠
-

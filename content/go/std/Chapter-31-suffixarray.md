@@ -50,11 +50,11 @@ draft = false
 
 ```mermaid
 flowchart TD
-    A["文本: \"banana\\n\""] --> B["生成所有后缀"]
-    B --> C["\"banana\\n\"<br/>\"anana\\n\"<br/>\"nana\\n\"<br/>\"ana\\n\"<br/>\"na\\n\"<br/>\"a\\n\""]
+    A["文本：banana（末尾还有一个结束符）"] --> B["生成所有后缀"]
+    B --> C["banana / anana / nana / ana / na / a"]
     C --> D["按字典序排序"]
-    D --> E["后缀数组: [5, 3, 1, 0]"]
-    E --> F["含义：<br/>位置5的后缀'a'最小<br/>位置3的后缀'ana'次之<br/>位置1的后缀'anana'第三<br/>位置0的后缀'banana'最大"]
+    D --> E["后缀数组：[5, 3, 1, 0]"]
+    E --> F["含义：<br/>位置 5 的后缀 a 最小<br/>位置 3 的后缀 ana 次之<br/>位置 1 的后缀 anana 第三<br/>位置 0 的后缀 banana 最大"]
 ```
 
 ---

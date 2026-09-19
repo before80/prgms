@@ -59,7 +59,7 @@ func main() {
 ```mermaid
 flowchart LR
     A["用户输入命令<br/>go run main.go -name 张三 -age 28"] --> B["flag 包自动解析"]
-    B --> C["程序内部变量<br/>name = \"张三\"<br/>age = 28"]
+    B --> C["程序内部变量<br/>name = '张三'<br/>age = 28"]
     C --> D["程序逻辑使用这些值"]
 ```
 

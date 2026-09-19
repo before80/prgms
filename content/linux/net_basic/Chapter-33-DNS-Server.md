@@ -37,13 +37,15 @@ DNS服务器软件有很多：古老的BIND、现代的CoreDNS、轻量级的Dns
 
 ```mermaid
 graph TD
-    A["客户端"] --> B["递归DNS服务器"]
-    B -->|"迭代查询|根服务器|迭代查询|.com服务器|迭代查询|权威DNS"| C["根域名服务器<br/>. ]
-    B -->|"迭代查询|.com服务器|迭代查询|权威DNS"| D[".com顶级域名服务器"]
-    B -->|"迭代查询|权威DNS|返回结果"| E["权威域名服务器<br/>example.com"]
-    E -->|"最终IP|结果|返回|返回"| B
-    B -->|"结果返回|最终IP|返回|最终IP|返回"| A
-    
+    A["客户端<br/>（浏览器 / dig）"] -->|"① 递归查询"| B["递归 DNS 服务器<br/>（本地运营商或 8.8.8.8）"]
+    B -->|"② 迭代查询"| C["根域名服务器"]
+    C -->|"③ 告诉你去找 .com"| B
+    B -->|"④ 迭代查询"| D[".com 顶级域名服务器"]
+    D -->|"⑤ 告诉你去找 example.com 的权威服务器"| B
+    B -->|"⑥ 迭代查询"| E["权威域名服务器<br/>example.com"]
+    E -->|"⑦ 返回最终 IP（A/AAAA 记录）"| B
+    B -->|"⑧ 返回结果并缓存 TTL"| A
+
     style A fill:#ccffcc
     style B fill:#ffffcc
     style E fill:#ffcccc
@@ -128,12 +130,15 @@ sudo systemctl status named
 
 ```bash
 # CentOS安装BIND
-sudo yum install -y bind bind-chroot bind-utils
+sudo yum install -y bind bind-chroot bind-utils    # CentOS 7 及更早
+sudo dnf install -y bind bind-chroot bind-utils    # RHEL 8+/Rocky/AlmaLinux/Fedora
 
 # 启动并设置开机自启
 sudo systemctl enable named
 sudo systemctl start named
 ```
+
+> CentOS 7 已于 2024 年 6 月停止维护，新环境请用 Rocky Linux、AlmaLinux 或 RHEL，包管理器统一用 `dnf`。另外 RHEL 系的服务名是 `named`，只有 Debian/Ubuntu 才叫 `bind9`（不过在 Debian 上 `systemctl status named` 一般也能用，因为 `named.service` 是它的别名）。
 
 ### 33.3.2 named.conf 主配置
 
@@ -172,8 +177,10 @@ options {
     // 工作目录，BIND会在此目录下存放日志和统计文件
     directory "/var/cache/bind";
 
-    // 如果启用，DNS服务器只在有递归查询请求时才工作
-    // 对于权威DNS服务器应该关闭
+    // recursion no 表示"本机不替别人做递归查询"：
+    // 只回答自己权威的zone，别人问其他域名会被拒绝（REFUSED）。
+    // 纯粹的权威DNS服务器应该设成 no；缓存/转发服务器则要保持 yes。
+    // 注意：recursion no 和 allow-recursion 是两码事，后者是"允许谁来递归"。
     recursion no;
 
     // 允许哪些客户端发起递归查询
@@ -216,7 +223,8 @@ zone "example.com" {
     allow-query { 127.0.0.1; 192.168.1.0/24; };
     // 允许哪些服务器同步zone（从服务器）
     allow-transfer { 192.168.1.11; };
-    // 如果启用，也通知从服务器
+    // 除了 NS 记录里列出的服务器，还额外通知这些地址"zone 更新了"
+    // （常用于从服务器不在本 zone 的 NS 记录中的情况）
     also-notify { 192.168.1.11; };
 };
 
@@ -362,6 +370,8 @@ zone "example.com" {
 };
 ```
 
+> **新旧术语**：`type slave` 和 `masters` 是 BIND 9.16 之前的老写法，现在官方推荐改用 `type secondary` 和 `primaries { ... }`（`slave`/`masters` 仍然能用，只是被标记为过时）。同理主服务器的新叫法是 `type primary`，老的 `type master` 也还能用。看不同版本的教程时别被搞混，两者是一回事。
+
 ### 33.5.2 allow-transfer
 
 在主服务器的zone配置中，`allow-transfer`指定允许哪些从服务器同步zone数据：
@@ -395,15 +405,16 @@ sudo tail -f /var/log/syslog
 
 CoreDNS是CNCF（云原生计算基金会）的毕业项目，专为云原生环境设计。相比BIND，CoreDNS配置更简单，使用插件机制，灵活性更高。
 
-### 33.6.1 Caddyfile 配置
+### 33.6.1 Corefile 配置
 
-CoreDNS的配置文件叫`Corefile`，语法比BIND的named.conf简单得多。
+CoreDNS 的配置文件叫 `Corefile`（注意不是 Caddy 的 `Caddyfile`，虽然两者的语法风格很像——CoreDNS 的作者也是 Caddy 的作者，所以沿用了同一套"指令块"设计），语法比 BIND 的 `named.conf` 简单得多。
 
 ```bash
-# 安装CoreDNS
-sudo apt install coredns
+# 方式一：用发行版包管理器安装（部分发行版仓库里才有 coredns 包）
+sudo apt install coredns        # Debian/Ubuntu
+sudo dnf install coredns        # Fedora
 
-# 或者从GitHub下载二进制文件
+# 方式二：从官方 GitHub Releases 下载二进制（最通用，适合容器和裸机）
 # https://github.com/coredns/coredns/releases
 ```
 
@@ -526,15 +537,17 @@ address=/db.internal/192.168.1.50
 # 域名强制解析（所有*.localdomain的查询都返回指定IP）
 address=/.localdomain/192.168.1.1
 
-# 禁用上游DNS的污染性解析
-Bogus-priv
+# 把私有网段的反向查询（如 192.168.x.x 反查域名）限制在本地，不外泄到上游
+bogus-priv
 
 # 启用日志
 log-queries
 
-# 不解析这个域名（直接拒绝）
+# 把 evil.com 解析成一个无用的本地地址，相当于"黑洞"掉它
 address=/evil.com/127.0.0.1
 ```
+
+> **配置项区分大小写**：Dnsmasq 的选项都是小写（`bogus-priv`），写成 `Bogus-priv` 会被当成无效配置直接报错启动失败。改完配置记得先用 `dnsmasq --test` 校验。
 
 **Dnsmasq常用配置示例**：
 
@@ -562,10 +575,12 @@ address=/jenkins.internal/192.168.1.61
 # 添加额外的hosts文件
 addn-hosts=/etc/hosts.extra
 
-# 关闭Dnsmasq的DHCP功能（只做DNS）
+# 只提供 DNS 服务，不提供 DHCP：
+# 只要不配置任何 dhcp-range，Dnsmasq 就不会启用 DHCP，无需额外开关
 port=53
-no-dhcp-interface=
 ```
+
+> **`port=53` 和 systemd-resolved 会打架**：Ubuntu 等系统默认启用了 `systemd-resolved`，它自己会占用 `127.0.0.53:53`。这时启动 Dnsmasq 会报 `failed to create listening socket for port 53: Address already in use`。解决办法二选一：把 systemd-resolved 的 stub 监听关掉（编辑 `/etc/systemd/resolved.conf` 设 `DNSStubListener=no`，再 `sudo systemctl restart systemd-resolved`），或者让 Dnsmasq 只在具体网卡地址上监听（配置 `listen-address=` 并加 `bind-interfaces`）。改完用 `sudo ss -tulpn 'sport = :53'` 确认是谁在占用。
 
 Dnsmasq还有一个很实用的功能——`/etc/hosts`里的条目会自动加入DNS解析：
 
@@ -647,6 +662,20 @@ zone "home.local" {
 - 查询`*.home.local`→转发到`192.168.1.1`
 - 其他域名→按全局forwarders配置处理
 
+### 33.8.3 千万别做"开放递归"服务器
+
+如果一台能访问公网的 DNS 服务器对**所有人**开放递归查询（`allow-recursion { any; };` 或 `allow-query { any; };` 又开了递归），它就成了"开放解析器"（Open Resolver）。攻击者会利用它做 **DNS 放大攻击**——伪造你的 IP 去查询海量域名，把成百上千倍的流量打向受害者，你的服务器会背锅、被封 IP。
+
+正确做法：
+
+```bash
+# 只允许自己的内网网段递归，公网来的递归请求一律拒绝
+allow-recursion { 127.0.0.1; 192.168.1.0/24; };
+allow-query-cache { 127.0.0.1; 192.168.1.0/24; };
+```
+
+> **一句话原则**：**权威 DNS 服务器关闭递归，缓存/转发 DNS 服务器只对自己的网段开放递归**。对外网一律不开放。搭完 DNS 服务器后，别忘了一并检查防火墙，只放行必要的来源。
+
 ## 33.9 DDNS 动态域名解析
 
 DDNS（Dynamic DNS，动态域名解析）解决了"拨号上网/动态IP"的问题——每次IP变化，DDNS服务自动更新域名解析记录，让你始终能通过固定域名访问你的服务。
@@ -659,9 +688,11 @@ DDNS（Dynamic DNS，动态域名解析）解决了"拨号上网/动态IP"的问
 # 安装花生壳客户端
 # 官网下载：https://hsk.oray.com/download/
 
-# 或者使用命令行工具
-sudo apt install phddns
+# 或者使用官方的 Linux 客户端（phddns 不在 Ubuntu/Debian 官方仓库里，
+# 需要按官网说明添加 Oray 自己的软件源后再安装，别直接 apt install phddns）
 ```
+
+> **注意来源**：`apt install phddns` 在标准 Ubuntu 仓库里是装不上的（会报 `Unable to locate package`），必须按花生壳官网的步骤添加它的第三方源。国内同类免费/付费 DDNS 还有 dnspod（腾讯）、阿里云解析、Cloudflare 等，选择时优先看是否有官方 API——能用 API 就能自己写脚本，不依赖客户端。
 
 配置花生壳：
 
@@ -676,15 +707,15 @@ sudo phddnsd
 
 如果你使用Cloudflare作为DNS提供商，可以用API实现自己的DDNS脚本。
 
-```bash
-# Cloudflare DDNS脚本示例
-# 需要先在Cloudflare获取Global API Key
+下面是一个最简的 Cloudflare DDNS 脚本（保存成 `ddns.sh` 并 `chmod +x`）。**推荐用 API Token 而不是 Global API Key**：Token 可以只授权"编辑某个 zone 的 DNS"这一项权限，即使泄露损失也小得多；Global API Key 等于账号的万能钥匙。
 
+```bash
 #!/bin/bash
+# Cloudflare DDNS 脚本示例
+# 推荐用 API Token（权限只需 Zone:DNS:Edit），不要用 Global API Key
 
 # Cloudflare配置
-CF_API_KEY="your_api_key_here"
-CF_EMAIL="your_email@example.com"
+CF_API_TOKEN="your_api_token_here"
 CF_ZONE_ID="your_zone_id_here"
 CF_RECORD_ID="your_record_id_here"
 CF_DOMAIN="ddns.example.com"
@@ -694,8 +725,7 @@ CURRENT_IP=$(curl -s https://api.ipify.org)
 
 # 获取Cloudflare上记录的最新IP
 CF_IP=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records/${CF_RECORD_ID}" \
-    -H "X-Auth-Email: ${CF_EMAIL}" \
-    -H "X-Auth-Key: ${CF_API_KEY}" \
+    -H "Authorization: Bearer ${CF_API_TOKEN}" \
     -H "Content-Type: application/json" \
     | jq -r '.result.content')
 
@@ -703,8 +733,7 @@ CF_IP=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}
 if [ "$CURRENT_IP" != "$CF_IP" ]; then
     echo "IP changed: ${CF_IP} -> ${CURRENT_IP}"
     curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/dns_records/${CF_RECORD_ID}" \
-        -H "X-Auth-Email: ${CF_EMAIL}" \
-        -H "X-Auth-Key: ${CF_API_KEY}" \
+        -H "Authorization: Bearer ${CF_API_TOKEN}" \
         -H "Content-Type: application/json" \
         --data "{\"type\":\"A\",\"name\":\"${CF_DOMAIN}\",\"content\":\"${CURRENT_IP}\"}"
     echo "DNS updated."
@@ -712,6 +741,8 @@ else
     echo "IP unchanged: ${CURRENT_IP}"
 fi
 ```
+
+> **脚本要放在文件里再执行**：`#!/bin/bash` 必须位于文件的**第一行**才会生效。上面保存成 `ddns.sh` 后执行 `chmod +x ddns.sh`，再手动跑一次确认 `jq` 已安装（`sudo apt install jq`），最后才交给 crontab。API 密钥不要硬编码在脚本里，建议放到环境变量或一个权限 600 的独立文件里。
 
 设置定时任务，每5分钟检查一次IP：
 
@@ -738,10 +769,12 @@ sudo crontab -e
 - **BIND9**：最经典的DNS服务器，配置在`/etc/bind/named.conf`系列文件
 - **zone文件格式**：SOA、NS、A、MX等记录，`Serial`必须递增
 - **反向解析**：PTR记录，IP倒写.in-addr.arpa格式
-- **从DNS服务器**：`type slave`，从主服务器同步zone
+- **从DNS服务器**：`type secondary`（旧写法 `type slave`），用 `primaries`/`masters` 指定主服务器并同步zone
 - **CoreDNS**：云原生DNS，用Corefile配置，插件化架构
 - **Dnsmasq**：轻量级DNS转发器+DHCP，适合家庭/小型网络
 - **DNS转发**：forwarders配置，条件转发支持不同域名走不同上游
 - **DDNS**：动态IP场景下的域名自动更新，Cloudflare API可以实现自己的DDNS
 
 DNS是互联网的基石，搭建一个可靠的DNS服务器需要理解原理、多动手实验。祝你的DNS服务器永远不宕机。
+
+> **最后的安全底线**：搭好 DNS 服务器后，务必确认它**不是开放递归解析器**（见 33.8.3），并用防火墙把 53 端口的来源限制在自己的网段。这是新手最容易忽略、后果也最严重的一个坑。

@@ -56,17 +56,21 @@ flowchart LR
     ↓
 2014年：Google 基于 Borg 的设计理念和经验，发布 Kubernetes（全新开源项目）
     ↓
-2015年：Kubernetes 1.0发布
-         CNCF成立，Kubernetes成为旗舰项目
+2015年：Kubernetes 1.0发布；CNCF成立，Kubernetes成为首个托管项目
     ↓
-2017年：Kubernetes 1.6 稳定版发布
-         Docker Swarm市场份额下降
+2017年：Kubernetes 1.6 等版本陆续发布，赢得容器编排之战
+         （Docker 公司也在同年宣布原生支持 Kubernetes）
     ↓
-2018年：Kubernetes 1.10 成熟稳定
-         成为容器编排标准
+2018年：Kubernetes 1.10 前后，各大云厂商全面提供托管 K8s 服务
+         成为容器编排事实标准
     ↓
-至今：Kubernetes 1.28+ 持续更新
+2019年至今：每年约发布 3 个版本（1.16 → 1.3x），持续快速迭代
+         2022 年 1.24 移除 dockershim，containerd/CRI-O 成为默认运行时
 ```
+
+> 小提示：Kubernetes 的版本号是 `1.x` 这种形式，**大约每 4 个月发一个新小版本**，
+> 每个小版本只维护约 14 个月。学习时不必死记具体数字，只要记住"版本很新、升级很快、
+> 生产上要跟着官方支持窗口走"就够了。
 
 ### Kubernetes能做什么？
 
@@ -241,13 +245,24 @@ kubectl get pods
 
 ```bash
 # 查看etcd数据
-etcdctl get /registry/pods/default/nginx-pod
+# 注意：生产环境etcd大多启用了TLS，必须带上证书参数和API版本
+ETCDCTL_API=3 etcdctl \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key \
+  get /registry/pods/default/nginx-pod
 
 # etcd特点：
 # - 高可用（3节点以上）
 # - 强一致性
 # - Raft共识算法
 ```
+
+> 平时排查问题**不要随便去读/改etcd里的数据**——它是整个集群的"唯一真相"，
+> 直接用 `kubectl get/describe`、`kubectl get events` 更安全。
+> 只有在 API Server 都起不来、需要恢复集群时才动它，而且**一定要先做快照**：
+> `etcdctl snapshot save /backup/etcd-$(date +%F).db`。
 
 #### 3. Controller Manager
 
@@ -304,10 +319,15 @@ flowchart LR
     subgraph "Container Runtime"
         CRI[CRI<br/>Container Runtime Interface]
         CRI --> C[containerd]
-        CRI --> D[Docker]
-        CRI --> P[Podman]
+        CRI --> D[CRI-O]
+        CRI --> P[其他实现<br/>如 cri-dockerd]
     end
 ```
+
+> ⚠️ 常见误区：**Docker 引擎本身并不实现 CRI**。早年 K8s 是通过 kubelet 内置的
+> "dockershim" 才支持 Docker 的，而 dockershim 在 **Kubernetes 1.24 已被移除**。
+> 现在要跑容器，标准做法是 containerd 或 CRI-O；如果确实还想用 Docker 引擎，
+> 得额外装 `cri-dockerd` 这个适配层，多一层维护成本，不推荐。
 
 ### 一图总结架构
 
@@ -474,12 +494,17 @@ flowchart LR
 
 ### Pod的探针
 
-Kubernetes提供两种探针检查容器健康：
+Kubernetes提供三种探针检查容器健康：
 
 | 探针 | 说明 |
 |------|------|
-| **Liveness Probe** | 存活探针，失败会重启容器 |
-| **Readiness Probe** | 就绪探针，失败会移除Service |
+| **Liveness Probe** | 存活探针，失败会**重启**容器 |
+| **Readiness Probe** | 就绪探针，失败会把这个Pod**从Service的Endpoints中摘除**（不再转发流量），但不会重启 |
+| **Startup Probe** | 启动探针，只用于判断"启动完成没"；启动成功前，liveness/readiness 都不生效 |
+
+> 三种探针的区别记住一句话：**liveness 管"要不要重启"，readiness 管"要不要给它流量"，
+> startup 管"慢启动的应用什么时候算起好了"**。
+> 对于启动很慢的老应用（比如要几分钟预热），用 startupProbe 可以避免 liveness 把正在启动的容器误杀。
 
 ```yaml
 apiVersion: v1
@@ -543,6 +568,10 @@ flowchart TB
     style D fill:#ff9999
 ```
 
+> 图里画了三个 ReplicaSet 只是为了说明"关系"：**同一个 Deployment 在任一时刻通常只有一个
+> ReplicaSet 带着当前副本数在跑**。滚动更新时会临时出现"旧 RS 缩容 + 新 RS 扩容"两个 RS 共存，
+> 更新完成后旧的 RS 会被保留（副本数缩到 0）以便回滚，所以 `kubectl get rs` 经常能看到好几个。
+
 ### 创建Deployment
 
 ```yaml
@@ -596,6 +625,9 @@ kubectl edit deployment nginx-deployment
 # 修改 replicas: 5
 
 # 自动扩缩容（HPA）
+# 注意：HPA 依赖 metrics-server 采集指标，集群里没装的话会一直报
+# "unable to get metrics for resource cpu"，可以先装：
+#   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 kubectl autoscale deployment nginx-deployment --min=3 --max=10 --cpu-percent=80
 ```
 
@@ -724,12 +756,20 @@ spec:
 
 ```bash
 # 通过环境变量发现
-# 每个Pod启动时会有SERVICE_NAME环境变量
+# 对于某个名为 nginx-service 的Service，Pod里会注入两个环境变量：
+#   NGINX_SERVICE_SERVICE_HOST=10.96.x.x
+#   NGINX_SERVICE_SERVICE_PORT=80
+# 注意：变量名是把服务名转成大写、横线换成下划线，而且**只在Service先于Pod创建时才注入**，
+#      所以生产上更推荐用下面的DNS方式
 
 # 通过DNS发现
 # nginx-service.default.svc.cluster.local
 # 简写：nginx-service
 ```
+
+> DNS 名称的完整格式是 `<service>.<namespace>.svc.<集群域名>`，
+> 集群域名默认是 `cluster.local`。同一个命名空间内可以只写服务名 `nginx-service`；
+> 跨命名空间访问要写 `nginx-service.<namespace>`。
 
 ### 小结
 
@@ -788,8 +828,16 @@ Ingress需要Ingress Controller才能工作：
 
 ```bash
 # 安装Nginx Ingress Controller
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.0/deploy/static/provider/cloud/deploy.yaml
+# 版本号请到 ingress-nginx 的 release 页取最新（不同云环境的清单文件路径不同：
+# cloud=通用云、baremetal=物理机/自建、kind=本地 kind 集群）
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.1/deploy/static/provider/cloud/deploy.yaml
+
+# 确认控制器Pod已经Ready
+kubectl get pods -n ingress-nginx
 ```
+
+> 提醒：Ingress 只是一份"路由规则"，**真正转发流量的是 Ingress Controller**。
+> 光写 Ingress 资源、不装控制器，是不会有任何效果的（这是新手最常见的困惑）。
 
 ### 小结
 
@@ -1005,6 +1053,7 @@ kubectl expose deploy nginx --port=80 --type=LoadBalancer  # 暴露服务
 
 # 调试
 kubectl get events             # 查看事件
+# kubectl top 需要集群里装了 metrics-server，否则会报 "Metrics API not available"
 kubectl top nodes              # 节点资源使用
 kubectl top pods               # Pod资源使用
 ```
@@ -1038,23 +1087,26 @@ kubectl要点：
 **Helm** 是Kubernetes的包管理器：
 
 ```bash
-# 添加仓库
-helm repo add bitnami https://charts.bitnami.com/bitnami
+# 添加仓库（换成自己信任的仓库即可）
+# 例：Prometheus 社区仓库
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# 例：ingress-nginx 官方仓库
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 
 # 更新仓库
 helm repo update
 
 # 搜索Chart
-helm search repo nginx
+helm search repo ingress-nginx
 
 # 安装Chart
-helm install my-nginx bitnami/nginx
+helm install my-nginx ingress-nginx/ingress-nginx
 
 # 查看Release
 helm list
 
 # 升级
-helm upgrade my-nginx bitnami/nginx --set image.tag=1.25
+helm upgrade my-nginx ingress-nginx/ingress-nginx --set controller.image.tag=1.12.1
 
 # 回滚
 helm rollback my-nginx 1
@@ -1079,6 +1131,13 @@ Helm要点：
 - K8s包管理器
 - Chart复用配置
 - 简化部署
+
+> ⚠️ **仓库提醒（2025 年起的重要变化）**：Bitnami 已经把它的 Helm Chart 迁移到 OCI 仓库，
+> 老的 `helm repo add bitnami https://charts.bitnami.com/bitnami` 不再推荐使用，
+> 新写法是 `helm install my-nginx oci://registry-1.docker.io/bitnamicharts/nginx`；
+> 同时 Bitnami 免费镜像的供给方式也有调整，生产上要留意自己依赖的镜像是否还能拉到。
+> 所以**不要把某个第三方仓库当成唯一来源**，Prometheus 社区、ingress-nginx 官方、
+> 各云厂商的 Helm 仓库都可以放心使用。
 
 下一节我们将学习 **K8s网络**，容器网络！
 
@@ -1162,29 +1221,38 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: my-app
-
+---
 # 创建Role
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: pod-reader
+  namespace: default
 rules:
   - apiGroups: [""]
     resources: ["pods"]
     verbs: ["get", "list", "watch"]
-
+---
 # 创建RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: read-pods
+  namespace: default
 subjects:
   - kind: ServiceAccount
     name: my-app
+    namespace: default
 roleRef:
+  apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: pod-reader
 ```
+
+> 注意：**多个 YAML 资源写在一个文件里，必须用 `---` 分隔**，否则 `kubectl apply -f` 只会读到
+> 第一个文档。另外 `roleRef` 里的 `apiGroup` 是必填字段，漏了会报错。
+> Role/RoleBinding 属于命名空间级资源，`namespace` 不写时默认取 `default`；
+> 如果要跨命名空间授权，得改用 ClusterRole + ClusterRoleBinding。
 
 ### 权限级别
 
@@ -1346,9 +1414,11 @@ kubectl get pods -l app=nginx
 ### Helm使用
 
 ```bash
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install my-app bitnami/nginx
-helm upgrade my-app bitnami/nginx
+# 以 ingress-nginx 官方仓库为例（Bitnami 的 Chart 仓库已迁到 OCI，见上文提醒）
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm install my-app ingress-nginx/ingress-nginx
+helm upgrade my-app ingress-nginx/ingress-nginx
 helm rollback my-app
 ```
 
@@ -1365,5 +1435,3 @@ helm rollback my-app
 > 但程序员们更喜欢把它理解成："又一个要学的东西！" 😂
 >
 > 记住：**Kubernetes不是银弹，但它是你通向云原生的必经之路！** 🚢
-
-

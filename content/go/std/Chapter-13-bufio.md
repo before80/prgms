@@ -1570,25 +1570,27 @@ type Writer struct {
 
 ```mermaid
 flowchart TB
-    subgraph 应用层
-        A1[Write "Hello"]
-        A2[Write " "]
-        A3[Write "World"]
+    subgraph app["应用层"]
+        A1["Write('Hello')"]
+        A2["Write(' ')"]
+        A3["Write('World')"]
     end
 
-    subgraph bufio.Writer 缓冲区
-        B1[缓冲区: 4KB]
+    subgraph buf["bufio.Writer 缓冲区"]
+        B1["缓冲区：4KB"]
     end
 
-    subgraph 磁盘/网络
-        C1[磁盘写入一次]
+    subgraph io["磁盘 / 网络"]
+        C1["真正写入一次"]
     end
 
     A1 --> B1
     A2 --> B1
     A3 --> B1
-    B1 --> |Flush 时| C1
+    B1 -->|"Flush 时才落到磁盘"| C1
 ```
+
+要点：`bufio.Writer` 把多次小写入攒在内存缓冲区里，只有缓冲区满了或者你显式调用 `Flush()` 时，才真正发生一次系统调用——这正是它比直接写快的原因。
 
 ### 代码示例：感受 Writer 的缓冲效果
 

@@ -146,24 +146,24 @@ npm create vite@latest
 sequenceDiagram
     participant 用户
     participant npm
-    participant create-vite
+    participant CV as create-vite
     participant npm_registry
     participant 网络
 
     用户->>npm: npm create vite@latest
     npm->>网络: 下载 create-vite 包
     网络-->>npm: create-vite 包内容
-    npm->>create-vite: 执行 create-vite
-    create-vite->>用户: ? 请选择项目名称
-    用户->>create-vite: my-project
-    create-vite->>用户: ? 请选择框架
-    用户->>create-vite: vue
-    create-vite->>用户: ? 请选择语言
-    用户->>create-vite: TypeScript
-    create-vite->>npm_registry: 下载 @vitejs/template-vue-ts
-    npm_registry-->>create-vite: 模板文件
-    create-vite->>create-vite: 解压模板
-    create-vite->>用户: ✅ 项目创建成功
+    npm->>CV: 执行 create-vite
+    CV->>用户: ? 请选择项目名称
+    用户->>CV: my-project
+    CV->>用户: ? 请选择框架
+    用户->>CV: vue
+    CV->>用户: ? 请选择语言
+    用户->>CV: TypeScript
+    CV->>npm_registry: 下载 @vitejs/template-vue-ts
+    npm_registry-->>CV: 模板文件
+    CV->>CV: 解压模板
+    CV->>用户: ✅ 项目创建成功
 ```
 
 ### 3.2.3 命令行参数：不交互直接创建

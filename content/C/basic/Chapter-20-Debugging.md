@@ -923,12 +923,23 @@ ulimit -c unlimited    # 允许生成任意大小的核心转储文件
 在 `/proc/sys/kernel/core_pattern` 中设置核心转储文件的命名格式：
 
 ```bash
-echo "/tmp/core-%e-%p-%t" > /proc/sys/kernel/core_pattern
+# /proc/sys 下的文件都归 root 所有，必须提权写；
+# 但重定向符 ">" 是由【当前 shell】执行的，sudo 管不到它，
+# 所以不能写 sudo echo ... > /proc/...，要用 tee：
+echo "/tmp/core-%e-%p-%t" | sudo tee /proc/sys/kernel/core_pattern
+
+# 想让重启后依然生效，写进 sysctl 配置（Linux 3.6+ 的 core_pattern）
+echo 'kernel.core_pattern=/tmp/core-%e-%p-%t' | sudo tee /etc/sysctl.d/99-core-pattern.conf
+sudo sysctl --system
 ```
 
 - `%e`：程序名（executable name）
 - `%p`：进程 ID
 - `%t`：时间戳
+
+> ⚠️ 两个常见的坑：
+> 1. **systemd 系统上核心转储往往不走 `core_pattern`**，而是交给 `systemd-coredump`（可以用 `coredumpctl list` 查看、`coredumpctl gdb` 直接调试）。如果你的程序崩了却找不到 core 文件，先执行 `cat /proc/sys/kernel/core_pattern` 看看是不是被 systemd 接管了。
+> 2. **`ulimit -c unlimited` 只在当前 shell 生效**，新开的终端或通过 IDE 图形界面启动的程序可能拿不到这个设置——用 `ulimit -c` 确认一下。
 
 ### 20.8.2 触发核心转储
 

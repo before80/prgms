@@ -76,7 +76,7 @@ graph TD
 - 企业级发行版
 - 收费，但提供技术支持
 - rpm/dnf 包管理器
-- 衍生版本：CentOS、Fedora、Rocky Linux
+- 上游与衍生：**Fedora** 是 RHEL 的上游试验田；**CentOS、Rocky Linux、AlmaLinux** 是基于 RHEL 源码重新构建的免费版本
 
 **3. Arch Linux**
 
@@ -89,7 +89,7 @@ graph TD
 
 - 德国血统
 - 提供zypper包管理器
-- 衍生版本：SUSE Linux Enterprise
+- 商业版：SUSE Linux Enterprise（SLES）
 
 ### Linux 能做什么？
 
@@ -100,7 +100,7 @@ Linux 的应用场景极其广泛：
 - Web 服务器（Nginx、Apache）
 - 数据库（MySQL、PostgreSQL、MongoDB）
 - 容器平台（Docker、Kubernetes）
-- 全球 96% 的顶级网站运行在 Linux 上！
+- 全球绝大多数网站服务器运行在 Linux 上（W3Techs 的统计中，Unix 类操作系统占全部网站的八成以上，Linux 是其中绝对主力）
 
 **2. 桌面领域**
 
@@ -114,7 +114,7 @@ Linux 的应用场景极其广泛：
 
 **4. 超级计算机**
 
-- 全球 Top 500 超级计算机，100% 运行 Linux！
+- 全球 Top 500 超级计算机，500 台全部运行 Linux！（自 2017 年 11 月的榜单起就是"清一色"）
 
 ### 为什么选择 Linux？
 
@@ -140,9 +140,9 @@ Linux 的应用场景极其广泛：
 
 ### 彩蛋：Linux 的吉祥物
 
-Linux 的吉祥物是一只企鹅，名字叫 **Tux**！为什么是企鹅？因为 Linus Torvalds 小时候在动物园被企鹅咬过，所以他对企鹅有"特殊感情"！
+Linux 的吉祥物是一只企鹅，名字叫 **Tux**（Torvalds + Unix 的拼合）。为什么是企鹅？据 Linus 自己说，他 1993 年在澳大利亚堪培拉的一家动物园里被一只小企鹅咬了一口，从此对企鹅有了"特殊感情"。
 
-Tux 的形象是一只穿着黑色礼服的企鹅，象征着 Linux 的优雅和力量。很多发行版也会设计自己的吉祥物，比如 Ubuntu 的黑豹、Fedora 的蓝色怪物等！
+Tux 的形象由 Larry Ewing 在 1996 年用 GIMP 绘制：一只吃饱了、心满意足的企鹅，象征着 Linux 的优雅和力量。此后各发行版也设计了自己的标识——Debian 用螺旋形的 "swirl"，Ubuntu 用"朋友之环"（Circle of Friends），Fedora 的图标则是蓝色气泡里的字母 f。
 
 ---
 
@@ -154,7 +154,7 @@ Tux 的形象是一只穿着黑色礼服的企鹅，象征着 Linux 的优雅和
 
 Linux 内核版本号通常由三部分组成：**主版本.次版本.修订版本**
 
-```
+```text
 5.15.0
 │ │  │
 │ │  └─ 修订版本（Patch version）
@@ -166,18 +166,18 @@ Linux 内核版本号通常由三部分组成：**主版本.次版本.修订版�
 **次版本（Minor Version）**：新功能，兼容旧版本
 **修订版本（Patch Version）**：Bug 修复，安全补丁
 
-### 偶数 vs 奇数：这是一个"玄学"
+### 偶数 vs 奇数：一条已经作废的"老规矩"
 
-Linux 内核有个奇怪的传统：
+Linux 内核早期确实有过奇偶规则，但它**只适用于二十多年前的 1.0～2.6 时代**：
 
-- **偶数版本**（如 4.20、5.15、6.1）是**稳定版**
-- **奇数版本**（如 4.19、5.14、6.0）是**开发版**
+- **次版本号是偶数**（如 2.2、2.4、2.6）→ **稳定版**，可以直接用于生产
+- **次版本号是奇数**（如 2.1、2.3、2.5）→ **开发版**，用来试验新功能
 
-为什么这么做？据说是因为 Linus Torvalds 的"个人癖好"——他把奇数版本留给自己用，偶数版本发布给大家用！
+注意：判断依据是**次版本号**（第二位），而不是主版本号。网上流传很广的那种说法——"4.20 是偶数所以稳定，6.0 是奇数所以是开发版"——是**错的**：4.20、5.15、6.0、6.1 全都是正式发布的稳定内核。
 
-不过从 2011 年开始，这个传统就被打破了！从 Linux 3.0 发布开始，版本号规则就变了——Linus Torvalds 觉得版本号涨得太慢，决定直接跳到 3.0，从此不再严格区分奇偶。所以现在看版本号的奇偶来判断稳定性，已经不太靠谱了！
+这条规则在 **2011 年 7 月 Linux 3.0 发布时被彻底废除**。原因是 2.6.x 系列拖得太久，版本号"涨得太慢"，Linus 改成简单的递增序号（3.0、3.1、3.2……），不再用奇偶区分稳定与开发。新功能的开发工作转移到了 `-rc`（release candidate，候选发布）版本上：每个正式版发布前，都会先经过 7～8 轮 `-rc`。
 
-> 💡 **历史趣闻**：Linus 在发布 Linux 3.0 时说："我本来想叫它 2.6.40，但我的手指就是不听使唤，自动打成了 3.0..." 好吧，其实是他觉得版本号数字太大了不好看！
+> 💡 **一句话记住**：奇偶规则属于 2011 年以前的历史。今天看到 `6.1`、`7.0` 这样的版本号，**单看奇偶是判断不出任何东西的**。想知道某个版本是不是 LTS，直接查 kernel.org 的 "Active kernel releases" 页面。
 
 ### 内核版本的"生命周期"
 
@@ -222,20 +222,18 @@ graph LR
 
 近年来主要的 LTS 内核版本：
 
-| 版本 | 发布时间 | 结束支持 | 维护时间 |
+| 版本 | 发布时间 | 预计 EOL | 维护时长 |
 | ---- | -------- | -------- | -------- |
-| 5.10 | 2020.12  | 2026.12  | 约 6 年  |
-| 5.15 | 2021.10  | 2026.12  | 约 5 年  |
-| 6.1  | 2022.12  | 2026.12  | 约 4 年  |
-| 6.6  | 2023.10  | 2026.12  | 约 3 年  |
+| 5.10 | 2020-12 | 2026-12 | 约 6 年 |
+| 5.15 | 2021-10 | 2026-12 | 约 5 年 |
+| 6.1  | 2022-12 | 2027-12 | 约 5 年 |
+| 6.6  | 2023-10 | 2027-12 | 约 4 年 |
+| 6.12 | 2024-11 | 2028-12 | 约 4 年 |
+| 6.18 | 2025-11 | 2028-12 | 约 3 年 |
 
-> 💡 **版本更新提示**：LTS 版本会持续更新，具体版本和支持时间请参考 [kernel.org](https://www.kernel.org/) 或 [Linux Kernel LTS 页面](https://kernel.org/category/releases.html)。
-> | 6.1 | 2022.12 | 2027.12 | 约 5 年 |
-> | 6.6 | 2023.10 | 2027.12 | 约 4 年 |
-> | 6.12 | 2024.11 | 2028.12 | 约 4 年 |
-> | 6.18 | 2025.11 | 2028.12 | 约 3 年 |
+> 💡 **数据来源与时效**：上表依据 kernel.org "Active kernel releases" 页面（数据更新至 2026 年 9 月）。同一时间点上，主线开发版本是 7.x（`7.3-rc2`），最新稳定版本是 `7.2.5`。内核版本更新很快，具体以 [kernel.org](https://www.kernel.org/) 为准。
 
-**当前最新的 LTS 版本是 6.18**，于 2025 年 11 月发布，预计支持到 2028 年 12 月！
+**当前最新的 LTS 版本是 6.18**，于 2025 年 11 月发布，预计支持到 2028 年 12 月。如果现在做选型，6.12（同样支持到 2028 年 12 月）和 6.18 都是不错的选择；6.1、6.6 适合已经有部署基础的场景，5.10、5.15 则已经接近生命周期末尾。
 
 ### 版本号后面的"尾巴"是什么？
 
@@ -247,7 +245,7 @@ graph LR
 
 让我来拆解一下：
 
-```
+```text
 5.15.0-42-generic
 │ │  │ │    │
 │ │  │ │    └─ 发行版特定标识
@@ -328,8 +326,8 @@ GNU 工具链是 Linux 的"工具箱"，包括：
 
 **编译器**
 
-- GCC：GNU C 编译器，几乎所有 Linux 程序的"妈妈"
-- Clang：苹果开发的 C 家族编译器
+- GCC：GNU Compiler Collection，最初叫 GNU C 编译器，后来扩展成支持 C、C++、Fortran、Go 等多种语言的编译器集合，几乎所有 Linux 程序的"妈妈"
+- Clang：LLVM 项目的 C/C++ 编译器前端（由 Chris Lattner 发起，苹果曾大力投入），编译速度快、报错信息友好
 - Go、Rust、Python 等
 
 **C 标准库**
@@ -347,7 +345,7 @@ GNU 工具链是 Linux 的"工具箱"，包括：
 | ------------------ | -------- | ------- | -------------------- |
 | Debian/Ubuntu      | APT      | .deb    | `apt install vim`    |
 | RHEL/CentOS/Fedora | DNF/YUM  | .rpm    | `dnf install vim`    |
-| Arch Linux         | Pacman   | .tar.xz | `pacman -S vim`      |
+| Arch Linux         | Pacman   | .pkg.tar.zst | `pacman -S vim`      |
 | openSUSE           | Zypper   | .rpm    | `zypper install vim` |
 | Alpine             | APK      | .apk    | `apk add vim`        |
 
@@ -468,6 +466,8 @@ graph LR
 
 ### 发行版家族全景图
 
+先看一张"族谱"：主流发行版基本都能追溯到 Debian、Red Hat、Arch、SUSE 这几个源头，其他发行版大多是从它们衍生或受它们启发的。
+
 ```mermaid
 graph TD
     A[Linux 发行版] --> B[Debian 系]
@@ -502,13 +502,13 @@ graph TD
 
 ### 2.4.1 Debian 系：Debian（稳定性第一）、Ubuntu（桌面首选）、Linux Mint、Kali Linux（渗透测试）
 
-**Debian** 是 Linux 发行版中的"老前辈"——1993 年诞生，至今已有 30 年历史！
+**Debian** 是 Linux 发行版中的"老前辈"——1993 年由 Ian Murdock 创立，至今已有 30 多年历史！（顺便说一句，"Debian" 这个名字正是 "Debra + Ian" 的合成词。）
 
 **Debian 的特点**：
 
 - **稳定性第一**：Debian Stable 是最稳定的 Linux 发行版之一
 - **包管理器**：APT（Advanced Package Tool）
-- **软件仓库**：超过 60,000 个软件包！（软件数量最多的发行版之一）
+- **软件仓库**：数万个软件包（含源码与各架构的二进制包，总量在全球发行版中名列前茅），且至今仍由志愿者维护
 - **社区驱动**：完全由志愿者维护
 
 **Debian 的三个分支**：
@@ -563,14 +563,16 @@ Ubuntu 的版本命名规则：
 - **技术支持**：提供 24/7 技术支持
 - **收费**：需要订阅许可证
 
-**CentOS** 曾经是"免费的 RHEL"！
+**CentOS** 曾经是"免费的 RHEL"——把 RHEL 的源码重新编译、去掉商标之后的免费重建版。
 
-**CentOS 的特点**：
+**CentOS 的关键转折（很多人记错的地方）**：
 
-- 100% 兼容 RHEL
-- 完全免费
-- 社区维护
-- **注意**：2020 年 CentOS 停止维护，CentOS Stream 成为"滚动版"
+- 2020 年 12 月，Red Hat 宣布调整 CentOS 的定位：**CentOS Stream** 成为 RHEL 的**上游**开发分支，不再是 RHEL 的"事后重建版"
+- **CentOS Linux 8** 的支持被缩短到 **2021 年底**（原本承诺到 2029 年），这让大量生产用户措手不及
+- **CentOS Linux 7** 则按原计划支持到 **2024 年 6 月**
+- 社区因此分化出两个"接盘"项目：**Rocky Linux** 和 **AlmaLinux**，它们重新做回了"RHEL 的免费重建版"
+
+所以准确的表述不是"2020 年 CentOS 停止维护"，而是"CentOS 从 RHEL 的下游重建版，变成了 RHEL 的上游开发分支"。
 
 **Fedora** 是 Red Hat 的"试验田"！
 
@@ -578,8 +580,8 @@ Ubuntu 的版本命名规则：
 
 - 最新的开源技术
 - 由 Red Hat 赞助、社区维护
-- 每年发布两个版本
-- 6 个月支持期
+- 每年发布 2～3 个版本（大约每半年一个）
+- 每个版本的支持期约 13 个月——并不是 6 个月：新版本发布之后，前一个版本通常还会再维护约一个月
 - 很多新技术先在 Fedora 上测试，再进入 RHEL
 
 ```mermaid
@@ -621,7 +623,7 @@ graph LR
 - **滚动更新**：永不"过时"，始终保持最新
 - **高度可定制**：从零开始，按需安装
 - **Pacman 包管理器**：简单高效
-- **AUR**：用户贡献的软件仓库（超过 80,000 个包！）
+- **AUR**：用户贡献的软件仓库（Arch User Repository，目前收录的包已超过 8 万个）
 - **Wiki 文档**：堪称 Linux 文档的标杆
 
 Arch Linux 的安装过程：
@@ -735,7 +737,7 @@ Arch Linux 的安装过程：
 
 **2. 软件仓库丰富**
 
-- 超过 59,000 个软件包
+- 数万个软件包（`main` + `universe` 仓库合起来远超大多数发行版）
 - apt 包管理器，一行命令安装软件
 - Snap 支持，更多软件选择
 - Flatpak 支持，跨发行版软件
@@ -785,8 +787,8 @@ graph LR
 - Ubuntu Desktop：默认桌面版
 - Kubuntu：KDE 桌面
 - Xubuntu：Xfce 桌面（省资源）
-- Lubuntu：Lxde 桌面（更省资源）
-- Ubuntu Budgie：Budge 桌面
+- Lubuntu：LXQt 桌面（更省资源）
+- Ubuntu Budgie：Budgie 桌面
 
 **Ubuntu 服务器版**：
 
@@ -823,7 +825,7 @@ Ubuntu 22.04+ 默认使用 **IBus** 输入法框架，自带中文支持。去"�
 
 ```bash
 # VS Code
-sudo apt install code
+sudo snap install code --classic   # 或按微软官方文档添加软件源后 apt install code
 
 # Python（通常已预装）
 python3 --version
@@ -856,14 +858,14 @@ Ubuntu 的版本命名很有趣：
 
 - 格式：发布年份.月份
 - 24.04 = 2024 年 4 月发布
-- 偶数月份 = LTS 版本
-- 奇数月份 = 短期支持版本
+- 每年 4 月发布的是 LTS 版本（如 24.04、26.04）
+- 每年 10 月发布的是短期支持版本（如 24.10，只支持 9 个月）
 
 另外，Ubuntu 每个版本都有一个动物代号！
 
-- 24.04 (Noble Numbat) -  nobility + 袋熊
-- 22.04 (Jammy Jellyfish) -  激动 + 水母
-- 20.04 (Focal Fossa) -  焦点 + 马达加斯加 fossa
+- 24.04 (Noble Numbat) - noble（高贵）+ numbat（袋食蚁兽）
+- 22.04 (Jammy Jellyfish) - jammy（幸运的）+ jellyfish（水母）
+- 20.04 (Focal Fossa) - focal（焦点）+ fossa（马岛长尾狸猫）
 
 ---
 
@@ -873,7 +875,7 @@ Ubuntu 的版本命名很有趣：
 
 ### 2.6.1 服务器领域：Web 服务器、数据库服务器、邮件服务器
 
-如果说服务器领域是 Linux 的"大本营"，那真是一点儿都不夸张！全球超过 96% 的顶级网站运行在 Linux 服务器上！
+如果说服务器领域是 Linux 的"大本营"，那真是一点儿都不夸张！按 W3Techs 等机构多年的统计，全球绝大多数网站都跑在 Linux 服务器上，云厂商的虚拟机实例里 Linux 也占绝对多数。
 
 **Web 服务器**
 
@@ -905,11 +907,16 @@ sudo apt install mysql-server
 # 安装 PostgreSQL
 sudo apt install postgresql
 
-# 安装 MongoDB（需要添加官方仓库，Ubuntu 默认仓库可能版本较旧）
-# wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
-# echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+# 安装 MongoDB（Ubuntu 默认仓库里的版本通常较旧，官方推荐添加 MongoDB 自己的源）
+# 以 Ubuntu 24.04（noble）安装 MongoDB 8.0 为例（注意：下面的 noble 要换成你自己的版本代号）
+# curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
+#   sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor
+# echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | \
+#   sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
 # sudo apt update
 # sudo apt install mongodb-org
+
+# 提示：老教程里常见的 apt-key 早已废弃，现在一律用 signed-by 指定密钥环
 
 # 启动服务
 sudo systemctl start mysql
@@ -933,7 +940,7 @@ sudo postconf -e 'myhostname = example.com'
 
 **为什么服务器偏爱 Linux？**
 
-- 免费开源，省license费用
+- 免费开源，省下 License 费用
 - 稳定可靠，几年不重启
 - 安全可控，不怕"后门"
 - 性能优异，压榨硬件性能
@@ -946,7 +953,7 @@ graph TD
     A --> E[文件服务器]
     A --> F[DNS 服务器]
     
-    B --> G[全球 96% 网站]
+    B --> G[网站份额八成以上]
     C --> H[数据存储]
     D --> I[邮件收发]
     
@@ -972,7 +979,7 @@ graph TD
 
 ```bash
 # 安装开发工具
-sudo apt install build-essential git vim code
+sudo apt install build-essential git vim   # VS Code 需要单独安装（snap 或微软官方源）
 
 # 安装 Python 数据科学环境
 sudo apt install python3-numpy python3-scipy python3-matplotlib
@@ -1085,7 +1092,7 @@ kubectl cluster-info
 - AWS EC2：亚马逊云
 - Google Cloud：谷歌云
 - Azure：微软云
-- 阿里云：阿里云
+- 阿里云、腾讯云、华为云等国内厂商
 - 几乎所有云服务器都是 Linux！
 
 ### 2.6.5 移动端：Android 系统基于 Linux 内核
@@ -1112,7 +1119,7 @@ graph TD
 - Android 使用了 Linux 内核
 - 但不完全是传统的 GNU/Linux
 - 有自己的用户空间（Android Runtime、SurfaceFlinger 等）
-- 不能直接运行标准的 Linux 程序
+- 不能直接运行标准的 Linux 程序：Android 用的是自己的 Bionic C 库，没有 glibc，也没有常规的 X/Wayland 图形栈，所以为桌面 Linux 编译的二进制文件在手机上跑不起来（Termux、容器之类的方案是另外加了一层"翻译"）
 
 **为什么 Android 用 Linux 内核？**
 
@@ -1164,7 +1171,7 @@ graph LR
 
 - Linux 服务器可以连续运行几年甚至十几年不需要重启！
 - 银行、证券交易所都用 Linux，关键业务离不开它！
-- 著名的 Linux 服务器 uptime（运行时间）记录：20+ 年！
+- 公开报道中，稳定运行十年以上的 Linux 服务器并不罕见；不过真实生产环境通常仍会安排维护窗口——因为内核安全更新往往需要重启，或者配合内核热补丁（livepatch）才能做到"零重启"
 
 ```bash
 # 查看系统运行时间
@@ -1195,7 +1202,7 @@ ls -l /etc/passwd
 
 **旧电脑也能飞！**
 
-- Linux 可以运行在只有 512MB 内存的旧电脑上！
+- Linux 对内存的要求可以压得很低：轻量发行版在 512MB 内存的老机器上照样能跑，服务器版去掉图形界面后需求更低
 - Xubuntu、Lubuntu、Antix 等发行版，专为老电脑设计！
 - 不想扔掉的旧笔记本？装个 Linux 试试！
 
@@ -1203,19 +1210,19 @@ ls -l /etc/passwd
 
 - 新显卡、新 CPU 内核发布后，Linux 往往第一时间支持！
 - NVIDIA、AMD、Intel 都提供 Linux 驱动！
-- 苹果 M1/M2 芯片也有 Linux 移植版本！
+- 苹果 M 系列芯片也有 Linux 移植版本（**Asahi Linux**，目前已支持 M1/M2，并在继续推进 M3/M4）
 
 **无处不在！**
 
-- 超级计算机：全球 Top 500 超级计算机，100% 运行 Linux！
-- 服务器：96% 的网站运行在 Linux 上！
+- 超级计算机：全球 Top 500 超级计算机，500 台全部运行 Linux！（自 2017 年 11 月起）
+- 服务器：绝大多数网站服务器运行 Linux（Unix 类系统占八成以上）
 - 手机：70%+ 的手机运行 Android（Linux 内核）！
 - 嵌入式：路由器、智能电视、物联网设备，几乎都有 Linux！
 
 ```mermaid
 graph TD
     A[Linux 硬件支持] --> B[超级计算机<br/>Top 500 = 100%]
-    A --> C[服务器<br/>96% 网站]
+    A --> C[服务器<br/>八成以上的网站]
     A --> D[手机<br/>Android 70%+]
     A --> E[嵌入式<br/>路由器/IoT]
     A --> F[桌面<br/>各种配置]
@@ -1247,8 +1254,8 @@ graph TD
 
 **资源占用低！**
 
-- Linux 内核只有几百 MB！
-- 桌面环境可以选轻量级的（Xfce、Lxde）
+- 内核镜像（`vmlinuz`）通常只有 10 MB 上下；真正占空间的是配套的内核模块和固件，而一个能跑起来的最小 Linux 系统只需要几 MB
+- 桌面环境可以选轻量级的（Xfce、LXQt、MATE）
 - 同样的硬件，Linux 跑得比 Windows 快！
 
 **可定制性强！**
@@ -1290,8 +1297,8 @@ Linux 的稳定性来自于几个设计原则：
 
 **1. 模块化设计**
 
-- 内核模块化，需要什么加载什么
-- 一个模块崩溃不会导致整个系统崩溃
+- 内核功能可以按需加载：`lsmod` 能看到当前加载了哪些模块，`modprobe` 可以在不重启的情况下增删模块
+- 注意：别把"模块化"误当成"隔离"——内核模块运行在内核态，一旦出错仍可能把整个系统拖垮；真正起隔离作用的是用户态驱动、微内核或虚拟机
 
 **2. 权限最小化**
 
@@ -1334,7 +1341,7 @@ Linux 版本号遵循"主版本.次版本.修订版本"的规则。偶数版本�
 
 **5. 应用场景全覆盖**
 
-- 服务器领域：Web、数据库、邮件，96% 网站在 Linux 上运行！
+- 服务器领域：Web、数据库、邮件，八成以上的网站在 Unix 类系统上运行，其中 Linux 是绝对主力
 - 桌面领域：日常办公、开发设计，完全没问题
 - 嵌入式：路由器、智能电视、物联网
 - 云原生：Docker、Kubernetes 容器平台
@@ -1360,26 +1367,3 @@ Linux 版本号遵循"主版本.次版本.修订版本"的规则。偶数版本�
 下一章我们将进入实战环节——**Linux 安装与环境配置**！手把手教你安装 Linux、配置环境、掌握基本命令！敬请期待！
 
 ---
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

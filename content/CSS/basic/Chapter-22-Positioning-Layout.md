@@ -445,7 +445,7 @@ draft = false
 
 ## 22.2 定位的偏移属性
 
-### 22.2.1 top、right、bottom、left——top/bottom 为正时元素向 下/上 移动，left/right 为正时元素向左/右 移动
+### 22.2.1 top、right、bottom、left——top 为正往下移、left 为正往右移（right/bottom 的方向正好相反）
 
 定位的偏移属性（top、right、bottom、left）决定了元素相对于其定位基准的偏移量。记一个简单的规律：**top 填正数往下跑，left 填正数往右跑**。
 
@@ -911,6 +911,5 @@ graph TD
 ### 下章预告
 
 下一章我们将学习 Flexbox 布局，这是现代 CSS 布局的主力军！
-
 
 

@@ -65,13 +65,19 @@ fmt.Println(proc("Hello"))  // HELLO <nil>
 ```go
 import "strings"
 
+// 标准库函数可以直接赋给同签名的函数类型变量
 var toUpper func(string) string = strings.ToUpper
 fmt.Println(toUpper("hello"))  // HELLO
 
-// 函数变量之间可以互相赋值
-toLower := toUpper  // 等等，这不对！toUpper 的类型是 func(string) string
-// toLower := toUpper // 错误：类型不匹配！
+// 函数变量之间也可以互相赋值（只要签名一致）
+toUpper2 := toUpper
+fmt.Println(toUpper2("world"))  // WORLD
+
+// 不同签名的函数不能互相赋值
+// var bad func(string) (string, error) = strings.ToUpper  // 编译错误：类型不匹配
 ```
+
+> 函数变量本质上是一个指向代码的指针加上捕获的闭包环境，所以它的零值是 `nil`，而且**不能用作 map 的键**、也不能用 `==` 比较（见 16.3 节）。
 
 ### 16.2.2 nil 函数值
 
@@ -82,7 +88,7 @@ var f func(int) int
 fmt.Println(f == nil)  // true
 
 // 调用 nil 函数会 panic
-// f(1) // panic: call of nil function value
+// f(1) // panic: runtime error: invalid memory address or nil pointer dereference
 ```
 
 这意味着在调用函数值之前，**一定要检查它是否为 nil**：
@@ -99,20 +105,25 @@ if f != nil {
 
 ---
 
-## 16.3 函数比较
+## 16.3 函数不能比较
 
-在 Go 里，函数值可以用 `==` 和 `!=` 比较，前提是两边都是**同一个函数类型的变量**：
+Go 里**函数值之间不能比较**——`==` 和 `!=` 都不行。唯一的例外是和 `nil` 比较：
 
 ```go
 add := func(a, b int) int { return a + b }
 add2 := add
 add3 := func(a, b int) int { return a + b }
 
-fmt.Println(add == add2)  // true — 指向同一个函数值
-fmt.Println(add == add3)  // false — 不同函数实例（即使代码一样）
+fmt.Println(add == nil)    // false —— 和 nil 比较是允许的
+fmt.Println(add2 == nil)   // false
+
+// fmt.Println(add == add2)  // 编译错误：invalid operation: add == add2 (func can only be compared to nil)
+// fmt.Println(add == add3)  // 同样是编译错误，跟两个函数是不是同一段代码无关
 ```
 
-> 注意：如果两个函数是通过不同的字面量定义（即使代码完全相同），它们在 Go 里是**不同的函数值**，不能直接用 `==` 比较相等（编译错误）。函数比较主要用于检查两个函数变量是否指向同一个函数实例。
+> 为什么不允许？因为闭包让“相等”没有合理的定义：两个由同一个字面量生成的函数，捕获的环境可能不同，底层实现也可能不同。语言干脆规定函数类型**不可比较**（因此也不能做 map 的键），只留下“是不是 nil”这一个判断。
+>
+> 如果你确实需要区分两个函数，通常是给它加一个可比较的标识（比如 ID 或名字），比较那个标识，而不是比较函数本身。
 
 ---
 
@@ -151,7 +162,7 @@ visit(nums, func(n int) {
 把不同的算法封装成函数，根据需要选择不同的策略：
 
 ```go
-type SortStrategy func(a, b []int) []int
+type SortStrategy func(items []int) []int
 
 func bubbleSort(items []int) []int {
     // 冒泡排序实现...
@@ -191,9 +202,12 @@ func sortItems(items []int, strategy SortStrategy) []int {
 }
 
 data := []int{5, 2, 8, 1, 9}
-fmt.Println(sortItems(data, bubbleSort))  // 不同的策略
-fmt.Println(sortItems(data, quickSort))   // 不同的策略
+fmt.Println(sortItems(data, bubbleSort))  // [1 2 5 8 9]
+fmt.Println(sortItems(data, quickSort))   // [1 2 5 8 9]
+fmt.Println(data)                         // [5 2 8 1 9] —— 原切片没被动过
 ```
+
+> 注意这两个排序函数都先复制了输入再排序（`bubbleSort` 用 `copy`，`quickSort` 用 `append` 生成新切片），所以调用 `sortItems` 不会修改调用方的 `data`。这是作为“策略”传进来的函数应该遵守的约定之一。
 
 ### 16.4.3 装饰器模式
 
@@ -268,11 +282,13 @@ helloHandler := func(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintln(w, "Hello, World!")
 }
 
-// 应用中间件：先认证，再记录日志，最后执行业务逻辑
+// 中间件的包裹顺序 = 执行顺序的外到内：
+// 请求先被 loggingMiddleware 打点计时，再交给 authMiddleware 鉴权，最后才到业务处理
 wrapped := loggingMiddleware(authMiddleware(helloHandler))
 // http.HandleFunc("/hello", wrapped)
 fmt.Println("Middleware chain ready!")
 ```
 
----
+> 顺带一提：`http.HandlerFunc` 本身就是一个“把普通函数包装成接口实现”的适配器——它是函数类型，同时实现了 `http.Handler` 的 `ServeHTTP` 方法。所以这里的 `next.ServeHTTP(w, r)` 和 `next(w, r)` 完全等价。
 
+---

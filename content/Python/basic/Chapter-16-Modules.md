@@ -287,7 +287,7 @@ graph TD
     style C fill:#4ecdc4,color:#fff
 ```
 
-```python
+```text
 # 传统包目录结构
 mypackage/
     __init__.py      # 包入口文件（空也行，有内容也行）
@@ -812,7 +812,7 @@ def slow_function():
 print(slow_function())
 ```
 
-> **时区处理**：如果你的程序需要处理不同时区，推荐用 `pytz` 或 `zoneinfo`（Python 3.9+）库。Python 自带的时区支持比较基础，国际化项目最好上专业的。
+> **时区处理**：现在应该优先用标准库的 `zoneinfo`（Python 3.9+），它直接读取系统的 IANA 时区数据库，语义清晰。`pytz` 是那个年代的老方案，**新代码不建议再用**——它的 API 会逼你写 `localize()`，而且容易踩"本地化时间加减出错"的坑。跨时区项目还可以关注 `tzdata` 包（Windows 上没有系统时区库时需要它）。
 
 ### 16.4.5 json（JSON 序列化）
 

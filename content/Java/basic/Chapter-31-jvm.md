@@ -505,6 +505,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.lang.management.GarbageCollectorMXBean;
+import java.util.Arrays;
 import java.util.List;
 
 public class JVMRuntimeInfo {
@@ -535,8 +536,6 @@ public class JVMRuntimeInfo {
         }
     }
 }
-
-import java.util.Arrays;
 ```
 
 ### 常用 JVM 参数速查表

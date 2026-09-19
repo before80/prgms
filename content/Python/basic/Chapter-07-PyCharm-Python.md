@@ -558,6 +558,8 @@ Django 项目有自己的运行方式，不能简单用"Python 脚本"来跑。P
 
 #### 7.4.4.1 Run → Edit Configurations → Django Server
 
+在 PyCharm 里跑 Django 不必自己敲 `runserver`：新建一个 Django Server 类型的配置，把项目根目录和 `settings` 模块填对，之后点运行就能带着调试器和断点跑起来。
+
 ```
 Run → Edit Configurations...
   └── + → Django Server
@@ -597,6 +599,8 @@ def hello(request):
 Flask 是"微框架"的代表，小巧灵活，但调试配置和 Django 有一定区别。
 
 #### 7.4.5.1 Run → Edit Configurations → Flask
+
+Flask 也有专门的运行配置类型（新版里叫 Flask Server）。关键是把"目标"指向应用模块和变量名（例如 `app:app`），PyCharm 才能接管调试。
 
 ```
 Run → Edit Configurations...
@@ -806,6 +810,8 @@ temp[0]['name']
 **Attach to Process** 就是这个"魔法"！
 
 #### 7.4.10.1 Run → Attach to Process
+
+Attach to Process 用于调试**已经在运行**的进程：先让目标进程监听调试端口（如 `debugpy`），再让 PyCharm 附加上去。调试容器里或线上环境的进程时，这是最实用的手段。
 
 ```
 Run → Attach to Process...

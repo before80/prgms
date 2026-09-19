@@ -173,7 +173,9 @@ int lastIndexOf(Object o);     // 查找元素最后一次出现的位置
 
 `ArrayList` 是 `List` 接口最常用的实现类。它的底层数据结构是一个**动态数组（Dynamic Array）**。
 
-"动态数组"是什么意思呢？普通数组大小固定，比如 `int[] arr = new int[10]` 只能存 10 个元素。但 `ArrayList` 内部会帮你自动扩容——当你往一个已满的 `ArrayList` 里添加第 11 个元素时，它会悄悄地创建一个更大的数组（比如容量翻倍），然后把旧数据复制过去。这个过程对你是透明的。
+"动态数组"是什么意思呢？普通数组大小固定，比如 `int[] arr = new int[10]` 只能存 10 个元素。但 `ArrayList` 内部会帮你自动扩容——当你往一个已满的 `ArrayList` 里添加第 11 个元素时，它会创建一个更大的新数组，然后把旧数据复制过去。这个过程对你是透明的。
+
+> 💡 **到底扩到多大？** 看 JDK 源码就知道，`ArrayList` 的扩容公式是 `newCapacity = oldCapacity + (oldCapacity >> 1)`，也就是**新容量约为旧容量的 1.5 倍**（不是翻倍！），并且上限是 `Integer.MAX_VALUE - 8`。所以如果你事先知道要装 100 万个元素，用 `new ArrayList<>(1_000_000)` 一次性指定容量，比让它反复扩容+复制要快得多。
 
 **ArrayList 的优点：**
 
@@ -278,21 +280,23 @@ HEAD -> [元素1] <-> [元素2] <-> [元素3] <-> [元素4] -> TAIL
 
 **LinkedList 的优点：**
 
-- 在任意位置插入/删除元素极快——只需要改动相邻节点的指针，`O(1)`
+- **已经定位到位置时**，插入/删除只需改动相邻节点的指针，`O(1)`
 - 头尾操作效率高（因为它还实现了 `Deque` 接口）
 
 **LinkedList 的缺点：**
 
 - 按索引随机访问需要从头遍历——`O(n)`，比 `ArrayList` 慢很多
+- 按索引插入/删除也一样要先遍历到那个位置，**整体仍是 `O(n)`**——所以"LinkedList 插入删除快"这句话只在"你手里已经拿着那个位置的引用"时才成立
 - 每个节点额外存储两个指针，内存开销略大
 
 ```java
 import java.util.LinkedList;
-import java.util.List;
 
 public class LinkedListDemo {
     public static void main(String[] args) {
-        List<String> tasks = new LinkedList<>();
+        // 需要用 addFirst/peekLast 等 LinkedList 特有方法时，
+        // 变量类型就直接声明成 LinkedList，省掉后面一堆强制转换
+        LinkedList<String> tasks = new LinkedList<>();
 
         // 添加元素
         tasks.add("吃饭");      // HEAD -> [吃饭] -> TAIL
@@ -300,16 +304,16 @@ public class LinkedListDemo {
         tasks.add("打豆豆");    // HEAD -> [吃饭] <-> [睡觉] <-> [打豆豆] -> TAIL
 
         // 在头部插入 —— O(1) 操作
-        ((LinkedList<String>) tasks).addFirst("起床");
+        tasks.addFirst("起床");
         System.out.println("在头部插入后: " + tasks);
 
         // 在尾部插入 —— O(1) 操作
-        ((LinkedList<String>) tasks).addLast("刷牙");
+        tasks.addLast("刷牙");
         System.out.println("在尾部插入后: " + tasks);
 
         // 获取头部和尾部元素 —— O(1)
-        System.out.println("第一个任务: " + ((LinkedList<String>) tasks).peekFirst());
-        System.out.println("最后一个任务: " + ((LinkedList<String>) tasks).peekLast());
+        System.out.println("第一个任务: " + tasks.peekFirst());
+        System.out.println("最后一个任务: " + tasks.peekLast());
 
         // 按索引访问 —— O(n)，越靠后越慢！
         System.out.println("索引2的元素: " + tasks.get(2));
@@ -319,11 +323,11 @@ public class LinkedListDemo {
         System.out.println("在索引2插入后: " + tasks);
 
         // 删除头部 —— O(1)
-        ((LinkedList<String>) tasks).removeFirst();
+        tasks.removeFirst();
         System.out.println("删除头部后: " + tasks);
 
         // 删除尾部 —— O(1)
-        ((LinkedLinked<String>) tasks).removeLast();  // 修正：这里应该是 LinkedList
+        tasks.removeLast();
         System.out.println("删除尾部后: " + tasks);
 
         // 标准 for-each 遍历（没问题，但 get(i) 效率低）
@@ -335,7 +339,7 @@ public class LinkedListDemo {
 
         // 使用 ListIterator 从后往前遍历 —— 链表特有的强大能力！
         System.out.print("逆序遍历: ");
-        var iterator = ((LinkedList<String>) tasks).descendingIterator();
+        var iterator = tasks.descendingIterator();
         while (iterator.hasNext()) {
             System.out.print(iterator.next() + " ");
         }
@@ -649,6 +653,7 @@ public class LinkedHashSetDemo {
 ```java
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.NavigableSet;
 
 public class TreeSetDemo {
     public static void main(String[] args) {
@@ -677,7 +682,9 @@ public class TreeSetDemo {
         System.out.println("按长度排序: " + words);  // [is, lang, Java, awesome]
 
         // TreeSet 的独特方法 —— 利用有序性的高效操作
-        Set<Integer> scoreSet = new TreeSet<>();
+        // 注意：lower/higher/floor/ceiling/subSet 这些方法定义在 NavigableSet 上，
+        // 而不是 Set 上。所以变量要声明为 NavigableSet（或 TreeSet），否则编译不过！
+        NavigableSet<Integer> scoreSet = new TreeSet<>();
         scoreSet.addAll(Set.of(10, 20, 30, 40, 50, 60, 70, 80, 90));
 
         // lower/higher —— 找小于/大于给定值的最大/最小元素

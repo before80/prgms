@@ -123,10 +123,13 @@ sudo -s
 
 ```bash
 # 实际对比
-sudo -i    # HOME=/root, 当前目录不变
-sudo -s    # HOME=/home/longx（还是你的home），当前目录不变
-sudo -i -H # HOME=/root, 当前目录变为root的家目录
+sudo -i     # login shell：HOME=/root，并自动 cd 到 /root
+sudo -s     # non-login shell：HOME 仍是你自己的家目录，当前目录不变
+sudo -H 命令 # 只把这一条命令的 HOME 设为目标用户的家目录
 ```
+
+> **最直观的区别**：`sudo -i` 之后敲 `pwd` 会看到 `/root`、`echo $HOME` 也是 `/root`；`sudo -s` 之后 `HOME` 往往还是 `/home/你的名字`。所以想让 root 的命令找不到你的个人配置文件（更"干净"、更接近真正登录 root），用 `-i`；想保留当前环境（比如沿用你的 `proxy`、`PATH` 设置），用 `-s`。
+> **安全提醒**：`sudo -s` 保留环境变量有风险——如果 `PATH` 里混入了当前用户可写的目录，root 执行命令时可能被"劫持"（这就是经典的 `PATH` 提权）。要精确控制保留哪些变量，用 `/etc/sudoers` 里的 `Defaults env_keep += "..."`。
 
 ### 17.2.4 sudo 常用选项
 
@@ -203,6 +206,8 @@ sudoers的基本格式是：
 %developers  ALL=(ALL)  /usr/bin/systemctl restart, /usr/bin/apt
 ```
 
+> **`wheel` 还是 `sudo`？** 两个名字都是"管理员组"，只是发行版传统不同：**RHEL/CentOS/Fedora 用 `%wheel`**，**Debian/Ubuntu 用 `%sudo`**。所以看到教程里写 `usermod -aG wheel 用户` 却在自己的 Ubuntu 上没反应，就是因为它该用 `sudo` 组。想知道自己系统上默认是哪个：`grep -E '^%(wheel|sudo)' /etc/sudoers`。
+
 ### 17.3.3 ALL=(ALL) ALL：所有命令
 
 最常见的配置：
@@ -257,6 +262,33 @@ john  ALL=(root)  /usr/bin/systemctl restart httpd, /usr/bin/systemctl stop http
 alice  webserver01=(ALL)  ALL
 ```
 
+### 17.3.6 Defaults：全局行为调整
+
+除了"谁能干什么"，sudoers 里还有一类以 `Defaults` 开头的行，用来调整 sudo 的**全局行为**。几个最常用的：
+
+```bash
+# /etc/sudoers 或 /etc/sudoers.d/ 下的配置
+
+# 免密时长：默认 15 分钟，改成 5 分钟
+Defaults    timestamp_timeout=5
+# 设为 0 表示"每次都问密码"，-1 表示"本会话内永远不问"
+
+# 记录 sudo 命令的输出到日志（审计用，file 目录需先存在）
+Defaults    log_output
+
+# 强制在安全 PATH 下执行，避免用户用自己 PATH 里的假命令冒充系统命令
+Defaults    secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# 每次 sudo 都重新验证密码（最严格的审计环境）
+Defaults    timestamp_timeout=0
+
+# 针对单个用户单独设置
+Defaults:zhangsan    timestamp_timeout=0
+```
+
+> **`timestamp_timeout` 是安全与便利的平衡点**：默认 15 分钟内免密，意味着**只要你的终端被别人接管 15 分钟内的 sudo 就无需再输密码**（这也是很多人不理解"我明明锁屏了怎么还被提权"的原因）。对高安全环境建议调小或设为 0。
+> **`secure_path` 是默认开启的**，它保证 `sudo 命令` 走的是系统标准路径；但注意它并不保护你在 sudo 命令行里主动写的相对路径（比如 `sudo ./script.sh` 依然会执行当前目录的脚本，而当前目录可能被普通用户写过）。
+
 ---
 
 ## 17.4 visudo 安全的编辑 sudoers
@@ -286,16 +318,20 @@ longx  ALL=(ALL)  ALL
 
 ### 17.4.2 锁定文件
 
-`visudo`会锁定`/etc/sudoers`和`/etc/sudoers.d/`目录，防止多人同时编辑造成文件损坏。
+`visudo` 编辑时会自动给 sudoers 文件加锁，防止两个人同时编辑造成文件损坏（第一个人退出前，第二个人会看到"This file is busy, still try to open?"之类的提示）。
+
+下面这条命令则和"锁定"无关——它是用来**检查所有 sudoers 文件的语法**：
 
 ```bash
-# 查看visudo是否正在运行（锁定状态）
+# 检查 /etc/sudoers 及 /etc/sudoers.d/ 下所有配置的语法
 sudo visudo -c
 
 # 输出大概是：
 # /etc/sudoers: parsed OK
 # /etc/sudoers.d/README: parsed OK
 ```
+
+> **`-c` 是 check（检查），不是查看锁定状态**。改完 sudoers 想确认有没有写错，或者怀疑队友改坏了，跑一条 `sudo visudo -c` 就能一眼看出哪个文件第几行有问题。第 17.4 节前面说的"visudo 保存前自动检查语法"和这个是同一套检查逻辑。
 
 ### 17.4.3 在 sudoers.d 目录下添加独立配置
 
@@ -324,9 +360,10 @@ sudo visudo -c
 
 > [!NOTE]
 > `/etc/sudoers.d/`目录下的文件命名有讲究：
-> - 文件名不能包含`.`（点号）
-> - 文件权限必须是`0440`
-> - 以`#`或`%`开头表示禁用该配置文件
+> - **文件名里不能含 `.`（点号）**，也不能以 `~` 结尾——sudo 会**跳过**这类文件（这是为了避免误读编辑器/包管理器产生的备份文件，比如 `zhangsan~`、`zhangsan.rpmnew`）
+> - 文件权限必须是 `0440`（属主 root，属组 root），否则 sudo 会直接忽略并报错
+> - 目录下文件按**文件名字典序**依次读取，所以可以用 `10-`、`20-` 这样的前缀控制顺序
+> - 想临时禁用某个配置文件，最省事的做法是**改名**（比如 `mv zhangsan zhangsan.disabled`，因为带了点号，sudo 会跳过它），而不是往里加注释
 
 ```bash
 # 推荐的sudoers.d目录结构：
@@ -357,14 +394,16 @@ sudo -l
 ```
 
 ```bash
-# 查看指定用户的sudo权限
-sudo -l -u zhangsan
+# 查看"另一个用户"有哪些 sudo 权限（注意是大写 -U）
+sudo -l -U zhangsan
 
 # 以指定用户身份运行whoami
 sudo -u zhangsan whoami
 # 输出：
 # zhangsan
 ```
+
+> **`-u` 和 `-U` 别搞反**：小写 `-u 用户` 是"以这个用户的身份去运行命令"；大写 `-U 用户` 是"去看看这个用户被授权了哪些命令"。写成 `sudo -l -u zhangsan` 会变成"以 zhangsan 的身份列出权限"（普通用户下多半报权限不足）。
 
 ```bash
 # 查看某个特定命令是否可以用sudo运行
@@ -403,15 +442,23 @@ sudo tail -50 /var/log/auth.log | grep sudo
 ### journalctl 查看sudo日志（systemd系统）
 
 ```bash
-# 查看sudo日志（journalctl方式）
-sudo journalctl -u sudo
+# 查看 sudo 的日志（journalctl 方式）
+# 注意：sudo 不是一个 systemd 服务，-u sudo 查不到任何东西！
+# 要用 -t（按 syslog 的 tag 过滤）：
+sudo journalctl -t sudo
 
-# 查看最近100条sudo记录
-sudo journalctl -u sudo | tail -100
+# 查看最近100条 sudo 记录
+sudo journalctl -t sudo -n 100
 
-# 实时查看sudo日志
-sudo journalctl -u sudo -f
+# 实时查看 sudo 日志
+sudo journalctl -t sudo -f
+
+# 也可以按命令名过滤（适用于日志来自 audit 的情况）
+sudo journalctl _COMM=sudo -n 50
 ```
+
+> **为什么 `-u sudo` 是错的**：`-u` 过滤的是 systemd 服务单元（unit），而 sudo 只是普通命令，运行时并不存在 `sudo.service`，所以 `journalctl -u sudo` 永远返回空。按"日志标签"过滤要用 `-t`，按"产生的进程名"过滤用 `_COMM=`。
+> 另外在 logind/sudo 较新的版本里，Debian/Ubuntu 的 sudo 日志也可能已经进入 journal 而不再写 `/var/log/auth.log`，所以两种查法都试一下。
 
 ### 📊 sudo日志分析示例
 
@@ -439,17 +486,22 @@ graph LR
 
 ```bash
 # 用visudo添加以下配置：
-# 允许zhangsan运行systemctl、journalctl、logsave等查看日志的命令
-# 但不允许rm、dd等危险命令
-zhangsan  ALL=(root)  /usr/bin/systemctl restart, /usr/bin/systemctl stop, /usr/bin/systemctl status, /usr/bin/journalctl
+# 允许 zhangsan 查看服务状态和日志，但不允许他重启/停止服务、更不能 rm
+zhangsan  ALL=(root)  /usr/bin/systemctl status *, /usr/bin/journalctl
 ```
+
+> **⚠️ sudoers 的命令匹配是"按整行精确匹配"的**：写 `/usr/bin/systemctl restart` 意味着"只允许恰好执行这一条、且不带任何参数的命令"，实际上根本没法用（真实命令总是带服务名）。所以要配合 **通配符**：`/usr/bin/systemctl restart *`。
+> 但通配符也要小心——`systemctl` 参数里的 `*` 覆盖面很广，而且 `systemctl` 能做的事远不止重启服务（它还能改单元文件、跑任意命令），**放行 `systemctl` 几乎等价于放行 root**。给运维人员开权限时，宁可放行**具体的服务脚本**（比如封装好的 `/usr/local/bin/restart-nginx.sh`），也不要直接放行整个 `systemctl`。
 
 ### 案例2：限制Web开发人员只能操作nginx
 
 ```bash
 # 添加配置：
-%webdev  ALL=(www-data)  /usr/bin/systemctl restart nginx, /usr/bin/systemctl stop nginx, /usr/bin/systemctl reload nginx
+%webdev  ALL=(root)  NOPASSWD: /usr/bin/systemctl restart nginx, /usr/bin/systemctl reload nginx
 ```
+
+> **为什么把 `(www-data)` 改成了 `(root)`**：`systemctl` 是通过 D-Bus/Polkit 去指挥 PID 1 的，**普通身份跑不起来**。用 `(www-data)` 运行 `systemctl restart nginx` 通常会报 `Interactive authentication required` 或 `Access denied`。要让 `systemctl` 真正生效，必须是以 root 身份执行。
+> 这也带来一个现实问题：一旦放行 `systemctl restart nginx`，就等于给了对方"以 root 身份执行 systemctl"的能力。更安全的替代方案是写一个只能干这一件事的脚本（里面硬编码好要重启的服务），然后只放行这个脚本。
 
 ### 案例3：sudo免密码的合理使用场景
 
@@ -466,12 +518,14 @@ monitor  ALL=(root)  NOPASSWD: /usr/local/bin/monitor.sh, /usr/local/bin/backup.
 ## 📊 sudo配置格式速查表
 
 ```mermaid
-pie title sudoers格式说明
-    "用户/组" : 1
-    "主机" : 1
-    "= 目标用户" : 1
-    "目标组" : 0.5
-    "命令" : 1
+graph LR
+    S["一条 sudoers 规则"] --> U["谁：用户 / %组名"]
+    S --> H["在哪台机器：主机"]
+    S --> T["以谁的身份：(目标用户 : 目标组)"]
+    S --> C["能干什么：命令列表"]
+    S --> O["附加选项：NOPASSWD: / SETENV: / PASSWD:"]
+    style S fill:#ffeaa7
+    style O fill:#dfe6e9
 ```
 
 | 组成部分 | 含义 | 示例 |
@@ -509,17 +563,20 @@ pie title sudoers格式说明
 
 4. **安全编辑sudoers**：
    - **必须用`visudo`**，不能用普通编辑器
+   - 改完用 `sudo visudo -c` 检查语法
    - 配置放在`/etc/sudoers.d/`下更安全
+   - 命令匹配是"整行精确匹配"，要放参数就得用 `*`；别轻易放行 `systemctl`、`apt` 这类"万能命令"
 
 5. **日志查看**：
    - Debian/Ubuntu: `/var/log/auth.log`
    - RHEL/CentOS: `/var/log/secure`
+   - journalctl 用 `-t sudo` 过滤（`-u sudo` 是查不到的）
+
+6. **常用 Defaults**：
+   - `timestamp_timeout=N`：N 分钟内免密（默认 15 分钟）
+   - `log_output`：记录 sudo 执行的命令输出，便于审计
+   - `secure_path`：强制使用系统标准 PATH
 
 ### 💡 记住这个原则
 
 > **永远不要直接登录root。** 用普通用户做事，需要权限时`sudo`一下，这不仅是最佳实践，更是一种"操作系统礼仪"。
-
----
-
-**当前时间：2026年3月23日 20:28:03**
-**已完成"第十七章"，目前处理"第十八章"**

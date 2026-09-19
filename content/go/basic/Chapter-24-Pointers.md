@@ -39,6 +39,8 @@ func main() {
 
 ### 24.1.2 取地址与解引用
 
+`&` 取地址得到指针，`*` 解引用拿回值。这两个符号在类型和表达式里的含义不一样——`*int` 是一个类型，`*p` 是一次取值：
+
 ```go
 package main
 
@@ -378,7 +380,7 @@ func main() {
 
 **链表结构图：**
 
-```
+```text
 head                    tail
  |                       |
  v                       v
@@ -482,13 +484,18 @@ func main() {
 
 ### 24.5.2 不要对 nil 指针解引用
 
+指针的零值是 `nil`。读取 `p` 本身没问题，但一旦写 `*p` 就会 panic——这是新手最常见的崩溃来源之一：
+
 ```go
 package main
 
+import "fmt"
+
 func main() {
-    var p *int
-    // 下面这行会panic！
-    // println(*p) // panic: invalid memory address or nil pointer dereference
+    var p *int // 零值就是 nil
+    fmt.Println("p 是 nil 吗:", p == nil) // p 是 nil 吗: true
+    // 下面这行会 panic！
+    // fmt.Println(*p) // panic: runtime error: invalid memory address or nil pointer dereference
 }
 ```
 
@@ -517,4 +524,3 @@ func main() {
 
 **黄金法则：**
 > 解引用前一定要检查指针是否为 nil！
-

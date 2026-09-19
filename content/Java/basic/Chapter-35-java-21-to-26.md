@@ -11,7 +11,9 @@ draft = false
 
 > "Java 21 是继 Java 8 之后最重要的 LTS（长期支持版）版本，没有之一。" —— 当你第一次用虚拟线程跑满一万并发的时候，你就会明白这句话的分量。
 
-从 2023 年 9 月 Java 21 正式发布，到 2026 年 3 月 Java 26 的呱呱坠地，Java 这门"老语言"迎来了史上最密集的现代化改造。这六年里，我们见证了虚拟线程从预览走向成熟、字符串模板三起三落、结构化并发从概念到落地……每一项都足以改变我们写代码的方式。
+从 2023 年 9 月 Java 21 正式发布，到 2026 年 3 月 Java 26 呱呱坠地，Java 这门"老语言"迎来了史上最密集的现代化改造。这三年里，我们见证了虚拟线程正式转正、字符串模板从预览走向**被撤回**、Scoped Values 一路预览到 Java 25 才转正、结构化并发至今仍在预览……每一项都值得了解，其中不少还带着"别急着上生产"的标签。
+
+> ⚠️ **读这一章前请记住一句话**：Java 的**预览特性**（preview feature）默认是关着的，要用 `--enable-preview` 才能编译运行，而且**随时可能改语法、甚至被删掉**。本章会明确标注每个特性的当前状态，避免你照着写却在项目里编译不过。
 
 本章，我们就来一次**新特性全景巡礼**，把 Java 21～26 中那些真正值得你花时间了解的特性讲透。
 
@@ -21,47 +23,41 @@ draft = false
 
 ```mermaid
 timeline
-    title Java 21~26 新特性演进史
-    2023-09 : Java 21 发布
-              虚拟线程正式版
-              Pattern Matching for switch 正式版
-              Record Patterns 正式版
-              字符串模板 预览1
-              Scoped Values 预览1
-              Foreign Function & Memory API 预览1
-              Stream Gatherers 预览1
-              Structured Concurrency 预览1
-              Implicitly Declared Classes 预览1
-    2024-03 : Java 22 发布
-              字符串模板 预览2
-              Stream Gatherers 预览2
-              Foreign Function & Memory API 预览2
-              Structured Concurrency 预览2
-    2024-09 : Java 23 发布
-              字符串模板 预览3
-              Stream Gatherers 预览3
-              Foreign Function & Memory API 预览3
-              Structured Concurrency 预览3
-              隐式声明类 第二预览
-              改进的 stream gatherers
-    2025-03 : Java 24 发布
-              Scoped Values 正式版
-              Foreign Function & Memory API 预览4
-              Unnamed Patterns and Variables 预览1
-              Stream Gatherers 预览4
-              Structured Concurrency 正式版
-    2025-09 : Java 25 发布
-              Unnamed Patterns and Variables 预览2
-              Stream Gatherers 预览5
-              String Templates 预览4?
-    2026-03 : Java 26 发布
-              Foreign Function & Memory API 正式版
-              Unnamed Patterns and Variables 正式版
-              Implicitly Declared Classes 正式版
-              Stream Gatherers 预览6?
+    title Java 21~26 特性演进（含预览状态）
+    2023-09 : Java 21（LTS）
+            : 虚拟线程 JEP 444 正式
+            : switch 模式匹配 JEP 441 正式
+            : Record Patterns JEP 440 正式
+            : 字符串模板 JEP 430 预览一
+            : Scoped Values / 结构化并发 / 隐式声明类 均首次预览
+    2024-03 : Java 22
+            : FFM API JEP 454 正式
+            : 未命名变量与模式 JEP 456 正式
+            : 字符串模板 JEP 459 预览二
+            : Stream Gatherers JEP 461 首次预览
+    2024-09 : Java 23
+            : 字符串模板 JEP 465 被撤回
+            : 模块导入声明 JEP 476 预览一
+            : Markdown 文档注释 JEP 467 转正
+            : Gatherers / Scoped Values / 结构化并发 各自再预览一轮
+    2025-03 : Java 24
+            : Stream Gatherers JEP 485 转正
+            : Class-File API JEP 484 转正
+            : 虚拟线程去固定 JEP 491
+            : Scoped Values、结构化并发仍为预览
+    2025-09 : Java 25（LTS）
+            : Scoped Values JEP 506 转正
+            : 紧凑源文件与实例 main JEP 512 转正
+            : 模块导入声明 JEP 511 转正
+            : 结构化并发 JEP 505 第五次预览
+    2026-03 : Java 26
+            : 结构化并发 JEP 525 第六次预览
+            : 惰性常量 JEP 526 第二次预览
+            : HTTP/3 JEP 517
+            : Applet API 正式移除 JEP 504
 ```
 
-> 📌 **什么是 LTS？** LTS 是 "Long-Term Support"（长期支持版）的缩写。Oracle 会为企业级用户提供至少 8 年的安全更新和补丁支持。Java 21 是目前最新的 LTS 版本，也是目前功能最丰富的一个 LTS。Java 17 依然是上一个 LTS，但它的"退休"倒计时已经开始了。
+> 📌 **什么是 LTS？** LTS 是 "Long-Term Support"（长期支持版）的缩写，Oracle 等厂商会提供多年的安全更新。**目前的 LTS 是 Java 25（2025 年 9 月发布），上一个 LTS 是 Java 21**；两者之间（22、23、24）和之后的 26、27 都是"半年一版"的非 LTS 版本。
 
 下面，让我们逐一拆解这些特性。
 
@@ -205,127 +201,99 @@ public class Chapter35VirtualThreadsMillion {
 
 ---
 
-## 35.2 String Templates（字符串模板）
+## 35.2 String Templates（字符串模板）——已被 Java 撤回
 
-### 35.2.1 为什么需要字符串模板？
+> ❌ **先说最重要的事**：字符串模板**最终没有被 Java 采纳**。它在 Java 21 以 JEP 430 预览、Java 22 以 JEP 459 第二次预览，原计划在 Java 23 第三次预览并转正的 JEP 465 **被撤回（Withdrawn）**。今天的正式版 JDK（包括 25、26）里，`java.lang.StringTemplate` 这个类型**根本不存在**——你在网上看到的 `STR."..."` 写法，现在在任何正式版 JDK 上都编译不过。
 
-Java 的字符串拼接，经历过三个时代：
+### 35.2.1 它当初想解决什么问题？
 
-1. **字符串拼接符号 `+`**：`"Hello " + name + ", age is " + age`。可读性差，容易出错。
-2. **`String.format()` 和 `MessageFormat`**：比 `+` 好一点，但插值位置不直观。
-3. **`StringBuilder`**：性能好，但写起来繁琐，`append` 一大堆。
+Java 拼字符串经历过三个阶段：
 
-有没有一种方式，既**类型安全**、又**高性能**、还**易读**？这就是 `String Templates` 想要解决的问题。
+1. **`+` 号拼接**：`"Hello " + name + "，年龄 " + age`，可读性差、括号容易漏。
+2. **`String.format()` / `MessageFormat`**：比 `+` 好一点，但插值位置不直观。
+3. **`StringBuilder`**：性能好，但 `append` 一大堆，写起来啰嗦。
 
-### 35.2.2 模板表达式初体验
+字符串模板想用 `\{...}` 插值配合"模板处理器"，一次性解决类型安全、可读性和转义问题——目标很好，但设计反馈不佳，最终被撤回。
 
-字符串模板是 Java 21 引入的**预览特性**（JEP 459），后续版本持续改进。它的核心是**模板表达式**：
+### 35.2.2 历史语法长什么样（仅作考古，编译不过）
+
+```java,ignore
+// ⚠️ 这段是历史资料：JDK 23 起该特性已被撤回。
+//    在任何正式版 JDK 上都会报错（找不到 STR，或者 illegal escape character）。
+public class Chapter35StringTemplates {
+    public static void main(String[] args) {
+        String name = "阿柴";
+        int age = 18;
+
+        // Java 21 的预览写法：STR 是内置的"模板处理器"
+        String s = STR."""
+                姓名: \{name}
+                年龄: \{age}
+                """;
+        System.out.println(s);
+    }
+}
+```
+
+`STR` 是当时的字符串处理器，`FMT` 负责格式化，`RAW` 什么都不做；`StringTemplate` 是模板对象，可以取到 `fragments()`（字面片段）和 `values()`（插值结果）。这套 API 现在都用不上了。
+
+### 35.2.3 今天应该怎么写？
+
+老老实实用回久经考验的 API（下面这段在 JDK 25 上可以直接跑）：
 
 ```java
-// Chapter35StringTemplates.java
-public class Chapter35StringTemplates {
+// Chapter35StringAlternatives.java
+public class Chapter35StringAlternatives {
 
     public static void main(String[] args) {
         String name = "阿柴";
         int age = 18;
         double score = 98.765;
 
-        // 模板表达式：使用 \`\` BACKTICK（反引号）定义模板
-        // \`\` \{...} 中可以写任意 Java 表达式
-        String template = """
-                姓名: \{name}
-                年龄: \{age}
-                成绩: \{String.format("%.2f", score)}
-                两年后年龄: \{age + 2}
-                自我介绍: \{name + " 是一名 Java 程序员！"}
-                """;
-        System.out.println(template);
+        // 1) 最常用：String.format / String::formatted
+        String s1 = String.format("姓名: %s，年龄: %d，成绩: %.2f", name, age, score);
+        String s2 = "姓名: %s，年龄: %d".formatted(name, age);
+        System.out.println(s1);
+        System.out.println(s2);
+
+        // 2) 多行模板：文本块 + formatted，最舒服的写法
+        String s3 = """
+                姓名: %s
+                年龄: %d
+                两年后: %d
+                """.formatted(name, age, age + 2);
+        System.out.println(s3);
+
+        // 3) 需要位置参数或本地化时，用 MessageFormat
+        String s4 = java.text.MessageFormat.format("你好，{0}！你今年 {1} 岁。", name, age);
+        System.out.println(s4);
     }
 }
 ```
 
 输出：
 
-```
+```text
+姓名: 阿柴，年龄: 18，成绩: 98.77
+姓名: 阿柴，年龄: 18
 姓名: 阿柴
 年龄: 18
-成绩: 98.77
-两年后年龄: 20
-自我介绍: 阿柴 是一名 Java 程序员！
+两年后: 20
+
+你好，阿柴！你今年 18 岁。
 ```
 
-> 📌 **语法说明**：模板使用三个反引号 `"""` 开始和结束（文本块语法），`\{表达式}` 是**嵌入式表达式**（Embedded Expression）。注意反引号前没有 `String.` 前缀，这是编译器级别的语法增强。
+> 💡 文本块里以 `%` 开头的格式串要注意：文本块本身不做格式化，必须显式调用 `.formatted(...)` 或 `String.format(...)` 才会替换占位符。
 
-### 35.2.3 模板处理器：自定义格式化逻辑
+### 35.2.4 那"安全拼 SQL"怎么办？
 
-模板的真正威力在于**模板处理器（Template Processor）**。Java 为我们提供了两个内置处理器：
+字符串模板主打的卖点之一是"把用户输入安全地拼进 SQL"。它没了之后，旧办法依然可靠：
 
-- `String.RAW`：保留原始转义序列，不做处理
-- `String.raw`：同上（别名）
+- **首选**：用 `PreparedStatement` 的占位符 `?`，值永远走参数绑定，不进 SQL 文本；
+- **表名/列名**这类不能用占位符的地方，用**白名单校验**（只允许事先约定好的几个标识符）；
+- 权限上再收一道：数据库账号只给最小权限，别用 root。
 
-但更强大的是**自定义处理器**：
-
-```java
-// Chapter35CustomTemplateProcessor.java
-import java.util.List;
-
-// 定义一个安全的 SQL 模板处理器
-// 模板处理器接口：StringTemplate.Processor
-public class Chapter35CustomTemplateProcessor {
-
-    // 使用 LITERAL 处理器会自动转义 SQL 参数（这里只是演示）
-    public static void main(String[] args) {
-        String tableName = "users";
-        String column = "name";
-        String value = "阿柴'; DROP TABLE users; --"; // 尝试 SQL 注入？
-
-        // 安全做法：使用预处理语句
-        // 这里演示模板与预处理结合的思路
-        StringTemplate template = StringTemplate.of("SELECT * FROM \{tableName} WHERE \{column} = ?");
-        System.out.println("模板: " + template);
-        System.out.println("碎片: " + template.fragments());
-        System.out.println("值: " + List.of(template.values()));
-
-        // Java 会保证嵌入表达式的值是独立处理的，不会被当作 SQL 关键字
-        // 实际项目中推荐使用 PreparedStatement
-    }
-}
-```
-
-### 35.2.4 模板方法：逻辑封装
-
-你可以定义**模板方法**，让模板逻辑可复用：
-
-```java
-// Chapter35TemplateMethods.java
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-public class Chapter35TemplateMethods {
-
-    // 定义一个日志模板方法
-    private static String logTemplate(String level, String message) {
-        // 使用 StringTemplate.RAW 处理时间戳
-        return StringTemplate.of("""
-                [\{LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))}]
-                [\{level}]
-                \{message}
-                """).toString();
-    }
-
-    public static void main(String[] args) {
-        System.out.println(logTemplate("INFO", "应用启动了"));
-        try {
-            Thread.sleep(1100);
-        } catch (InterruptedException ignored) {}
-        System.out.println(logTemplate("ERROR", "Something went wrong!"));
-    }
-}
-```
-
-> ⚠️ **注意**：String Templates 在 Java 21～23 中经历了多次预览更改，API 尚未最终稳定。在 Java 26 中已较为成熟，但使用前请确认你的 JDK 版本是否已正式支持该特性。
-
----
+> 📌 **小结**：字符串模板属于 Java 的"被撤回的尝试"，不必学它的语法。日常拼字符串用 `String.format` / `formatted()` / 文本块，拼 SQL 用 `PreparedStatement`。
 
 ## 35.3 Pattern Matching for switch 正式版
 
@@ -567,20 +535,18 @@ instanceof 解构: 阿柴，今年 18 岁
 
 ### 35.5.2 Scoped Values 登场
 
-**Scoped Values（作用域变量）** 是 Java 21 引入的预览特性（JEP 446），在 Java 24 正式发布（JEP 481）。它提供了一种**安全、可继承、可复用的线程内数据共享**机制。
+**Scoped Values（作用域变量）** 是 Java 21 引入的预览特性（JEP 446），此后在 Java 22（JEP 464）、Java 23（JEP 481）、Java 24（JEP 487）持续预览打磨，最终在 **Java 25（JEP 506）正式转正**。它提供了一种**安全、可继承、可复用的线程内数据共享**机制。
 
 核心思想：**数据绑定到一段代码的作用域，而不是整个线程的生命周期**。
 
 ```java
 // Chapter35ScopedValues.java
-import java.util.concurrent.StructureViolationException;
-
 public class Chapter35ScopedValues {
 
     // 定义一个 Scoped Value（类似于 ThreadLocal，但更安全）
     private static final ScopedValue<String> CURRENT_USER = ScopedValue.newInstance();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         System.out.println("主线程直接读取（未设置）: " + CURRENT_USER.orElse("未登录"));
 
         // 在作用域内设置和读取 Scoped Value
@@ -651,36 +617,40 @@ import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.Linker;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SymbolLookup;
+import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
 
 public class Chapter35ForeignMemory {
 
     public static void main(String[] args) throws Throwable {
-        // 获取 C 标准库的查找器
-        SymbolLookup stdlib = SymbolLookup.libraryLookup("msvcrt.dll", Arena.global());
+        Linker linker = Linker.nativeLinker();
+
+        // 获取 C 运行时的符号查找器：
+        // defaultLookup() 会查找当前平台默认的 C 库（macOS/Linux 上是 libc，Windows 上是 C 运行时）。
+        // 若要从任意动态库查找，可改用 SymbolLookup.libraryLookup("libc.dylib", Arena.global())。
+        SymbolLookup stdlib = linker.defaultLookup();
 
         // 找到 strlen 函数的地址
         MemorySegment strlenAddr = stdlib.find("strlen")
                 .orElseThrow(() -> new RuntimeException("找不到 strlen 函数"));
 
-        // 获取 C 语言的函数描述符：size_t strlen(const char* str)
+        // 描述 C 函数签名：size_t strlen(const char* str)
+        // size_t 是平台相关的无符号整数，64 位平台上用 JAVA_LONG 表示；指针用 ADDRESS 表示。
         FunctionDescriptor strlenDescriptor = FunctionDescriptor.of(
-                Linker.Option.interner().longTy(),  // 返回 size_t（64位下是 long）
-                Linker.Option.interner().pointerCharSeq()  // 参数：const char*
+                ValueLayout.JAVA_LONG,   // 返回值 size_t
+                ValueLayout.ADDRESS      // 参数 const char*
         );
 
-        // 创建方法句柄
-        Linker linker = Linker.nativeLinker();
+        // 创建方法句柄（downcall handle 负责把 Java 调用翻译成 native 调用）
         MethodHandle strlenHandle = linker.downcallHandle(strlenAddr, strlenDescriptor);
 
-        // 分配一块 native 内存并写入字符串
-        String testString = "你好，Java _foreign_function!";
-        try (Arena arena = Arena.openConfined()) {
-            // 将 Java 字符串复制到 native 内存
+        String testString = "你好，Java FFM!";
+        try (Arena arena = Arena.ofConfined()) {
+            // 将 Java 字符串按 UTF-8 复制到 native 内存（末尾自动补 '\0'）
             MemorySegment nativeString = arena.allocateFrom(testString, StandardCharsets.UTF_8);
 
-            // 调用 strlen 获取长度
+            // 调用 strlen 获取字节长度
             long length = (long) strlenHandle.invoke(nativeString);
             System.out.println("C strlen 结果: " + length);
             System.out.println("Java 字符串字节数: " + testString.getBytes(StandardCharsets.UTF_8).length);
@@ -689,7 +659,18 @@ public class Chapter35ForeignMemory {
 }
 ```
 
-> 📌 **注意**：`msvcrt.dll` 是 Windows 上的 C 运行时库。在 Linux/macOS 上，你需要加载对应的 `.so`/`.dylib` 文件。代码中使用的是通用的跨平台写法，路径需要根据实际环境调整。
+输出（macOS/Linux 上与 Java 侧的字节数一致，因为二者都按 UTF-8 统计）：
+
+```
+C strlen 结果: 18
+Java 字符串字节数: 18
+```
+
+> 📌 **注意 1**：早期草案里的 `Linker.Option.interner()`、`Arena.openConfined()` 等写法**并不属于正式 API**，正式版的 Arena 工厂方法是 `Arena.ofConfined()` / `ofShared()` / `ofAuto()`，返回类型用 `ValueLayout.JAVA_LONG`、`ValueLayout.ADDRESS` 描述。
+>
+> 📌 **注意 2**：在 Windows 上 C 运行时库是 `msvcrt.dll`，在 Linux/macOS 上是 `libc.so` / `libc.dylib`。用 `Linker.nativeLinker().defaultLookup()` 可以跨平台自动定位，无需硬编码库名。
+>
+> 📌 **注意 3**：调用外部函数属于“受限操作”，Java 24 起如果模块未开启 native 访问会打印警告（未来版本可能直接禁止）。正式运行请加上参数：`java --enable-native-access=ALL-UNNAMED Chapter35ForeignMemory`。
 
 ### 35.6.3 Native 内存管理：安全第一
 
@@ -705,32 +686,54 @@ import java.lang.foreign.ValueLayout;
 public class Chapter35MemoryManagement {
 
     public static void main(String[] args) {
-        // Arena 有三种：
-        // 1. Arena.openConfined() - 单一线程使用
-        // 2. Arena.openShared() - 多线程共享
-        // 3. Arena.openAuto() - 自动管理（作用域结束后释放）
+        // Arena 有三种工厂方法：
+        // 1. Arena.ofConfined() - 只能被创建它的线程使用，关闭后释放
+        // 2. Arena.ofShared()   - 可被多线程共享，所有使用者退出后释放
+        // 3. Arena.ofAuto()     - 交给 GC 自动管理，无需手动关闭
 
-        try (Arena arena = Arena.openConfined()) {
+        try (Arena arena = Arena.ofConfined()) {
             // 分配 100 字节
             MemorySegment segment = arena.allocate(100);
             System.out.println("分配的内存段: " + segment);
             System.out.println("大小: " + segment.byteSize());
 
-            // 分配并写入一个 int 数组
-            MemorySegment intArray = arena.allocateArray(ValueLayout.JAVA_INT, new int[]{1, 2, 3, 4, 5});
+            // 分配并写入一个 int 数组（allocateFrom 会把 Java 值直接拷进 native 内存）
+            MemorySegment intArray = arena.allocateFrom(ValueLayout.JAVA_INT, 1, 2, 3, 4, 5);
             System.out.println("int 数组长度: " + intArray.byteSize() / 4); // 每个 int 4 字节
 
-            // 定义结构体内存布局（模拟 C 的 struct）
+            // 定义结构体内存布局（模拟 C 的 struct { int age; long address; }）
+            // 注意 C 的对齐规则：int 后面需要 4 字节填充，long 才能 8 字节对齐，
+            // 因此必须显式插入 paddingLayout(4)，否则 structLayout 会直接抛异常。
             MemoryLayout personLayout = MemoryLayout.structLayout(
                     ValueLayout.JAVA_INT.withName("age"),
+                    MemoryLayout.paddingLayout(4),
                     ValueLayout.JAVA_LONG.withName("address")
             );
             MemorySegment person = arena.allocate(personLayout);
             System.out.println("person 结构体布局: " + personLayout);
-            // 注意：写入结构体字段需要用 withName() 或按偏移量访问
+            // 按字段偏移量读写结构体成员
+            person.set(ValueLayout.JAVA_INT,
+                    personLayout.byteOffset(MemoryLayout.PathElement.groupElement("age")), 18);
+            person.set(ValueLayout.JAVA_LONG,
+                    personLayout.byteOffset(MemoryLayout.PathElement.groupElement("address")), 1000L);
+            int age = person.get(ValueLayout.JAVA_INT,
+                    personLayout.byteOffset(MemoryLayout.PathElement.groupElement("age")));
+            long address = person.get(ValueLayout.JAVA_LONG,
+                    personLayout.byteOffset(MemoryLayout.PathElement.groupElement("address")));
+            System.out.println("age = " + age + ", address = " + address);
         } // Arena 关闭后，所有分配的内存自动释放 —— 无需手动 free！
     }
 }
+```
+
+输出：
+
+```
+分配的内存段: MemorySegment{ kind: native, address: 0x..., byteSize: 100 }
+大小: 100
+int 数组长度: 5
+person 结构体布局: [i4(age)x4j8(address)]
+age = 18, address = 1000
 ```
 
 > 🔑 **核心优势**：所有的 native 内存分配都通过 Arena 管理，**无需手动释放**，Arena 关闭时自动清理。这意味着 JNI 中最常见的内存泄漏问题被彻底消灭了。
@@ -752,11 +755,11 @@ List<String> result = list.stream()
     // 必须自己写 collector 或者用第三方库
 ```
 
-**Stream Gatherers（JEP 485）** 是一组内置的 Stream 操作扩展，它们让 Stream 处理流水线更加强大。
+**Stream Gatherers（流收集器）** 是一组内置的 Stream 操作扩展，它让 Stream 处理流水线更加强大。它先在 Java 22（JEP 461）和 Java 23（JEP 473）两轮预览，最终在 **Java 24（JEP 485）正式转正**，使用内置收集器时不再需要 `--enable-preview`。
 
 ### 35.7.2 内置 Gatherers
 
-Java 22 引入的 Stream Gatherers 提供了几个强大的内置 gatherer：
+JDK 的 `java.util.stream.Gatherers` 工具类提供了几个开箱即用的收集器：
 
 ```java
 // Chapter35StreamGatherers.java
@@ -782,20 +785,21 @@ public class Chapter35StreamGatherers {
                 .forEach(window -> System.out.println(window));
         // 输出: [1,2,3], [2,3,4], [3,4,5], ...
 
-        // 3. fold(initial, combiner) - 折叠
+        // 3. fold(initialSupplier, folder) - 折叠成单个结果（注意第一个参数是"初始值工厂"）
         System.out.println("\n=== fold - 累加 ===");
         List<Integer> summed = numbers.stream()
-                .gather(Gatherers.fold(0, Integer::sum));
-        System.out.println("累加结果: " + summed); // [1, 3, 6, 10, 15, 21, 28, 36, 45, 55]
+                .gather(Gatherers.fold(() -> 0, Integer::sum))
+                .toList();
+        System.out.println("累加结果: " + summed); // [55]
 
-        // 4. scanLeft - 前缀累积（类似 Haskell 的 scanl）
-        System.out.println("\n=== scanLeft - 前缀累积 ===");
+        // 4. scan(initialSupplier, scanner) - 前缀累积（类似 Haskell 的 scanl）
+        System.out.println("\n=== scan - 前缀累积 ===");
         numbers.stream()
                 .limit(5)
-                .gather(Gatherers.scanLeft(Integer::sum))
+                .gather(Gatherers.scan(() -> 0, Integer::sum))
                 .forEach(n -> System.out.print(n + " ")); // 1 3 6 10 15
 
-        // 5. mapConcurrent - 并发映射（预览中）
+        // 5. mapConcurrent - 并发映射（正式功能，用虚拟线程并发执行映射函数）
         System.out.println("\n\n=== mapConcurrent(3) ===");
         List<String> names = List.of("Alice", "Bob", "Charlie", "David");
         names.stream()
@@ -824,9 +828,9 @@ public class Chapter35StreamGatherers {
 [8, 9, 10]
 
 === fold - 累加 ===
-累加结果: [1, 3, 6, 10, 15, 21, 28, 36, 45, 55]
+累加结果: [55]
 
-=== scanLeft - 前缀累积 ===
+=== scan - 前缀累积 ===
 1 3 6 10 15
 
 === mapConcurrent(3) ===
@@ -842,36 +846,28 @@ DAVID
 
 ```java
 // Chapter35CustomGatherer.java
+import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Gatherer;
+import java.util.stream.Gatherer.Integrator;
 
 public class Chapter35CustomGatherer {
 
     // 自定义 Gatherer：去除连续重复元素
     // 例如: [1, 1, 2, 2, 2, 3, 1, 1] -> [1, 2, 3, 1]
     public static <T> Gatherer<T, ?, T> distinctConsecutive() {
-        return Gatherer.of(
-                // 状态初始化器
-                Supplier<List<T>>::new,
-                // 状态累加器：决定是否接纳当前元素
-                (List<T> seen, T element) -> {
-                    if (seen.isEmpty() || !seen.get(seen.size() - 1).equals(element)) {
-                        seen.add(element);
+        return Gatherer.ofSequential(
+                // 状态初始化器：流开始时创建一份状态，这里用一个列表记录"已经输出过的最后一个元素"
+                (Supplier<List<T>>) ArrayList::new,
+                // 整合器：每来一个元素调用一次，需要时把结果 push 给下游
+                (Integrator<List<T>, T, T>) (state, element, downstream) -> {
+                    if (state.isEmpty() || !state.get(state.size() - 1).equals(element)) {
+                        state.add(element);
+                        return downstream.push(element); // 输出这个元素
                     }
-                    return true; // always push forward
-                },
-                // 下游消费者：输出所有去重后的元素
-                (List<T> seen, java.util.function.Consumer<T> downstream) -> {
-                    seen.forEach(downstream);
-                },
-                // 合并器（用于并行流）
-                (left, right) -> {
-                    left.addAll(right);
-                    return left;
-                }
-        );
+                    return true; // 与上一个相同，跳过，继续处理下一个
+                });
     }
 
     public static void main(String[] args) {
@@ -883,6 +879,14 @@ public class Chapter35CustomGatherer {
     }
 }
 ```
+
+输出：
+
+```
+去重相邻: [1, 2, 3, 4, 5]
+```
+
+> 📌 **注意**：早期资料里常见的 `Gatherer.of(静态状态, 累加器, 下游消费者, 合并器)` 四参数写法容易踩坑——`Supplier<List<T>>::new` 这种写法无法确定泛型类型，会直接编译失败。自定义收集器推荐从 `Gatherer.ofSequential(初始器, 整合器)` 起步，需要并行处理时再补上 `combiner` 换成带合并器的重载。
 
 ---
 
@@ -903,30 +907,31 @@ void process() {
 }
 ```
 
-**Structured Concurrency（结构化并发，JEP 480）** 的核心思想是：**一个方法内启动的所有子任务，应该在该方法返回之前全部完成**。如果方法异常退出，所有子任务应该被**自动取消**。
+**Structured Concurrency（结构化并发）** 的核心思想是：**一个方法内启动的所有子任务，应该在该方法返回之前全部完成**。如果方法异常退出，所有子任务应该被**自动取消**。
+
+> ⚠️ **状态说明**：结构化并发自 Java 21（JEP 453）起一直在预览，到 Java 24 是第四轮（JEP 499）、Java 25 是第五轮（JEP 505）、Java 26 是第六轮（JEP 525），**至今（JDK 25/26）仍是预览特性**，使用时要加 `--enable-preview`。请勿把它当成已经转正的正式 API。
 
 ### 35.8.2 StructuredTaskScope 使用演示
 
 ```java
 // Chapter35StructuredConcurrency.java
-import java.util.concurrent.StructureViolationException;
 import java.util.concurrent.StructuredTaskScope;
-import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.StructuredTaskScope.Joiner;
 
 public class Chapter35StructuredConcurrency {
 
     public static void main(String[] args) throws Exception {
         System.out.println("=== 结构化并发示例 ===\n");
         basicExample();
-        shutdownOnFailureExample();
-        forkAnyExample();
+        failureExample();
+        anySuccessExample();
     }
 
     // 示例1：基础使用
     static void basicExample() throws InterruptedException {
         System.out.println("示例1: 基础结构化并发");
-        try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+        // open() 使用默认的 Joiner（等待所有子任务成功完成）
+        try (var scope = StructuredTaskScope.open()) {
             // fork 两个子任务
             var future1 = scope.fork(() -> {
                 Thread.sleep(100);
@@ -947,10 +952,12 @@ public class Chapter35StructuredConcurrency {
         System.out.println("  作用域结束，所有子任务自动收尾\n");
     }
 
-    // 示例2：ShutdownOnFailure - 失败即取消
-    static void shutdownOnFailureExample() throws Exception {
-        System.out.println("示例2: ShutdownOnFailure（任一失败，全部取消）");
-        try (var scope = new StructuredTaskScope.ShutdownOnFailure<>()) {
+    // 示例2：任一失败即取消其余任务
+    static void failureExample() throws Exception {
+        System.out.println("示例2: 任一失败，全部取消");
+        // Joiner.awaitAllSuccessfulOrThrow()：只要有一个子任务失败，
+        // 就取消其他仍在运行的任务，join() 时抛出异常。
+        try (var scope = StructuredTaskScope.open(Joiner.<String>awaitAllSuccessfulOrThrow())) {
             scope.fork(() -> {
                 Thread.sleep(50);
                 return "快速任务";
@@ -959,8 +966,7 @@ public class Chapter35StructuredConcurrency {
                 throw new RuntimeException("模拟任务失败");
             });
 
-            scope.join();         // 等待全部完成
-            scope.throwIfFailed(); // 如果有失败，抛出异常
+            scope.join(); // 有失败则在这里抛出
             System.out.println("  全部成功！");
         } catch (Exception e) {
             System.out.println("  捕获到异常: " + e.getCause().getMessage());
@@ -968,32 +974,12 @@ public class Chapter35StructuredConcurrency {
         System.out.println();
     }
 
-    // 示例3：forkAny - 取第一个完成的结果
-    static void shutdownOnSuccessExample() throws Exception {
-        System.out.println("示例3: ShutdownOnSuccess（取第一个成功的结果）");
-        try (var scope = new StructuredTaskScope.ShutdownOnSuccess<String>()) {
-            scope.fork(() -> {
-                Thread.sleep(300);
-                return "服务器A响应: 200";
-            });
-            scope.fork(() -> {
-                Thread.sleep(100);
-                return "服务器B响应: 200";
-            });
-
-            scope.join();
-            // 只要有一个成功就返回第一个成功的结果
-            String result = scope.result();
-            System.out.println("  最早返回: " + result);
-            // 其他任务会被自动取消
-        }
-        System.out.println();
-    }
-
-    // 示例4：forkAny - 取第一个完成的结果（用 ShutdownOnSuccess）
-    static void forkAnyExample() throws InterruptedException {
-        System.out.println("示例4: ShutdownOnSuccess - 竞速谁最快");
-        try (var scope = new StructuredTaskScope.ShutdownOnSuccess<String>()) {
+    // 示例3：取第一个成功的结果（竞速）
+    static void anySuccessExample() throws Exception {
+        System.out.println("示例3: 取第一个成功的结果（竞速谁最快）");
+        // Joiner.anySuccessfulResultOrThrow()：谁先成功就用谁的结果，
+        // join() 直接返回该结果，其余任务自动取消。
+        try (var scope = StructuredTaskScope.open(Joiner.<String>anySuccessfulResultOrThrow())) {
             scope.fork(() -> {
                 Thread.sleep(300);
                 return "服务器A（慢）";
@@ -1007,8 +993,7 @@ public class Chapter35StructuredConcurrency {
                 return "服务器C（中）";
             });
 
-            scope.join();
-            String winner = scope.result();
+            String winner = scope.join();
             System.out.println("  竞速冠军: " + winner);
         } catch (Exception e) {
             System.out.println("  全部失败: " + e);
@@ -1016,6 +1001,32 @@ public class Chapter35StructuredConcurrency {
     }
 }
 ```
+
+运行方式（结构化并发在 JDK 25 仍是预览特性，两个参数缺一不可）：
+
+```bash
+javac --release 25 --enable-preview Chapter35StructuredConcurrency.java
+java --enable-preview Chapter35StructuredConcurrency
+```
+
+输出：
+
+```
+=== 结构化并发示例 ===
+
+示例1: 基础结构化并发
+  任务1完成
+  任务2完成
+  作用域结束，所有子任务自动收尾
+
+示例2: 任一失败，全部取消
+  捕获到异常: 模拟任务失败
+
+示例3: 取第一个成功的结果（竞速谁最快）
+  竞速冠军: 服务器B（快）
+```
+
+> 📌 **注意**：旧版教程里出现的 `new StructuredTaskScope.ShutdownOnFailure()` / `ShutdownOnSuccess()` 已经**从 JDK 25 中删除**。现在的统一写法是 `StructuredTaskScope.open(Joiner)`，常用的 `Joiner` 工厂方法有：`allSuccessfulOrThrow()`、`awaitAllSuccessfulOrThrow()`、`awaitAll()`、`anySuccessfulResultOrThrow()`、`allUntil(Predicate)`。
 
 ### 35.8.3 结构化并发的三大保障
 
@@ -1041,7 +1052,7 @@ public class Hello {
 }
 ```
 
-**Implicitly Declared Classes and Instance Main Methods（隐式声明类与实例 main 方法，JEP 477）** 让 Java 可以像脚本一样运行：
+**Compact Source Files and Instance Main Methods（紧凑源文件与实例 main 方法）** 让 Java 可以像脚本一样运行。它从 Java 21（JEP 445）开始预览，历经 Java 22（JEP 463）、Java 23（JEP 477）、Java 24（JEP 495）四轮打磨，最终在 **Java 25（JEP 512）正式转正**，不再需要 `--enable-preview`：
 
 ```java
 // HelloJava.java —— 不需要 class 声明，不需要 public，不需要 static
@@ -1051,7 +1062,9 @@ void main() {
 }
 ```
 
-直接运行：`java HelloJava.java`（Java 22+ 支持直接运行单文件源码）
+直接运行：`java HelloJava.java`
+
+> 📌 **注意**：**直接运行单个 `.java` 源码文件**（不写 `class`、不手动 `javac`）其实从 **Java 11** 就支持了（JEP 330）；而**省略 `class` 声明、把 `main` 写成实例方法**是后来逐步预览、到 Java 25 才转正的能力。这两件事不要混为一谈。
 
 ### 35.9.2 隐式声明类的规则
 
@@ -1094,7 +1107,7 @@ static void staticMethod() {
 
 ```java
 // Chapter35ImplicitWithVT.java
-// 直接运行：java --enable-preview Chapter35ImplicitWithVT.java（Java 22+）
+// 直接运行：java Chapter35ImplicitWithVT.java（Java 25 起无需 --enable-preview）
 
 void main() {
     System.out.println("隐式类 + 虚拟线程演示");
@@ -1119,21 +1132,21 @@ Java 21～26 是 Java 语言史上变化最剧烈的六年。以下是关键要�
 | 特性 | Java 版本 | 状态 | JEP |
 |------|---------|------|-----|
 | 虚拟线程（Virtual Threads） | 21 | 正式版 | JEP 444 |
-| 字符串模板（String Templates） | 21～26 | 预览/正式版 | JEP 459 |
+| 字符串模板（String Templates） | 21 | **已撤回（Withdrawn）** | JEP 430 → JEP 465 |
 | Pattern Matching for switch | 21 | 正式版 | JEP 441 |
 | Record Patterns | 21 | 正式版 | JEP 440 |
-| Scoped Values | 21～24 | 预览→正式版 | JEP 446 |
-| Foreign Function & Memory API | 21～26 | 预览→正式版 | JEP 454 |
-| Stream Gatherers | 22～26 | 预览版 | JEP 485 |
-| Structured Concurrency | 21～24 | 预览→正式版 | JEP 480 |
-| Implicitly Declared Classes | 21～26 | 预览→正式版 | JEP 477 |
+| Scoped Values | 21～25 | 预览 → **25 正式版** | JEP 446 → JEP 506 |
+| Foreign Function & Memory API | 21～22 | 预览 → **22 正式版** | JEP 454 |
+| Stream Gatherers | 22～24 | 预览 → **24 正式版** | JEP 461 → JEP 485 |
+| Structured Concurrency | 21～26 | **仍是预览版** | JEP 453 → JEP 505（6th: JEP 525） |
+| Compact Source Files / 实例 main | 21～25 | 预览 → **25 正式版** | JEP 445 → JEP 512 |
 
 **核心启示**：
 
 1. **并发模型革新是主旋律**：虚拟线程、Scoped Values、结构化并发三者共同构成了 Java 新一代并发编程范式。
 2. **FFM API 终结了 JNI 的时代**：纯 Java 调用 native 库 + 自动内存管理，JNI 可以逐步退出历史舞台了。
-3. **语言表达力持续增强**：Record Patterns、Pattern Matching for switch、String Templates 让 Java 越来越接近"少写代码多干活"的理想。
-4. **Java 正在拥抱脚本化**：Implicitly Declared Classes 降低了 Java 的入门门槛，单文件源码直接运行让 Java 也可以像 Python 一样写即跑。
-5. **预览机制是个好设计**：JEP 的预览机制让新特性可以在真实场景中打磨，经多轮迭代后再正式发布，保证了稳定性。
+3. **语言表达力持续增强**：Record Patterns、Pattern Matching for switch、Stream Gatherers、模式匹配等让 Java 越来越接近"少写代码多干活"的理想。
+4. **Java 正在拥抱脚本化**：紧凑源文件（Compact Source Files）与实例 main 方法降低了 Java 的入门门槛，让 Java 也可以像 Python 一样写即跑。
+5. **预览机制是把双刃剑**：好消息是它在正式发布前留足了打磨空间（比如 Scoped Values、结构化并发都迭代了四五轮）；坏消息是**预览特性随时可能改名甚至被撤回**（字符串模板就是活生生的例子）。所以生产环境尽量以"已转正"的特性为准，预览特性要盯紧 JEP 编号和版本。
 
 这些特性不是孤立的，它们共同指向 Java 的未来方向：**更高的开发效率、更安全、更简洁、更强大的并发处理能力**。掌握它们，你就不只是 Java 程序员，而是一个**现代 Java 开发者**。

@@ -637,8 +637,8 @@ window.addEventListener("scroll", throttle(() => {
 ```mermaid
 graph TD
     A["事件触发"] --> B{"选择策略"}
-    B -->|"用户输入后等待|搜索建议"| C["防抖 Debounce"]
-    B -->|"持续触发|滚动位置|resize"| D["节流 Throttle"]
+    B -->|"用户输入后等待<br/>搜索建议"| C["防抖 Debounce"]
+    B -->|"持续触发<br/>滚动位置<br/>resize"| D["节流 Throttle"]
     style C fill:#98d8c8
     style D fill:#87ceeb
 ```
@@ -1236,4 +1236,3 @@ graph TD
 | 内存优化 | 避免闭包泄漏、解除引用、减少全局变量 |
 
 **性能优化没有银弹，需要根据实际场景选择合适的方案！**
-

@@ -120,7 +120,10 @@ fn internal_function() {
 }
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 这是多文件项目中的 main.rs，需要与 src/utils.rs、src/models.rs 一起编译，
+//    为了不让读者误以为可以单独运行，这里标记为 ignore。
+
 // src/main.rs
 // 这是程序的主入口
 
@@ -149,7 +152,10 @@ fn main() {
 1. 在当前目录查找 `foo.rs` 文件
 2. 如果没找到，查找 `foo/` 目录下的 `mod.rs` 文件
 
-```rust
+```rust,ignore
+// ⚠️ 本文件用 mod foo; 引入另一个文件，单独编译会报 E0583（找不到 src/foo.rs），
+//    下面给出的是同一个项目的两个文件（本块标记为 ignore）。
+
 // src/main.rs
 
 // 声明一个叫 foo 的模块
@@ -203,7 +209,10 @@ graph TD
     D --> D2[子模块: handlers]
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 这里只有 main.rs 的内容，utils.rs / models.rs / api 目录都不在，
+//    所以下面只是模块声明示例（本块标记为 ignore）。
+
 // 假设我们有这样一个项目结构：
 
 // src/
@@ -288,7 +297,9 @@ pub fn help() {
 }
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 这里只有 main.rs；utils 模块（src/utils.rs）的内容在上面单独给出（本块标记为 ignore）。
+
 // src/main.rs
 mod utils;  // 加载 src/utils.rs
 
@@ -337,7 +348,9 @@ pub fn create_udp_socket() {
 }
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 这里只有 main.rs；network 模块的内容在上面单独给出（本块标记为 ignore）。
+
 // src/main.rs
 mod network;
 
@@ -401,12 +414,13 @@ pub struct User {
     pub name: String,
 }
 
-// src/main.rs
-use crate::utils::math::add;  // 从 crate 根开始找
-use crate::User;
+// ---- src/main.rs ----
+// ⚠️ 在真实项目里 lib.rs 和 main.rs 是两个 crate，这里都要通过 crate:: 访问。
+//    上面那个 lib.rs 里的 User 定义如果和这里的 use 写在同一个文件，
+//    就会报 E0255「User 被定义了多次」，所以单文件示例里直接使用名字即可。
 
 fn main() {
-    let result = add(1, 2);
+    let result = utils::math::add(1, 2);
     println!("1 + 2 = {}", result); // 1 + 2 = 3
     
     let user = User { name: String::from("Bob") };
@@ -484,7 +498,9 @@ pub use inner::deep::secret_function;
 ```
 
 外部使用：
-```rust
+```rust,ignore
+// ⚠️ 需要在一个真实的 crate 里才有 my_crate 这个外部依赖（本块标记为 ignore）。
+
 // 外部可以直接用顶级模块访问深层函数
 // 不需要层层嵌套：my_crate::inner::deep::secret_function()
 use my_crate::secret_function;
@@ -600,6 +616,9 @@ mod public_mod {
         }
     }
 }
+
+// 让 Secret 进入作用域，否则会报 E0433（找不到类型 Secret）
+use public_mod::Secret;
 
 fn main() {
     let s = Secret::new("张三", 25);
@@ -718,14 +737,14 @@ fn main() {
 [package]
 name = "my-awesome-project"           # 包的名字，全宇宙唯一
 version = "0.1.0"                       # 语义化版本号：主版本.次版本.修订号
-edition = "2021"                        # Rust 版本，目前推荐 2021
+edition = "2024"                        # Rust 版本，新项目推荐 2024（2021 仍完全可用）
 authors = ["张三 <zhangsan@example.com>", "李四 <lisi@example.com>"]
 description = "这是一个超级酷的项目！"   # 一句话描述
 license = "MIT"                         # 开源许可证
 repository = "https://github.com/example/my-awesome-project"  # 代码仓库
 keywords = ["utils", "helper", "tool"]  # 关键字，方便在 crates.io 搜索
 categories = ["development-tools"]      # 分类
-rust-version = "1.70"                    # 最低支持的 Rust 版本
+rust-version = "1.85"                    # 最低支持的 Rust 版本（2024 Edition 需要 1.85+）
 ```
 
 #### 10.2.1.2 [dependencies] / [dev-dependencies] / [build-dependencies]
@@ -936,6 +955,8 @@ path = "src/bin/server.rs"
 
 #### 10.2.3.1 [lib] 配置
 
+`[lib]` 段描述库目标：名字、入口文件位置以及 crate 类型等。
+
 ```toml
 [lib]
 name = "mylib"           # 库的名字
@@ -944,6 +965,8 @@ crate-type = ["lib"]     # 产生的库类型
 ```
 
 #### 10.2.3.2 lib.rs 入口点
+
+`src/lib.rs` 是库的根模块，只有标记了 `pub` 的东西才会暴露给使用者。
 
 ```rust
 // src/lib.rs
@@ -981,7 +1004,9 @@ pub fn library_function() {
 }
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 需要配合 lib.rs 一起编译，my_project 就是本项目的库名（本块标记为 ignore）。
+
 // src/main.rs
 // 使用自己的库
 use my_project::library_function;
@@ -1031,6 +1056,8 @@ my-lib = { path = "../my-lib" }
 ```
 
 #### 10.2.4.2 members 成员列表
+
+workspace 的 `members` 列出所有成员包，路径相对于 workspace 根目录。
 
 ```toml
 [workspace]
@@ -1215,6 +1242,8 @@ mod tests {
 
 #### 10.3.1.2 #[cfg(feature = "...")]（特性开启时编译）
 
+用 `#[cfg(feature = "...")]` 把代码挂在某个 cargo 特性开关上。
+
 ```rust
 #[cfg(feature = "debug")]
 pub fn debug_info() {
@@ -1237,6 +1266,8 @@ cargo build --features debug  # 启用 debug 特性
 ```
 
 #### 10.3.1.3 #[cfg(target_os = "linux")]（目标系统）
+
+按目标操作系统做条件编译，条件不匹配时这段代码根本不会被编译。
 
 ```rust
 #[cfg(target_os = "linux")]
@@ -1261,6 +1292,8 @@ fn main() {
 
 #### 10.3.1.4 #[cfg(target_arch = "x86_64")]（目标架构）
 
+按 CPU 架构做条件编译，常用来写平台相关的优化或内联汇编。
+
 ```rust
 #[cfg(target_arch = "x86_64")]
 fn cpu_info() {
@@ -1274,6 +1307,8 @@ fn cpu_info() {
 ```
 
 #### 10.3.1.5 #[cfg(unix)] / #[cfg(windows)]（操作系统）
+
+`unix` / `windows` 是更粗粒度的平台判断，适合写「清屏」这类平台专用功能。
 
 ```rust
 #[cfg(unix)]
@@ -1302,6 +1337,8 @@ fn main() {
 
 #### 10.3.2.1 [features] 定义（default = ["feature-a"]）
 
+`[features]` 定义本 crate 对外暴露的开关，`default` 是默认打开的那一组。
+
 ```toml
 [features]
 default = ["basic"]                # 默认启用的特性
@@ -1313,6 +1350,8 @@ full = ["basic", "advanced", "ssl"] # 全功能
 ```
 
 #### 10.3.2.2 optional 依赖：optional = true
+
+`optional = true` 的依赖默认不启用，只有对应特性被打开时才会参与编译。
 
 ```toml
 [dependencies]
@@ -1328,6 +1367,8 @@ json = ["dep:json-support"]
 ```
 
 #### 10.3.2.3 特性组合：feature = ["dep/feature"]
+
+特性里可以写 `依赖/特性` 来开启依赖项内部的某个特性，实现按需组合。
 
 ```toml
 [dependencies]
@@ -1346,6 +1387,8 @@ full = [
 ### 10.3.3 cfg_attr 与 cfg! 宏
 
 #### 10.3.3.1 cfg_attr(feature, attr)（特性开启时应用属性）
+
+`cfg_attr` 在条件成立时附加一个属性，常用于「只在某特性下加 `#[ignore]`」。
 
 ```rust
 #[cfg_attr(feature = "doc-tests", ignore)]
@@ -1395,4 +1438,3 @@ fn main() {
 **记住**：好的模块组织就像好的衣柜整理——分类清晰、容易找到、不需要翻箱倒柜。把 Rust 的模块系统玩转了，你的代码库也能从"垃圾堆"升级成"样板间"！
 
 > "在 Rust 的世界里，模块系统就是你的代码整理术。不会整理？编译器会教你做人！"
-

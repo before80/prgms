@@ -797,6 +797,8 @@ Python 3 的 `print()` 函数有四个关键参数：`sep`、`end`、`file`、`f
 
 #### 2.3.1.1 print() 函数参数详解
 
+`print()` 在 Python 3 里是货真价实的函数，所以它的参数是"显式"的：前面是一串任意数量的位置参数（要打印的对象），后面是几个带默认值的关键字参数。下面的签名里，`*objects` 说明"想打印几个就打印几个"，其余四个用来控制排版和去向。
+
 ```python
 
 # print() 函数签名（Python 3）
@@ -809,6 +811,8 @@ print("a", "b", "c", 1, 2, 3)
 ```
 
 #### 2.3.1.2 sep、end、file、flush 参数
+
+这四个关键字参数决定了"打印成什么样、打印到哪里去"：`sep` 是多个对象之间的分隔符，`end` 是一条 `print` 结束后补的内容（默认换行），`file` 指定输出流，`flush` 决定是否立刻刷缓冲。做进度条、写日志、往管道里输出时，`end` 和 `flush` 用对了能省掉不少怪问题。
 
 ```python
 
@@ -845,6 +849,8 @@ print("\n下载完成！")
 Python 2 的 `/` 运算符是个"双面间谍"——对整数使用它会进行**地板除法**（向下取整），对浮点数使用它却做**真除法**。Python 3 统一了语义：`/` 永远是真除法，`//` 永远是地板除法。
 
 #### 2.3.2.1 // 与 / 的区别
+
+Python 3 把除法一分为二：`/` 永远是真除法，结果一定是 `float`；`//` 是整除（向下取整），结果类型取决于操作数。这个区分是 Python 2 时代最大的坑之一——那时 `5 / 2` 在整数上等于 `2`，无数从 Python 2 迁移到 3 的代码都栽在这里。
 
 ```python
 
@@ -895,6 +901,8 @@ print(-7 // 3)             # -3 —— 相当于 floor(7/3)
 Python 3 把 Unicode 作为默认字符串类型，这是一个翻天覆地的变化。在 Python 3 中，`str` 是 Unicode 字符串（文本），`bytes` 是原始字节（二进制数据）。
 
 #### 2.3.3.1 str（文本）与 bytes（二进制）的区分
+
+Python 3 把"文本"和"字节"彻底分开：`str` 存的是 Unicode 码点，`bytes` 存的是原始字节序列，两者之间**不会自动转换**。这个决定让中文、日文、emoji 的处理变得可靠，代价是网络、文件、终端之间来往数据时必须显式编解码。
 
 ```python
 
@@ -1002,6 +1010,8 @@ Python 3 引入了异常链（exception chaining），允许你在抛出新异�
 
 #### 2.3.5.1 raise exc from cause
 
+`raise ... from ...` 用来给异常建立"因果链"：明确告诉读 traceback 的人，这个错是被哪个错引发的。Python 2 时代想在报错里表达这层关系，只能靠手工拼字符串或者往异常对象里塞属性。
+
 ```python
 
 # raise...from... 语法：显式异常链
@@ -1052,6 +1062,8 @@ except ValueError as original:
 Python 3 引入了更灵活的解包（unpacking）语法，`*` 和 `**` 在赋值语句中可以用来"捕获剩余元素"。
 
 #### 2.3.6.1 a, *b, c = [1, 2, 3, 4, 5]
+
+带星号的解包（PEP 3132）把函数调用里 `*args` 那套玩法搬进了赋值语句：某个赋值目标前加一个 `*`，它就会接收"剩下的所有元素"。规则是一次赋值里**只能有一个**这样的目标，而且它拿到的是 `list`，不是元组。
 
 ```python
 
@@ -1152,6 +1164,8 @@ make_dish("宫保鸡丁", "鸡肉", "花生", "干辣椒", spicy=True)
 `async/await` 是 Python 3.5 引入的语法，让协程（Coroutine）成为 Python 的一等公民。在此之前，Python 的协程是基于生成器的（`yield` 关键字），非常晦涩难懂。`async/await` 让异步代码看起来像同步代码，大大降低了异步编程的门槛。
 
 #### 2.4.1.1 async def 定义协程函数
+
+`async def` 定义的是**协程函数**：调用它并不会立刻执行函数体，而是返回一个协程对象，等着事件循环来驱动。判断一个函数是不是协程函数，看的是它怎么定义，而不是函数体里有没有出现 `await`。
 
 ```python
 
@@ -1301,6 +1315,8 @@ f-string（formatted string literal）是 Python 3.6 引入的格式化方案，
 
 #### 2.4.2.1 基本语法：f"{}"
 
+f-string 用前缀 `f`（大写 `F` 也可以）标出，花括号 `{}` 里可以直接写变量名或表达式。它在**编译期**就被解析成专门的字节码指令，所以拼写错误常常在语法阶段就被发现，而不是拖到运行时才炸。
+
 ```python
 
 # f-string 基本用法
@@ -1318,6 +1334,8 @@ print(f"{x} + {y} = {x + y}")
 ```
 
 #### 2.4.2.2 表达式嵌入：f"{1 + 2}"
+
+花括号里可以放**任意合法表达式**，不只是变量：四则运算、函数调用、方法调用、下标、条件表达式都行。但那是表达式的位置，放不下语句——比如 `f"{x = 1}"` 是语法错误，调试用的正确写法是 `f"{x=}"`。
 
 ```python
 
@@ -1421,35 +1439,49 @@ print(f"{p!s}")   # Alice —— str()
 print(f"{p!r}")   # Person(name='Alice') —— repr()
 print(f"{p!a}")   # Person(name='Alice') —— ascii()
 
-# 组合使用：格式规格 + 转换标志
+# 组合使用：转换标志 + 格式规格
+# 顺序是固定的：先转换（!s / !r / !a），再把转换后的值交给格式规格
 value = 3.14159
-print(f"{value:.2f!r}")  # 3.14 —— 先格式化，再 repr
+print(f"{value:.2f}")     # 3.14 —— 直接按浮点数格式化
+print(f"{value!r}")       # 3.14159 —— repr()
+print(f"{'hi'!r:>6}")     # 'hi'   —— repr() 出来是字符串，再按字符串右对齐
+
+# 反例：f"{value:.2f!r}" 会抛 ValueError: Invalid format specifier
+# 转换标志必须写在格式规格前面，而且 !r 之后拿到的是字符串，
+# 再用 .2f 这种浮点格式也没有意义
 
 ```
 
 #### 2.4.2.6 Python 3.12 中 f-string 的限制解除
 
-Python 3.11 及之前，f-string 有很多限制：不能有反斜杠、不能有注释、不能有 `:=` 赋值表达式等。Python 3.12 大幅放宽了这些限制。
+Python 3.11 及之前，f-string 的限制集中在**花括号内部**：`{}` 里的表达式不能出现反斜杠，不能使用和外层相同的引号，也不能跨行书写。Python 3.12 通过 PEP 701 重写了 f-string 的解析方式，把这些限制一次拿掉，外面那层字符串的规则完全不变。
+
+这里要澄清两个流传很广的误传：`\t` 这类转义只要写在**字面部分**（花括号外面），3.12 之前照样能用；而 `:=` 海象运算符从 3.8 起也一直可以在 f-string 里用，只是必须写成 `f"{(x := 10)}"`——不加括号时 `x:=10` 会被当成格式规格。
 
 ```python
 
-# Python 3.11 及之前的问题
-name = "Alice"
-# print(f"{name:30}\t age: {age}")  # \t 在 f-string 中不能有！
+name, age = "Alice", 25
 
-# Python 3.12：解除了一些限制
-# 可以在 f-string 中使用反斜杠（3.11 不行）
-print(f"\u4e2d\u6587")  # Python 3.12 OK，3.11 Error
+# 反斜杠出现在"字面部分"：花括号外面，任何版本都合法
+print(f"{name:30}\t age: {age}")
 
-# Python 3.12：可以写多行 f-string
+# 反斜杠出现在"表达式内部"：3.11 报 SyntaxError，3.12+ 正常
+print(f"{'\n'.join(['a', 'b'])}")
+
+# 引号嵌套：3.12+ 允许内外使用同一种引号
+print(f"{"引号同款也没关系"}")
+
+# 多行表达式 + 注释：3.12+ 才允许这样写
 message = f"""
     姓名: {name}
-    年龄: {age}
+    年龄: {
+        age  # 表达式里写注释也没问题
+    }
 """
 print(message)
 
-# Python 3.12：支持更复杂的引号嵌套
-print(f"{'单引号\'s'}")  # 更灵活的引号处理
+# 海象运算符：3.8 起就支持，注意括号不能省
+print(f"{(total := age * 2)}")   # 50
 
 ```
 
@@ -1461,19 +1493,20 @@ print(f"{'单引号\'s'}")  # 更灵活的引号处理
 
 #### 2.4.3.1 为什么叫海象运算符
 
-`:=` 这两个冒号和等号组合起来，因为侧过来看像是一只海象（walrus）的脸和两根大牙。Guido van Rossum 在邮件列表讨论中给它起了这个名字，后来就成了正式名称。
+`:=` 这个名字来自社区：把冒号看成眼睛、等号看成两根长牙，合起来就是一张海象（walrus）脸。PEP 572 由 Chris Angelico 撰写，最终由 Guido van Rossum 以"终身仁慈独裁者"的身份拍板接受——它引入的争议之大，甚至直接促成了 Guido 后来卸任 BDFL。
 
 ```python
 
-# 海象表情： := 
-#   := 
-# /  \  （两只眼睛 + 嘴巴）
-# 
-# 哈哈哈，真的很像！
+#   :    <- 眼睛
+#   =    <- 两根长牙
+#
+# 合起来看就是 walrus 的脸
 
 ```
 
 #### 2.4.3.2 适用场景：列表推导式、if 语句
+
+海象运算符真正的价值是**避免重复计算**：在 `while` 循环、推导式、`if` 判断里把"算出来"和"判断一下"合成一步。前提是这个值后面确实还要用；只用在一个地方的话，老老实实写一行赋值反而更好读。
 
 ```python
 
@@ -1514,7 +1547,17 @@ if (n := len(data)) > 10:
 ```python
 
 # 滥用示例：可读性灾难
-result = [(a := 1, b := 2, c := 3) for a in range(10) if (b := a * 2) > (c := a + 10)]
+# 滥用示例：可读性灾难（海象运算符不是这么用的！）
+result = [(a, b) for a in range(10) if (b := a * 2) > 10]
+print(f"{result[0]} ...")  # (6, 12)
+# 问：a、b 到底属于哪个作用域？可读性直接崩塌
+print(f"推导式结束之后 b 还在：{b}")  # 18
+
+# 滥用示例：作用域混淆
+a = 10
+if (a := 20) > 15:
+    print(a)  # 20
+print(a)      # 还是 20 —— 外层变量被就地改掉了！
 
 # 滥用示例：作用域混淆
 a = 10
@@ -1536,6 +1579,8 @@ print(a)      # 还是 20！—— 变量被修改了！
 Python 3.8 引入了 `/` 分隔符，用来标记**位置参数-only**（`/` 之前的参数只能用位置传入）。结合 `*` 标记的 keyword-only 参数，你可以精确控制每个参数的传参方式。
 
 #### 2.4.4.1 def f(a, /, b, *, c): 的含义
+
+一个函数签名里可以同时出现 `/` 和 `*` 两个标记：`/` 左边的参数**只能按位置传**，`*` 右边的参数**只能按关键字传**，夹在中间的两种方式都可以。Python 自己的内置函数也是照着这套规则设计的。
 
 ```python
 
@@ -1563,6 +1608,8 @@ f(1, 2, kw_only=3)  # OK
 
 #### 2.4.4.2 使用场景
 
+位置参数-only 主要用于两类场合：一是让参数名变成"纯实现细节"（以后改名不会破坏调用方），二是绕开参数名冲突——`dict` 这类 API 尤其常见。而用 `*` 强制关键字传参，则能让调用处一眼看出每个值代表什么。
+
 ```python
 
 # 场景1：强制 API 的某些参数必须位置传参
@@ -1589,6 +1636,8 @@ Python 3.9 引入了 `|` 和 `|=` 运算符用于字典合并，这是继 JavaSc
 
 #### 2.4.5.1 合并操作：d1 | d2
 
+`d1 | d2` 返回一个**新字典**，键冲突时以右边为准。它不修改任何一个操作数，所以需要新对象时可以直接替代 `{**d1, **d2}`。
+
 ```python
 
 # 字典合并：d1 | d2 —— 返回一个新字典
@@ -1609,6 +1658,8 @@ print(chained)
 ```
 
 #### 2.4.5.2 就地合并：d1 |= d2
+
+`|=` 是就地版本：直接在 `d1` 上更新，效果和 `d1.update(d2)` 一样，但写法更紧凑。合并规则不变，依然是"右边覆盖左边"。
 
 ```python
 
@@ -1632,6 +1683,8 @@ defaults = {"db": {"timeout": 30}}
 
 #### 2.4.5.3 与 ** 解包的区别
 
+`{**d1, **d2}` 和 `d1 | d2` 结果相同，区别在适用范围：`**` 是**字典字面量语法的一部分**，可以夹在固定键值中间写，也能用于任何映射对象；`|` 则是普通二元运算符，两边都必须是字典。
+
 ```python
 
 # ** 解包也能合并字典
@@ -1651,13 +1704,15 @@ print(merged)
 
 ```
 
-> **字典合并运算符的诞生背景**：在 Python 3.9 之前，合并字典只有三种方式：`dict(d1, **d2)`、`{**d1, **d2}`、`d1.copy()` 然后 `update()`。Guido 说："运算符是数学的，也是直觉的。"|" 运算符让字典合并变成了一个自然的想法。"
+> **字典合并运算符的诞生背景**：在 Python 3.9 之前，合并字典只有三种方式：`dict(d1, **d2)`、`{**d1, **d2}`、先 `d1.copy()` 再 `update()`。PEP 584 的理由很直白——集合早就有 `|`，字典却只能靠函数和双星号解包绕路；既然 `|` 表示"并集"已被广泛接受，让字典也用同一套符号最符合直觉。该提案由 Brandt Bucher 实现，随 Python 3.9 发布。
 
 ### 2.4.6 类型提示的全面普及（Python 3.5~3.9 演进）：从可选到主流
 
 类型提示（Type Hints）是 Python 走向"工业化"的关键一步。它允许你在代码中标注变量的类型、函数的参数类型和返回值类型，让 IDE 可以提供更好的自动补全和错误检查，也让静态分析工具（如 mypy）成为可能。
 
 #### 2.4.6.1 基本类型标注
+
+类型标注写在参数名后面，返回值用 `->` 标出，从 Python 3.5（PEP 484）起可用。最关键的一点：**标注在运行时不会被检查**，它们只是被存进 `__annotations__`，供静态检查器（mypy、pyright）和 IDE 使用。
 
 ```python
 
@@ -1682,6 +1737,8 @@ class Point:
 ```
 
 #### 2.4.6.2 Union、Optional、Any
+
+在 `X | Y` 这种写法可用之前（Python 3.10 之前），联合类型只能靠 `typing.Union`；`Optional[X]` 就是 `Union[X, None]` 的简写，表示"要么是 X，要么是 None"。而 `Any` 意味着"放弃检查"，用起来最省事，也最容易让类型信息悄悄失效。
 
 ```python
 
@@ -1710,6 +1767,8 @@ def flexible(arg: Any) -> Any:
 ```
 
 #### 2.4.6.3 Callable、List、Dict 等泛型
+
+`typing` 里的这套泛型给容器和可调用对象加上了类型参数：`Callable[[int, int], int]` 读作"吃两个 int、吐一个 int 的函数"。Python 3.9 之后可以直接写 `list[int]`、`dict[str, int]`，不再需要 `List`、`Dict` 这些别名。
 
 ```python
 
@@ -1797,6 +1856,8 @@ Python 3.10 到 3.14 是 Python 语言"现代化"的最后冲刺阶段。结构�
 `match...case` 是 Python 3.10 引入的最重要的语法，被认为是自 `async/await` 以来最大的语法扩展。它允许你用**模式匹配**（pattern matching）的方式来检查数据结构并绑定变量。
 
 #### 2.5.1.1 基本 match 用法
+
+`match` 拿"值"去对"模式"：`case` 后面跟的不是表达式，而是模式，模式里出现的名字会被**绑定**，而不是拿来做相等比较。最后的 `case _` 相当于别的语言里的 `default`，它同时也是"通配模式"。
 
 ```python
 
@@ -1913,6 +1974,8 @@ print(get_day_type("Sunday"))    # 周末
 
 #### 2.5.1.6 序列模式：[x, y]、[x, *rest]
 
+序列模式用来匹配列表、元组这类序列：长度和位置一一对应，`*rest` 收集剩余元素。有两个容易踩的点——它**不会**匹配 `str`、`bytes`（尽管它们也是序列）；长度对不上会直接落到下一个 `case`，不会报错。
+
 ```python
 
 def unpack_data(data):
@@ -1937,6 +2000,8 @@ print(unpack_data((1, 2, 3)))        # 其他结构: (1, 2, 3) —— 注意：�
 ```
 
 #### 2.5.1.7 映射模式：{"name": name, "age": age}
+
+映射模式按**键**取值绑定，而且只要求写出你在意的键：字典里有多余的键完全不影响匹配。这一点和序列模式"长度必须对上"正好相反，映射模式是"允许多余"的。
 
 ```python
 
@@ -1970,6 +2035,8 @@ print(process_config({"debug": True, "timeout": 30}))
 ```
 
 #### 2.5.1.8 类模式：Point(x, y)
+
+类模式靠 `__match_args__`（或者显式写关键字）从对象里取属性，把"判断类型 → 取属性 → 绑定名字"三步并成一步。想让类支持按位置匹配，就得在类里声明 `__match_args__`，否则位置形式的模式不会生效。
 
 ```python
 
@@ -2029,20 +2096,29 @@ print(classify(7))   # 正奇数
 
 #### 2.5.1.10 实战：HTTP 路由、JSON 解析、命令解析
 
+模式匹配在"结构已知、形态多样"的数据上最占便宜：路由表本质上是 `(路径, 方法)` 的元组匹配，JSON 配置是字典加类型判断的组合，命令行参数也能映射成模式。下面三个例子都刻意省掉了又长又碎的 `if/elif` 链。
+
 ```python
 
 # 实战1：HTTP 路由
-def route_handler(path: str, method: str):
+def route_handler(path: str, method: str) -> str:
     match (path, method):
         case ("/users", "GET"):
             return "返回用户列表"
         case ("/users", "POST"):
             return "创建新用户"
-        case ("/users/" + uid, "GET") if uid.isdigit():
-            return f"返回用户 {uid} 的信息"
-        case ("/users/" + uid, "PUT") if uid.isdigit():
+        # ⚠️ 模式里不能写表达式（"/users/" + uid 这种是语法错误），
+        # 想提取路径参数要先用通配符捕获、再用守卫（if）筛一遍
+        case (p, "GET") if p.startswith("/users/"):
+            uid = p.removeprefix("/users/")
+            if uid.isdigit():
+                return f"返回用户 {uid} 的信息"
+            return "404 Not Found"
+        case (p, "PUT") if p.startswith("/users/") and p.removeprefix("/users/").isdigit():
+            uid = p.removeprefix("/users/")
             return f"更新用户 {uid}"
-        case ("/users/" + uid, "DELETE") if uid.isdigit():
+        case (p, "DELETE") if p.startswith("/users/") and p.removeprefix("/users/").isdigit():
+            uid = p.removeprefix("/users/")
             return f"删除用户 {uid}"
         case _:
             return "404 Not Found"
@@ -2105,6 +2181,8 @@ flowchart TD
 `except*` 是 Python 3.11 引入的新语法，用于处理 `ExceptionGroup`（异常组）。在并发编程中，多个任务可能同时失败，产生多个异常。`ExceptionGroup` 允许你把多个异常打包成一个对象，而 `except*` 则是专门用来解包它们的语法。
 
 #### 2.5.2.1 ExceptionGroup 的概念
+
+`ExceptionGroup` 是"异常的容器"：一次操作里同时冒出多个错误时，可以把它们打包成一个对象抛出，而不是只报第一个、丢掉其余的。`except*` 专门用来按类型把它们拆开处理——注意它和普通的 `except` 不能混用在同一个 `try` 里。
 
 ```python
 
@@ -2187,6 +2265,8 @@ def split_all(eg, exc_types):
 
 #### 2.5.2.4 实战：并发任务中的多异常处理
 
+`asyncio.TaskGroup` 在多个任务都失败时，会把异常汇总成一个异常组一起抛出，避免"一个任务出错、其余任务悄悄消失"。接收端用 `except*`，就能分别接住不同类型的失败。
+
 ```python
 
 import asyncio
@@ -2237,6 +2317,8 @@ Python 3.10 到 3.14 在错误信息方面做了大量改进，让错误提示�
 
 #### 2.5.3.1 NameError 中提示相似变量名
 
+Python 3.10 起，`NameError` 会附上一句 `Did you mean: ...`，做法是把打错的标识符和当前作用域里的名字做近似比对。这个改动看着不起眼，实际省下了大量"盯着屏幕愣是没看出拼错"的时间。
+
 ```python
 
 # Python 3.10+：NameError 会提示相似变量名
@@ -2263,6 +2345,8 @@ except NameError as e:
 
 #### 2.5.3.2 ImportError 中提示相似模块名
 
+导入失败时 CPython 也会给出"你是不是想导入 xxx"的建议，并且会区分"模块根本不存在"和"模块在、但里面没有这个名字"两种情况，给出的报错文字也不一样。
+
 ```python
 
 # Python 3.10+：ImportError 提示相似模块名
@@ -2281,6 +2365,8 @@ except ImportError as e:
 ```
 
 #### 2.5.3.3 语法错误位置精确指向
+
+从 3.10 起，语法错误会用 `^` 精确指向出问题的位置，并尽量补一句"这里大概少了什么"，而不是像以前那样只扔一行 `SyntaxError: invalid syntax`，让人自己从头数括号。
 
 ```python
 
@@ -2309,23 +2395,30 @@ except ImportError as e:
 
 ```
 
-### 2.5.4 类型别名简化（Python 3.10+）：更清晰的类型标注
+### 2.5.4 类型别名简化（Python 3.10 / 3.12+）：更清晰的类型标注
 
 #### 2.5.4.1 type alias 声明
 
-Python 3.10 引入了 `type` 语句来声明类型别名，比 `TypeAlias` 更简洁。
+类型别名经历过两次简化，而且**不是同一个版本**，这点经常被写混：
+
+- **Python 3.10（PEP 613）**：引入 `typing.TypeAlias`，让"这一行是类型别名"这件事能被类型检查器明确识别
+- **Python 3.12（PEP 695）**：引入全新的 `type X = ...` 语句，别名改为**懒求值**，还允许自带类型参数
 
 ```python
 
-# Python 3.10 之前：使用 TypeAlias
+# 最朴素的做法：直接赋值。能跑，但类型检查器未必分得清这是变量还是别名
+Vector = list[float]
+
+# Python 3.10+（PEP 613）：用 TypeAlias 显式声明
 from typing import TypeAlias
 
 Vector: TypeAlias = list[float]
 Matrix: TypeAlias = list[list[float]]
 
-# Python 3.10+：使用 type 语句
+# Python 3.12+（PEP 695）：type 语句，语义清晰，还支持泛型别名
 type Vector = list[float]
 type Matrix = list[list[float]]
+type Pair[T] = tuple[T, T]      # 泛型别名是 3.12+ 独有的能力
 
 # 复杂类型别名
 type Point = tuple[float, float]
@@ -2370,29 +2463,46 @@ print(user)  # {'name': 'Alice', 'age': 25}
 
 ```
 
-### 2.5.5 Python 3.14 实验性 JIT 编译器：性能新纪元
+### 2.5.5 实验性 JIT 编译器（Python 3.13 起）：性能新纪元
 
-Python 3.14 引入了实验性的 JIT（Just-In-Time）编译器，这是一个巨大的里程碑。Python 长期以来以"慢"著称（相对于 C/C++），JIT 编译器有望改变这一现状。
+JIT（Just-In-Time）编译器是 **Python 3.13（PEP 744）** 引入的实验性特性——不是 3.14 才有的；3.14 做的是让 Windows / macOS 的官方二进制发行版也带上它，并继续改进代码生成质量。Python 长期以来以"慢"著称（相对于 C/C++），JIT 正是官方对此的回应。
+
+两个关键前提：一是它**还没到能用于生产**的程度，默认也是关闭的；二是 **free-threaded（no-GIL）构建目前不支持 JIT**，两者暂时只能二选一。
+
+官方对 3.14 版的性能说明很坦诚：开启 JIT 后，实测结果**取决于负载，从"慢 10%"到"快 20%"不等**。所以别把它当成"一键提速"的开关。
 
 #### 2.5.5.1 启用方式：PYTHON_JIT=1
 
+JIT 是"编译期 + 运行期"两层开关：解释器本身要带 JIT（`sys._jit.is_available()`），具体某个进程是否真的启用，则看环境变量 `PYTHON_JIT`。两者都对上，`sys._jit.is_enabled()` 才会返回 `True`。
+
 ```python
 
-# 启用 JIT 编译器
-# Linux/macOS:
-#   PYTHON_JIT=1 python your_script.py
+# 前提：解释器本身是在启用 JIT 的情况下构建的（--enable-experimental-jit）
+# 官方 Windows / macOS 安装包从 3.14 开始带 JIT；自己编译要显式打开
 
-# Windows:
-#   set PYTHON_JIT=1
-#   python your_script.py
+# 运行期开启：
+#   Linux / macOS:        PYTHON_JIT=1 python your_script.py
+#   Windows (cmd):        set PYTHON_JIT=1 && python your_script.py
+#   Windows (PowerShell): $env:PYTHON_JIT=1; python your_script.py
 
-# Python 3.14+ 才支持
-# 可以通过版本检查确认
-import sys
-print(f"Python 版本: {sys.version}")
-print(f"JIT 支持: {hasattr(sys, 'jit')}")
+# 想临时关掉：PYTHON_JIT=0
 
 ```
+
+```python
+import sys
+
+# 官方提供的三个查询接口（sys._jit 从 3.13 起存在）
+print(f"Python 版本: {sys.version.split()[0]}")
+print(f"解释器是否带 JIT: {sys._jit.is_available()}")   # 编译期是否支持
+print(f"本次进程是否开启: {sys._jit.is_enabled()}")     # 运行期是否启用
+print(f"此刻是否真在编译: {sys._jit.is_active()}")      # 是否真的走到了 JIT 路径
+
+# 注意：hasattr(sys, "jit") 永远是 False —— 属性名带下划线前缀是 sys._jit
+
+```
+
+> 💡 在没有开启 JIT 的构建或进程里，`is_available()`、`is_enabled()` 会如实返回 `False`，这正体现了它"实验特性、默认关闭"的定位。
 
 #### 2.5.5.2 工作原理
 
@@ -2417,7 +2527,7 @@ flowchart LR
 
 #### 2.5.5.3 与 Cython、PyPy 的区别
 
-| 特性 | CPython (官方解释器) | PyPy (JIT 版本) | Cython (静态编译) | CPython + JIT (3.14+) |
+| 特性 | CPython (官方解释器) | PyPy (JIT 版本) | Cython (静态编译) | CPython + JIT (3.13+) |
 |------|------|------|------|------|
 | 速度 | 慢（解释执行） | 中等（JIT） | 快（静态编译） | 中等（JIT） |
 | 兼容性 | 100% | 高 | 需要修改代码 | 100% |
@@ -2436,8 +2546,8 @@ flowchart LR
 # PyPy 示例（直接用 pypy3 运行即可）
 # 适合长时间运行的服务，JIT 预热后性能显著提升
 
-# CPython 3.14+ JIT
-# 只需设置环境变量，对现有代码零修改
+# CPython 3.13+ JIT
+# 只需设置环境变量，对现有代码零修改（但默认关闭、且不适用于 free-threaded 构建）
 
 ```
 
@@ -2447,7 +2557,10 @@ Python 的未来充满可能性。以下是一些正在讨论中的提案：
 
 #### 2.5.6.1 GIL 移除讨论进展
 
-全局解释器锁（GIL - Global Interpreter Lock）是 Python 性能的最大限制之一。PEP 703（Making the Global Interpreter Lock Optional in CPython）正在积极推进中。
+全局解释器锁（GIL - Global Interpreter Lock）是 Python 性能的最大限制之一。PEP 703（Making the Global Interpreter Lock Optional in CPython）**早已被接受**，并已经落地了两个阶段：
+
+- **Python 3.13（2024）**：提供实验性的 free-threaded 构建（`python3.13t`），需要用 `--disable-gil` 之类的方式专门构建，默认版本不受影响。
+- **Python 3.14（2025）**：free-threaded 构建被官方**正式支持**（PEP 779，phase II），不再打"实验"标签，但它依然是**可选项**，默认 CPython 仍然带 GIL。
 
 ```python
 
@@ -2468,10 +2581,11 @@ async def io_task():
     await asyncio.sleep(1)
     return "Done"
 
-# PEP 703 的进展：
-# - Python 3.13 已经引入了 "no-GIL" 实验版本（需要 configure --disable-gil）
-# - Python 3.14 的 JIT 编译器与 no-GIL 是独立的项目
-# - 预计 Python 3.15+ no-GIL 可能成为可选配置
+# PEP 703 / PEP 779 的进展（按官方时间线）：
+# - Python 3.13：no-GIL 实验版（free-threaded 构建，configure --disable-gil）
+# - Python 3.14：no-GIL 构建转正，成为官方支持的构建选项（phase II）
+# - JIT 与 no-GIL 是两件独立的事，别混为一谈
+# - 目前默认构建仍带 GIL；"无 GIL 当默认"（phase III）尚未排期
 
 ```
 
@@ -2483,14 +2597,19 @@ match...case 在 Python 3.10~3.14 期间持续增强，未来可能有更多功�
 
 # 可能的增强：更灵活的 guard 语法
 # 当前：
+# 可能的增强：更灵活的 guard 语法（⚠️ 下面的 when 只是提案，目前的 Python 还不支持）
+# 当前写法：
+x = 4
 match x:
     case n if n > 0 and n % 2 == 0:
-        ...
+        print(f"{n} 是正偶数")
+    case _:
+        print("其他")
 
-# 可能的未来语法（提案中）：
-match x:
-    case n when n > 0 and n % 2 == 0:
-        ...
+# 提案中的未来语法（写了会报 SyntaxError，这里只作示意）：
+# match x:
+#     case n when n > 0 and n % 2 == 0:
+#         ...
 
 # 可能的增强：嵌套模式更简洁
 match data:
@@ -2501,6 +2620,8 @@ match data:
 ```
 
 #### 2.5.6.3 语法层面其他提案
+
+这里列出的几条都只是社区讨论中的想法，不是既定路线图：一个语法提案要先写成 PEP、经过讨论、有实现和迁移方案，才可能进入某个版本。把它们当成"未来也许会有"就好，写代码时不要指望。
 
 ```python
 
@@ -2543,7 +2664,9 @@ timeline
          : 古典类
     2000 : Python 2.0
          : 列表推导式
-         : 装饰器
+         : 垃圾回收 / Unicode
+    2004 : Python 2.4
+         : 装饰器（PEP 318）
     2008 : Python 3.0
          : print 函数
          : Unicode 默认化
@@ -2553,19 +2676,27 @@ timeline
          : 类型提示
     2016 : Python 3.6
          : f-string
-    2018 : Python 3.8
+    2019 : Python 3.8
          : := 海象运算符
          : / 分隔符
     2020 : Python 3.9
          : 字典合并运算符
          : 内置泛型
     2021 : Python 3.10
-         : match...case
+        : match...case
     2022 : Python 3.11
-         : except* 异常组
-         : Self 类型
-    2024 : Python 3.14
-         : 实验性 JIT
+        : except* 异常组
+        : Self 类型
+    2023 : Python 3.12
+        : type 语句（PEP 695）
+        : f-string 限制解除（PEP 701）
+    2024 : Python 3.13
+        : 实验性 JIT
+        : free-threaded 实验版（PEP 703）
+    2025 : Python 3.14
+        : t-string 模板字符串（PEP 750）
+        : 注解延迟求值（PEP 649）
+        : free-threaded 转正（PEP 779）
 
 ```
 
@@ -2642,7 +2773,7 @@ Python 长期以来以"慢"著称，但这种局面正在改变：
 
 1. **Python 3.11+**：解释器优化（faster CPython 项目），平均提速 10-60%
 2. **Python 3.12+**：更快的启动速度和内联缓存
-3. **Python 3.14+**：实验性 JIT 编译器
+3. **Python 3.13+**：实验性 JIT 编译器（PEP 744）；3.14 起官方 Windows/macOS 安装包自带它
 
 ```python
 
@@ -2660,14 +2791,15 @@ Python 长期以来以"慢"著称，但这种局面正在改变：
 
 # 5. Cython/Numba 等工具将热代码编译为机器码
 
-# 6. 即将到来：CPython 内置 JIT（Python 3.14+）
-# 设置 PYTHON_JIT=1 即可体验
+# 6. 实验性内置 JIT（Python 3.13+，PEP 744）
+# 用 PYTHON_JIT=1 体验；3.14 起官方二进制默认就编译了它，但仍属实验特性
 
-# Python 性能排行榜（相对值，越大越快）：
-# C/C++: 1x (基准)
-# PyPy (JIT): 0.1x ~ 0.5x（长时任务快，短时任务慢）
-# CPython 3.10: 0.05x ~ 0.1x
-# CPython 3.14 + JIT: 预期 0.1x ~ 0.2x（提升 2-4 倍）
+# Python 性能排行榜（相对值，越大越快，C 设为基准 1x）：
+# C/C++            : 1x（基准）
+# PyPy (JIT)       : 0.1x ~ 0.5x（长时任务快，短时任务启动慢）
+# CPython 3.10     : 0.05x ~ 0.1x
+# CPython 3.13/3.14 + JIT: 官方给出的实测区间是"比不开 JIT 慢 10% 到快 20%"，
+#                    随负载而变。JIT 仍处于早期阶段，别指望靠它把 Python 变成 C
 
 ```
 

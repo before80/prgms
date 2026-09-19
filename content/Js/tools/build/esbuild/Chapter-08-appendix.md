@@ -89,16 +89,16 @@ esbuild 的博客会不定期发布新版本说明、功能介绍、以及一些
 | `--jsx=automatic` | 自动 JSX 运行时 | `--jsx=automatic` |
 | `--jsx-factory=h` | JSX 元素函数（classic 模式） | `--jsx-factory=h` |
 | `--jsx-fragment=Fragment` | JSX 片段函数（classic 模式） | `--jsx-fragment=Fragment` |
-| `--loader=.png=dataurl` | 文件加载器映射 | `--loader=.png=dataurl` |
-| `--external:npm:pkg` | 外部化依赖 | `--external:npm:pkg` |
-| `--alias=src=dist` | 路径别名 | `--alias=src=dist` |
+| `--loader:.png=dataurl` | 文件加载器映射（**冒号**，不是等号） | `--loader:.png=dataurl` |
+| `--external:包名` | 外部化依赖（**没有 `npm:` 这种写法**，直接写包名） | `--external:react` |
+| `--alias:旧名=新名` | 路径别名（同样用**冒号**） | `--alias:src=./dist` |
 | `--define:DEBUG=true` | 全局字符串替换 | `--define:DEBUG=true` |
 | `--preserve-symlinks` | 保留符号链接原样 | `--preserve-symlinks` |
-| `--banner=txt` | 文件头部注入内容 | `--banner="/* esbuild */"` |
-| `--footer=txt` | 文件尾部注入内容 | `--footer="/* built */"` |
+| `--banner:js=txt` | 文件头部注入内容（**必须带语言键** `js` 或 `css`） | `--banner:js="/* esbuild */"` |
+| `--footer:js=txt` | 文件尾部注入内容（同样必须带语言键） | `--footer:css="/* built */"` |
 | `--splitting` | 开启代码分割（需配合 --format=esm） | `--splitting` |
-| `--tree-shaking` | 开启摇树优化（默认开启） | `--tree-shaking` |
-| `--legal-comments=mode` | 控制法律注释位置（none/inline/external） | `--legal-comments=none` |
+| `--tree-shaking=true` | 摇树开关（**必须给 `=true` / `=false`**，不能裸写） | `--tree-shaking=true` |
+| `--legal-comments=mode` | 控制法律注释位置（`none`/`inline`/`eof`/`linked`/`external`） | `--legal-comments=eof` |
 | `--metafile=path` | 生成元数据文件（供分析工具使用） | `--metafile=dist/meta.json` |
 
 ### 文件监听与服务

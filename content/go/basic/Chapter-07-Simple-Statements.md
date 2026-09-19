@@ -58,36 +58,35 @@ func toUpper(s string) string {
 自增语句 `++` 让变量加 1。这就像是按一下计算器的 "+1" 按钮。
 
 ```go
-
 package main
 
 import "fmt"
 
 func main() {
-    // 前置自增
+    // a++ 是「后置自增」语句：把 a 加 1，本身不产生值
     a := 0
     a++
     fmt.Printf("a = %d\n", a) // a = 1
 
-    // 后置自增
     b := 5
     b++
     fmt.Printf("b = %d\n", b) // b = 6
 
-    // 在表达式中使用（返回值是增加前的值）
+    // ⚠️ Go 里没有「前置自增」++c，也不能把 c++ 当成表达式。
+    // 下面两行都会直接编译失败：
+    // d := c++         // ❌ syntax error: unexpected ++ at end of statement
+    // fmt.Println(c++) // ❌ 同上
+    // 想表达「先加再取值」，只能写成两条语句：
     c := 10
-    d := c++
-    fmt.Printf("c = %d, d = %d\n", c, d) // c = 11, d = 10
+    c++
+    d := c
+    fmt.Printf("c = %d, d = %d\n", c, d) // c = 11, d = 11
 
     // 循环中的经典用法
     for i := 0; i < 3; i++ {
-        fmt.Printf("循环第 %d 次\n", i+1) // 循环第 1 次
-        // 循环第 1 次
-        // 循环第 2 次
-        // 循环第 3 次
+        fmt.Printf("循环第 %d 次\n", i+1) // 循环第 1/2/3 次
     }
 }
-
 ```
 
 > **注意**：`++` 是语句，不是表达式。你不能写 `e := c++`，也不能写 `fmt.Println(c++)`。
@@ -229,4 +228,3 @@ func main() {
    - 普通赋值 `=`
    - 元组赋值：同时给多个变量赋值，如 `a, b = b, a`
 4. **短变量声明 `:=`**：在函数内部快速声明新变量，左边至少要有一个新变量
-

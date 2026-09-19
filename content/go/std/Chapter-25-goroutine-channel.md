@@ -526,7 +526,7 @@ func deepRecursion(n int) {
 │  main()         │
 │  ├─ f1()        │
 │  │  └─ f2()     │
-│  │     └─ ...  │
+│  │     └─ ...   │
 └─────────────────┘
 
 扩容后（可能 4KB, 8KB...最大 1GB）
@@ -786,13 +786,13 @@ func main() {
 
 ```mermaid
 flowchart LR
-    subgraph 无缓冲["无缓冲 channel (unbuffered)"]
-        A1[发送者] <-->|阻塞直到接收者就绪| B1[接收者]
+    subgraph ub["无缓冲 channel（unbuffered）"]
+        A1["发送者"] <-->|"阻塞直到接收者就绪"| B1["接收者"]
     end
-    
-    subgraph 有缓冲["有缓冲 channel (buffered, cap=3)"]
-        A2[发送者] -->|缓冲区| C1[■][■][■]
-        C1 -->|取数据| B2[接收者]
+
+    subgraph bf["有缓冲 channel（buffered, cap=3）"]
+        A2["发送者"] -->|"写入缓冲区"| C1["缓冲区：[■][■][■]"]
+        C1 -->|"取数据"| B2["接收者"]
     end
 ```
 

@@ -35,7 +35,14 @@ public class HelloApplet extends Applet {
 
 Applet 的核心理念很超前：**「一次编写，到处运行」**（Write Once, Run Anywhere）。你的程序可以在 Windows、Mac、Linux 的浏览器里同时运行，不用担心兼容性问题。这听起来是不是很像今天的 WebAssembly？
 
-但 Applet 的问题也很明显：需要浏览器安装 Java 插件、安全限制让人抓狂、加载速度慢如蜗牛。随着 HTML5、CSS3 和 JavaScript 的崛起，Applet 逐渐被淘汰。2016 年，Chrome 宣布移除 Java 插件支持；2017 年，Java 11 直接废弃了 Applet API。Applet 成了 Java 历史上第一个「被拍死在沙滩上」的前浪。
+但 Applet 的问题也很明显：需要浏览器安装 Java 插件、安全限制让人抓狂、加载速度慢如蜗牛。随着 HTML5、CSS3 和 JavaScript 的崛起，Applet 逐渐被淘汰。下面这条时间线值得记准确：
+
+- **2015 年 9 月**：Chrome 45 移除了 NPAPI 插件支持，Java 插件就此在 Chrome 中失效（不是 2016 年）
+- **2017 年**：JDK 9 正式把 Applet API 标记为废弃（JEP 289）
+- **2018 年**：JDK 11 移除了 JDK 自带的浏览器插件与 Java Web Start 部署栈（不是"Java 11 废弃 Applet API"）
+- **2021 年**：JDK 17 通过 JEP 398 把 Applet API 标记为"废弃并计划移除"
+
+Applet 成了 Java 历史上第一个「被拍死在沙滩上」的前浪。顺带说一句：`java.applet` 包在 JDK 25 里**仍然存在**，只是带着"已过时、待删除"的标记，所以今天用 `javac` 编译上面的示例只会收到一条警告。
 
 > **小知识**：Applet 的遗产影响深远。后来 Android 的 App 运行环境、Java Web Start 技术，都能看到 Applet 的影子。
 
@@ -77,7 +84,9 @@ JDBC 的设计理念非常优雅：**定义一套接口，让数据库厂商自�
 
 1997 年，Java Servlet API 发布，Java 正式进军 Web 开发领域。在那个 PHP 和 ASP 统治 web 开发的年代，Servlet 以其「跨平台」和「稳定性」的优势，逐渐成为企业级 Web 开发的首选。
 
-```java
+```java,ignore
+// 这个例子需要引入 Jakarta Servlet API（jakarta.servlet-api）才能编译，
+// 单文件直接 javac 会因为找不到包而报错，这里只做概念演示。
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -146,13 +155,13 @@ public static <T> T getFirst(List<T> list) {
     return list.get(0);
 }
 
-// 泛型接口示例
-public interface Comparable<T> {
+// 泛型接口示例（注意别和 JDK 自带的 java.lang.Comparable 撞名，这里叫 MyComparable）
+public interface MyComparable<T> {
     int compareTo(T other);
 }
 
-// 多个类型参数的泛型
-public class HashMap<K, V> {
+// 多个类型参数的泛型（同样避免和 java.util.HashMap 撞名）
+public class MyMap<K, V> {
     // K 是键的类型，V 是值的类型
 }
 ```
@@ -162,31 +171,44 @@ public class HashMap<K, V> {
 注解是 Java 5 引入的「语法糖」，它允许你给代码添加元数据（metadata）。简单理解，注解就是「写在代码上的标签」。
 
 ```java
-// 内置注解示例
-@Override
-public void toString() {
-    // @Override 告诉编译器：这个方法是重写的父类方法
-    // 如果你拼错了方法名，编译器会报错
-}
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@Deprecated
-public void oldMethod() {
-    // @Deprecated 标记这个方法已经过时
-    // 别人调用时编译器会给出警告
-}
+public class AnnotationDemo {
 
-// 自定义注解
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface MyAnnotation {
-    String value() default "默认值";  // 注解的属性
-    int count() default 1;
-}
+    // 自定义注解：RUNTIME 表示运行时仍可反射读取，METHOD 表示只能标在方法上
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    public @interface MyAnnotation {
+        String value() default "默认值";  // 注解的属性，可以带默认值
+        int count() default 1;
+    }
 
-// 使用自定义注解
-@MyAnnotation(value = "测试", count = 3)
-public void annotatedMethod() {
-    System.out.println("这个方法被我注解了！");
+    // @Override 告诉编译器：这个方法是重写的父类方法。
+    // 如果方法名拼错、或返回值与父类不一致，编译器会直接报错。
+    @Override
+    public String toString() {
+        return "AnnotationDemo";
+    }
+
+    // @Deprecated 标记这个方法已经过时，别人调用时编译器会给出警告
+    @Deprecated
+    public void oldMethod() {
+    }
+
+    // 使用自定义注解
+    @MyAnnotation(value = "测试", count = 3)
+    public void annotatedMethod() {
+        System.out.println("这个方法被我注解了！");
+    }
+
+    public static void main(String[] args) {
+        AnnotationDemo demo = new AnnotationDemo();
+        System.out.println(demo);              // AnnotationDemo
+        demo.annotatedMethod();                // 这个方法被我注解了！
+    }
 }
 ```
 
@@ -207,37 +229,54 @@ public static final int WINTER = 4;
 这种方式容易写错（比如 `if (season == 5)` 编译器不会报错），也没有类型安全。枚举出现后：
 
 ```java
-// 枚举：类型安全、有属性、有方法
-public enum Season {
-    SPRING("春天", 1),
-    SUMMER("夏天", 2),
-    AUTUMN("秋天", 3),
-    WINTER("冬天", 4);
+public class SeasonDemo {
 
-    private final String chineseName;
-    private final int order;
+    // 枚举：类型安全、有属性、有方法
+    public enum Season {
+        SPRING("春天", 1),
+        SUMMER("夏天", 2),
+        AUTUMN("秋天", 3),
+        WINTER("冬天", 4);
 
-    Season(String chineseName, int order) {
-        this.chineseName = chineseName;
-        this.order = order;
+        private final String chineseName;
+        private final int order;
+
+        Season(String chineseName, int order) {
+            this.chineseName = chineseName;
+            this.order = order;
+        }
+
+        public String getChineseName() { return chineseName; }
+        public int getOrder() { return order; }
     }
 
-    public String getChineseName() {
-        return chineseName;
-    }
+    public static void main(String[] args) {
+        Season s = Season.SPRING;
 
-    public int getOrder() {
-        return order;
-    }
-}
+        // 传统 switch 写法（Java 5 起就支持），别忘了一个个 break
+        switch (s) {
+            case SPRING:
+                System.out.println("春暖花开");
+                break;
+            case SUMMER:
+                System.out.println("烈日炎炎");
+                break;
+            case AUTUMN:
+                System.out.println("秋高气爽");
+                break;
+            case WINTER:
+                System.out.println("冰天雪地");
+                break;
+        }
 
-// 使用起来既安全又优雅
-Season s = Season.SPRING;
-switch (s) {
-    case SPRING -> System.out.println("春暖花开");
-    case SUMMER -> System.out.println("烈日炎炎");
-    case AUTUMN -> System.out.println("秋高气爽");
-    case WINTER -> System.out.println("冰天雪地");
+        // Java 14+ 的箭头形式更简洁，不需要 break，也不会意外穿透
+        switch (s) {
+            case SPRING -> System.out.println("春暖花开");
+            case SUMMER -> System.out.println("烈日炎炎");
+            case AUTUMN -> System.out.println("秋高气爽");
+            case WINTER -> System.out.println("冰天雪地");
+        }
+    }
 }
 ```
 
@@ -367,7 +406,6 @@ import static java.lang.Math.PI;
 import static java.lang.Math.pow;
 import static java.lang.Math.sin;
 import static java.lang.Math.max;
-import static java.lang.Math.sin;
 
 double area = PI * pow(radius, 2);
 double sinValue = sin(PI / 2);
@@ -444,6 +482,9 @@ Java 6 在 JVM 层面做了大量优化，启动速度更快、垃圾回收更�
 
 ```java
 // Java 6 的 Web Services 示例
+// ⚠️ 提醒：javax.xml.ws 这套 Java EE 模块在 JDK 11 已被移除（JEP 320）。
+//    所以这段代码在 JDK 6~10 上可以直接跑，在 JDK 11+ 上需要自己引入
+//    相应的 Jakarta XML Web Services 依赖（包名也从 javax.* 变成了 jakarta.*）。
 import javax.xml.ws.Endpoint;
 
 public class SimpleWebService {
@@ -463,7 +504,7 @@ public class SimpleWebService {
 
 ### 2.3.2 Java ME 和 Java EE 的分离
 
-Java 6 正式将 Java 平台拆分为三个方向：
+很多人以为"三个版本"是 Java 6 才有的，其实不正确——J2SE / J2EE / J2ME 这套划分从 **1999 年**就有了，Java 6 前后只是把名字统一改成了 Java SE / Java EE / Java ME。我们今天熟悉的三个方向是：
 
 - **Java SE**（Standard Edition）：标准版，桌面和服务器应用
 - **Java EE**（Enterprise Edition）：企业版，基于 SE 的企业级扩展
@@ -483,7 +524,12 @@ import javax.script.Invocable;
 public class ScriptingDemo {
     public static void main(String[] args) throws Exception {
         ScriptEngineManager manager = new ScriptEngineManager();
-        // 获取 JavaScript 引擎（Nashorn，Java 8 之前是 Rhino）
+        // 获取 JavaScript 引擎：
+        //   Java 6/7 内置的是 Rhino，Java 8 换成了 Nashorn。
+        //   ⚠️ 但 Nashorn 在 Java 11 被标记废弃（JEP 335），
+        //      并在 Java 15 被彻底移除（JEP 372）。
+        //      所以这段代码在 JDK 15 及以上会找不到引擎，engine 会是 null。
+        //      今天要用脚本引擎，需要自己引入 GraalVM JS 等第三方实现。
         ScriptEngine engine = manager.getEngineByName("JavaScript");
 
         // 执行 JavaScript 代码
@@ -584,17 +630,34 @@ if (day.equals("MONDAY")) {
     System.out.println("未知日期");
 }
 
-// Java 7+：switch 原生支持 String
+// Java 7+：switch 原生支持 String（Java 7 时代只有冒号写法）
 switch (day) {
-    case "MONDAY"    -> System.out.println("星期一");
-    case "TUESDAY"   -> System.out.println("星期二");
-    case "WEDNESDAY" -> System.out.println("星期三");
-    case "THURSDAY"  -> System.out.println("星期四");
-    case "FRIDAY"    -> System.out.println("星期五");
-    case "SATURDAY"  -> System.out.println("星期六");
-    case "SUNDAY"    -> System.out.println("星期日");
-    default          -> System.out.println("未知日期");
+    case "MONDAY":
+        System.out.println("星期一");
+        break;
+    case "TUESDAY":
+        System.out.println("星期二");
+        break;
+    case "WEDNESDAY":
+        System.out.println("星期三");
+        break;
+    case "THURSDAY":
+        System.out.println("星期四");
+        break;
+    case "FRIDAY":
+        System.out.println("星期五");
+        break;
+    case "SATURDAY":
+        System.out.println("星期六");
+        break;
+    case "SUNDAY":
+        System.out.println("星期日");
+        break;
+    default:
+        System.out.println("未知日期");
+        break;
 }
+// 补充：Java 14+ 之后才有箭头写法 case "MONDAY" -> ...
 ```
 
 switch 支持 String 后，代码可读性大幅提升，尤其是处理枚举、状态码、命令类型等场景。
@@ -683,10 +746,11 @@ int binary = 0b101010;
 // Java 7+ 还可以给下划线分隔（类似数学中的千位分隔符）
 int bigNumber = 1_000_000;           // 1000000
 int binaryWithUnderscores = 0b1010_1010;  // 170
-int hexWithUnderscores = 0xDEAD_BEEF;      // 3735928559
+int hexWithUnderscores = 0xDEAD_BEEF;      // 注意：int 放不下这个值，实际存的是 -559038737
+long bigHex = 0xDEAD_BEEFL;                // 想要 3735928559 这个正数，得用 long + L 后缀
 ```
 
-下划线分隔符可以在数字字面量中任意添加，让大数字更易读。
+下划线分隔符可以让大数字更易读，但并不是"随便加"：它**不能出现在数字的开头或结尾**，也**不能紧挨着小数点、`0x`/`0b` 前缀或 `L`/`f` 这类后缀**。比如 `1_000_000`、`0b1010_1010` 合法，而 `_1000`、`1000_`、`0x_FF` 都是错的。
 
 ### 2.4.6 异常处理改进：同一 catch 可以捕获多种异常
 
@@ -728,7 +792,6 @@ Fork/Join 框架是 Java 7 引入的并行计算框架，专门用于「分而�
 ```java
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
-import java.util.LongSummaryStatistics;
 
 public class ForkJoinDemo {
     // 计算 1 到 n 的和，使用分治策略
@@ -912,9 +975,13 @@ public class OptionalDemo {
         Optional<String> nullable = Optional.ofNullable(null);  // 可以传 null
 
         // 安全地获取值
-        String value = nullable.orElse("默认值");  // 如果是 null，返回默认值
-        String value2 = nullable.orElseGet(() -> "计算出来的默认值");  // 延迟版本
-        String value3 = nullable.orElseThrow(() -> new RuntimeException("不能为空！"));
+        String value = nullable.orElse("默认值");  // 为空就返回默认值
+        String value2 = nullable.orElseGet(() -> "计算出来的默认值");  // 延迟计算版本
+        // orElseThrow：为空就抛异常。注意 nullable 本身是空的，
+        // 如果写成 nullable.orElseThrow(...) 这一行会立刻抛异常、程序直接中断，
+        // 所以这里换成有值的 name 来演示：
+        String value3 = name.orElseThrow(() -> new RuntimeException("不能为空！"));
+        System.out.println("value / value2 / value3 = " + value + " / " + value2 + " / " + value3);
 
         // ifPresent：值存在时执行
         name.ifPresent(n -> System.out.println("名字是: " + n));
@@ -978,8 +1045,8 @@ Optional 的核心思想是：**「让空值检查变得可视化、可链式操
 Java 8 之前，接口只能声明方法，不能写实现。Java 8 引入了 `default` 方法，让接口可以包含具体实现。
 
 ```java
-// Java 8 之前的接口
-interface Animal {
+// Java 8 之前的接口（这里叫 AnimalOld，只是为了不和下面的接口重名）
+interface AnimalOld {
     void speak();  // 抽象方法，必须实现
 }
 
@@ -1091,6 +1158,7 @@ public class DateTimeDemo {
 方法引用是 Lambda 表达式的简写形式。当 Lambda 体只是调用某个方法时，可以用方法引用替代。
 
 ```java
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -1099,23 +1167,29 @@ import java.util.function.Supplier;
 
 public class MethodReferenceDemo {
     public static void main(String[] args) {
-        // 四种方法引用形式：
+        // 方法引用一共四种形式（注意第 2、3 种很容易被混为一谈）：
 
         // 1. 静态方法引用：ClassName::staticMethod
         Function<Integer, String> f1 = String::valueOf;     // 等价于 n -> String.valueOf(n)
         System.out.println(f1.apply(42));  // "42"
 
-        // 2. 实例方法引用：instance::instanceMethod
-        String str = "Hello";
-        Function<String, Integer> f2 = str::length;        // 等价于 s -> str.length(s)
+        // 2. 未绑定实例方法引用：ClassName::instanceMethod
+        //    接收者作为"第一个参数"传进来
+        Function<String, Integer> f2 = String::length;      // 等价于 s -> s.length()
         System.out.println(f2.apply("World"));  // 5
 
-        // 3. 特定对象的方法引用：object::instanceMethod
-        Consumer<String> c1 = System.out::println;         // 等价于 s -> System.out.println(s)
+        // 3. 绑定实例方法引用：instance::instanceMethod
+        //    接收者已经固定，剩下的才是方法参数
+        Consumer<String> c1 = System.out::println;          // 等价于 s -> System.out.println(s)
         c1.accept("Hello, Method Reference!");
 
+        String str = "Hello";
+        Supplier<Integer> s0 = str::length;                 // 等价于 () -> str.length()
+        System.out.println(s0.get());  // 5
+
         // 4. 构造方法引用：ClassName::new
-        Supplier<List<String>> s1 = ArrayList::new;        // 等价于 () -> new ArrayList<>()
+        Supplier<List<String>> s1 = ArrayList::new;         // 等价于 () -> new ArrayList<>()
+        System.out.println(s1.get().size());  // 0
 
         // 实际应用：结合 Stream 使用
         List<String> names = Arrays.asList("alice", "bob", "charlie");
@@ -1230,9 +1304,9 @@ Java 8 用 **Metaspace** 取代了 PermGen：
 
 ---
 
-## 2.6 Java 9（代号 jigsaw，2017）：模块化时代
+## 2.6 Java 9（2017，模块化项目 Project Jigsaw）：模块化时代
 
-Java 9 发布了！等了好久的模块化系统终于来了。三年磨一剑，Java 9 带来的最大变化就是 **Jigsaw 模块化系统**。
+Java 9 发布了！等了好久的模块化系统终于来了。三年磨一剑，Java 9 带来的最大变化就是 **Jigsaw 模块化系统**（Jigsaw 是项目名，并不是版本的发布代号）。
 
 ### 2.6.1 模块化系统（Jigsaw）：Java 自己的模块化管理
 
@@ -1343,10 +1417,11 @@ public interface StringProcessor {
 
 // 使用
 class UpperCaseProcessor implements StringProcessor {
-    // 只需要实现 process 方法，私有方法自动共享
+    // process 是默认方法，子类不实现也能直接用；
+    // 接口里的 private 方法只在接口内部可见，子类既看不到也调不到
 }
 
-public class InterfacePrivateDemo {
+class InterfacePrivateDemo {
     public static void main(String[] args) {
         StringProcessor processor = new UpperCaseProcessor();
         System.out.println(processor.process("  Hello   WORLD  "));
@@ -1408,6 +1483,7 @@ Java 9 为 Stream 添加了几个实用的新方法：
 
 ```java
 import java.util.stream.Stream;
+import java.util.stream.Collectors;
 import java.util.List;
 
 public class StreamEnhancementDemo {
@@ -1417,30 +1493,33 @@ public class StreamEnhancementDemo {
         // takeWhile：从头开始取，满足条件就停止（遇到不满足的立即停止）
         List<Integer> taken = numbers.stream()
             .takeWhile(n -> n < 5)
-            .toList();
+            .collect(Collectors.toList());   // 注意：Stream.toList() 是 Java 16 才有的，
+                                             // Java 9 时代要用 collect(Collectors.toList())
         System.out.println("takeWhile(< 5): " + taken);  // [1, 2, 3, 4]
-        // 注意：List.of(3, 1, 4, 1, 5, 9, 2, 6) 用 takeWhile 会得到 [3, 1, 4, 1, 5]
+        // 注意 takeWhile 是"遇到第一个不满足就立刻收工"：
+        // List.of(3, 1, 4, 1, 5, 9, 2, 6) 用 takeWhile(n -> n < 5) 得到的是 [3, 1, 4, 1]，
+        // 后面的 2 虽然也小于 5，但因为在 5 之后，已经被跳过了（这和 filter 完全不同）
 
         // dropWhile：从头开始丢弃，满足条件的都丢掉，遇到第一个不满足的就开始保留
         List<Integer> dropped = numbers.stream()
             .dropWhile(n -> n < 5)
-            .toList();
+            .collect(Collectors.toList());
         System.out.println("dropWhile(< 5): " + dropped);  // [5, 6, 7, 8, 9, 10]
 
         // iterate 重载：增加终止条件
         // Java 8 的 Stream.iterate(start, unaryOperator) 是无限的
         // Java 9 的 iterate(start, predicate, unaryOperator) 有终止条件
         List<Integer> fibonacci = Stream.iterate(
-            new long[]{0, 1},           // 起始值
-            t -> t[0] + t[1] < 1000,   // 终止条件
-            t -> new long[]{t[1], t[0] + t[1]}  // 迭代函数
-        ).map(t -> (int) t[0]).toList();
+            new long[]{0, 1},                  // 起始值
+            t -> t[0] < 1000,                  // 终止条件：作用于"当前元素"
+            t -> new long[]{t[1], t[0] + t[1]} // 迭代函数
+        ).map(t -> (int) t[0]).collect(Collectors.toList());
         System.out.println("Fibonacci < 1000: " + fibonacci);
 
         // ofNullable：处理可能为 null 的元素
         String nullable = null;
         List<String> result = Stream.ofNullable(nullable)
-            .toList();
+            .collect(Collectors.toList());
         System.out.println("ofNullable(null): " + result);  // []，空流
     }
 }
@@ -1448,7 +1527,7 @@ public class StreamEnhancementDemo {
 
 ### 2.6.6 HTTP Client 标准化：`java.net.http` 模块
 
-Java 9 标准化了 HTTP Client API（`java.net.http`），支持 HTTP/2 和 WebSocket：
+Java 9 把新的 HTTP Client 作为**孵化模块**（`jdk.incubator.http`）引入，到 **Java 11 才正式标准化**为 `java.net.http` 包，支持 HTTP/2 和 WebSocket（因此下面这段代码请按 Java 11+ 来理解）：
 
 ```java
 import java.net.URI;
@@ -1500,7 +1579,7 @@ public class HttpClientDemo {
 
 ---
 
-## 2.7 Java 10~11（2018~2018）：快速迭代
+## 2.7 Java 10~11（2018 年 3 月 ~ 2018 年 9 月）：快速迭代
 
 Oracle 改变了 Java 的发布节奏——从每两年一个大版本，变成每六个月一个小版本。Java 10 和 Java 11 就是新节奏下的第一批产物。
 
@@ -1550,13 +1629,18 @@ public class StringEnhancementDemo {
         // repeat()：重复字符串
         System.out.println("Ha".repeat(5));  // "HaHaHaHaHa"
 
-        // stripIndent()：移除每行的前导缩进（用于多行字符串模板）
+        // ⚠️ 版本提醒：下面这两个方法不属于 Java 11。
+        // stripIndent()、translateEscapes() 和文本块 """...""" 都是 Java 13 预览、
+        // Java 15 才正式转正的特性，在 Java 11 上写完会直接编译失败。
+
+        // （Java 15+）文本块 + stripIndent()：移除每行公共的前导缩进
         String indented = """
             Hello
                 World
             """;
+        System.out.println(indented.stripIndent());
 
-        // translateEscapes()：转义序列转换
+        // （Java 15+）translateEscapes()：把字面量里的转义序列真正转换出来
         String escaped = "Hello\\nWorld".translateEscapes();
         System.out.println(escaped);  // Hello(换行)World
     }
@@ -1612,13 +1696,13 @@ public class CollectionToArrayDemo {
         names.add("Bob");
         names.add("Charlie");
 
-        // Java 10 及之前：需要传一个数组构造函数引用
-        String[] arr1 = names.toArray(String[]::new);
+        // Java 11 之前：只能传一个现成的数组（数组太小会被自动替换成新数组）
+        String[] arr1 = names.toArray(new String[0]);
 
-        // Java 11+：直接用 IntFunction
+        // Java 11 新增：可以传一个 IntFunction，由集合自己决定数组大小
         String[] arr2 = names.toArray(length -> new String[length]);
-        // 或者更简洁
-        String[] arr3 = names.toArray(String[]::new);  // 两种方式都行
+        // 最常见的写法就是构造方法引用，效果和上面完全一样
+        String[] arr3 = names.toArray(String[]::new);
 
         System.out.println("数组长度: " + arr3.length);
         for (String name : arr3) {
@@ -1673,7 +1757,7 @@ ZGC 非常适合大内存（64GB+）低延迟的应用，比如金融交易、�
 
 Java 11 是继 Java 8 之后的第一个 **LTS（Long-Term Support）** 版本。Oracle 的新策略是：
 
-- **LTS 版本**：每两年发布一次，提供 8 年以上支持（Java 21 支持到 2031 年）
+- **LTS 版本**：每两年发布一次，持续支持时间远长于普通版本（以 Java 21 为例，Oracle JDK 的高级支持到 2028 年 9 月，延长支持到 2031 年 9 月；不同厂商的支持周期略有差异）
 - **非 LTS 版本**：每六个月一个，支持六个月
 
 很多企业发现 Java 8 的安全漏洞越来越多，而 Java 11 不但性能更好，还有长期支持，于是开始了大规模的版本迁移。Java 11 成了「新一代 Java 8」。
@@ -1682,7 +1766,7 @@ Java 11 是继 Java 8 之后的第一个 **LTS（Long-Term Support）** 版本�
 
 ## 2.8 Java 12~16（2019~2021）：特性爆发
 
-这五年是 Java 新特性爆发期。Oracle 采用「预览特性」机制——新功能先以预览版发布，收集反馈后再决定是否保留。这种方式让 Java 既能快速迭代，又能保持稳定性。
+从 Java 12（2019 年 3 月）到 Java 16（2021 年 3 月）这两年，是 Java 新特性最密集的爆发期。Oracle 采用「预览特性」机制——新功能先以预览版发布，收集反馈后再决定是否保留。这种方式让 Java 既能快速迭代，又能保持稳定性。
 
 ### 2.8.1 Switch 表达式预览（Java 12）→ 正式版（Java 14）
 
@@ -1723,7 +1807,7 @@ int days = switch (month) {
 };
 ```
 
-新 switch 的优势：**箭头语法避免漏写 break`、`case` 可以逗号分隔多个值、`switch` 可以作为表达式返回值**。
+新 switch 的优势：**箭头语法不会再漏写 `break`、一个 `case` 可以用逗号分隔多个值、`switch` 可以直接作为表达式返回值**。
 
 ### 2.8.2 文本块（Text Blocks）预览（Java 13）→ 正式版（Java 15）
 
@@ -1769,48 +1853,52 @@ String sql = """
 `record` 是 Java 16 正式发布的「数据传输对象（DTO）」的简洁写法：
 
 ```java
-// 传统方式：定义一个 Point 类，代码量惊人
-public class Point {
-    private final double x;
-    private final double y;
+import java.util.Objects;
 
-    public Point(double x, double y) {
-        this.x = x;
-        this.y = y;
+public class RecordDemo {
+    // 传统方式：定义一个 Point 类，代码量惊人
+    public static class PointClass {
+        private final double x;
+        private final double y;
+
+        public PointClass(double x, double y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public double x() { return x; }
+        public double y() { return y; }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof PointClass)) return false;
+            PointClass p = (PointClass) o;
+            return Double.compare(p.x, x) == 0 && Double.compare(p.y, y) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y);
+        }
+
+        @Override
+        public String toString() {
+            return "Point[x=" + x + ", y=" + y + "]";
+        }
     }
 
-    public double x() { return x; }
-    public double y() { return y; }
+    // record 方式：一行代码搞定！
+    // 它自动生成：构造函数、取值方法 x()/y()、equals、hashCode、toString
+    // record 是不可变的（所有字段都是 final）
+    public record Point(double x, double y) {}
 
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Point)) return false;
-        Point p = (Point) o;
-        return Double.compare(p.x, x) == 0 && Double.compare(p.y, y) == 0;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(x, y);
-    }
-
-    @Override
-    public String toString() {
-        return "Point[x=" + x + ", y=" + y + "]";
+    public static void main(String[] args) {
+        Point p = new Point(3.0, 4.0);
+        System.out.println(p.x());   // 3.0
+        System.out.println(p.y());   // 4.0
+        System.out.println(p);       // Point[x=3.0, y=4.0]
     }
 }
-
-// record 方式：一行代码搞定！
-public record Point(double x, double y) {}
-
-// 使用
-Point p = new Point(3.0, 4.0);
-System.out.println(p.x());       // 3.0
-System.out.println(p.y());       // 4.0
-System.out.println(p);          // Point[x=3.0, y=4.0]
-
-// record 自动生成：构造函数、getter、equals、hashCode、toString
-// record 是不可变的（所有字段 final）
 ```
 
 `record` 特别适合：**数据传输对象（DTO）、元组返回值、配置对象、日志记录**等场景。
@@ -1819,12 +1907,14 @@ System.out.println(p);          // Point[x=3.0, y=4.0]
 
 ```java
 public record Person(String name, int age) {
-    // compact 构造函数：只做验证，不调 super
+    // compact（紧凑）构造函数：不用重复写参数列表和赋值语句
     public Person {
         if (age < 0) {
             throw new IllegalArgumentException("年龄不能为负数");
         }
-        // 还可以修改字段（但不建议）
+        // 给参数重新赋值，就会改变最终写入字段的值，例如：
+        // name = name.trim();
+        // 这算是"规范化"参数，不是直接改字段（record 的字段始终是 final）
     }
 }
 ```
@@ -1869,8 +1959,8 @@ public final class Circle extends Shape {  // final：不能再被继承
     public Circle(double radius) { this.radius = radius; }
 }
 
-// Rectangle 也可以是 sealed
-public sealed class Rectangle extends Shape {
+// Rectangle 也可以是 sealed，但 sealed 类必须写明 permits 列表
+public sealed class Rectangle extends Shape permits Square {
     private double width, height;
     public Rectangle(double w, double h) { this.width = w; this.height = h; }
 }
@@ -1932,47 +2022,48 @@ Java 17 正式发布了密封类（Sealed Classes），这是 Java 15/16 预览�
 
 ```java
 // 密封类在 Java 17 正式可用
-public sealed class Expr
-    permits ConstantExpr, AddExpr, MulExpr {
-}
+public class SealedExprDemo {
 
-// 常量表达式
-public final class ConstantExpr extends Expr {
-    int value;
-    public ConstantExpr(int value) { this.value = value; }
-}
+    // 密封接口：只允许下面三种实现
+    public sealed interface Expr permits ConstantExpr, AddExpr, MulExpr {}
 
-// 加法表达式
-public final class AddExpr extends Expr {
-    Expr left, right;
-    public AddExpr(Expr left, Expr right) { this.left = left; this.right = right; }
-}
+    // 常量表达式
+    public record ConstantExpr(int value) implements Expr {}
 
-// 乘法表达式
-public final class MulExpr extends Expr {
-    Expr left, right;
-    public MulExpr(Expr left, Expr right) { this.left = left; this.right = right; }
-}
+    // 加法表达式
+    public record AddExpr(Expr left, Expr right) implements Expr {}
 
-// 编译器知道 Expr 只有三种子类，switch 可以穷尽检查
-int eval(Expr e) {
-    return switch (e) {
-        case ConstantExpr c -> c.value;
-        case AddExpr a -> eval(a.left) + eval(a.right);
-        case MulExpr m -> eval(m.left) * eval(m.right);
-        // 不需要 default！编译器确保所有情况都覆盖了
-    };
+    // 乘法表达式
+    public record MulExpr(Expr left, Expr right) implements Expr {}
+
+    // 编译器知道 Expr 只有三种实现，switch 可以穷尽检查
+    static int eval(Expr e) {
+        return switch (e) {
+            case ConstantExpr c -> c.value();
+            case AddExpr a -> eval(a.left()) + eval(a.right());
+            case MulExpr m -> eval(m.left()) * eval(m.right());
+            // 不需要 default！编译器确保所有情况都覆盖了
+        };
+    }
+
+    public static void main(String[] args) {
+        // 计算 (1 + 2) * 3 = 9
+        Expr expr = new MulExpr(
+                new AddExpr(new ConstantExpr(1), new ConstantExpr(2)),
+                new ConstantExpr(3));
+        System.out.println("结果: " + eval(expr)); // 结果: 9
+    }
 }
 ```
 
-### 2.9.2 移除 Security Manager、Applet API
+### 2.9.2 废弃 Security Manager、Applet API（注意：是"废弃"，不是"移除"）
 
-Java 17 正式移除了两个历史遗留：
+这里必须纠正一个流传极广的说法：**Java 17 并没有"移除"Security Manager 和 Applet API，只是把它们标记为"废弃并计划移除"**。
 
-- **Security Manager**：从 Java 1.0 就存在的安全管理器，因为太复杂、没人用，被移除了
-- **Applet API**：早在 2017 年就废弃了，Java 17 彻底移除
+- **Applet API**：JDK 9（2017，JEP 289）标记废弃，JDK 17（2021，JEP 398）标记为"废弃并计划移除"。到今天（JDK 25）`java.applet` 包**依然存在**，只是编译时会给出"已过时、待删除"的警告。
+- **Security Manager**：JDK 17（2021，JEP 411）标记废弃并计划移除；**JDK 24（2025，JEP 486）把它永久禁用**——`System.setSecurityManager()` 直接抛 `UnsupportedOperationException`，`System.getSecurityManager()` 永远返回 `null`。
 
-这是 Java「清理门户」的举措，移除没人用的老东西，让语言更轻量。
+所以准确的时间线是"JDK 17 废弃 → 后续版本逐步禁用/删除"，写代码时千万别照着"Java 17 已经没有它们了"去理解。
 
 ### 2.9.3 新的 macOS 渲染引擎
 
@@ -1983,9 +2074,10 @@ Java 17 引入了新的 macOS 渲染引擎，用 Apple 的 Metal 框架取代了
 Java 17 增强了随机数生成器 API，引入了 `RandomGenerator` 接口和新的实现：
 
 ```java
-import java.random.RandomGenerator;
-import java.random.Xoroshiro128PlusPlus;
+// ⚠️ 包名要记准：随机数生成器在 java.util.random 下，不是 java.random
+import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
+import java.util.random.JumpableGenerator;
 
 public class RandomDemo {
     public static void main(String[] args) {
@@ -1998,18 +2090,22 @@ public class RandomDemo {
         RandomGenerator rng = RandomGeneratorFactory.of("Xoroshiro128PlusPlus").create();
         System.out.println("随机数: " + rng.nextInt(100));
 
-        // JumpableRandomGenerator：跳跃到指定状态
-        var jumpable = RandomGeneratorFactory.of("L32X64MixMix").create();
+        // JumpableGenerator：可以"跳跃"到序列中很远的位置
+        // 注意：RandomGeneratorFactory.create() 返回的是 RandomGenerator，
+        // 想调用 jump() 必须显式转成 JumpableGenerator
+        JumpableGenerator jumpable =
+            (JumpableGenerator) RandomGeneratorFactory.of("L32X64MixMix").create();
         jumpable.jump();  // 跳到下一个「时代」
+        System.out.println("跳跃后随机数: " + jumpable.nextInt(100));
     }
 }
 ```
 
-### 2.9.5 Java 17 是继 Java 8 之后最新的 LTS 版本——企业迁移的目标版本
+### 2.9.5 Java 17 是 Java 11 之后的又一个 LTS 版本——企业迁移的目标版本
 
-Java 17 是 Oracle 在 2021 年 9 月发布的 LTS 版本，提供至少 8 年的安全更新支持。很多企业开始从 Java 8 迁移到 Java 17，享受新特性带来的好处：
+Java 17 是 Oracle 在 2021 年 9 月发布的 LTS 版本（继 Java 8、Java 11 之后的第三个 LTS）。以 Oracle JDK 为例，高级支持到 2026 年 9 月，延长支持到 2029 年 9 月；其他厂商的支持周期会更长一些。很多企业开始从 Java 8/11 迁移到 Java 17，享受新特性带来的好处：
 
-- **性能提升**：G1 GC 改进、ZGC 成熟、编译器优化（AOT 编译）
+- **性能提升**：G1 GC 改进、ZGC 逐步成熟、JIT 编译器优化（注意：写"AOT 编译"是不对的——实验性的 `jaotc` AOT 编译器恰恰是在 Java 17 被移除了，见 JEP 410）
 - **新特性**：密封类、模式匹配、文本块、record、Stream API 增强
 - **安全性**：移除不安全的旧 API、更强的加密算法
 - **现代语法**：switch 表达式、文本块、record，让代码更简洁
@@ -2031,8 +2127,16 @@ Java 21 是又一个 LTS 版本，也是自 Java 8 以来最重要的版本。�
 **虚拟线程**：也叫「轻量级线程」，由 JVM 管理，不直接绑定 OS 线程。多个虚拟线程可以共享一个 OS 线程（载体线程），大幅降低内存占用。
 
 ```java
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+
 public class VirtualThreadDemo {
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws Exception {
         // 创建虚拟线程（方式一：Thread.ofVirtual()）
         Thread virtualThread = Thread.ofVirtual().start(() -> {
             System.out.println("我是虚拟线程！");
@@ -2074,19 +2178,31 @@ public class VirtualThreadDemo {
 ```
 
 ```java
-// 模拟一个简单的 HTTP 服务（使用虚拟线程）
-public class VirtualThreadHttpServer {
-    public static void main(String[] args) throws IOException {
-        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            var server = new SimpleFileServer(
-                Path.of("."),
-                Path.of("/tmp")
-            );
+// 一个小而完整的 HTTP 服务：每个请求交给一个虚拟线程处理
+import com.sun.net.httpserver.HttpServer;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Executors;
 
-            server.createHandler();
-            System.out.println("服务器启动，监听 8080 端口");
-            // 每个请求由一个虚拟线程处理
-        }
+public class VirtualThreadHttpServer {
+    public static void main(String[] args) throws Exception {
+        // 端口 8080，第二个参数 0 表示使用系统默认的 backlog
+        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+
+        // 关键的一行：把执行器换成"每个任务一个虚拟线程"
+        server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+
+        server.createContext("/", exchange -> {
+            byte[] body = "Hello from a virtual thread!\n".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, body.length);
+            try (var out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+
+        server.start();
+        System.out.println("服务器已启动：http://localhost:8080/");
+        System.out.println("每个请求都会由一个独立的虚拟线程处理");
     }
 }
 ```
@@ -2098,87 +2214,117 @@ public class VirtualThreadHttpServer {
 Java 21 正式发布了 Pattern Matching for switch，让 `switch` 语句可以匹配模式：
 
 ```java
-// 传统 switch 只能匹配常量
-String result = switch (obj) {
-    case String s when s.length() > 5 -> "长字符串: " + s;
-    case String s -> "短字符串: " + s;
-    case Integer i -> "数字: " + i;
-    case null, default -> "其他";
-};
+public class PatternSwitchDemo {
 
-// record + switch 模式匹配
-sealed interface Shape permits Circle, Rectangle, Triangle {}
-record Circle(double radius) implements Shape {}
-record Rectangle(double width, double height) implements Shape {}
-record Triangle(double a, double b, double c) implements Shape {}
+    // 1. 用模式替代"先 instanceof 再强转"
+    static String describe(Object obj) {
+        return switch (obj) {
+            // when 是"守卫条件"，让同一个类型可以走不同分支
+            case String s when s.length() > 5 -> "长字符串: " + s;
+            case String s -> "短字符串: " + s;
+            case Integer i -> "数字: " + i;
+            // 同时匹配 null 和"其他所有情况"
+            case null, default -> "其他";
+        };
+    }
 
-double area(Shape s) {
-    return switch (s) {
-        case Circle c -> Math.PI * c.radius() * c.radius();
-        case Rectangle r -> r.width() * r.height();
-        case Triangle t -> {
-            // 海伦公式
-            double s2 = (t.a() + t.b() + t.c()) / 2;
-            yield Math.sqrt(s2 * (s2 - t.a()) * (s2 - t.b()) * (s2 - t.c()));
-        }
-    };
+    // 2. record + switch 模式匹配：密封接口保证 switch 可以穷尽
+    sealed interface Shape permits Circle, Rectangle, Triangle {}
+    record Circle(double radius) implements Shape {}
+    record Rectangle(double width, double height) implements Shape {}
+    record Triangle(double a, double b, double c) implements Shape {}
+
+    static double area(Shape s) {
+        return switch (s) {
+            case Circle c -> Math.PI * c.radius() * c.radius();
+            case Rectangle r -> r.width() * r.height();
+            case Triangle t -> {
+                // 海伦公式
+                double s2 = (t.a() + t.b() + t.c()) / 2;
+                yield Math.sqrt(s2 * (s2 - t.a()) * (s2 - t.b()) * (s2 - t.c()));
+            }
+        };
+    }
+
+    public static void main(String[] args) {
+        System.out.println(describe("hello"));
+        System.out.println(describe(42));
+        System.out.println(area(new Rectangle(3, 4)));  // 12.0
+        System.out.println(area(new Circle(1)));        // 3.141592653589793
+    }
 }
 ```
 
 ### 2.10.3 Record Patterns：record 可以用在 pattern matching 里
 
 ```java
-// record 模式匹配
-record Point(int x, int y) {}
+public class RecordPatternDemo {
 
-void printSum(Object obj) {
-    if (obj instanceof Point(int x, int y)) {
-        // 解构 Point record，直接拿到 x 和 y
-        System.out.println("Sum = " + (x + y));
+    record Point(int x, int y) {}
+    record Line(Point start, Point end) {}
+
+    // 1. instanceof + 记录模式：一步完成类型检查和字段解构
+    static void printSum(Object obj) {
+        if (obj instanceof Point(int x, int y)) {
+            // 直接拿到 x 和 y，不用再强转和调 getter
+            System.out.println("Sum = " + (x + y));
+        }
     }
-}
 
-// 结合 switch
-String describe(Object obj) {
-    return switch (obj) {
-        case Point(int x, int y) when x == y -> "对角线上的点";
-        case Point(int x, int y) -> "普通点 (" + x + ", " + y + ")";
-        case Circle(double r) -> "圆，半径=" + r;
-        case Rectangle(var w, var h) -> "矩形";
-        case null -> "空";
-        default -> "其他形状";
-    };
+    // 2. 结合 switch 使用，还能嵌套解构
+    static String describe(Object obj) {
+        return switch (obj) {
+            case Point(int x, int y) when x == y -> "对角线上的点";
+            case Point(int x, int y) -> "普通点 (" + x + ", " + y + ")";
+            // 嵌套记录模式：直接解构出线段的两个端点坐标
+            case Line(Point(int x1, int y1), Point(int x2, int y2))
+                    -> "线段 (" + x1 + "," + y1 + ") → (" + x2 + "," + y2 + ")";
+            case null -> "空";
+            default -> "其他形状";
+        };
+    }
+
+    public static void main(String[] args) {
+        printSum(new Point(3, 4));                                  // Sum = 7
+        System.out.println(describe(new Point(5, 5)));              // 对角线上的点
+        System.out.println(describe(new Line(new Point(0, 0), new Point(1, 2))));
+    }
 }
 ```
 
-### 2.10.4 Scoped Values：比 ThreadLocal 更安全的数据传递
+### 2.10.4 Scoped Values 与结构化并发：比 ThreadLocal 更安全的数据传递（预览特性）
 
-`ScopedValue` 是 Java 21 引入的新特性，比 `ThreadLocal` 更安全、更易用。
+> ⚠️ **先把版本说清楚**：`ScopedValue` 与结构化并发（`StructuredTaskScope`）**都是预览特性，至今没有转正**。它们在 Java 21 首次预览，之后每个版本都在修订。使用它们必须加 `--enable-preview` 参数，而且**编译和运行必须用同一个 JDK 版本**（预览特性是按版本绑定的）。写业务代码时请谨慎采用。
 
 `ThreadLocal` 的问题：线程池环境下，`ThreadLocal` 的值可能被错误复用；值传递也不够安全。
 
-`ScopedValue` 的优势：值与执行作用域绑定，跨线程传递时需要显式 `join`，更安全。
+`ScopedValue` 的优势：值与代码块的作用域绑定，出了作用域就自动失效，不需要手动 `remove()`；配合结构化并发还能安全地传给子任务。
 
 ```java
-import java.util.concurrent.ScopedValue;
+// ⚠️ 下面这段代码需要 --enable-preview 才能编译运行
+// 注意：ScopedValue 位于 java.lang 包，不需要 import！
 import java.util.concurrent.StructuredTaskScope;
 
 // ScopedValue：线程安全的数据容器
 public class ScopedValueDemo {
-    // 定义一个 ScopedValue
-    static final ScopedValue<String> CURRENT_USER = ScopedValue.empty();
+    // 定义一个 ScopedValue：注意创建方式是 newInstance()，不是 empty()
+    static final ScopedValue<String> CURRENT_USER = ScopedValue.newInstance();
 
     public static void main(String[] args) {
-        // 在 ScopedValue 中运行代码
-        String result = ScopedValue.getOrDefault(CURRENT_USER, "Anonymous");
+        // 作用域外取值：用 orElse 提供兜底值
+        String result = CURRENT_USER.orElse("Anonymous");
+        System.out.println("作用域外的用户: " + result);
 
-        // 设置值（只在当前作用域内有效）
-        ScopedValue.runWhere(CURRENT_USER, "Alice", () -> {
-            System.out.println("用户: " + CURRENT_USER.get());
-            callService();  // 子方法也能访问
+        // 绑定值并运行：API 是 ScopedValue.where(...).run(...)
+        ScopedValue.where(CURRENT_USER, "Alice").run(() -> {
+            System.out.println("作用域内的用户: " + CURRENT_USER.get());
+            callService();  // 被调用的子方法也能读到这个值
         });
 
-        // ScopedValue 在结构化并发中特别有用
+        // ScopedValue 在结构化并发中特别有用。
+        // ⚠️ 结构化并发仍是预览 API，各版本写法不同：
+        //    Java 21~24：new StructuredTaskScope.ShutdownOnFailure()
+        //    Java 25+  ：StructuredTaskScope.open(...)（API 被重新设计过）
         try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
             Future<Integer> f1 = scope.fork(() -> {
                 return doTask1(CURRENT_USER.get());  // 自动继承 ScopedValue
@@ -2204,13 +2350,16 @@ public class ScopedValueDemo {
 }
 ```
 
-### 2.10.5 String Templates 预览版（Java 21）→ 正式版（Java 26）
+### 2.10.5 String Templates（字符串模板）：预览后被撤回，**至今没有正式版**
 
-String Templates 是 Java 21 的预览特性，于 Java 26 正式发布。它提供了一种更安全、更易读的方式来拼接字符串：
+> ⚠️ **这一条必须纠正**：网络上大量文章说"String Templates 会在 Java 26 转正"，这是**不准确的**。真实情况是：
+> String Templates 在 **Java 21 首次预览**（JEP 430）、**Java 22 第二次预览**（JEP 459），随后被**撤回**——从 Java 23 起，`STR."..."` 这套语法**已经不在 JDK 里了**，也没有进入任何后续正式版本。JDK 25 中同样没有它。
+>
+> 也就是说，下面这段代码**在今天的任何 JDK（包括最新的正式版）里都编译不过**。保留它只是为了说明"曾经有过这样一个设计"，写代码时请改用 `String.format()`、`StringBuilder` 或文本块。
 
 ```java
-// 预览语法（Java 21~25）
-// 注意：这是预览特性，需要加 --enable-preview 启动
+// ⚠️ 已被撤回的预览语法（仅 Java 21/22 的预览版能用，且需要 --enable-preview）
+// 在 Java 23 及以后的版本中，这段代码无法编译
 
 // 简单的模板
 String name = "Alice";
@@ -2236,16 +2385,18 @@ String formatted = FMT."""
     """;
 ```
 
-### 2.10.6 Foreign Function & Memory API 正式版
+### 2.10.6 Foreign Function & Memory API（Java 22 正式版）
 
-Java 21 引入了 Foreign Function & Memory API（Java 22 继续预览，Java 26 正式发布），让 Java 可以直接调用 native 代码和操作堆外内存：
+> ⚠️ 版本纠正：FFM API 在 Java 21 是**预览**，在 **Java 22 就正式转正**了（JEP 454），并不是"Java 26 正式发布"。它让 Java 可以直接调用 native 代码、安全地操作堆外内存，目标是逐步取代 JNI。
 
 ```java
-// FFM API（Java 26 正式版）
+// FFM API（Java 22 起为正式特性）
 // 使用 MemorySegment 和 Arena
 
 // 分配堆外内存
-try (Arena arena = Arena.global()) {
+// 注意要用 Arena.ofConfined() 这类"可关闭"的 Arena；
+// Arena.global() 是全局共享的，关闭它会抛出异常
+try (Arena arena = Arena.ofConfined()) {
     MemorySegment segment = arena.allocate(1024);
     // 操作内存
     segment.set(ValueLayout.JAVA_INT, 0, 42);
@@ -2261,32 +2412,35 @@ try (Arena arena = Arena.global()) {
 Java 21 引入了「序列集合」概念，统一了 List、Deque、Set 的顺序访问接口：
 
 ```java
-public interface SequencedCollection<E> extends Collection<E> {
-    // 新增的方法
-    SequencedCollection<E> reversed();  // 返回反向视图
-    void addFirst(E);
-    void addLast(E);
-    E getFirst();
-    E getLast();
-    E removeFirst();
-    E removeLast();
+import java.util.ArrayList;
+import java.util.List;
+
+public class SequencedCollectionDemo {
+    public static void main(String[] args) {
+        // List 从 Java 21 起实现了 SequencedCollection，
+        // 于是有了统一的首尾访问方法（Deque、LinkedHashSet、SortedSet 同理）
+        List<Integer> list = new ArrayList<>(List.of(1, 2, 3));
+        list.addFirst(0);              // [0, 1, 2, 3]
+        list.addLast(4);               // [0, 1, 2, 3, 4]
+        int first = list.getFirst();   // 0
+        int last = list.getLast();     // 4
+        System.out.println("first=" + first + ", last=" + last);
+
+        // reversed() 返回的是"反向视图"，不是副本：
+        // 改原列表会同步反映到 reversed 上
+        List<Integer> reversed = list.reversed();
+        System.out.println(reversed);  // [4, 3, 2, 1, 0]
+        list.addFirst(-1);
+        System.out.println(reversed);  // [-1, 4, 3, 2, 1, 0]  ← 视图跟着变了
+    }
 }
-
-// 现在所有序列集合都有一致的方法
-List<Integer> list = new ArrayList<>(List.of(1, 2, 3));
-list.addFirst(0);     // [0, 1, 2, 3]
-list.addLast(4);      // [0, 1, 2, 3, 4]
-int first = list.getFirst();   // 0
-int last = list.getLast();     // 4
-
-// reversed() 返回反向视图
-List<Integer> reversed = list.reversed();
-System.out.println(reversed);  // [4, 3, 2, 1, 0]
 ```
 
-### 2.10.8 ZGC 和 Shenandoah GC 正式发布
+> 📌 **补充**：`SequencedCollection` 是 JDK 自带的接口（`java.util.SequencedCollection`），它定义的方法包括 `reversed()`、`addFirst/addLast`、`getFirst/getLast`、`removeFirst/removeLast`。`Map` 对应的接口是 `SequencedMap`，提供 `putFirst/putLast`、`sequencedKeySet()`、`reversed()` 等——注意 `Map` 本身**没有** `getFirst/getLast`。
 
-Java 21 正式将 **ZGC** 和 **Shenandoah** 标记为正式版（非实验）：
+### 2.10.8 ZGC 和 Shenandoah GC（注意：它们不是 Java 21 才转正的）
+
+> ⚠️ 版本纠正：**ZGC 和 Shenandoah 都是在 Java 15 就转正了**（JEP 377、JEP 379），并不是 Java 21 才"正式发布"。它们真正与 Java 21 相关的变化是：ZGC 在 Java 21 引入了**分代模式**（JEP 439，`-XX:+UseZGC -XX:+ZGenerational`，后来成为默认行为）。
 
 - **ZGC**：低延迟 GC，适合大内存（64GB+）应用
 - **Shenandoah**：低延迟 GC，适合中等内存应用，Red Hat 主导
@@ -2303,87 +2457,93 @@ java -XX:+UseShenandoahGC -Xmx16g MyApp
 
 ## 2.11 Java 22~26（2024~2026）：持续进化
 
-Java 的发布节奏已经稳定在每六个月一个大版本。让我们来看看近年的重要更新。
+Java 的发布节奏已经稳定在每六个月一个大版本。下面这一节按版本梳理近年变化，涉及版本状态的判断都以可实测的 JDK 为准（本地 JDK 25 实测：`ScopedValue` 可用、`StructuredTaskScope` 仍是预览 API、JDK 中没有 `java.lang.StringTemplate`）。
 
-### 2.11.1 Java 22（2024.3）：Stream Gatherers、Statement Expressions、Class-File API
+### 2.11.1 Java 22（2024.3）：FFM API 与 Unnamed Variables 转正
 
-**Stream Gatherers**：扩展 Stream API，支持更复杂的流操作：
+Java 22 转正的特性：
 
-```java
-// Stream Gatherers（Java 22 预览）
-// 为 Stream 添加自定义中间操作
+- **Foreign Function & Memory API（JEP 454）**：正式成为标准 API，取代了 JNI 的绝大部分日常用途，让 Java 调用本地库、访问堆外内存有了安全且高效的正规途径。
+- **Unnamed Variables & Patterns（JEP 456）**：用 `_` 表示「这个变量我不需要」。
 
-List<String> names = List.of("Alice", "Bob", "Charlie", "David");
+同时继续处于预览或孵化状态的还有：String Templates（第二次预览，JEP 459）、Statements before super()（JEP 447）、Implicitly Declared Classes（JEP 463）、Class-File API、Stream Gatherers、Structured Concurrency、Scoped Values。
 
-// 自定义 gatherer：滑动窗口
-List<List<String>> windows = names.stream()
-    .gather(Gatherers.windowSliding(2))
-    .toList();
-// [[Alice, Bob], [Bob, Charlie], [Charlie, David]]
+> ⚠️ 常见误传：网上流传的 "Statement Expressions"（可以在任意表达式位置写 `{ ... }` 代码块，例如 `System.out.println({ int m = ...; m; })`）**不是 Java 22 的特性，也不存在于任何 JDK 中**，这段代码无法通过编译。
 
-// fold：聚合
-String concatenated = names.stream()
-    .gather(Gatherers.fold(String::concat, String::concat))
-    .findFirst()
-    .orElse("");
-// "AliceBobCharlieDavid"
-```
-
-**Statement Expressions**：现在可以在任何表达式位置使用 `{ }` 块，包含局部变量声明：
+**FFM API 示例**（Java 22 起标准 API，无需预览参数）：
 
 ```java
-// 以前
-int max = Math.max(a, b);
-System.out.println(max);
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 
-// 现在
-System.out.println({ int m = Math.max(a, b); m; });
-```
-
-**Class-File API**：标准库直接操作 class 文件（字节码），无需依赖 ASM 库。
-
-### 2.11.2 Java 23（2024.9）：String Templates 继续预览
-
-**String Templates 继续预览**：String Templates 在 Java 23 继续处于预览阶段（经过多次预览后，于 Java 26 正式发布）。
-
-> **补充**：Scoped Values 在 Java 23 仍处于预览阶段，直至 Java 24 才正式发布为最终版。
-
-### 2.11.3 Java 24（2025.3）：Scoped Values 最终版、Unnamed Variables & Patterns、Smart Enum Values
-
-**Scoped Values 最终版**：Java 24 将 Scoped Values 从预览变为正式版，提供了一种比 ThreadLocal 更安全、更易用的线程内数据共享机制，特别适合与虚拟线程配合使用。
-
-**Unnamed Variables & Patterns**：用 `_` 表示不使用的变量，让代码更清晰：
-
-```java
-// 不需要使用某个变量时，用 _ 表示
-String[] parts = "a-b-c".split("-");
-String first = parts[0];  // 使用
-String _ = parts[1];     // 不使用这个部分
-String last = parts[2];
-
-// Pattern Matching 中忽略某些字段
-record Point(int x, int y) {}
-Point p = new Point(3, 4);
-if (p instanceof Point(int x, int _)) {
-    System.out.println("x = " + x);  // 只关心 x
-}
-
-// switch 中
-switch (shape) {
-    case Circle(double r) -> System.out.println("半径: " + r);
-    case Rectangle(double _, double h) -> System.out.println("高度: " + h);  // 不关心宽度
-    default -> {}
+public class FfmDemo {
+    public static void main(String[] args) {
+        try (Arena arena = Arena.ofConfined()) {
+            MemorySegment segment = arena.allocate(8);
+            segment.set(ValueLayout.JAVA_INT, 0, 42);
+            int value = segment.get(ValueLayout.JAVA_INT, 0);
+            System.out.println("读取值: " + value); // 读取值: 42
+        }
+    }
 }
 ```
 
-**Smart Enum Values**：枚举的 `values()` 方法可以更智能地使用：
+**Unnamed Variables 示例**（JDK 25 实测通过）：
+
+```java
+public class UnnamedVariablesDemo {
+    record Point(int x, int y) {}
+
+    public static void main(String[] args) {
+        String[] parts = "a-b-c".split("-");
+        String _ = parts[1];          // 明确表示「这个值拿到但不用」
+        System.out.println(parts[0] + parts[2]);   // ac
+
+        Object o = new Point(3, 4);
+        if (o instanceof Point(int x, int _)) {    // 模式里也能用 _ 忽略某个分量
+            System.out.println("x = " + x);        // x = 3
+        }
+
+        // 另一个典型场景：catch 里不关心异常对象
+        try {
+            Integer.parseInt("abc");
+        } catch (NumberFormatException _) {
+            System.out.println("转换失败，忽略具体异常信息");
+        }
+    }
+}
+```
+
+### 2.11.2 Java 23（2024.9）：String Templates 被撤回
+
+**String Templates（字符串模板）在 Java 23 被撤下**。它在 Java 21、22 各预览过一次（JEP 430、JEP 459），原计划继续预览的 JEP 465 最终被撤销，此后各版本 JDK 都不再包含这个特性——在 JDK 25 里，`java.lang.StringTemplate` 这个类根本不存在。所以「Java 26 会正式发布 String Templates」这样的说法是不可信的。
+
+Java 23 的其他变化：
+
+- 文档注释支持 Markdown（预览，JEP 467）
+- ZGC 默认使用分代模式（JEP 474）
+- 弃用 `sun.misc.Unsafe` 的内存访问方法（JEP 471），为彻底移除做准备
+- Module Import Declarations 首次预览（JEP 476，Java 25 转正）
+
+### 2.11.3 Java 24（2025.3）：Class-File API、Stream Gatherers 转正
+
+- **Class-File API（JEP 484）**：正式发布，标准库可以直接读写、生成 class 文件，不再必须依赖 ASM。
+- **Stream Gatherers（JEP 485）**：正式发布，为 Stream 添加自定义中间操作的能力。
+- **永久禁用 SecurityManager（JEP 486）**：该项在 Java 17 就已弃用（JEP 411），Java 24 起无法再通过 `-Djava.security.manager` 启用。
+- **虚拟线程不再因 `synchronized` 而钉住载体线程（JEP 491）**：虚拟线程在同步块中阻塞时不再占用平台线程。
+- ZGC 移除非分代模式（JEP 490），AOT 类加载与链接支持（JEP 483）。
+
+> ⚠️ 版本纠正：**Scoped Values 在 Java 24 仍然是预览特性**，它到 Java 25 才转正；**Structured Concurrency 到 Java 25 也还是预览特性**（`StructuredTaskScope` 在 JDK 25 上不加 `--enable-preview` 会直接报错）。另外，「Smart Enum Values」并不是一个 Java 特性——下面那种写法只是普通的**穷尽 switch 表达式**（Java 14 起支持，Java 21 起用于模式匹配）。
+
+枚举上的穷尽 switch（不是新特性，但很好用）：
 
 ```java
 enum Color {
     RED, GREEN, BLUE;
 
-    public Color opposite() {
-        // Smart Enum Values 语法
+    Color opposite() {
+        // 覆盖全部常量后不必写 default，编译器会检查穷尽性
         return switch (this) {
             case RED -> GREEN;
             case GREEN -> RED;
@@ -2393,75 +2553,52 @@ enum Color {
 }
 ```
 
-### 2.11.4 Java 25（2025.9）：Implicitly Declared Classes 继续预览
+### 2.11.4 Java 25（2025.9，LTS）：Scoped Values、简洁源文件转正
 
-**Implicitly Declared Classes**：隐式声明类在 Java 25 继续预览（Java 26 正式发布）。
+Java 25 是新的 LTS 版本，转正的特性包括：
 
-> **补充**：Structured Concurrency 在 Java 24 已正式发布为最终版，并非 Java 25 的新特性。
+- **Scoped Values（JEP 506）**：正式发布，用来在虚拟线程之间安全地共享不可变数据，API 形如 `ScopedValue.where(KEY, value).run(...)`，比 `ThreadLocal` 更可控。
+- **Module Import Declarations（JEP 511）**：正式发布，写一行 `import module java.base;` 就能把整个模块的包引入进来。
+- **Compact Source Files and Instance Main Methods（JEP 512）**：正式发布，可以直接写 `void main() { ... }` 而不必声明类，非常适合教学和脚本。
+- **Flexible Constructor Bodies（JEP 513）**：正式发布，构造函数里可以把校验语句写在 `super(...)` 之前。
+- **Compact Object Headers（JEP 519）**：正式发布，降低对象头开销。
+- 移除 32 位 x86 支持（JEP 503）。
 
-### 2.11.5 Java 26（2026.3）：Foreign Function & Memory API 正式版、Exception Filtering 最终版
-
-**Foreign Function & Memory API 正式版**：Java 26 将 FFM API 从预览变为正式版，这是 Java 与 native 代码交互的重大升级：
+以下代码在 JDK 25 上无需任何预览参数即可运行：
 
 ```java
-// FFM API 正式版
-import java.lang.foreign.Arena;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
+import module java.base;
+import java.lang.ScopedValue;
 
-public class FFMAPIDemo {
-    public static void main(String[] args) {
-        // 分配堆外内存
-        try (Arena arena = Arena.global()) {
-            MemorySegment segment = arena.allocate(256);
-
-            // 写入数据
-            segment.set(ValueLayout.JAVA_BYTE, 0, (byte) 'H');
-            segment.set(ValueLayout.JAVA_BYTE, 1, (byte) 'i');
-
-            // 读取数据
-            byte[] buffer = new byte[2];
-            segment.get(ValueLayout.JAVA_BYTE, 0, buffer, 0, 2);
-            System.out.println(new String(buffer));
-        }
-    }
+void main() {
+    ScopedValue<String> USER = ScopedValue.newInstance();
+    ScopedValue.where(USER, "alice").run(() -> System.out.println("当前用户: " + USER.get()));
+    System.out.println("简洁源文件 + 模块导入 + ScopedValue 都可用");
 }
 ```
 
-**Exception Filtering 最终版**：`catch` 子句可以过滤异常：
+仍在预览中的有：Structured Concurrency（第五次预览）、Primitive Types in Patterns（第三次预览）、Key Derivation API 等。
 
-```java
-try {
-    riskyOperation();
-} catch (Exception e) when (e.getMessage().contains("timeout")) {
-    // 只捕获包含 "timeout" 的异常
-    handleTimeout();
-} catch (Exception e) {
-    handleOther();
-}
-```
+### 2.11.5 关于 Java 26 的说法：请以官方 JEP 列表为准
 
-### 2.11.6 Java 26 特性一览与未来展望
+早期资料里关于「Java 26」的内容有不少错误或推测，至少下面几条可以肯定是不对的：
 
-Java 26 的完整特性列表（根据截至 2026 年初的路线图）：
+| 常见说法 | 实际情况 |
+| --- | --- |
+| FFM API 在 Java 26 才正式发布 | ❌ FFM API 在 **Java 22** 就已转正（JEP 454） |
+| `catch (Exception e) when (...)` 异常过滤 | ❌ **Java 根本没有这种语法**，`when` 不能出现在 `catch` 之后（javac 会直接报 `'{' expected`） |
+| String Templates 在 Java 26 正式发布 | ❌ 该特性在 Java 23 已被撤回，JDK 25 中不存在 `java.lang.StringTemplate` |
+| Structured Concurrency 已是最终版 | ❌ 截至 JDK 25 它仍是预览特性 |
 
-| 特性 | 状态 |
-|------|------|
-| String Templates | 最终版 |
-| Foreign Function & Memory API | 最终版 |
-| Class-File API | 最终版 |
-| Stream Gatherers | 预览版 |
-| Exception Filtering | 最终版 |
-| Structured Concurrency | 最终版 |
-| Unnamed Variables & Patterns | 最终版 |
-| JEP 447: Statements before super() | 预览 |
+想了解某个 JDK 版本到底包含哪些特性，最可靠的做法是直接查该版本的 JEP 列表与官方发行说明，或者在本机用 `java -version` 对应的 JDK 亲手编译一次——很多「新特性」只要写几行代码就能验证真假。
 
 **未来展望**：
 
-- **Project Leyden**：Java 的 AOT（Ahead-of-Time）编译器项目，让 Java 应用启动更快、占用更小
-- **Project Loom**：虚拟线程已经发布，继续优化性能
-- **Project Amber**：语法增强，包括 record 改进、pattern matching 扩展等
-- **Project Babylon**：Java + GraalVM 的深度集成
+- **Project Leyden**：AOT 相关的启动与内存占用优化，相关能力正逐步进入 JDK
+- **Project Loom**：虚拟线程已落地，后续继续优化其调度与调试体验
+- **Project Amber**：语法增强，包括模式匹配扩展等
+- **Project Panama / Babylon**：前者产出了 FFM API，后者在探索更自然的外部代码与 GPU 加速支持
+
 
 ---
 

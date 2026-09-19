@@ -74,6 +74,8 @@ draft = false
 
 ### 39.3.1 遮罩层
 
+遮罩层就是盖住整屏的半透明层，配合 `display: flex` 顺手把里面的弹窗居中。`inset: 0` 是 `top/right/bottom/left` 全为 0 的缩写，比写四行更清爽。
+
 ```css
 .modal-overlay {
   position: fixed;
@@ -89,17 +91,28 @@ draft = false
 
 ### 39.4.1 固定顶部
 
+`position: fixed` 让导航栏脱离文档流、固定在视口顶部。它脱离文档流后不再占位，页面顶部内容会被盖住，所以通常要给 `body` 补一个等高的 `padding-top`；`z-index` 则保证它盖在其他内容之上。
+
 ```css
 .navbar {
   position: fixed;
   top: 0;
+  left: 0;
   width: 100%;
+  height: 60px;
+  z-index: 1000;              /* 确保盖在其他内容之上 */
+}
+
+body {
+  padding-top: 60px;          /* 给固定导航栏让出位置 */
 }
 ```
 
 ## 39.5 加载动画
 
 ### 39.5.1 Spinner
+
+最常见的"转圈"加载动画：画一个圆环，把其中一段边框染成主题色，再让它匀速旋转。
 
 ```css
 @keyframes spin {
@@ -153,4 +166,3 @@ Tooltip 就像老板的承诺——不hover不发，一hover就兑现。
 - Grid Garden
 
 **祝你学习愉快！** 🚀
-

@@ -28,7 +28,9 @@ draft = false
 
 这是编程界的"Hello World Plus"——比 Hello World 稍微刺激一点，至少用户要输入点东西。
 
-```rust
+```rust,ignore
+// ⚠️ 依赖 rand：Cargo.toml 里需要加 rand = "0.8"（本块标记为 ignore）。
+
 use std::io; // 输入输出库，让我们能跟用户唠嗑
 use std::cmp::Ordering; // 比较结果，猜大了还是猜小了
 use rand::Rng; // 随机数生成器
@@ -246,7 +248,10 @@ fib(15) =    610 （迭代结果:    610）
 
 这是从"写代码"到"做产品"的起点。你要管理待办事项——增删改查，持久化到文件。
 
-```rust
+```rust,ignore
+// ⚠️ 依赖 serde / serde_json：Cargo.toml 里需要加
+//     serde = { version = "1", features = ["derive"] } 和 serde_json = "1"（本块标记为 ignore）。
+
 use serde::{Deserialize, Serialize}; // 数据序列化，把内存里的数据变成 JSON 存文件
 use std::fs; // 文件系统操作
 use std::io::{self, BufRead, Write}; // 读取用户输入
@@ -525,7 +530,7 @@ fn main() {
     kv.search("name");
     kv.count();
 
-    kv.delete("level".to_string());
+    kv.delete("level");
     kv.list();
 
     // 尝试获取已删除的
@@ -1075,8 +1080,23 @@ where
 
 // ========== 手写极简 Executor ==========
 
+// 适配器：把任意 Future 的返回值丢弃，使 Output 变成 ()，
+// 这样才能放进「只关心完成与否」的执行器里。
+struct IgnoreOutput<F>(F);
+
+impl<F: SimpleFuture> SimpleFuture for IgnoreOutput<F> {
+    type Output = ();
+    fn poll(&mut self, cx: &mut Context) -> Poll<()> {
+        match self.0.poll(cx) {
+            Poll::Ready(_) => Poll::Ready(()),
+            Poll::Pending => Poll::Pending,
+        }
+    }
+}
+
 struct MiniExecutor {
-    tasks: Vec<Box<dyn SimpleFuture<Output = ()> + Send>>,
+    // 这里要求 Unpin，这样 run() 里可以直接把 &mut 交给 Pin::new
+    tasks: Vec<Box<dyn SimpleFuture<Output = ()> + Send + Unpin>>,
 }
 
 impl MiniExecutor {
@@ -1086,7 +1106,7 @@ impl MiniExecutor {
 
     fn spawn<F>(&mut self, future: F)
     where
-        F: SimpleFuture<Output = ()> + Send + 'static,
+        F: SimpleFuture<Output = ()> + Send + Unpin + 'static,
     {
         self.tasks.push(Box::new(future));
     }
@@ -1108,9 +1128,8 @@ impl MiniExecutor {
                 println!("  Poll 任务 {}...", i);
                 // 这里用 unsafe 简化 Pin 处理
                 let future = self.tasks.get_mut(i).unwrap();
-                if let Poll::Ready(_) = unsafe {
-                    Pin::new_unchecked(future.as_mut()).poll(&mut cx)
-                } {
+                // 因为约束里有 Unpin，可以直接用安全的 Pin::new
+                if let Poll::Ready(_) = Pin::new(future.as_mut()).poll(&mut cx) {
                     println!("  任务 {} 完成，移除", i);
                     self.tasks.remove(i);
                 } else {
@@ -1160,14 +1179,18 @@ fn main() {
 
     executor.spawn(task1);
     executor.spawn(task2);
-    executor.spawn(task3);
+    // Ready 的返回值是 u32，执行器只接受 Output = ()，用适配器丢掉返回值
+    executor.spawn(IgnoreOutput(task3));
 
     executor.run();
 
     // 演示 JoinFuture
     println!("\n\n========== JoinFuture 演示 ==========");
     let mut executor2 = MiniExecutor::new();
-    executor2.spawn(JoinFuture::new(Ready(Some(99u32)), DelayFuture::new(10)));
+    executor2.spawn(IgnoreOutput(JoinFuture::new(
+        Ready(Some(99u32)),
+        DelayFuture::new(10),
+    )));
     executor2.run();
 }
 ```
@@ -1458,11 +1481,12 @@ fn main() {
     // rot13
     println!("\n[rot13]");
     let r = manager.execute("rot13", "Secret Message");
-    if let Ok(out) = r { println!("  原文: 'Secret Message' -> '{}'", out); }
+    // 注意：这里用 ref 绑定，否则 r 会被部分移动，下一行就借不到了
+    if let Ok(ref out) = r { println!("  原文: 'Secret Message' -> '{}'", out); }
 
     // 验证 rot13 是可逆的
-    let r = manager.execute("rot13", &r.unwrap());
-    if let Ok(out) = r { println!("  ROT13 再次处理: -> '{}'（应该回到原文）", out); }
+    let r2 = manager.execute("rot13", &r.unwrap());
+    if let Ok(out) = r2 { println!("  ROT13 再次处理: -> '{}'（应该回到原文）", out); }
 
     // 尝试执行不存在的插件
     println!("\n[不存在的插件]");

@@ -11,6 +11,8 @@ draft = false
 
 > "学 Java 的人，没有不知道 Spring 的。就像学开车的人，没有不知道方向盘的。" —— 某位不愿透露姓名的 Java 程序员
 
+> 📌 **阅读提示**：本章的代码示例都依赖 **Spring Framework**（以及 Spring Boot、Spring MVC 等）的依赖包，**不能像前几章那样用 `javac` 单独编译运行**。请把它们当作"项目里的代码片段"来理解；要真正跑起来，需要先用 Maven/Gradle 引入 Spring 依赖、搭好工程骨架。同理，`@Service`、`@Autowired` 这些注解只有 Spring 容器才认得，单独编译时编译器会提示"找不到符号"。
+
 ## 37.1 IoC（控制反转）与 DI（依赖注入）
 
 ### 37.1.1 什么是 IoC？

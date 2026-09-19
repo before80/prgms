@@ -59,8 +59,8 @@ graph TD
 
 ```bash
 # MBR 的硬伤：
-# 1. 最大支持 2TB 的硬盘！
-#    超过 2TB？对不起，用不了！
+# 1. 单个分区最大 2TiB（按 512 字节扇区、32 位扇区号计算）
+#    超过 2TiB 的空间没法寻址——这正是大硬盘必须改用 GPT 的根本原因
 # 2. 最多只能有 4 个主分区！
 #    想分更多？必须用"扩展分区"套"逻辑分区"！
 ```
@@ -104,7 +104,8 @@ graph TD
 # │   ├── /dev/sda6  (逻辑分区)   50GB  # swap
 # └── (扩展分区本身不能使用)
 
-# 注意：扩展分区没有编号（sda3），逻辑分区从 sda5 开始！
+# 注意：扩展分区自己占用一个编号（这里是 sda3），但它只是"容器"、不能直接存数据；
+# 逻辑分区从 5 号开始编号，因为 1~4 号要留给主分区和扩展分区。
 ```
 
 > 小技巧：主分区是"独立房间"，逻辑分区是"合租房里的隔间"！
@@ -120,7 +121,7 @@ graph TD
 ```bash
 # GPT 的优势：
 # 1. 最大支持 9.4ZB（是的，ZB！约等于无限）
-# 2. 最多 128 个分区（Windows 限制，Linux 无限制）
+# 2. 分区数量上限很高：Windows 限定 128 个；Linux 内核默认每块盘 256 个（sda1~sda256）
 # 3. 自带备份（分区表在硬盘头尾各存一份）
 # 4. CRC 校验（数据损坏能检测出来）
 # 5. 64位磁盘序列号（唯一标识）
@@ -133,7 +134,7 @@ graph TD
 | 特性 | MBR | GPT |
 |------|-----|-----|
 | 最大硬盘 | 2TB | 9.4ZB |
-| 最大分区数 | 4（主）+ 扩展 | 128（Windows）/ 无限（Linux）|
+| 最大分区数 | 4（3 主 + 1 扩展）＋扩展内的逻辑分区 | 128（Windows）/ 256（Linux 内核默认）|
 | 启动方式 | BIOS | UEFI |
 | 分区表备份 | 无 | 硬盘头尾各一份 |
 | 数据校验 | 无 | CRC 校验 |
@@ -142,14 +143,21 @@ graph TD
 
 ---
 
-## 13.4 fdisk 分区工具：MBR 分区
+## 13.4 fdisk 分区工具
 
-**fdisk** 是 Linux 最经典的分区工具，但只支持 MBR！
+**fdisk** 是 Linux 最经典的分区工具。
 
 ```bash
-# fdisk 只支持 MBR
-# 想用 GPT？用 gdisk 或 parted！
+# 老教材常说"fdisk 只支持 MBR"，这句话已经过时了：
+# util-linux 2.38（2022 年）之后，fdisk 已经能处理 GPT——
+# 进入交互界面后按 g 可新建 GPT 分区表，按 o 可新建 MBR（DOS）分区表。
+#
+# 怎么确认你手上的 fdisk 支不支持 GPT？看版本号：
+fdisk --version
+# fdisk from util-linux 2.39.3    ← 2.38 及以上都支持
 ```
+
+> 不过在真正的运维场景里，**GPT 的首选工具仍然是 `gdisk` 或 `parted`**：`gdisk` 对 GPT 的支持最完整（能修复分区表、能改分区类型 GUID），`parted` 更适合被脚本调用。`fdisk` 的优势是操作直观、提示清晰，适合快速在 MBR 磁盘上切几个分区。
 
 ### 13.4.1 fdisk -l：列出分区
 
@@ -301,7 +309,7 @@ sudo gdisk /dev/sdb
 # Command: q (quit without saving)
 ```
 
-> gdisk 支持 GPT，但没有 MBR 的主/逻辑分区概念——所有分区都是"主分区"，最多128个！
+> gdisk 支持 GPT，但没有 MBR 那套主/逻辑分区的概念——**所有分区地位平等**。GPT 分区表本身为 128 个条目预留了空间，所以常见上限是 128 个（Linux 内核默认每块盘最多 256 个）。
 
 ---
 
@@ -402,18 +410,20 @@ sudo mkfs.ext4 /dev/sdb1
 # 格式化为 XFS
 sudo mkfs.xfs /dev/sdb1
 
-# 输出：
-# meta-data=/dev/sdb1            isize=512    agcount=4, agsize=65536 blks
+# 输出（xfsprogs 6.x 的典型输出，字段按列对齐）：
+# meta-data=/dev/sdb1              isize=512    agcount=4, agsize=655360 blks
 #          =                       sectsz=512   attr=2, projid32bit=1
 #          =                       crc=1        finobt=1, sparse=1, rmapbt=1
-#          =                       unreclaim=1  nodinodeq=on,  nobrowse
-# data     =                       bsize=4096   blocks=262144, imaxpct=25
+#          =                       reflink=1    bigtime=1 inobtcount=1 nrext64=1
+# data     =                       bsize=4096   blocks=2621440, imaxpct=25
 #          =                       sunit=0      swidth=0 blks
 # naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
-# log      =internal log           bsize=4096   blocks=1280, version=2
+# log      =internal log           bsize=4096   blocks=16384, version=2
 #          =                       sectsz=512   sunit=0 blks, lazy-count=1
 # realtime =none                   extsz=4096   blocks=0, rtextents=0
 ```
+
+> 注意这里出现的都是**真实存在的字段**（`rmapbt`、`reflink`、`bigtime`、`inobtcount` 等）。像 `unreclaim=1`、`nodinodeq=on`、`nobrowse` 这种"看起来很专业"的词，在任何版本的 mkfs.xfs 里都不存在——那是凭空编出来的输出。
 
 ### 13.7.3 mkfs.btrfs /dev/sdb1
 
@@ -421,21 +431,26 @@ sudo mkfs.xfs /dev/sdb1
 # 格式化为 Btrfs
 sudo mkfs.btrfs /dev/sdb1
 
-# 输出：
-# btrfs-progs v5.4
-# See http://btrfs.wiki.kernel.org for more information.
+# 输出（btrfs-progs 6.x 的典型输出）：
+# btrfs-progs v6.6.3
+# See https://btrfs.readthedocs.io for more information.
 #
 # Label:              (null)
-# Device size:        100.00 GiB
-# Btrfs version:      5.4
-# Allocated:          0 bytes
-# UBIQUITY:           -
-# Checksum:           crc32c
-# Number of devices:   1
+# UUID:               8f3c1e60-1a2b-4c3d-9e8f-0123456789ab
+# Node size:          16384
+# Sector size:        4096
+# Filesystem size:    100.00GiB
+# Block group profiles:
+#   Data:             single            8.00MiB
+#   Metadata:         DUP             256.00MiB
+#   System:           DUP               8.00MiB
+# SSD detected:       no
 # Devices:
 #    ID        SIZE      PATH
-#    1       100.00 GiB  /dev/sdb1
+#     1     100.00GiB  /dev/sdb1
 ```
+
+> 顺便指出一个"假字段"：上面旧版本里的 `UBIQUITY: -` 在 mkfs.btrfs 的任何真实输出里都不存在，是编造出来的。学习命令输出时，**字段名对不上就是提醒信号**——不要照着背，最好自己跑一遍对照。
 
 ### 13.7.4 -L 指定卷标
 
@@ -481,9 +496,19 @@ mount
 # 只读挂载（不能写入）
 sudo mount -o ro /dev/sdb1 /mnt
 
-# 重新挂载为读写
-sudo mount -o rw /dev/sdb1 /mnt
+# 重新挂载为读写：已经在挂载中的文件系统，必须用 remount
+sudo mount -o remount,rw /mnt
 ```
+
+> ⚠️ 这里有个高频错误：**设备已经被挂载时，`mount -o rw /dev/sdb1 /mnt` 不会"改成读写"，它会直接报错**（`already mounted or mount point busy`）。想改现有挂载的选项，一律走 `remount`，并且**只需要给挂载点**：
+>
+> ```bash
+> sudo mount -o remount,rw /mnt            # 改回读写
+> sudo mount -o remount,ro /mnt            # 改成只读（救援时常用）
+> sudo mount -o remount,noexec /mnt        # 追加/修改选项
+> ```
+>
+> 系统救援时最经典的一句就是 `mount -o remount,rw /` ——根文件系统默认可能是只读的，改任何配置文件之前得先把它挂成可写。
 
 ### 13.8.3 mount -t ext4：指定类型
 
@@ -531,7 +556,7 @@ sudo umount /dev/sdb1
 # umount: /mnt: target is busy.
 ```
 
-### 13.9.3 umount -l：强制卸载
+### 13.9.3 umount -l：懒卸载（不是"强制"）
 
 ```bash
 # -l = lazy，懒卸载
@@ -634,11 +659,30 @@ UUID=windows-uuid  /mnt/windows ntfs-3g defaults,uid=1000,gid=1000  0  0
 //192.168.1.100/share  /smb  cifs  username=user,password=pass  0  0
 ```
 
+> 🚨 **上面最后一行是个反面教材，不要照抄**：把 `password=pass` 明文写在 `/etc/fstab` 里，等于把凭据摆在全局可读的位置。正确做法是单独建一个 600 权限的凭据文件：
+>
+> ```bash
+> # 1. 建凭据文件（只有 root 能读）
+> sudo install -m 600 /dev/null /etc/cifs-cred
+> sudo tee /etc/cifs-cred >/dev/null <<'EOF'
+> username=user
+> password=你的密码
+> EOF
+>
+> # 2. fstab 里只引用这个文件
+> //192.168.1.100/share  /smb  cifs  credentials=/etc/cifs-cred,uid=1000,gid=1000,noauto,nofail  0  0
+> ```
+
 > 测试 fstab 配置：
 > ```bash
 > sudo mount -a
 > # 如果没有报错，说明配置正确！
 > ```
+
+> ⚠️ **动 fstab 之前务必知道的两件事**：
+> 1. **写错 fstab 可能导致系统起不来**。系统每次开机都会读它，一行写坏就可能停在紧急模式。改完一定要先 `sudo mount -a` 验证，再考虑重启。
+> 2. **非关键分区（U 盘、NFS、云盘）记得加 `nofail`**：不加的话，只要那块盘没插上或网络存储连不上，启动过程就会卡住甚至失败。加 `nofail` 表示"挂不上就算了，照常启动"。
+> 3. 想在图形界面里"点一下才挂载"，加 `noauto`；配合 `x-systemd.automount` 还能做到"首次访问时自动挂载"，这对网络存储特别友好。
 
 ---
 
@@ -783,8 +827,7 @@ sudo apt install quota
 # /etc/fstab
 UUID=xxxx  /data  ext4  defaults,usrquota,grpquota  0  2
 
-# 2. 重新挂载
-sudo umount /data
+# 2. 让新的挂载选项生效（不需要先 umount！）
 sudo mount -o remount /data
 
 # 3. 初始化配额数据库
@@ -795,16 +838,23 @@ sudo quotaon /data
 
 # 5. 设置用户配额
 sudo edquota username
+# 编辑器里看到的是"以 KB 为单位"的纯数字，没有 M/G 这类单位：
 # Disk quotas for user username (uid 1000):
 #   Filesystem                   blocks    soft    hard    inodes    soft    hard
-#   /dev/sdb1                       0     100M     150M         0       0       0
+#   /dev/sdb1                  1048576 2097152 3145728         0       0       0
+#                              ↑当前用量 ↑软限制  ↑硬限制（单位都是 KB）
+#                               0KB     2GB     3GB
 
 # 6. 查看配额
 sudo quota username
 
-# 7. 查看配额状态
+# 7. 以人类可读的单位查看（-s = human readable，把 KB 换算成 M/G）
 sudo quota -s username
 ```
+
+> ⚠️ 这里有两个初学者最容易翻车的点：
+> 1. **`blocks`、`soft`、`hard` 三列的单位是 KB（1024 字节）**，直接填数字，不写单位。写 `100M` 会被当成"100 个 KB"，限额小得可怜。
+> 2. **第 2 步不要先 `umount`**。老资料里常写"卸载再挂载"，其实只需要 `mount -o remount /data` 让 `usrquota,grpquota` 生效；先 umount 反而会打断正在用这块盘的程序。
 
 ```bash
 # 配额命令总结：
@@ -818,9 +868,10 @@ sudo quota -s username
 ```
 
 > 配额设置说明：
-> - **soft limit**：软限制，快到达时警告
-> - **hard limit**：硬限制，禁止超过
-> - 宽限期：超过 soft limit 后，在宽限期内仍可写入，超过硬限制则禁止
+> - **soft limit**：软限制。**到达后会开始计时**，在宽限期（默认 7 天）内还能继续写入，系统会给出警告。
+> - **hard limit**：硬限制。任何时候都不能超过，写入会直接失败（`Disk quota exceeded`）。
+> - **宽限期（grace period）**：只在超过 soft limit 后开始倒计时。宽限期内把用量降回 soft limit 以下，计时会重置；硬扛到期后，soft limit 就会"变成"硬限制。
+> - 别忘了改完配额还要 `repquota -a` 复核一下全盘的用户用量，光看 `edquota` 是看不到"谁已经超额"的。
 
 ---
 
@@ -834,10 +885,10 @@ sudo quota -s username
 
 2. **MBR vs GPT**：
    - MBR：老式，最大 2TB，最多 4 个主分区
-   - GPT：现代，几乎无限空间，最多 128 个分区
+   - GPT：现代，支持 9.4ZB，常见上限 128 个分区（Windows）
 
 3. **分区工具**：
-   - fdisk：MBR 分区
+   - fdisk：经典工具，老版本只支持 MBR，util-linux 2.38+ 已支持 GPT
    - gdisk：GPT 分区
    - parted：全能选手（MBR 和 GPT 都能用）
 

@@ -587,7 +587,9 @@ public class ChannelDemo {
             // lock() 获取文件锁，防止其他进程同时修改
             // 这在集群环境或多进程访问时很重要
             java.nio.channels.FileLock lock = channel.lock();
-            System.out.println("文件锁定成功！范围: " + lock.region());
+            // FileLock 没有 region() 方法，要知道锁的范围得自己拼 position + size
+            System.out.println("文件锁定成功！范围: 第 " + lock.position() + " 字节起，共 "
+                    + lock.size() + " 字节（是否共享锁：" + lock.isShared() + "）");
             // ... 执行需要独占访问的操作 ...
             lock.release();  // 释放锁
             System.out.println("文件锁已释放！");
@@ -943,13 +945,15 @@ public class FilesStreamDemo {
 
 ---
 
-## 28.6 Java 21+：Foreign Function & Memory API
+## 28.6 Java 22+：Foreign Function & Memory API
 
 ### 为什么需要 Foreign Function & Memory API？
 
 Java 长期以来的痛点：调用其他语言（C、C++、Rust）写的本地代码（Native Code）非常麻烦。JNI（Java Native Interface）门槛高、容易出错、且让 Java 失去跨平台优势——本地库在哪里，你就要把它带到哪里。
 
-Java 21 引入的 **Foreign Function & Memory API（FFM API）**，代码名 **Panama**，是一套标准 API，让 Java 程序可以：
+**Foreign Function & Memory API（FFM API）**，代号 **Panama**，是一套让 Java 直接与本地代码、本地内存打交道的标准 API。它的孵化周期很长：JDK 14 起以孵化 API 出现，在 **JDK 19～22 之间是预览特性**（JDK 21 对应 JEP 442），直到 **JDK 22 才由 JEP 454 正式定稿**。所以下面这份代码需要 **Java 22 或更高版本**才能原样编译，在 Java 21 上必须加 `--enable-preview`。
+
+有了它，Java 程序可以：
 1. **调用本地库**中的函数（Foreign Function）
 2. **直接访问本地内存**，无需通过 JNI 的 byte[] 或 ByteBuffer 中转（Memory）
 
@@ -957,7 +961,6 @@ Java 21 引入的 **Foreign Function & Memory API（FFM API）**，代码名 **P
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.Linker;
-import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SymbolLookup;
 import java.lang.foreign.ValueLayout;
@@ -965,19 +968,18 @@ import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Java 21+ Foreign Function & Memory API 演示
+ * Java 22+ Foreign Function & Memory API 演示
  * 调用 C 标准库的 strlen 函数来计算字符串长度
  *
- * 准备工作：在项目根目录放一个动态链接库 libdemo.so (Linux)
- * 或 libdemo.dll (Windows) / libdemo.dylib (macOS)
- *
- * 注意：这是一个概念演示，实际运行需要本地库支持
+ * 这里调用的是 C 标准库自带的 strlen，不需要额外准备任何本地库。
+ * 如果是在 JDK 24 及以上版本运行，建议加上
+ * --enable-native-access=ALL-UNNAMED 以消除"受限方法"警告。
  */
 public class ForeignFunctionDemo {
 
     public static void main(String[] args) throws Throwable {
         System.out.println("=== Foreign Function & Memory API ===");
-        System.out.println("Java 21+ 带来的革命性功能！");
+        System.out.println("Java 22+ 带来的革命性功能！");
 
         // ===== 1. 加载本地库 =====
         // SymbolLookup 是查找本地库中符号（函数、变量）的接口
@@ -988,7 +990,9 @@ public class ForeignFunctionDemo {
         SymbolLookup stdlib = linker.defaultLookup();
 
         // 在 C 标准库中查找 "strlen" 函数
-        MemoryAddress strlenAddr = stdlib.find("strlen")
+        // 注意返回的是 MemorySegment（代表函数入口地址），
+        // 早期的预览版本里叫 MemoryAddress，定稿后已统一为 MemorySegment
+        MemorySegment strlenAddr = stdlib.find("strlen")
             .orElseThrow(() -> new RuntimeException("未找到 strlen 函数！"));
 
         // ===== 2. 创建方法句柄 =====
@@ -1007,9 +1011,9 @@ public class ForeignFunctionDemo {
 
         // ===== 3. 在本地内存中分配字符串 =====
         // Arena 管理本地内存的分配和释放
-        // - AUTO：自动管理，GC 触发时释放
-        // - GLOBAL：进程级别，JVM 退出才释放
-        // - CONFINED：线程绑定，手动释放
+        // - Arena.ofAuto()：由 GC 自动管理，不再引用时释放
+        // - Arena.global()：进程级别，JVM 退出才释放
+        // - Arena.ofConfined()：绑定到当前线程，需要手动 close（所以放在 try-with-resources 里）
         try (Arena arena = Arena.ofConfined()) {
             String javaString = "Hello from Java! 你好，Java！";
             System.out.println("Java 字符串: " + javaString);
@@ -1095,7 +1099,7 @@ public class ForeignFunctionDemo {
 
 ### FFM API vs JNI：新时代的选择
 
-| 特性 | JNI | FFM API (Java 21+) |
+| 特性 | JNI | FFM API (Java 22+) |
 |------|-----|---------------------|
 | 代码量 | 多（Java + C 各一套） | 少（纯 Java） |
 | 编译依赖 | 需要本地编译器 | 无 |
@@ -1103,9 +1107,13 @@ public class ForeignFunctionDemo {
 | 安全性 | 低（裸指针操作） | 高（受控访问） |
 | 调试难度 | 高（跨语言） | 低（纯 Java） |
 | 性能 | 高 | 高（接近 JNI） |
-| 主流程度 | Java 1.1 起使用 | Java 21+ 新标准 |
+| 主流程度 | Java 1.1 起使用 | Java 22 起成为标准 |
 
-> **展望**：FFM API 还在持续进化中。Java 22 引入了 **Memory Session**，进一步改进了内存管理。长期来看，FFM API 将成为 Java 与本地世界交互的标准方式，而 JNI 将逐渐退出历史舞台。
+> **关于 Memory Session**：如果你在网上看到 `MemorySession` 这个类，那是 FFM API 还在预览阶段时的旧设计。**Java 22 定稿时它被 `Arena` 取代了**，现在请一律使用 `Arena`。
+>
+> 💡 **JDK 24 起的注意事项**：调用本地函数（`Linker.downcallHandle` 等）属于"受限方法"（restricted methods）。JDK 24 开始运行这类代码会打印警告，需要加 `--enable-native-access=ALL-UNNAMED`（或按模块名授权）才能消除；未来版本中不授权将直接报错。这是为了让"访问本地代码"这件事始终是显式授权的。
+
+> **展望**：FFM API 已成为 Java 与本地世界交互的标准方式，JNI 会长期共存但不再是新项目的首选。
 
 ---
 
@@ -1139,11 +1147,12 @@ public class ForeignFunctionDemo {
 - `Files.walk()` + Stream API 优雅遍历目录树
 - `WatchService` 实现目录变化监控
 
-### 28.6 Foreign Function & Memory API（Java 21+）
+### 28.6 Foreign Function & Memory API（Java 22+）
 - FFM API 让 Java 可以**直接调用本地库函数**和**访问本地内存**，无需 JNI
 - `Arena` 管理本地内存的生命周期，避免泄漏
 - `Linker.downcallHandle()` 生成调用本地函数的 Java 方法句柄
-- 这是 Java 21+ 最激动人心的新能力之一，标志着 Java 生态的重大扩展
+- JDK 21 及更早是预览特性，**JDK 22 由 JEP 454 正式定稿**
+- 这是近年来 Java 最重要的底层能力扩展之一
 
 ### I/O 流家族关系图（Mermaid）
 

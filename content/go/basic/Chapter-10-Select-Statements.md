@@ -80,7 +80,7 @@ func main() {
 
 
 
-### 10.1.2.1 发送 case
+#### 10.1.2.1 发送 case
 
 **发送 case 是什么？**
 
@@ -189,7 +189,7 @@ func main() {
 
 
 
-### 10.1.2.2 接收 case
+#### 10.1.2.2 接收 case
 
 **接收 case 是什么？**
 
@@ -283,7 +283,7 @@ func main() {
 
 
 
-### 10.1.2.3 多 case 选择
+#### 10.1.2.3 多 case 选择
 
 **多 case 选择是什么？**
 
@@ -621,24 +621,27 @@ package main
 import "fmt"
 
 func main() {
+    var ch chan int // ch 的零值就是 nil
 
-    var ch chan int // ch 是 nil
+    // nil 通道上的收 / 发都会永久阻塞，所以这个 case 永远不会被选中
+    select {
+    case <-ch:
+        fmt.Println("永远不会执行")
+    default:
+        fmt.Println("default 分支立刻执行")
+    }
 
-    fmt.Println("nil 通道永远不会 ready，会永久阻塞")
-    fmt.Println("所以永远不要把 nil 通道放进 select 里") // nil 通道永远不会 ready，会永久阻塞
-    fmt.Println("否则你的程序就会像卡在电梯里一样，永远出不来")
+    // 如果在上面加一个 time.After(1 * time.Second) 的 case，同样永远不会被选中：
+    // nil 通道就相当于一个"断电"的通道，读写都永远阻塞。
+    fmt.Println("所以不要把 nil 通道放进没有 default 的 select 里")
 }
 ```
 
-> nil 通道是个"幽灵通道"——它存在，但你永远等不到它。就像你等一个永远不会回你微信的人，你发再多消息（往 nil 通道发数据）都是石沉大海。所以，**永远不要把 nil 通道放进 select 里**，否则你的程序就会永远阻塞，直到天荒地老、海枯石烂、太阳熄灭。
-
-
+> nil 通道是个"幽灵通道"——它存在，但你永远等不到它。就像你等一个永远不会回你微信的人，你发再多消息（往 nil 通道发数据）都是石沉大海。所以，**永远不要把 nil 通道放进 select 里**，否则你的程序就会永远阻塞。
 
 ### 10.2.2 非阻塞语义
 
 **非阻塞语义是什么？**
-
-xxxxxxxxxx ​package main​import "fmt"​func main() {    fmt.Printf("isEven(10) = %t\n", isEven(10))    fmt.Printf("isOdd(10) = %t\n", isOdd(10))}​func isEven(n int) bool {    if n == 0 {        return true    }    return isOdd(n - 1)}​func isOdd(n int) bool {    if n == 0 {        return false    }    return isEven(n - 1)}​​## 本章小结​本章我们学习了 Go 语言的循环语句：​1. **for 循环**：   - 传统形式：`for i := 0; i < n; i++ { }`   - 条件形式：`for 条件 { }`   - 无限形式：`for { }`   - `range` 形式：遍历数组、切片、字符串、映射、通道​2. **range 详解**：   - 数组/切片：索引和值   - 字符串：字节索引和字节值   - 映射：无序遍历   - 通道：阻塞接收直到关闭​3. **循环控制**：   - `break`：跳出循环   - `continue`：跳过本次循环   - 标号配合使用可以控制多重循环​4. **循环模式**：   - 无限循环、条件循环、集合遍历、并行迭代​5. **性能优化**：   - 边界检查消除   - 循环展开   - 迭代变量优化​6. **递归 vs 迭代**：   - Go 不支持尾递归优化   - 推荐使用迭代替代递归​​go
 
 非阻塞 = `select` + `default`，就这么简单。
 
@@ -1248,7 +1251,7 @@ func main() {
 
 `select` 的超时控制就是基于这个原理：用 `time.After` 创建一个"超时通道"，如果在超时时间内没有收到其他通道的数据，就执行超时分支。
 
-### 10.3.2.1 time.After
+#### 10.3.2.1 time.After
 
 **time.After 是什么？**
 
@@ -1323,7 +1326,7 @@ func main() {
 
 > `time.After` 的内存泄漏就像是你订了很多外卖，每份都要等 24 小时送达。你等不及了取消订单，但骑手还在路上跑，这些"在路上"的骑手就是泄漏的内存——他们还在消耗资源，但你已经不需要他们了。
 
-### 10.3.2.2 context 超时
+#### 10.3.2.2 context 超时
 
 **context 超时是什么？**
 
@@ -1436,10 +1439,7 @@ func main() {
 ```go
 package main
 
-import (
-    "fmt"
-    "time"
-)
+import "fmt"
 
 func main() {
 
@@ -1571,7 +1571,7 @@ func main() {
 
 这就像你是一个酒店的 24 小时前台：不是处理完一个客人就关门，而是**一直开着**，随时准备服务下一个客人。
 
-### 10.3.4.1 循环监听
+#### 10.3.4.1 循环监听
 
 **循环监听是什么？**
 
@@ -1664,7 +1664,7 @@ func main() {
 
 > 循环监听就像你开了一个 24 小时便利店。你不是在门口等一个顾客走了就关门，而是**一直开着**，谁进来就服务谁，直到打烊时间到了（收到 quit 信号），才关门下班。
 
-### 10.3.4.2 退出机制
+#### 10.3.4.2 退出机制
 
 **退出机制是什么？**
 
@@ -1838,4 +1838,3 @@ func main() {
 - 如何用 `select` 实现一个简单的超时控制？
 
 如果能回答上来，说明你已经 get 到了 `select` 的精髓！
-

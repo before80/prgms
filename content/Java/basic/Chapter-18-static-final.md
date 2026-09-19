@@ -21,11 +21,15 @@ draft = false
 
 ### 语法
 
-```java
+静态变量在类型前面加一个 `static` 就行了，语法格式如下：
+
+```text
 访问修饰符 static 数据类型 变量名;
 ```
 
 ### 示例
+
+下面定义一个 `Student` 类：`schoolName` 是静态变量（全校共享一份），`name` 是实例变量（每人一份）。
 
 ```java
 public class Student {
@@ -109,13 +113,17 @@ graph TB
 
 ### 语法
 
-```java
+静态方法在返回类型前加 `static`，语法格式如下：
+
+```text
 访问修饰符 static 返回类型 方法名(参数列表) {
     // 方法体
 }
 ```
 
 ### 示例
+
+下面这个 `MathUtil` 类里全是静态方法，直接用 `MathUtil.add(1, 2)` 就能调用，不需要先 `new` 一个对象。
 
 ```java
 public class MathUtil {
@@ -192,13 +200,17 @@ public class StaticMethodDemo {
 
 ### 语法
 
-```java
+静态代码块写成 `static { ... }`，不能有参数、也不会被主动调用，只在**类加载时自动执行一次**：
+
+```text
 static {
     // 静态初始化代码
 }
 ```
 
 ### 示例
+
+下面用静态代码块在类加载时一次性准备好数据库连接参数。
 
 ```java
 public class DatabaseConnection {
@@ -261,7 +273,9 @@ public class DatabaseConnection {
 
 ### 语法
 
-```java
+在成员位置给 `class` 加上 `static`，就成了静态内部类：
+
+```text
 public class Outer {
     // 静态内部类
     static class StaticInner {
@@ -271,6 +285,8 @@ public class Outer {
 ```
 
 ### 示例
+
+注意下面这个例子：静态内部类不需要外部类实例就能创建，而普通内部类必须先有外部类对象。
 
 ```java
 public class Outer {
@@ -342,6 +358,8 @@ public class Outer {
 
 ### 示例
 
+下面演示三种 `final` 变量各自的初始化时机。
+
 ```java
 public class FinalVariableDemo {
     // final 成员变量：必须在声明时赋值，或在构造器/静态代码块中初始化
@@ -410,6 +428,8 @@ Hello, World!
 
 ### 示例
 
+下面（简化示意）看看 JDK 为什么把 `String` 的很多方法声明成 `final`。
+
 ```java
 // 父类
 public class Father {
@@ -457,6 +477,8 @@ public class Son extends Father {
 
 为什么需要 final 方法？考虑以下场景：
 
+下面以 JDK 自带的 `String` 为例说明 final 类。**这只是示意**：真实的 `String` 在 `java.lang` 包里，我们自己写代码时千万不要定义同名类。
+
 ```java
 public class String {
     // String 类中的很多方法都是 final 的
@@ -481,6 +503,8 @@ public class String {
 用 `final` 修饰的类称为 **final 类**，它的特点是：**不能被其他类继承**。这就好比这个类已经是"完美形态"了，不需要、也不允许有子类来修改它。
 
 ### 示例
+
+下面以 JDK 自带的 `String` 为例说明 final 类。**这只是示意**：真实的 `String` 在 `java.lang` 包里，我们自己写代码时千万不要定义同名类。
 
 ```java
 // final 类：不能被继承
@@ -548,6 +572,8 @@ public final class Constants {
 - **组合起来**：属于类的、不可改变的常量
 
 ### 示例
+
+下面把常用的配置值定义成类常量，命名习惯是**全大写 + 下划线**。
 
 ```java
 public class Constants {

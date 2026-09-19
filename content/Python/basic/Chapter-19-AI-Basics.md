@@ -169,15 +169,15 @@ C = A @ B
 print("A @ B =")
 print(C)
 # [[19 22]
-#  [43 46]]
+#  [43 50]]
 
-# 验算一下：19 = 1*5 + 2*7，22 = 1*6 + 2*8，43 = 3*5 + 4*7，46 = 3*6 + 4*8
+# 验算一下：19 = 1*5 + 2*7，22 = 1*6 + 2*8，43 = 3*5 + 4*7，50 = 3*6 + 4*8
 
 # np.dot 也可以做矩阵乘法（但它对1维数组有不同含义）
 print("np.dot(A, B) =")
 print(np.dot(A, B))
 # [[19 22]
-#  [43 46]]
+#  [43 50]]
 ```
 
 > ⚠️ **易错警告**：`A * B` 和 `A @ B` 是完全不同的东西！`*` 是**对应元素相乘**（element-wise），`@` 是**矩阵乘法**。如果你做过线性代数作业，应该记得矩阵乘法可不是那么简单的事情——1行乘1列要分别相乘再求和！
@@ -187,7 +187,7 @@ print(np.dot(A, B))
 > A = np.array([[1, 2], [3, 4]])
 > B = np.array([[5, 6], [7, 8]])
 > print(A * B)  # [[5,12],[21,32]]  ← 对应元素相乘
-> print(A @ B)  # [[19,22],[43,46]] ← 真正的矩阵乘法
+> print(A @ B)  # [[19,22],[43,50]] ← 真正的矩阵乘法
 > ```
 
 ### 19.1.4 广播机制（broadcasting）
@@ -883,7 +883,9 @@ json_data = [
     {'name': 'Alice', 'age': 25, 'city': 'Beijing'},
     {'name': 'Bob', 'age': 30, 'city': 'Shanghai'}
 ]
-df_json = pd.read_json(pd.DataFrame(json_data).to_json(orient='records'))
+# ⚠️ pandas 2.0 起，直接给 read_json 传"JSON 字符串"会被当成文件路径，
+#    报 FileNotFoundError。要用 io.StringIO 包一层，明确告诉它"这是内容不是路径"。
+df_json = pd.read_json(StringIO(pd.DataFrame(json_data).to_json(orient='records')))
 print("\n从JSON读取:")
 print(df_json)
 
@@ -1027,14 +1029,20 @@ print("\n--- dropna 删除空值 ---")
 # 默认删除任何含有空值的行
 print("删除含有空值的行:")
 print(df.dropna())
-#     姓名  年龄  城市  年薪(万)
-# 4   赵六  32.0  杭州        50
+#    姓名    年龄  城市  年薪(万)
+# 0  张三  25.0  北京     30
+# 3  张三  28.0  深圳     40
+# 4  赵六  32.0  杭州     50
+# （原本 6 行：第 1、2、5 行分别缺 年龄/城市/姓名，所以只剩 0、3、4 这三行）
 
-# 只删除全为空值的行（没有这种情况）
+# how='all'：只删除"整行全空"的行（本例没有这种情况，所以一行都不会被删）
+print("只删除全空的行（本例没有，结果不变）:")
+print(df.dropna(how='all'))
 
 # 删除含有空值的列
 print("删除含有空值的列:")
 print(df.dropna(axis=1))
+# 只剩'年薪(万)'一列——因为其余三列都至少有一个空值
 
 # 只删除'年龄'列为空值的行
 print("删除'年龄'为空值的行:")
@@ -1044,24 +1052,32 @@ print(df.dropna(subset=['年龄']))
 print("\n--- fillna 填充空值 ---")
 
 # 用固定值填充
+# ⚠️ 不要写成 df_filled['姓名'].fillna('未知', inplace=True)！
+#    这是"链式赋值"：先取出'姓名'这一列（一个临时副本），再对它原地填充，
+#    结果永远写不回原表。pandas 2.x 会发 FutureWarning，pandas 3.0 起
+#    开了 Copy-on-Write 后直接静默失效——表里的空值一个都没被填上。
+#    正确做法是赋值回去：df[col] = df[col].fillna(...)
 df_filled = df.copy()
-df_filled['姓名'].fillna('未知', inplace=True)
+df_filled['姓名'] = df_filled['姓名'].fillna('未知')
 print("'姓名'空值填充为'未知':")
 print(df_filled)
 
 # 用均值填充（数值列）
 df_filled2 = df.copy()
-df_filled2['年龄'].fillna(df['年龄'].mean(), inplace=True)
+df_filled2['年龄'] = df_filled2['年龄'].fillna(df['年龄'].mean())
 print("\n'年龄'空值填充为均值:")
 print(df_filled2)
 
 # 用前一个值填充（forward fill）
+# ⚠️ df.fillna(method='ffill') 的老写法在 pandas 2.1 被废弃、3.0 已删除
+#    （会直接 TypeError: got an unexpected keyword argument 'method'）。
+#    现在统一用专门的 ffill() / bfill() 方法。
 print("\n用前向填充:")
-print(df.fillna(method='ffill'))
+print(df.ffill())
 
 # 用后一个值填充（backward fill）
 print("\n用后向填充:")
-print(df.fillna(method='bfill'))
+print(df.bfill())
 
 # -------- drop_duplicates：删除重复行 --------
 df_dup = pd.DataFrame({
@@ -1502,7 +1518,9 @@ print("年份:", df.index.year)
 print("月份:", df.index.month)
 print("日:", df.index.day)
 print("星期几:", df.index.day_name())
-print("是周末吗:", df.index.is_weekend())
+# 判断是不是周末：pandas 里没有 index.is_weekend()，别被记忆骗了。
+# dayofweek 返回 0(周一)~6(周日)，所以 >= 5 就是周六/周日。
+print("是周末吗:", df.index.dayofweek >= 5)
 
 # -------- 字符串转时间 --------
 print("\n--- 字符串转时间 ---")
@@ -1519,7 +1537,9 @@ print(df_str)
 print("\n--- resample 重采样 ---")
 
 # 创建更密集的时间序列（每小时）
-hourly_dates = pd.date_range('2024-01-01 00:00', periods=48, freq='H')
+# ⚠️ 频率别名在 pandas 2.2 改过一轮：'H'→'h'、'T'→'min'、'S'→'s'、'M'→'ME'，
+#    大写的老别名在 pandas 3.0 已彻底删除（'H' 会直接 ValueError）。
+hourly_dates = pd.date_range('2024-01-01 00:00', periods=48, freq='h')
 hourly_df = pd.DataFrame({
     '访问量': np.random.randint(100, 500, 48)
 }, index=hourly_dates)
@@ -1530,7 +1550,7 @@ print("按天聚合的访问量:")
 print(daily)
 
 # 按6小时聚合
-six_hourly = hourly_df.resample('6H').mean()
+six_hourly = hourly_df.resample('6h').mean()
 print("\n按6小时聚合的平均访问量:")
 print(six_hourly)
 
@@ -1561,10 +1581,14 @@ print(ts_shanghai)
 > ⏰ **时间频率字符**：`freq` 参数常用的有：
 > - `'D'` = 每天
 > - `'W'` = 每周
-> - `'M'` = 每月
-> - `'H'` = 每小时
-> - `'T'` 或 `'min'` = 每分钟
-> - `'S'` = 每秒
+> - `'ME'` = 每月月末（`'MS'` 是每月月初）
+> - `'h'` = 每小时
+> - `'min'` = 每分钟
+> - `'s'` = 每秒
+>
+> ⚠️ **命名别名在 pandas 2.2 变过一轮，写老别名会被坑**：以前用大写的 `'M'`（月）、`'H'`（小时）、`'T'`（分钟）、`'S'`（秒），
+> 现在分别改成 `'ME'`/`'MS'`、`'h'`、`'min'`、`'s'`。pandas 2.2 只是警告，pandas 3.0 直接报
+> `ValueError: Invalid frequency: H`。年份同理：`'Y'` 拆成 `'YE'`（年末）和 `'YS'`（年初），季度是 `'QE'`/`'QS'`。
 
 ### 19.2.10 导出数据（to_csv / to_excel / to_json）
 
@@ -1668,7 +1692,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # 设置中文字体支持（后面会详细讲）
-plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei']
+# macOS 用 'PingFang SC'、Windows 用 'Microsoft YaHei'/'SimHei'、Linux 用 'Noto Sans CJK SC'。
+# 这里一次列好几个，matplotlib 会自动挑第一个装了的（详见 19.3.5 节）。
+plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Microsoft YaHei', 'SimHei', 'Noto Sans CJK SC']
 plt.rcParams['axes.unicode_minus'] = False
 
 # 创建数据
@@ -1745,7 +1771,9 @@ fig, ax = plt.subplots(figsize=(10, 5))
 n, bins, patches = ax.hist(data_normal, bins=30, alpha=0.7, color='steelblue', edgecolor='white')
 
 # 根据数值大小给不同柱子不同颜色
-cm = plt.cm.get_cmap('Blues')
+# ⚠️ plt.cm.get_cmap() 在 matplotlib 3.9 被删掉了，改用 plt.get_cmap()
+#    （更推荐的写法是 matplotlib.colormaps['Blues']）
+cm = plt.get_cmap('Blues')
 bin_centers = 0.5 * (bins[:-1] + bins[1:])
 for c, p in zip(bin_centers, patches):
     p.set_facecolor(cm(c / max(bin_centers)))
@@ -1774,7 +1802,8 @@ plt.show()
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.rcParams['font.sans-serif'] = ['SimHei']
+# Windows 的 SimHei；macOS/Linux 换 'PingFang SC'/'Noto Sans CJK SC'（详见 19.3.5）
+plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Microsoft YaHei', 'SimHei', 'Noto Sans CJK SC']
 plt.rcParams['axes.unicode_minus'] = False
 
 # -------- subplot：在一张图上创建子图 --------
@@ -1886,7 +1915,8 @@ graph LR
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.rcParams['font.sans-serif'] = ['SimHei']
+# 跨平台中文字体：macOS/Windows/Linux 各列一个（详见 19.3.5）
+plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Microsoft YaHei', 'SimHei', 'Noto Sans CJK SC']
 plt.rcParams['axes.unicode_minus'] = False
 
 x = np.linspace(0, 10, 100)
@@ -1961,13 +1991,25 @@ plt.show()
 > 🎨 **annotate 高级用法**：`annotate` 是给图表添加注释的利器。除了基本用法，你还可以用它添加带边框的文本框、指向特定数据点的箭头等。
 
 ```python
-# 注释框样式
+# 注释框样式（完整的可运行例子：annotate 必须作用在一个具体的 ax 上）
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.linspace(0, 2 * np.pi, 200)
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.plot(x, np.sin(x))
+
+# xy     : 箭头指向的数据点坐标
+# xytext : 文字框所在位置
 ax.annotate('最高点',
-            xy=(np.pi/2, 1),
-            xytext=(1.5, 1.3),
+            xy=(np.pi / 2, 1),          # 被注释的点 (π/2, 1)
+            xytext=(1.5, 1.3),          # 文字放在右上方
             fontsize=10,
             bbox=dict(boxstyle='round,pad=0.3', facecolor='yellow', alpha=0.7),
             arrowprops=dict(arrowstyle='->', color='red', lw=2))
+
+plt.tight_layout()
+plt.show()
 ```
 
 ### 19.3.4 样式与配色
@@ -1978,17 +2020,23 @@ Matplotlib 自带了很多内置样式，可以一键美化你的图表。同时
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.rcParams['font.sans-serif'] = ['SimHei']
+# 跨平台中文字体（详见 19.3.5）
+plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Microsoft YaHei', 'SimHei', 'Noto Sans CJK SC']
 
 # -------- 内置样式 --------
 print("可用样式列表:")
 print(plt.style.available)
-# ['Solarize_Light2', '_classic_test_patch', 'bmh', 'classic', 'dark_background',
-#  'fast', 'fivethirtyeight', 'ggplot', 'grayscale', '海洋风格', 'seaborn-v0_8',
+# 实际输出随 matplotlib 版本略有差异，下面是 3.11 的完整列表（共 28 个，已排序）：
+# ['Solarize_Light2', 'bmh', 'classic', 'dark_background', 'fast', 'fivethirtyeight',
+#  'ggplot', 'grayscale', 'petroff10', 'petroff6', 'petroff8', 'seaborn-v0_8',
 #  'seaborn-v0_8-bright', 'seaborn-v0_8-colorblind', 'seaborn-v0_8-dark',
-#  'seaborn-v0_8-dark-palette', 'seaborn-v0_8-muted', 'seaborn-v0_8-notebook',
-#  'seaborn-v0_8-paper', 'seaborn-v0_8-poster', 'seaborn-v0_8-talk',
-#  'seaborn-v0_8-whitegrid', 'seaborn-v0_8-whitegrid', 'tableau-colorblind10']
+#  'seaborn-v0_8-dark-palette', 'seaborn-v0_8-darkgrid', 'seaborn-v0_8-deep',
+#  'seaborn-v0_8-muted', 'seaborn-v0_8-notebook', 'seaborn-v0_8-paper',
+#  'seaborn-v0_8-pastel', 'seaborn-v0_8-poster', 'seaborn-v0_8-talk',
+#  'seaborn-v0_8-ticks', 'seaborn-v0_8-white', 'seaborn-v0_8-whitegrid',
+#  'tableau-colorblind10']
+#
+# ⚠️ 列表里没有"海洋风格"这种中文样式名，别照抄网上的旧文章。
 
 # 使用 ggplot 风格（模仿 R 的 ggplot2）
 plt.style.use('ggplot')
@@ -2070,9 +2118,35 @@ plt.show()
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-# -------- 方法1：全局设置（推荐）--------
-plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS']
+# -------- 方法0：跨平台自动挑字体（最推荐）--------
+# 麻烦之处在于：三套系统的中文字体名完全不同。写死 'SimHei' 在 Windows 上没问题，
+# 到了 macOS / Linux 就找不到，图上的中文照样是方框。
+# 所以靠谱的做法是——把候选字体排个优先级，谁在就用谁：
+from matplotlib import font_manager as fm
+
+CANDIDATES = [
+    'PingFang SC', 'Heiti SC', 'Songti SC', 'Hiragino Sans GB', 'Arial Unicode MS',  # macOS
+    'Microsoft YaHei', 'SimHei', 'SimSun',                                            # Windows
+    'Noto Sans CJK SC', 'Source Han Sans SC', 'WenQuanYi Zen Hei',                    # Linux
+]
+
+# fontManager.ttflist 是 matplotlib 扫描到的所有字体
+available = {f.name for f in fm.fontManager.ttflist}
+chosen = next((name for name in CANDIDATES if name in available), None)
+
+if chosen:
+    plt.rcParams['font.sans-serif'] = [chosen]
+    print('使用中文字体:', chosen)          # 在 macOS 上通常输出 PingFang SC
+else:
+    print('没找到中文字体，图上中文会显示成方框')
+
 plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+
+# -------- 方法1：全局设置（手动版，知道自己在哪个系统时最快）--------
+# Windows 一般是 Microsoft YaHei / SimHei；macOS 是 PingFang SC / Heiti SC；
+# Linux 常见 Noto Sans CJK SC。列表里放多个时，matplotlib 会按顺序挑第一个能用的。
+plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Microsoft YaHei', 'SimHei', 'Noto Sans CJK SC']
+plt.rcParams['axes.unicode_minus'] = False
 
 # 测试
 fig, ax = plt.subplots(figsize=(6, 4))
@@ -2088,7 +2162,8 @@ from matplotlib.font_manager import FontProperties
 # 查找系统中可用的中文字体
 import os
 font_paths = mpl.font_manager.findSystemFonts()
-chinese_fonts = [f for f in font_paths if 'SimHei' in f or 'Microsoft' in f or 'YaHei' in f]
+KEYWORDS = ('PingFang', 'Heiti', 'Songti', 'Hiragino', 'SimHei', 'YaHei', 'SimSun', 'Noto Sans CJK', 'SourceHan', 'wqy')
+chinese_fonts = [f for f in font_paths if any(k.lower() in f.lower() for k in KEYWORDS)]
 print("可能可用的中文字体:", chinese_fonts[:5])
 
 # 如果找到了字体，可以这样用
@@ -2107,7 +2182,7 @@ if chinese_fonts:
 
 # -------- 方法4：使用 rc_context 临时设置 --------
 with mpl.rc_context({
-    'font.sans-serif': ['SimHei'],
+    'font.sans-serif': ['PingFang SC', 'Microsoft YaHei', 'SimHei', 'Noto Sans CJK SC'],
     'axes.unicode_minus': False
 }):
     fig, ax = plt.subplots()
@@ -2134,7 +2209,8 @@ mpl.rcParams['font.family'] = 'DejaVu Sans'
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.rcParams['font.sans-serif'] = ['SimHei']
+# 跨平台中文字体（详见 19.3.5）
+plt.rcParams['font.sans-serif'] = ['PingFang SC', 'Microsoft YaHei', 'SimHei', 'Noto Sans CJK SC']
 plt.rcParams['axes.unicode_minus'] = False
 
 x = np.linspace(0, 10, 100)

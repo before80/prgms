@@ -80,7 +80,7 @@ func main() {
     }
 
     // 错误情况
-    if result, err := divide(10, 0); err != nil {
+    if _, err := divide(10, 0); err != nil {
         fmt.Printf("除法失败: %v\n", err) // 除法失败: 除数不能为零
     }
 }
@@ -253,6 +253,13 @@ func (e *ParseError) Error() string {
         e.Line, e.Column, e.Text)
 }
 
+// TimeoutError 是另一个自定义错误类型，用来演示 errors.As 的"未匹配"分支
+type TimeoutError struct {
+    Op string
+}
+
+func (e *TimeoutError) Error() string { return e.Op + " 超时" }
+
 // Parse 解析（返回自定义错误）
 func Parse(input string) error {
     if input == "" {
@@ -279,12 +286,12 @@ func main() {
         // ✓ 解析错误详情: 行=1, 列=1, 文本=输入为空
     }
 
-    // 尝试提取其他错误类型
-    var dbErr *errors error
-    if errors.As(err, &dbErr) {
-        fmt.Println("是数据库错误")
+    // 尝试提取其他错误类型：需要先在包里定义一个真实的错误类型
+    var timeoutErr *TimeoutError
+    if errors.As(err, &timeoutErr) {
+        fmt.Println("是超时错误:", timeoutErr)
     } else {
-        fmt.Println("✗ 不是数据库错误") // ✗ 不是数据库错误
+        fmt.Println("✗ 不是超时错误") // ✗ 不是超时错误
     }
 }
 ```
@@ -394,6 +401,8 @@ func main() {
 
 ### 29.5.1 忽略错误（要小心）
 
+忽略错误必须是有意的决定，而不是偷懒的副产品。用空白标识符 `_` 显式丢掉错误，至少能让阅读者看出“这里是故意不处理的”：
+
 ```go
 package main
 
@@ -414,6 +423,8 @@ func main() {
 ```
 
 ### 29.5.2 错误传递
+
+大多数函数并不需要“处理”错误，只需要**带着上下文往上抛**。包装时用 `%w` 而不是 `%v`，调用方才能用 `errors.Is` / `errors.As` 把原始错误翻出来：
 
 ```go
 package main
@@ -475,4 +486,3 @@ type error interface {
 
 **黄金法则：**
 > 错误是值，应该被显式处理。不要忽略错误，除非你确定它不重要。
-

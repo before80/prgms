@@ -25,7 +25,7 @@ draft = false
 
 ```java
 // 最重要的几个快捷键，背下来！
-// Ctrl + Shift + F10        运行当前文件
+// Shift + F10               运行当前文件
 // Ctrl + Shift + F          全局搜索
 // Ctrl + N                   搜索类
 // Ctrl + Shift + N           搜索文件
@@ -41,17 +41,25 @@ draft = false
 // F2 / Shift + F2           跳转到上/下一个错误
 ```
 
+> 💡 macOS 上把上面所有 `Ctrl` 换成 `⌘`（Command）、`Alt` 换成 `⌥`（Option）即可；`Shift + F10` 在 macOS 上对应 `⌃ + R`。
+
 **IDEA 实用配置：**
 
 ```properties
-# 在 idea64.exe.vmoptions 中调整 JVM 参数，让 IDEA 飞起来
--Xms2048m              # 初始堆大小，建议 2G+
--Xmx4096m              # 最大堆大小，建议 4G+
--XX:ReservedCodeCacheSize=512m   # 代码缓存，增加编译速度
--XX:+UseG1GC           # 使用 G1 垃圾回收器
+# idea64.exe.vmoptions（macOS 上是 idea.vmoptions）里的 JVM 参数，一行一个选项
+# 注意：每个选项必须独占一行，行尾不能跟 "# 注释"，否则整行都会被当成参数值
+
+# 初始堆大小，建议 2G+
+-Xms2048m
+# 最大堆大小，建议 4G+
+-Xmx4096m
+# 代码缓存，加大可以提升编译速度
+-XX:ReservedCodeCacheSize=512m
+# 使用 G1 垃圾回收器
+-XX:+UseG1GC
 ```
 
-> 💡 小贴士：IDEA 的 Memory Indicator 插件可以让你实时看到内存使用情况，妈妈再也不用担心你的 IDEA 动不动就卡死了！
+> 💡 小贴士：新版 IDEA 直接在 **Settings → Appearance & Behavior → Appearance** 里勾选 **Show memory indicator**，就能在右下角实时看到内存占用，不用额外装插件；堆大小也可以在 **Help → Change Memory Settings** 里图形化修改。
 
 ### 46.1.2 Maven — 依赖管理界的"淘宝"
 
@@ -137,9 +145,26 @@ mvn dependency:tree -Dincludes=org.springframework:spring-core
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <version>3.2.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <!--
+      说明：真实项目里更常见的写法是让本工程继承 spring-boot-starter-parent，
+      这样上面所有 Spring 相关依赖的版本都会被父 POM 统一管理，可以省略 <version>：
+
+        <parent>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-parent</artifactId>
+            <version>3.2.0</version>
+            <relativePath/>
+        </parent>
+
+      这里为了让这个 POM 单独拿去也能跑通，把版本都显式写了出来。
+      注意：Maven 要求 <dependency> 必须有版本，除非它被父 POM 或
+      <dependencyManagement> 里的 BOM 管理，否则会直接报错。
+    -->
 
     <!-- 构建配置 -->
     <build>
@@ -163,7 +188,7 @@ mvn dependency:tree -Dincludes=org.springframework:spring-core
 
 ### 46.1.3 Gradle — 新时代的"构建之王"
 
-Gradle 是 Android 官方推荐的构建工具，也是 Spring Boot 2.x 之后的默认构建工具。它用 Groovy 或 Kotlin DSL 写配置，比 Maven 的 XML 简洁太多。
+Gradle 是 Android 官方推荐的构建工具，在 Spring 生态里也和 Maven 平分秋色。它用 Groovy 或 Kotlin DSL 写配置，比 Maven 的 XML 简洁太多。
 
 **build.gradle 示例：**
 
@@ -188,13 +213,13 @@ repositories {
 dependencies {
     // Spring Boot Web
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    
-    // Tomcat 内嵌服务器
-    implementation 'org.springframework.boot:spring-boot-starter-tomcat'
-    
+
+    // 注意：spring-boot-starter-web 已经内置 Tomcat，
+    // 如果不需要 Web 能力（只写定时任务、命令行工具），才用 spring-boot-starter 这类更轻的起步依赖
+
     // 测试
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    
+
     // Lombok - 编译时注解处理器
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
@@ -210,11 +235,23 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
+
+// 更推荐用 toolchain 声明，让 Gradle 自己找（或下载）匹配的 JDK，
+// 这样换机器、换 CI 时不用手动装对应版本：
+//
+// java {
+//     toolchain {
+//         languageVersion = JavaLanguageVersion.of(25)
+//     }
+// }
 ```
 
 **常用 Gradle 命令：**
 
 ```bash
+# 如果用 Gradle Wrapper（推荐），把下面的 gradle 换成 ./gradlew
+# Wrapper 会把 Gradle 版本固定在项目里，团队成员和 CI 结果一致
+
 # 构建项目
 gradle build
 
@@ -245,20 +282,28 @@ Java 之所以能"一次编译，到处运行"，全靠 JVM（Java Virtual Machi
 `jps`（Java Virtual Machine Process Status Tool）是 JDK 内置的工具，用来查看当前系统中有哪些 Java 进程在运行，相当于 Linux 的 `ps` 命令的 Java 特供版。
 
 ```bash
-# 查看所有 Java 进程（显示进程ID和启动类名）
+# 查看所有 Java 进程（默认只显示进程 ID 和主类简名）
+jps
+
+# -l：输出主类的全限定名（或 jar 的完整路径）
 jps -l
 
-# 查看详细输出（包含 JVM 参数）
-jps -lv
+# -v：输出传给 JVM 的启动参数（-Xmx、-Dxxx 这些）
+jps -v
 
-# 查看所有进程，包括已经结束的（刚结束不久的）
+# -m：输出传给 main 方法的参数
+jps -m
+
+# 组合使用，排查问题时最常用
 jps -lvm
 
 # 示例输出：
-# 12345 com.example.Application          # 进程ID 12345，运行的是 Application 类
-# 22334 jar -jar myapp.jar               # 通过 jar 命令启动
-# 30301 sun.tools.jps.Jps -lvm           # jps 自己
+# 12345 com.example.Application
+# 22334 /opt/app/myapp.jar -Xms512m -Xmx1g
+# 30301 jdk.jcmd/sun.tools.jps.Jps -lvm
 ```
+
+> 注意：`jps` 只能看到**当前还活着**的 Java 进程。要看已经退出的进程，得靠系统日志或者部署平台。
 
 ### 46.2.2 jstat — JVM 统计信息的"情报员"
 
@@ -295,6 +340,9 @@ jstat -gc <pid>
 # YGCT: Young GC 总耗时
 # FGC: Full GC 次数
 # FGCT: Full GC 总耗时
+# CGC: 并发 GC 次数（只有 G1/ZGC 这类并发收集器才有）
+# CGCT: 并发 GC 总耗时
+# GCT: GC 总耗时（= YGCT + FGCT + CGCT）
 
 # 每 1 秒采样一次，共采样 10 次
 jstat -gc <pid> 1000 10
@@ -304,23 +352,32 @@ jstat -compiler <pid>
 
 # 查看 GC 容量统计（容量 KB 为单位）
 jstat -gccapacity <pid>
+
+# 以百分比形式看各区使用率，比看绝对值直观
+jstat -gcutil <pid> 1000
 ```
+
+> 小技巧：输出里 `CGC`/`CGCT` 两列是 JDK 9 之后为 G1 这类并发收集器加的；用 Serial、Parallel 收集器时这两列恒为 0。
 
 ### 46.2.3 jstack — 线程 Dump 的"全景相机"
 
 `jstack` 是生成 Java 虚拟机当前时刻的线程快照（thread dump）的工具，主要用来排查线程死锁、死循环、CPU 占用高等问题。
 
 ```bash
-# 生成线程快照并输出到文件
-jstack -F <pid> > threaddump.txt
-
-# 同时输出锁的信息
+# 生成线程快照并输出到文件（最常用）
 jstack -l <pid> > threaddump.txt
+
+# -l：附带锁的附加信息（排查死锁必加）
+# -F：进程卡死、jstack 挂不上时强制 dump，属于「最后手段」，
+#     它会暂停目标进程，别在生产上随手用
+
+# JDK 9 之后的等价写法（推荐，一个 jcmd 搞定所有诊断命令）
+jcmd <pid> Thread.print -l > threaddump.txt
 
 # 查看线程堆栈的典型输出：
 # "http-nio-8080-exec-1" #32 daemon prio=5 os_prio=0 tid=0x... nid=0x... waiting on condition
 #    java.lang.Thread.State: WAITING (parking)
-#         at sun.misc.Unsafe.park(Native Method)
+#         at jdk.internal.misc.Unsafe.park(Native Method)
 #         at java.util.concurrent.locks.LockSupport.park(LockSupport.java:304)
 #         at ...
 #
@@ -348,11 +405,18 @@ jstack -l <pid> > threaddump.txt
 # 生成堆转储文件（HPROF 格式）
 jmap -dump:format=b,file=heap.hprof <pid>
 
+# 只 dump 存活对象（会先触发一次 Full GC，得到的文件更小、更好分析）
+jmap -dump:live,format=b,file=heap.hprof <pid>
+
 # 生成带时间戳的堆转储文件
 jmap -dump:format=b,file=heap_$(date +%Y%m%d_%H%M%S).hprof <pid>
 
-# 查看堆内存使用摘要
-jmap -heap <pid>
+# 顺带压缩，省磁盘也省传输时间（1 最快，9 压缩率最高）
+jmap -dump:live,format=b,gz=1,file=heap.hprof.gz <pid>
+
+# 查看堆内存使用摘要：JDK 9 起 jmap -heap 已被移除，
+# 改用 jcmd（功能等价且更可靠）
+jcmd <pid> GC.heap_info
 
 # 示例输出：
 # Heap Configuration:
@@ -367,12 +431,17 @@ jmap -heap <pid>
 #       free     = 515951104 (492.1MB)
 #       44.39% used
 
-# 查看类加载统计（包含每个类的实例数量和大小）
+# 查看类加载/直方图统计（每个类的实例数量和占用大小）
 jmap -histo <pid>
+
+# 只看存活对象（同样会先触发 Full GC）
+jmap -histo:live <pid>
 
 # 只看前 20 个占用最多的类
 jmap -histo <pid> | head -20
 ```
+
+> ⚠️ 注意：`jmap -dump` 和 `jmap -histo:live` 都会**暂停整个 JVM**（Stop-The-World）。大数据量下可能停顿好几秒，生产环境务必放在流量低峰执行，或者干脆用 `-XX:+HeapDumpOnOutOfMemoryError` 让 JVM 在 OOM 时自动 dump。
 
 ### 46.2.5 jinfo — JVM 配置的"透视镜"
 
@@ -387,12 +456,17 @@ jinfo -flags <pid>
 
 # 查看某个特定 flag 的值
 jinfo -flag MaxHeapSize <pid>
-jinfo -flag PrintGCDetails <pid>
+jinfo -flag GCHeapFreeLimit <pid>
 
 # 动态开启/关闭某个 flag（不需要重启 JVM！）
-jinfo -flag +PrintGCDetails <pid>   # 开启
-jinfo -flag -PrintGCDetails <pid>   # 关闭
+jinfo -flag +HeapDumpOnOutOfMemoryError <pid>   # 开启
+jinfo -flag -HeapDumpOnOutOfMemoryError <pid>   # 关闭
+
+# 动态修改数值型 flag
+jinfo -flag MaxHeapFreeRatio=70 <pid>
 ```
+
+> ⚠️ 只有被标记为 **manageable** 的 flag 才能动态修改。用 `jinfo -flag <名字> <pid>` 试一下就知道：改不了的会直接告诉你 `flag is not manageable`。另外，`PrintGCDetails` 这类 GC 日志开关在 JDK 9 之后已经并入统一日志（`-Xlog`），不再是可以随时开关的 flag。
 
 ### 46.2.6 Arthas — 阿里开源的"Java 诊断神器"
 
@@ -402,12 +476,13 @@ Arthas 是阿里开源的 Java 诊断工具，相比 JDK 自带的小工具，�
 
 ```bash
 # 下载 arthas-boot.jar 并启动
+curl -O https://arthas.aliyun.com/arthas-boot.jar
 java -jar arthas-boot.jar
 
-# 或者一步到位
-curl -s https://arthas.aliyun.com/arthas-boot.jar | java -jar -
+# 也可以直接用官方安装脚本（会把 as.sh / as.bat 装好）
+curl -L https://arthas.aliyun.com/install.sh | sh
 
-# 然后选择要诊断的 Java 进程
+# 启动后会列出当前机器上的 Java 进程，输入序号即可挂上去
 ```
 
 **常用 Arthas 命令：**
@@ -416,8 +491,14 @@ curl -s https://arthas.aliyun.com/arthas-boot.jar | java -jar -
 # 仪表盘 - 查看系统实时状态（CPU、内存、线程、GC 等）
 dashboard
 
-# 查看类的方法
+# 查看类的详细信息（ClassLoader、来源 jar、字段等）
 sc -d com.example.UserService
+
+# 查看类里的方法
+sm com.example.UserService
+
+# 找出最忙的几个线程（排查 CPU 飙高第一步）
+thread -n 3
 
 # 反编译类
 jad com.example.UserService
@@ -428,16 +509,18 @@ watch com.example.UserService login "{params, returnObj}" -x 3
 # 追踪方法调用
 trace com.example.UserService login
 
-# 生成火焰图（需要支持异步profiler）
+# 生成火焰图（需要 async-profiler，Arthas 内置）
 profiler start
-profiler stop --format html > flame.html
+profiler stop --format html --file /tmp/flame.html
 
 # 查找加载指定类的 ClassLoader
 classloader -l
 
-# 动态修改日志级别
-logger -n com.example - DEBUG
+# 动态修改日志级别（不重启应用）
+logger -n com.example -l DEBUG
 ```
+
+> 💡 Arthas 的很多命令（`watch`、`trace`、`stack`、`tt`）都支持 `-x <n>` 控制打印对象的展开层级，默认只有 1 层，排查复杂对象时记得加上 `-x 3`。
 
 ### 46.2.7 GCEasy — GC 日志的"智能分析师"
 
@@ -446,13 +529,20 @@ GC 日志动辄几百行，人眼根本看不过来。GCEasy 是一个在线工�
 **生成 GC 日志的 JVM 参数：**
 
 ```bash
-# 开启 GC 日志
-java -Xlog:gc*:file=gc.log:time,uptime,level -jar myapp.jar
+# 开启 GC 日志（JDK 9+ 的统一日志写法，推荐）
+# 加 tags 可以附带 [gc,heap] 之类的分类标签，分析工具识别得更准
+java "-Xlog:gc*:file=gc.log:time,uptime,level,tags" -jar myapp.jar
 
-# 或者使用古老的参数（Java 8 及以前）
+# 想按天切割、并保留历史文件时（file 最多保留 7 个、每个 50MB）
+java "-Xlog:gc*:file=gc.log:time,uptime,level,tags:filecount=7,filesize=50M" -jar myapp.jar
+
+# Java 8 及以前的参数（JDK 9+ 仍然认，但已废弃并会打印警告，
+# 实际会被自动映射成 -Xlog:gc*，新项目不要再写）
 java -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails \
      -Xloggc:gc.log -jar myapp.jar
 ```
+
+> 常见坑：`-Xlog` 的参数里带 `*` 和 `:`，在 Linux/macOS 的 shell 里**一定要用引号包起来**，否则会被当成通配符展开，或者被 zsh 直接报 `no matches found`。
 
 **GC 日志关键指标解读：**
 
@@ -479,36 +569,50 @@ Apache JMeter 是 Apache 基金会开源的压测工具，支持 Web、HTTP、JD
 <?xml version="1.0" encoding="UTF-8"?>
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.5">
   <hashTree>
-    <!-- 线程组配置 -->
-    <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="压测线程组">
-      <stringProp name="ThreadGroup.num_threads">100</stringProp>  <!-- 并发线程数：100 -->
-      <stringProp name="ThreadGroup.ramp_time">10</stringProp>      <!-- 启动时间：10秒内启动100个线程 -->
-      <stringProp name="ThreadGroup.duration">300</stringProp>       <!-- 持续时间：300秒 -->
-      <stringProp name="ThreadGroup.delay"></stringProp>
-    </ThreadGroup>
-    
+    <!-- 测试计划：整个 JMeter 脚本的根节点，必须存在 -->
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="测试计划" enabled="true">
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+    </TestPlan>
+
     <hashTree>
-      <!-- HTTP 请求配置 -->
-      <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="登录接口">
-        <stringProp name="HTTPSampler.domain">api.example.com</stringProp>
-        <stringProp name="HTTPSampler.port">8080</stringProp>
-        <stringProp name="HTTPSampler.path">/api/login</stringProp>
-        <stringProp name="HTTPSampler.method">POST</stringProp>
-        <boolProp name="HTTPSampler.autoRedirects">false</boolProp>
-        <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-          <collectionProp name="Arguments.arguments">
-            <!-- 请求体 -->
-            <elementProp name="" elementType="HTTPArgument">
-              <stringProp name="Argument.value">{"username":"test","password":"123456"}</stringProp>
-              <stringProp name="Argument.metadata">=</stringProp>
+      <!-- 线程组配置 -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="压测线程组">
+        <stringProp name="ThreadGroup.num_threads">100</stringProp>  <!-- 并发线程数：100 -->
+        <stringProp name="ThreadGroup.ramp_time">10</stringProp>      <!-- 启动时间：10 秒内拉起 100 个线程 -->
+        <stringProp name="ThreadGroup.duration">300</stringProp>      <!-- 持续时间：300 秒 -->
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>        <!-- 必须为 true，duration 才生效 -->
+        <stringProp name="ThreadGroup.delay"></stringProp>
+
+        <hashTree>
+          <!-- HTTP 请求配置 -->
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="登录接口">
+            <stringProp name="HTTPSampler.domain">api.example.com</stringProp>
+            <stringProp name="HTTPSampler.port">8080</stringProp>
+            <stringProp name="HTTPSampler.path">/api/login</stringProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.autoRedirects">false</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+              <collectionProp name="Arguments.arguments">
+                <!-- 请求体 -->
+                <elementProp name="" elementType="HTTPArgument">
+                  <stringProp name="Argument.value">{"username":"test","password":"123456"}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                </elementProp>
+              </collectionProp>
             </elementProp>
-          </collectionProp>
-        </elementProp>
-      </HTTPSamplerProxy>
+          </HTTPSamplerProxy>
+
+          <!-- 每个取样器下面都要跟一个（可以是空的）hashTree -->
+          <hashTree/>
+        </hashTree>
+      </ThreadGroup>
     </hashTree>
   </hashTree>
 </jmeterTestPlan>
 ```
+
+> 上面的片段省略了大量可选元素，用来说明结构。实操中更推荐在 JMeter GUI 里搭好测试计划，再用「非 GUI 模式」跑压测：`jmeter -n -t plan.jmx -l result.jtl -e -o report/`，其中 `-n` 表示命令行模式（GUI 模式本身也会消耗性能，不适合正式压测）。
 
 **JMeter 核心指标解读：**
 
@@ -526,17 +630,22 @@ wrk 是一款小巧但强大的 HTTP 压测工具，基于系统底层异步 I/O
 **安装：**
 
 ```bash
-# Linux/macOS
+# macOS（brew 里叫 wrk）
+brew install wrk
+
+# Linux（源码编译）
 git clone https://github.com/wg/wrk.git
 cd wrk && make
 
 # Windows 可以用 WSL
 ```
 
+> 参数含义：`-t` 是压测线程数（通常设成 CPU 核数），`-c` 是并发连接数，`-d` 是持续时间。线程数不等于并发数——wrk 用少量线程加异步 I/O 就能撑起成百上千的连接，这也是它比 ab 更高效的原因。
+
 **常用命令：**
 
 ```bash
-# 基础用法：100 个线程，连接保持 30 秒，100 个并发
+# 基础用法：12 个压测线程，100 个并发连接，持续压 30 秒
 wrk -t12 -c100 -d30s http://localhost:8080/api/users
 
 # 高级用法：带自定义头、POST 请求
@@ -575,7 +684,8 @@ wrk.headers["Content-Type"] = "application/json"         -- 请求头
 ab（Apache Bench）是 Apache 自带的压测工具，安装简单，命令好记，适合快速验证接口能不能抗住。
 
 ```bash
-# 安装（Windows 下安装 Apache 即可，Linux/macOS 一般自带）
+# 安装：Windows 装 Apache 即可；macOS 自带的 ab 在新系统里已经移除，
+# 可以 brew install httpd；Debian/Ubuntu 用 apt install apache2-utils
 # 发送 10000 个请求，100 个并发
 ab -n 10000 -c 100 http://localhost:8080/api/users
 
@@ -619,6 +729,8 @@ ab -n 1000 -c 50 -p data.json -T application/json \
 #   99%    115
 #  100%    189 (longest request)
 ```
+
+> ⚠️ ab 是**单线程同步**模型，本身很容易先成为瓶颈，压到几千 QPS 就上不去了（报 `socket: Too many open files` 是常见现象）。做正经压测请用 wrk、hey 或 JMeter。
 
 ### 46.3.4 Hey — API 压测的"后起之秀"
 
@@ -836,7 +948,9 @@ LOGIN_RESP=$(curl -s -X POST "${BASE_URL}/login" \
   -d '{"username":"admin","password":"123456"}')
 
 echo "登录响应: $LOGIN_RESP"
-TOKEN=$(echo $LOGIN_RESP | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+# 用 jq 解析最稳妥；没有 jq 时可以用 grep + cut 兜底
+TOKEN=$(echo "$LOGIN_RESP" | jq -r '.token')
+# 兜底写法：TOKEN=$(echo "$LOGIN_RESP" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
 
 echo "Token: $TOKEN"
 echo ""
@@ -918,33 +1032,36 @@ HTTPie 发音为 "aitch-tee-tee-pie"，是一个命令行 HTTP 客户端，设�
 # 安装
 # pip install httpie
 
+# 说明：http 默认走 HTTP，https 默认走 HTTPS（只是默认 scheme 不同）。
+# 访问本地的 http://localhost:8080 时要用 http，不然会当成 https 连不上。
+
 # GET 请求（简洁语法）
-https GET localhost:8080/api/users
+http GET localhost:8080/api/users
 
 # POST 请求（自动 JSON 格式化）
-https POST localhost:8080/api/login username=admin password=123456
+http POST localhost:8080/api/login username=admin password=123456
 
 # 带认证
-https GET localhost:8080/api/profile Authorization:"Bearer token123"
+http GET localhost:8080/api/profile Authorization:"Bearer token123"
 
 # 下载文件
-https download localhost:8080/files/report.pdf
+http --download localhost:8080/files/report.pdf
 
 # 使用 session（自动管理 Cookie 和 Header）
-https session-local api GET localhost:8080/api/profile
-https session-local api POST localhost:8080/api/logout
+http --session=local GET localhost:8080/api/profile
+http --session=local POST localhost:8080/api/logout
 
 # 漂亮输出（带颜色和格式）
-https --print=hHbB localhost:8080/api/users
+http --print=hHbB localhost:8080/api/users
 # h: request headers
 # H: response headers
 # b: response body
 # B: response body (pretty printed)
 
 # 模拟不同方法
-https DELETE localhost:8080/api/users/1
-https PUT localhost:8080/api/users/1 name=newname
-https PATCH localhost:8080/api/users/1 name=newname
+http DELETE localhost:8080/api/users/1
+http PUT localhost:8080/api/users/1 name=newname
+http PATCH localhost:8080/api/users/1 name=newname
 ```
 
 ### 46.4.5 Insomnia — 开发者的"API 调试工作站"
@@ -1023,4 +1140,4 @@ query GetUser($id: ID!) {
 
 > 工具虽多，但不必样样精通。根据自己的工作场景选择几款顺手的深入使用，其他的了解个大概即可。毕竟，工具有价，思维无价！
 
-下一章我们将进入 **实战篇**，把手头的工具用起来，真正开始"造轮子"！
+下一章我们把视角转到 IDE 本身，聊聊怎么把 IntelliJ IDEA 用得更顺手。

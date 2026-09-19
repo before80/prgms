@@ -67,7 +67,7 @@ debug = "line-tables-only"
 遗憾的是，即使完成上述步骤，你也不会获得标准库代码的详细分析信息。这是因为发布的 Rust 标准库版本未使用调试信息构建。
 
 最可靠的方法是自己构建编译器和标准库，按照[这些说明][these instructions]操作，并在仓库根目录的 `bootstrap.toml` 文件中添加以下行：
- ```toml
+```toml
 [rust]
 debuginfo-level = 1
 ```

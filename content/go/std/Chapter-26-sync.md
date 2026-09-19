@@ -1618,15 +1618,16 @@ func main() {
 
 ```mermaid
 graph LR
-    subgraph Pool 生命周期
-        P1["Put(obj)"] -->|"GC 发生"| C["清空 Pool"]
+    subgraph pool["sync.Pool 的生命周期"]
+        P1["Put(obj)"] -->|"GC 发生"| C["Pool 被清空"]
         C -->|"Get() 时"| P2["New() 创建"]
         P2 --> P1
     end
-    
+
     style C fill:#ff6b6b
-    Note right of C: GC 会清空所有 Pool<br/>数据可能丢失！
 ```
+
+> ⚠️ 重点：`sync.Pool` 里缓存的对象**随时可能在 GC 时被清空**。所以它只适合缓存"丢了也能重新造"的临时对象（比如序列化时用的 buffer），**绝不能拿它当缓存存有状态的数据**——那种场景请用带过期策略的本地缓存库。
 
 > **记住**：sync.Pool 是用来复用的，不是用来存储的。每次 GC 后，池里的东西可能全没了。
 

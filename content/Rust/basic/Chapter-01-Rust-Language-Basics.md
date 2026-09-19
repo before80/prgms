@@ -246,7 +246,10 @@ unsafe {
 
 Rust 的 Web 框架生态越来越丰富了！Actix、Axum、Rocket... 性能秒杀一众对手！
 
-```rust
+> ⚠️ 本示例依赖 `actix-web`（外部 crate），需要在 `Cargo.toml` 中声明 `actix-web = "4"` 才能编译运行，因此标记为 `ignore`。
+
+```rust,ignore
+// 先在 Cargo.toml 里加上依赖：actix-web = "4"
 // 使用 Actix-web 框架创建一个 Web 服务
 use actix_web::{web, App, HttpServer, HttpResponse};
 
@@ -287,8 +290,13 @@ pub extern "C" fn add(a: i32, b: i32) -> i32 {
 
 STM32、Arduino、Raspberry Pi Pico... Rust 都能玩！
 
-```rust
-// 嵌入式 Rust 示例（需要在 Cargo.toml 添加相关依赖）
+> ⚠️ 本示例是嵌入式（`no_std`）代码，依赖 `panic-halt`、`arduino-uno` 等 crate，还需要交叉编译到 AVR 目标（`avr-unknown-gnu-atmega328`），无法在本机直接运行，因此标记为 `ignore`。
+
+```rust,ignore
+// 嵌入式 Rust 示例（需要 no_std 目标工具链，并在 Cargo.toml 里添加
+// panic-halt = "0.2"、arduino-uno = "0.3" 之类的硬件支持包）
+// 这类代码不能在本机上直接 `cargo run`，要交叉编译到目标板：
+//   rustup target add avr-unknown-gnu-atmega328
 #![no_std]
 #![no_main]
 
@@ -298,7 +306,7 @@ use panic_halt as _;
 fn main() -> ! {
     let peripherals = arduino_uno::Peripherals::take().unwrap();
     let mut pin = peripherals.PORTB.split().pb5.into_output();
-    
+
     loop {
         pin.set_high().unwrap();
         arduino_uno::delay::delay_ms(1000);
@@ -336,8 +344,11 @@ Rust 的性能非常适合游戏开发！社区里有 Amethyst、Bevy 等游戏�
 
 burn、candle 等新兴 AI 框架都是用 Rust 写的，未来可期！
 
-```rust
+> ⚠️ 本示例依赖 `candle-core`（外部 crate），需要在 `Cargo.toml` 中声明依赖后才能编译运行，因此标记为 `ignore`。
+
+```rust,ignore
 // 使用 candle 库做简单的张量计算（示例）
+// 先在 Cargo.toml 里加上：candle-core = "0.8"
 use candle::{Tensor, Device};
 
 fn main() -> candle::Result<()> {
@@ -350,13 +361,12 @@ fn main() -> candle::Result<()> {
     // 张量相加
     let sum = t1.add(&t2)?;
     
-    println!("{:?}", sum); // Tensor dty=float32 [3] device=cpu [ 5. ,  7. ,  9. ]
+    println!("{}", sum); // [ 5., 7., 9.]（Display 会打印张量内容）
     
     Ok(())
 }
 ```
 
-mermaid
 ```mermaid
 mindmap
   root((Rust))
@@ -404,20 +414,19 @@ Rust 的发展历程，就像一个程序员的成长之路 —— 从青涩到�
 - **Async/Await 预览**：Rust 2018 Edition 预览了 async/await 语法（当时还需要 `#![feature(async_await)]` 在 nightly 编译器下使用）。stable 的 async/await 最终在 **Rust 1.39**（2019年11月）才正式稳定！
 
 ```rust
-// Rust 2018 Edition 预览版（需要 nightly + feature flag）
-#![feature(async_await)]
-
+// 澄清一个常见的过时说法：async/await 不需要 feature flag
+// 它在 Rust 1.39（2019 年 11 月）就已经稳定了
 async fn get_answer() -> i32 {
     42
 }
 
-// 2018 年之前？不存在的！你只能这样写：
-extern crate futures;
-
-use futures::future::ok;
-
 fn main() {
-    let _ = ok::<i32, ()>(42);
+    // 调用 async fn 并不会执行函数体，它只是"创建了一个 Future"
+    let future = get_answer();
+    println!("Future 已创建，但还没开始跑——Rust 的 Future 是惰性的");
+    // 想真正拿到 42，需要一个执行器（executor）去轮询这个 Future，
+    // 比如 futures::executor::block_on(future) 或 #[tokio::main] 下的 .await
+    drop(future);
 }
 ```
 
@@ -476,7 +485,6 @@ fn main() {
 }
 ```
 
-mermaid
 ```mermaid
 timeline
     title Rust 发展历程
@@ -576,28 +584,26 @@ Rust 2024 Edition 可不是简单的修修补补，这是 Rust 社区经过多�
 > > Nightly 版承诺「**今天能跑，明天可能变**」。
 
 ```rust
-// Rust 2024: gen 块（需要 #![feature(gen_blocks)]）
-#![feature(gen_blocks)]
-
-use std::ops::{Generator, GeneratorState};
-
-fn simple_gen() -> impl Generator<Yield = (), Return = ()> + 'static {
-    move || {
-        println!("第一步");
-        yield;
-        println!("第二步");
-        yield;
-        println!("第三步");
-    }
+// gen 块（生成器）目前仍然是 nightly 特性，语法和 API 都还在变动：
+//   #![feature(gen_blocks)]
+//   let mut g = gen { yield 1; yield 2; };
+// 在稳定版上，等价的写法是用迭代器适配器或 std::iter::from_fn 手写一个状态机：
+fn simple_gen() -> impl Iterator<Item = &'static str> {
+    let mut step = 0;
+    std::iter::from_fn(move || {
+        step += 1;
+        match step {
+            1 => Some("第一步"),
+            2 => Some("第二步"),
+            3 => Some("第三步"),
+            _ => None,
+        }
+    })
 }
 
 fn main() {
-    let mut gen = simple_gen();
-    // 调用 resume() 来驱动生成器（GeneratorState::Yielded 表示暂停点）
-    // 注：gen 块的 API 可能随 nightly 版本变化，以上代码仅供参考
-    match gen.resume() {
-        GeneratorState::Yielded(_) => println!("暂停在 yield 点"),
-        GeneratorState::Complete(()) => println!("生成器结束"),
+    for s in simple_gen() {
+        println!("{}", s);
     }
 }
 ```
@@ -628,17 +634,15 @@ fn main() {
 Rust 2024 对 unsafe 代码进行了更好的集成，让 Rust 和 C 的互操作更安全。
 
 ```rust
-// Rust 2024: unsafe extern blocks 更安全
+// Rust 2024：extern 块本身必须标 unsafe，编译器会检查函数签名
 unsafe extern "C" {
-    // 编译器会检查函数签名！
-    fn c_function(x: i32) -> i32;
+    fn abs(input: i32) -> i32; // 来自系统 C 标准库
 }
 
 fn main() {
-    unsafe {
-        let result = c_function(42);
-        println!("C 函数返回: {}", result);
-    }
+    // 调用外部函数必须在 unsafe 块里，并由你来保证前提成立
+    let result = unsafe { abs(-42) };
+    println!("C 的 abs(-42) = {}", result); // C 的 abs(-42) = 42
 }
 ```
 
@@ -647,13 +651,11 @@ fn main() {
 虽然还没完全稳定，但 Rust 2024 为类型级数字奠定了基础！
 
 ```rust
-// 类型级数字的概念（需要 nightly Rust）
-#![feature(generic_const_exprs)]
-
+// const 泛型（类型级数字）从 Rust 1.51 起就已经稳定了，不需要 nightly
 struct ArrayWrapper<const N: usize>([u8; N]);
 
 fn main() {
-    let wrapper = ArrayWrapper([0u8; 16]); // 编译保证长度是 16！
+    let wrapper = ArrayWrapper([0u8; 16]); // 编译期就确定了长度是 16
     println!("数组长度: {}", wrapper.0.len()); // 数组长度: 16
 }
 ```
@@ -782,16 +784,19 @@ impl MyModel {
 
 candle 是另一个纯 Rust 的 ML 框架，由 Hugging Face 开发，轻量且高效！
 
-```rust
+> ⚠️ 本示例依赖 `candle-core`（外部 crate），需要在 `Cargo.toml` 中声明依赖后才能编译运行，因此标记为 `ignore`。
+
+```rust,ignore
 // candle 示例：矩阵运算
+// 先在 Cargo.toml 里加上：candle-core = "0.8"
 use candle::{Tensor, DType, Device};
 
 fn main() -> candle::Result<()> {
     let device = Device::Cpu;
     
     // 创建矩阵
-    let a = Tensor::randn(0.0, 1.0, [3, 4], &device, DType::F32)?;
-    let b = Tensor::randn(0.0, 1.0, [4, 2], &device, DType::F32)?;
+    let a = Tensor::randn(0.0, 1.0, [3, 4], &device)?;
+    let b = Tensor::randn(0.0, 1.0, [4, 2], &device)?;
     
     // 矩阵乘法
     let c = a.matmul(&b)?;
@@ -871,13 +876,13 @@ mindmap
 
 下一章我们将深入 Rust 最独特的特性 —— **所有权系统**！这是 Rust 的核心，也是让 Rust 区别于其他语言的关键所在。准备好了吗？让我们继续探索 Rust 的奇妙世界！🚀
 
-### 1.2 变量与可变性
+## 1.2 变量与可变性
 
 在大多数编程语言里，变量就像是一个贴了便签的盒子，你可以随时把里面的东西换掉。但是在 Rust 里，这个盒子有点特别 —— 默认情况下，它被焊死了，你只能看，不能改！
 
 等等，这听起来很反人类？别急，让我慢慢给你解释为什么 Rust 要这么做...
 
-#### 1.2.1 变量声明：let 的基本用法
+### 1.2.1 变量声明：let 的基本用法
 
 在 Rust 里，声明变量就用 `let` 关键字。这和 JavaScript、Python 里的习惯差不多，但含义可完全不同！
 
@@ -899,7 +904,7 @@ fn main() {
 
 > 小技巧：数字中间的下划线 `_` 只是为了人类好读，编译器会直接忽略它。`1_000_000_000` 和 `1000000000` 在 Rust 眼里是一模一样的！
 
-#### 1.2.2 不可变性：为什么默认不可变（安全 + 并发）
+### 1.2.2 不可变性：为什么默认不可变（安全 + 并发）
 
 好，现在重点来了！为什么 Rust 默认变量是不可变的？
 
@@ -959,7 +964,7 @@ fn main() {
 - 消除冗余计算
 - 内联函数调用
 
-#### 1.2.3 可变变量：let mut
+### 1.2.3 可变变量：let mut
 
 好吧好吧，我知道有些时候你就是需要改变变量的值。Rust 也很体贴，给你准备了 `mut` 关键字！
 
@@ -996,7 +1001,7 @@ fn main() {
 }
 ```
 
-#### 1.2.4 常量：const
+### 1.2.4 常量：const
 
 如果说 `let` 是"可信任的变量"，那 `const` 就是"永恒的真理" —— 编译时就确定，运行时绝不改变！
 
@@ -1034,7 +1039,7 @@ fn main() {
 }
 ```
 
-#### 1.2.5 静态变量：static
+### 1.2.5 静态变量：static
 
 `static` 变量和 `const` 很像，但有一个关键区别：**它们有固定的内存地址**！
 
@@ -1094,7 +1099,7 @@ graph TB
     D --> D3[固定内存地址]
 ```
 
-#### 1.2.6 变量遮蔽：Variable Shadowing
+### 1.2.6 变量遮蔽：Variable Shadowing
 
 这是 Rust 一个非常酷的特性！变量遮蔽允许你用同一个名字声明一个新变量，旧的就"消失"了（被遮蔽了）。
 
@@ -1152,7 +1157,7 @@ fn main() {
 }
 ```
 
-#### 1.2.7 内联多重赋值与解构赋值
+### 1.2.7 内联多重赋值与解构赋值
 
 Rust 支持很优雅的多重赋值和解构！
 
@@ -1194,7 +1199,7 @@ fn main() {
 }
 ```
 
-#### 1.2.8 Rust 2024 新增：let 链语法
+### 1.2.8 Rust 2024 新增：let 链语法
 
 这是 Rust 2024 Edition 带来的新语法！let 链让你可以在 `let` 语句里直接写条件表达式！
 
@@ -1251,8 +1256,10 @@ fn main() {
     
     println!("值为: {}", value); // 值为: 42
     
-    // 更复杂的匹配
-    let (Ok(a), Ok(b)) = (Ok(10), Ok(20)) else {
+    // 更复杂的匹配：注意 Ok 的错误类型要能推断出来
+    let x: Result<i32, ()> = Ok(10);
+    let y: Result<i32, ()> = Ok(20);
+    let (Ok(a), Ok(b)) = (x, y) else {
         return;
     };
     
@@ -1262,7 +1269,6 @@ fn main() {
 
 ---
 
-mermaid
 ```mermaid
 flowchart TD
     A[变量声明 let] --> B{需要修改?}
@@ -1281,15 +1287,15 @@ flowchart TD
 
 ---
 
-### 1.3 基本数据类型
+## 1.3 基本数据类型
 
 如果说 Rust 是一座大厦，那数据类型就是这块大厦的砖瓦。每一种类型都有自己的性格和用途，搞清楚它们，你写代码就能事半功倍！
 
-#### 1.3.1 整数类型
+### 1.3.1 整数类型
 
 整数就是没有小数点的数字。Rust 的整数家族可大了，让我来给你介绍一下：
 
-##### 1.3.1.1 有符号整数：i8 / i16 / i32 / i64 / i128
+#### 1.3.1.1 有符号整数：i8 / i16 / i32 / i64 / i128
 
 有符号整数可以表示正数、负数和零。名字里的 "i" 就是 "integer"（整数）的意思，后面的数字表示**位数**（bits）。
 
@@ -1311,7 +1317,7 @@ fn main() {
 
 > 为什么 i8 的最大值是 127？因为 8 位只能表示 256 个值，其中一半给负数，一半给正数和零。-128 到 -1 是 128 个，0 是 1 个，1 到 127 是 127 个，加起来正好 256 个！
 
-##### 1.3.1.2 无符号整数：u8 / u16 / u32 / u64 / u128
+#### 1.3.1.2 无符号整数：u8 / u16 / u32 / u64 / u128
 
 无符号整数只能表示非负数（零和正数）。"u" 就是 "unsigned"（无符号）的意思。
 
@@ -1349,7 +1355,7 @@ fn main() {
 }
 ```
 
-##### 1.3.1.3 平台相关整数：isize / usize
+#### 1.3.1.3 平台相关整数：isize / usize
 
 这两个是"跟着平台走"的整数类型。在 64 位系统上就是 64 位，在 32 位系统上就是 32 位。
 
@@ -1371,7 +1377,7 @@ fn main() {
 
 > 为什么数组索引要用 usize？因为数组的长度不可能是负数！而且它的大小正好能表示这台机器能访问的最大内存地址。
 
-##### 1.3.1.4 整数取值范围速查表
+#### 1.3.1.4 整数取值范围速查表
 
 | 类型 | 位数 | 有符号范围 | 无符号范围 |
 |------|------|-----------|-----------|
@@ -1382,7 +1388,7 @@ fn main() {
 | i128 / u128 | 128 | 约 ±1.7×10³⁸ | 0 ~ 约3.4×10³⁸ |
 | isize / usize | 平台相关 | 64位系统: ±9.2×10¹⁸ | 64位系统: 0 ~ 1.8×10¹⁹ |
 
-##### 1.3.1.5 整数默认类型推导规则
+#### 1.3.1.5 整数默认类型推导规则
 
 当你没有显式指定类型时，Rust 编译器会根据上下文推导类型。整数默认是 `i32`，为什么呢？
 
@@ -1421,7 +1427,7 @@ fn main() {
 }
 ```
 
-##### 1.3.1.6 整数的进制表示
+#### 1.3.1.6 整数的进制表示
 
 Rust 支持多种进制表示法，还有贴心的字节分隔符！
 
@@ -1433,7 +1439,8 @@ fn main() {
     
     // 十六进制：0x 开头
     let hex = 0xFF; // 255
-    let hex2 = 0xDEADBEEF; // 3735928559
+    // 注意：3735928559 超过了 i32 的上限，所以必须显式标注成 u32
+    let hex2: u32 = 0xDEADBEEF; // 3735928559
     println!("十六进制: {:#x}", hex); // 十六进制: 0xff
     println!("十六进制: {:#x}", hex2); // 十六进制: 0xdeadbeef
     
@@ -1445,12 +1452,12 @@ fn main() {
     let binary = 0b1010; // 10
     println!("二进制: {:#b}", binary); // 二进制: 0b1010
     
-    // 字节表示（u8专用）
-    let byte = b'A'; // 65
+    // 字节表示（u8 专用）
+    let byte = b'A'; // 65，类型是 u8
     println!("字节: {}", byte); // 字节: 65
     
-    // 字节数组字面量
-    let bytes = b"hello"; // [104, 101, 108, 108, 111]
+    // 字节字符串字面量
+    let bytes = b"hello"; // 类型是 &[u8; 5]
     println!("字节数组: {:?}", bytes); // 字节数组: [104, 101, 108, 108, 111]
 }
 ```
@@ -1472,11 +1479,13 @@ fn main() {
 }
 ```
 
-#### 1.3.2 浮点类型
+### 1.3.2 浮点类型
 
 浮点数就是带小数点的数。Rust 有两种浮点类型：
 
-##### 1.3.2.1 f32：32 位单精度（IEEE 754）
+#### 1.3.2.1 f32：32 位单精度（IEEE 754）
+
+`f32` 是 32 位单精度浮点数，大约只有 7 位十进制有效数字，适合对内存或带宽敏感的场景。
 
 ```rust
 fn main() {
@@ -1491,7 +1500,9 @@ fn main() {
 }
 ```
 
-##### 1.3.2.2 f64：64 位双精度（Rust 默认浮点类型）
+#### 1.3.2.2 f64：64 位双精度（Rust 默认浮点类型）
+
+`f64` 是 Rust 的默认浮点类型，精度约 15~16 位十进制有效数字。
 
 ```rust
 fn main() {
@@ -1509,7 +1520,7 @@ fn main() {
 
 > 默认浮点类型是 f64 而不是 f32，是因为现代 CPU 对 64 位浮点运算的优化非常好，有时候 f64 甚至比 f32 更快！
 
-##### 1.3.2.3 特殊浮点值：NaN / Infinity / -Infinity / -0.0
+#### 1.3.2.3 特殊浮点值：NaN / Infinity / -Infinity / -0.0
 
 浮点数有一些特殊值，你需要知道它们的存在：
 
@@ -1523,49 +1534,56 @@ fn main() {
     // 无穷大
     let inf = f64::INFINITY;
     let neg_inf = f64::NEG_INFINITY;
-    println!("正无穷: {}", inf); // 正无穷
-    println!("负无穷: {}", neg_inf); // 负无穷
+    println!("正无穷: {}", inf); // 正无穷: inf
+    println!("负无穷: {}", neg_inf); // 负无穷: -inf
     println!("是无穷吗？: {}", inf.is_infinite()); // 是无穷吗？: true
     
-    // 负零
-    let neg_zero = -0.0;
-    println!("负零: {}", neg_zero); // -0
-    println!("是 -0 吗？: {}", neg_zero.is_sign_negative()); // 是 -0 吗？: true
+    // 负零：注意这里必须写成 -0.0_f64，
+    // 否则 `-0.0` 的类型是不确定的，后面的方法调用会报错
+    let neg_zero = -0.0_f64;
+    println!("负零: {}", neg_zero); // 负零: -0
+    println!("是负零吗？: {}", neg_zero.is_sign_negative()); // 是负零吗？: true
+    println!("负零 == 0.0 吗？: {}", neg_zero == 0.0); // 负零 == 0.0 吗？: true
     
     // 浮点数运算产生的特殊值
-    println!("1.0 / 0.0 = {}", 1.0 / 0.0); // 1.0 / 0.0 = Infinity
-    println!("-1.0 / 0.0 = {}", -1.0 / 0.0); // -1.0 / 0.0 = -Infinity
+    println!("1.0 / 0.0 = {}", 1.0 / 0.0); // 1.0 / 0.0 = inf
+    println!("-1.0 / 0.0 = {}", -1.0 / 0.0); // -1.0 / 0.0 = -inf
     println!("0.0 / 0.0 = {}", 0.0 / 0.0); // 0.0 / 0.0 = NaN
     println!("sqrt(-1.0) = {}", (-1.0_f64).sqrt()); // sqrt(-1.0) = NaN
 }
 ```
 
-##### 1.3.2.4 浮点精度问题与安全比较
+#### 1.3.2.4 浮点精度问题与安全比较
 
 这是浮点数最"坑人"的地方！由于浮点数的表示方式，有些数无法精确表示：
 
 ```rust
 fn main() {
     // 经典的精度问题
-    let a = 0.1 + 0.2;
+    let a: f64 = 0.1 + 0.2;
     println!("0.1 + 0.2 = {}", a); // 0.1 + 0.2 = 0.30000000000000004
     println!("a == 0.3: {}", a == 0.3); // a == 0.3: false
     
     // 原因：0.1 在二进制里是无限循环小数！
     // 计算机只能存储有限的位数，所以产生了误差
     
-    // 正确比较方式：允许一定的误差
-    let epsilon = 1e-10; // 允许的误差
+    // 比较时允许一定误差
+    let epsilon = 1e-10;
     println!("误差范围内相等？: {}", (a - 0.3).abs() < epsilon); // 误差范围内相等？: true
     
-    // 使用标准库的方法
-    println!("几乎相等？: {}", (a - 0.3).abs() < f64::EPSILON); // 几乎相等？: true
+    // f64::EPSILON 是"机器精度"（约 2.22e-16），
+    // 它是 1.0 附近相邻两个浮点数之间的距离，
+    // 只适合"两个数本来就该相等"的场景，不能当成通用的容差
+    println!("与 0.3 的差: {:e}", (a - 0.3).abs()); // 与 0.3 的差: 5.551115e-17
+    println!("差小于机器精度？: {}", (a - 0.3).abs() < f64::EPSILON); // 差小于机器精度？: true
 }
 ```
 
 > **警告：永远不要用 `==` 比较浮点数！** 要用 `abs(a - b) < epsilon` 或者用 `f32::EPSILON` / `f64::EPSILON`。
 
-##### 1.3.2.5 NaN 的判定
+#### 1.3.2.5 NaN 的判定
+
+NaN 与任何值比较都不相等，包括它自己，所以判断 NaN 只能靠 `is_nan()`。
 
 ```rust
 fn main() {
@@ -1592,11 +1610,13 @@ fn main() {
 }
 ```
 
-#### 1.3.3 布尔类型
+### 1.3.3 布尔类型
 
 布尔类型是最简单的类型，只有两个值：`true` 和 `false`。
 
-##### 1.3.3.1 bool 的两个值
+#### 1.3.3.1 bool 的两个值
+
+`bool` 只有 `true` 和 `false` 两个取值，占用 1 个字节。
 
 ```rust
 fn main() {
@@ -1611,7 +1631,9 @@ fn main() {
 }
 ```
 
-##### 1.3.3.2 布尔运算
+#### 1.3.3.2 布尔运算
+
+`&&`、`||`、`!` 分别对应逻辑与、或、非。
 
 ```rust
 fn main() {
@@ -1639,7 +1661,7 @@ fn main() {
 }
 ```
 
-##### 1.3.3.3 布尔作为整数条件
+#### 1.3.3.3 布尔作为整数条件
 
 在 Rust 里，`if` 条件必须是布尔类型，不像 C 语言可以用整数！
 
@@ -1667,7 +1689,9 @@ fn main() {
 }
 ```
 
-##### 1.3.3.4 bool 的方法
+#### 1.3.3.4 bool 的方法
+
+`bool` 上直接可用的方法不多，主要是 `then()` 和 `then_some()`。
 
 ```rust
 fn main() {
@@ -1676,25 +1700,27 @@ fn main() {
     // 转换为字符串
     println!("to_string(): {}", b.to_string()); // to_string(): true
     
-    // 转换为_owned（克隆）
-    let owned: String = b.to_owned();
+    // to_owned() 对 bool 这类 Copy 类型来说返回的还是 bool，不是 String！
+    let owned: bool = b.to_owned();
     println!("to_owned(): {}", owned); // to_owned(): true
     
     // 注意：bool 没有 as_str() 方法！
     // 下面这行会编译错误：
     // let s: &str = b.as_str(); // 错误：bool 没有 as_str 方法
     
-    // 如果你需要 &str，用这个方法：
+    // 如果你需要 &str，只能自己映射：
     let s: &str = if b { "true" } else { "false" };
     println!("作为 &str: {}", s); // 作为 &str: true
 }
 ```
 
-#### 1.3.4 字符类型
+### 1.3.4 字符类型
 
 Rust 的 `char` 是 Unicode 标量值，这可比很多语言高级多了！
 
-##### 1.3.4.1 char 是 Unicode 标量值
+#### 1.3.4.1 char 是 Unicode 标量值
+
+`char` 宽 4 字节，能表示任意一个 Unicode 标量值，而不是单字节的 ASCII 字符。
 
 ```rust
 fn main() {
@@ -1716,7 +1742,9 @@ fn main() {
 
 > **注意**：Rust 的 char 不包括 UTF-16 的代理对（surrogate pairs），因为它直接使用 Unicode 标量值。所以 '😀' 作为一个 char 是完全没问题的！
 
-##### 1.3.4.2 字符字面量语法
+#### 1.3.4.2 字符字面量语法
+
+字符用单引号书写，支持常见转义，也支持 `\u{...}` 形式的码点写法。
 
 ```rust
 fn main() {
@@ -1745,7 +1773,9 @@ fn main() {
 }
 ```
 
-##### 1.3.4.3 字符与字节的区别
+#### 1.3.4.3 字符与字节的区别
+
+`'A'` 的类型是 `char`，`b'A'` 的类型是 `u8`，两者不能混用。
 
 ```rust
 fn main() {
@@ -1766,7 +1796,9 @@ fn main() {
 }
 ```
 
-##### 1.3.4.4 Unicode 基本多语言平面与辅助平面
+#### 1.3.4.4 Unicode 基本多语言平面与辅助平面
+
+Unicode 分为基本多语言平面与辅助平面，超出 `U+FFFF` 的码点在 UTF-8 中占 4 个字节。
 
 ```rust
 fn main() {
@@ -1798,7 +1830,9 @@ fn main() {
 }
 ```
 
-##### 1.3.4.5 char 的方法
+#### 1.3.4.5 char 的方法
+
+`char` 提供了一批分类与转换方法，例如 `is_ascii_digit`、`to_uppercase`。
 
 ```rust
 fn main() {
@@ -1833,11 +1867,13 @@ fn main() {
 }
 ```
 
-#### 1.3.5 单元类型
+### 1.3.5 单元类型
 
 单元类型 `()` 是一个神奇的存在 —— 它表示"什么都没有"或者"完成"。
 
-##### 1.3.5.1 () 的含义与使用场景
+#### 1.3.5.1 () 的含义与使用场景
+
+`()` 是单元类型，它只有一个值 `()`，用来表示「没有有意义的信息」。
 
 ```rust
 fn main() {
@@ -1865,7 +1901,7 @@ fn main() {
 }
 ```
 
-##### 1.3.5.2 never 类型（!）
+#### 1.3.5.2 never 类型（!）
 
 `!` 叫做"never type"，表示一个函数永远不会返回。
 
@@ -1873,7 +1909,7 @@ fn main() {
 fn main() {
     // never type：!
     // 特点：
-    // 1. 永远不返回（发散函数）
+    // 1. 永远不返回（发散函数，diverging function）
     // 2. 可以强制转换为任何类型（因为"永远不会有值"）
     
     // 标准库的 panic! 返回 !
@@ -1881,7 +1917,7 @@ fn main() {
         panic!("这个函数永远不会返回！");
     }
     
-    // 死循环也返回 !
+    // 死循环的类型也是 !
     fn loop_forever() -> ! {
         loop {
             println!("死循环中...");
@@ -1889,39 +1925,45 @@ fn main() {
         }
     }
     
-    // std::process::exit 也返回 !
+    // std::process::exit 也返回 !（函数体必须让类型成立，不能留空）
     fn exit_process() -> ! {
-        // std::process::exit(0);
+        std::process::exit(0);
     }
     
-    // never type 的用法示例：loop 表达式
+    // never type 的常见用法：loop 表达式靠 break 交出值
     let x: i32 = loop {
         println!("循环中...");
-        break 42; // break 可以返回 42
+        break 42; // break 可以带着值跳出，于是 loop 的类型是 i32
     };
     println!("loop 返回的值: {}", x); // loop 返回的值: 42
+
+    // 上面三个发散函数没有被调用，这里只是为了让编译器知道它们存在
+    let _ = (fail as fn() -> !, loop_forever as fn() -> !, exit_process as fn() -> !);
 }
 ```
 
 > **Infallible** 是 Rust 1.47+ 为 `!` 提供的一个别名，用于在泛型中更清晰地表达"这个类型不可能失败"。
 
 ```rust
-// Infallible 的使用
+use std::convert::Infallible;
+
 fn main() {
-    // Option::unwrap 对 Some 返回 T，对 None 调用 panic!（返回 !）
-    // 但 Option::ok_or 期望返回 Result<T, E>
-    // 所以 None 的情况要用 never type 填充
-    
+    // 需求：把一个 Option 转成 Result
+    // ok_or 要求你提供一个错误值，这里用 () 表示"其实不会失败"
     let some_value: Option<i32> = Some(42);
-    let result: Result<i32, !> = some_value.ok_or(()); // ok_or 接受一个 E，但这里是 !
-    
+    let result: Result<i32, ()> = some_value.ok_or(());
     println!("Result: {:?}", result); // Result: Ok(42)
     
-    // Result<T, !> 意味着"这个 Result 永远不会是 Err"！
+    // 如果想在类型上表达"永远不会失败"，用 std::convert::Infallible
+    let always_ok: Result<i32, Infallible> = Ok(42);
+    match always_ok {
+        Ok(v) => println!("拿到了 {}", v),
+        Err(e) => match e {}, // Infallible 没有取值，这个分支永远不会执行
+    }
 }
 ```
 
-##### 1.3.5.3 语句与表达式的区别
+#### 1.3.5.3 语句与表达式的区别
 
 Rust 里有个独特的概念：**几乎所有东西都是表达式！**
 
@@ -1971,11 +2013,13 @@ fn main() {
 
 > **重要规则**：在 Rust 里，表达式后面加 `;` 就变成了语句，语句不返回值！所以如果你想让一个块表达式返回值，就**不要在最后一条表达式后面加分号**！
 
-#### 1.3.6 类型系统
+### 1.3.6 类型系统
 
 Rust 有一个强大但又不是完全强制的类型系统。
 
-##### 1.3.6.1 类型推导机制
+#### 1.3.6.1 类型推导机制
+
+Rust 会根据上下文推导类型：整数字面量默认 `i32`，浮点默认 `f64`。
 
 ```rust
 fn main() {
@@ -1998,7 +2042,9 @@ fn main() {
 }
 ```
 
-##### 1.3.6.2 类型注解的必要性场景
+#### 1.3.6.2 类型注解的必要性场景
+
+有些位置编译器无从推断，必须显式标注类型。
 
 ```rust
 fn main() {
@@ -2027,7 +2073,7 @@ fn main() {
 }
 ```
 
-##### 1.3.6.3 类型推断的边界
+#### 1.3.6.3 类型推断的边界
 
 有时候编译器也不知道你想要什么类型，这时候你必须显式标注：
 
@@ -2050,7 +2096,6 @@ fn main() {
 }
 ```
 
-mermaid
 ```mermaid
 graph TD
     A[类型系统] --> B[类型推导]
@@ -2068,15 +2113,17 @@ graph TD
 
 ---
 
-### 1.4 类型转换
+## 1.4 类型转换
 
 类型转换就像是给数据"换装"——内容不变，但表现形式变了。Rust 的类型转换分为两类：**安全转换**（用 `as`）和**可能失败的转换**（用 `From/Into/TryFrom/TryInto`）。
 
-#### 1.4.1 强制类型转换（as）
+### 1.4.1 强制类型转换（as）
 
 `as` 关键字用于编译器能够自动完成的安全转换。这类转换不会失败，所以不需要处理错误。
 
-##### 1.4.1.1 整数之间的转换
+#### 1.4.1.1 整数之间的转换
+
+整数之间用 `as` 转换：变宽是安全的，变窄会截断。
 
 ```rust
 fn main() {
@@ -2110,7 +2157,9 @@ fn main() {
 
 > **警告**：整数转换可能产生"意外"结果，特别是有符号和无符号之间转换时。编译器不会阻止你，但你要自己负责！
 
-##### 1.4.1.2 浮点与整数之间的转换
+#### 1.4.1.2 浮点与整数之间的转换
+
+浮点转整数会向零截断，并且不做任何范围检查。
 
 ```rust
 fn main() {
@@ -2129,55 +2178,69 @@ fn main() {
     let float: f64 = int as f64;
     println!("i32 -> f64: {} -> {}", int, float); // i32 -> f64: 42 -> 42
     
-    // 特别注意：超过 i32 范围的浮点转 i32
+    // 特别注意：超过 i32 范围的浮点数转 i32
     let big_float = 1e10_f64;
     let converted: i32 = big_float as i32;
-    println!("大浮点 -> i32: {} -> {}", big_float, converted); // 大浮点 -> i32: 10000000000 -> -2147483648
-    // 未定义行为！不要这样用！
-    
-    // 安全做法：使用 checked 方法
-    let safe: Option<i32> = big_float as i32 as Option<i32>; // 不行这样
-    // 正确做法：
-    if big_float >= i32::MIN as f64 && big_float <= i32::MAX as f64 {
-        let safe_int = big_float as i32;
-        println!("安全转换: {}", safe_int);
+    println!("大浮点 -> i32: {} -> {}", big_float, converted); // 大浮点 -> i32: 10000000000 -> 2147483647
+    // Rust 的 as 转换是"饱和"的：超出范围会被截到 i32::MAX，而不是像 C 那样产生未定义行为
+    // （这个行为从 Rust 1.45 起正式固定下来）
+    let too_negative = -1e10_f64;
+    println!("大负数 -> i32: {}", too_negative as i32); // 大负数 -> i32: -2147483648
+
+    // 想要安全转换，用 checked 系列方法：
+    match f64_to_i32(big_float) {
+        Some(v) => println!("安全转换: {}", v),
+        None => println!("值太大，无法安全转换！"),
+    }
+}
+
+fn f64_to_i32(x: f64) -> Option<i32> {
+    // 先判范围，再转换；NaN 也会因为比较不成立而被挡掉
+    if x >= i32::MIN as f64 && x <= i32::MAX as f64 {
+        Some(x as i32)
     } else {
-        println!("值太大，无法安全转换！");
+        None
     }
 }
 ```
 
-##### 1.4.1.3 char 与整数的转换
+#### 1.4.1.3 char 与整数的转换
+
+只有 `u8` 能直接 `as char`；其他整数要先转成 `u8`，否则编译报错。
 
 ```rust
 fn main() {
-    // 整数转 char
-    let code = 65_u32;
+    // 整数转 char：只有 u8 能直接 as char！
+    let code = 65_u8;
     let ch = code as char;
-    println!("u32 -> char (65): '{}'", ch); // u32 -> char (65): 'A'
+    println!("u8 -> char (65): '{}'", ch); // u8 -> char (65): 'A'
     
+    // 想从任意码位构造字符，用 char::from_u32（它会检查码位是否合法）
     let chinese_code = 0x4E2D_u32;
     let chinese = char::from_u32(chinese_code).unwrap();
     println!("中文: '{}'", chinese); // 中文: '中'
+    println!("0xD800 合法吗？ {}", char::from_u32(0xD800).is_some()); // 0xD800 合法吗？ false（代理区不是合法字符）
     
-    // char 转整数
+    // char 转整数：可以，而且不会丢信息
     let ch = 'A';
     let code = ch as u32;
     println!("char -> u32 ('A'): {} -> {}", ch, code); // char -> u32 ('A'): A -> 65
     
-    // char 的范围是 0 ~ 0x10FFFF，可以安全转成 u32
+    // char 的范围是 0 ~ 0x10FFFF
     let emoji = '😀';
     let emoji_code = emoji as u32;
-    println!("emoji -> u32: U+{:04X}", emoji_code); // emoji -> u32: U+01F600
+    println!("emoji -> u32: U+{:X}", emoji_code); // emoji -> u32: U+1F600
     
-    // 但 char 不能转成 i8、i16 等小整数！
-    // let small: i8 = 'A' as i8; // 编译错误！char 是 4 字节！
-    let small: i32 = 'A' as i32; // 必须用足够大的整数
+    // char 不能转成 i8、i16 等小整数！char 占 4 个字节
+    // let small: i8 = 'A' as i8; // 编译错误
+    let small: i32 = 'A' as i32; // 必须用足够大的整数类型
     println!("char -> i32: {}", small); // char -> i32: 65
 }
 ```
 
-##### 1.4.1.4 转换时的截断与溢出行为
+#### 1.4.1.4 转换时的截断与溢出行为
+
+`as` 不做溢出检查，超出目标范围的值会被截断为低位字节。
 
 ```rust
 fn main() {
@@ -2205,7 +2268,7 @@ fn main() {
 }
 ```
 
-##### 1.4.1.5 指针与整数之间的转换
+#### 1.4.1.5 指针与整数之间的转换
 
 这是 unsafe Rust 的领域，但 `as` 可以完成这类转换：
 
@@ -2230,36 +2293,42 @@ fn main() {
 }
 ```
 
-##### 1.4.1.6 bool 与整数的转换
+#### 1.4.1.6 bool 与整数的转换
+
+`bool` 可以 `as` 成整数（`true` 得到 1），但整数不能直接 `as` 成 `bool`，需要写 `!= 0`。
 
 ```rust
 fn main() {
-    // bool 转整数
+    // bool 转整数：可以
     let true_val = true;
     let false_val = false;
     
-    println!("true as i32 = {}", true as i32); // true as i32 = 1
-    println!("false as i32 = {}", false as i32); // false as i32 = 0
+    println!("true as i32 = {}", true_val as i32); // true as i32 = 1
+    println!("false as i32 = {}", false_val as i32); // false as i32 = 0
     
-    println!("true as u8 = {}", true as u8); // true as u8 = 1
-    println!("false as u8 = {}", false as u8); // false as u8 = 0
+    println!("true as u8 = {}", true_val as u8); // true as u8 = 1
+    println!("false as u8 = {}", false_val as u8); // false as u8 = 0
     
-    // 整数转 bool：非零为 true，零为 false
+    // 反过来不行！Rust 不允许把整数 as 成 bool（这是 C 的写法，不是 Rust 的）
     let one = 1i32;
     let zero = 0i32;
     let negative = -1i32;
+    // let b = one as bool; // 编译错误：cannot cast `i32` as `bool`
     
-    println!("1 as bool = {}", one as bool); // 1 as bool = true
-    println!("0 as bool = {}", zero as bool); // 0 as bool = false
-    println!("-1 as bool = {}", negative as bool); // -1 as bool = true
+    // 正确写法：用比较表达式
+    println!("one != 0 = {}", one != 0); // one != 0 = true
+    println!("zero != 0 = {}", zero != 0); // zero != 0 = false
+    println!("negative != 0 = {}", negative != 0); // negative != 0 = true
 }
 ```
 
-#### 1.4.2 From / Into Trait
+### 1.4.2 From / Into Trait
 
 `From` 和 `Into` 是 Rust 标准库提供的类型转换 traits。它们是"可能成功也可能失败"的转换。
 
-##### 1.4.2.1 From trait 定义
+#### 1.4.2.1 From trait 定义
+
+`From` 只有一个 `from` 方法，定义「从另一种类型构造自己」的转换。
 
 ```rust
 // From trait 的定义（简化版）
@@ -2268,7 +2337,9 @@ pub trait From<T> {
 }
 ```
 
-##### 1.4.2.2 Into trait 定义
+#### 1.4.2.2 Into trait 定义
+
+`Into` 是 `From` 的镜像：实现了 `From<T> for U` 就自动得到 `Into<U> for T`。
 
 ```rust
 // Into trait 的定义（简化版）
@@ -2286,7 +2357,9 @@ impl<T, U> Into<U> for T where U: From<T> {
 
 > 也就是说，**实现 `From` 就自动获得 `Into`**。通常我们只需要实现 `From`。
 
-##### 1.4.2.3 标准库内置实现
+#### 1.4.2.3 标准库内置实现
+
+标准库已经内置了大量实现，例如 `String` 与 `&str`、`i32` 到 `f64`。
 
 ```rust
 fn main() {
@@ -2324,10 +2397,11 @@ fn main() {
 }
 ```
 
-##### 1.4.2.4 TryFrom / TryInto（可能失败的转换）
+#### 1.4.2.4 TryFrom / TryInto（可能失败的转换）
+
+可能失败的转换用 `TryFrom`/`TryInto`，返回值是 `Result`。
 
 ```rust
-use std::convert::TryFrom;
 use std::convert::TryInto;
 
 fn main() {
@@ -2335,13 +2409,13 @@ fn main() {
     
     // 示例1：小整数转大整数不会失败
     let small: i32 = 100;
-    let big: i64 = small.into(); // 安全转换
+    let big: i64 = small.into(); // From/Into 是"一定成功"的转换
     println!("小转大: {} -> {}", small, big); // 小转大: 100 -> 100
     
     // 示例2：大整数转小整数可能失败
     let big: i32 = 1000;
     let result: Result<u8, _> = big.try_into();
-    println!("1000 try_into u8: {:?}", result); // 1000 try_into u8: Err(...)
+    println!("1000 try_into u8 成功吗: {}", result.is_ok()); // false（1000 > u8::MAX）
     
     let small_ok: i32 = 200;
     let result: Result<u8, _> = small_ok.try_into();
@@ -2357,14 +2431,20 @@ fn main() {
     let result: Result<i32, _> = bad_text.parse();
     println!("无效字符串解析: {:?}", result.is_err()); // 无效字符串解析: true
     
-    // 示例4：&str <-> &String（永远成功）
-    let s: &String = &String::from("hello");
-    let s_ref: &str = s.into(); // &String -> &str
+    // 示例4：&String -> &str
+    // 注意：&String 实现的是 Deref<Target = str>，并没有 From<&String> for &str，
+    // 所以这里不能用 into()，要用 as_str()（或者 &*s、&s[..]）
+    let s: String = String::from("hello");
+    let s_ref: &str = s.as_str();
     println!("&String -> &str: {}", s_ref); // &String -> &str: hello
+    let s_ref2: &str = &s[..];
+    println!("用切片也行: {}", s_ref2); // 用切片也行: hello
 }
 ```
 
-##### 1.4.2.5 自定义类型的 From 实现
+#### 1.4.2.5 自定义类型的 From 实现
+
+为自己的类型实现 `From`，就能免费得到对应的 `Into`，也让 `?` 能自动转换错误类型。
 
 ```rust
 // 定义一个自定义类型
@@ -2403,7 +2483,6 @@ fn main() {
 }
 ```
 
-mermaid
 ```mermaid
 flowchart LR
     A[as 强制转换] --> B[编译期确定]
@@ -2425,13 +2504,15 @@ flowchart LR
 
 ---
 
-### 1.5 运算符
+## 1.5 运算符
 
 运算符就是那些让你可以对数据做运算的符号。在 Rust 里，运算符和其他语言差不多，但还是有一些独特的细节需要注意。
 
-#### 1.5.1 算术运算符
+### 1.5.1 算术运算符
 
-##### 1.5.1.1 加减乘除
+#### 1.5.1.1 加减乘除
+
+四则运算与大多数语言一致，注意整数相除会直接丢弃小数部分。
 
 ```rust
 fn main() {
@@ -2457,7 +2538,9 @@ fn main() {
 }
 ```
 
-##### 1.5.1.2 取模
+#### 1.5.1.2 取模
+
+取模结果的符号与被除数一致，对负数取模时不能按数学上的「余数」理解。
 
 ```rust
 fn main() {
@@ -2480,7 +2563,7 @@ fn main() {
 }
 ```
 
-##### 1.5.1.3 溢出行为
+#### 1.5.1.3 溢出行为
 
 这是 Rust 和其他语言最不一样的地方！Rust 对整数溢出的处理非常严格：
 
@@ -2521,29 +2604,30 @@ fn main() {
 }
 ```
 
-##### 1.5.1.4 默认溢出行为
+#### 1.5.1.4 默认溢出行为
+
+Debug 构建下算术溢出会 panic，Release 构建下则按补码环绕。
 
 ```rust
 fn main() {
-    // Debug 模式（cargo run）：
-    // -O0 优化级别
-    // 溢出时会 panic!
-    // rustc 会插入溢出检查代码
+    // Debug 模式（cargo run）：优化级别低，算术溢出会 panic!
+    // Release 模式（cargo run --release）：优化级别高，算术溢出会"环绕"（wrapping）
+    // 这里用 black_box 是为了阻止编译器在编译期就把结果算出来
+    let x: u8 = std::hint::black_box(200);
+    let y: u8 = std::hint::black_box(100);
     
-    // Release 模式（cargo run --release）：
-    // -O2 优化级别
-    // 溢出时 wrapping（环绕）
-    // 性能更好，但不安全！
-    
-    let x: u8 = 200;
-    let y: u8 = 100;
-    let z = x + y; // 在 Debug 模式会 panic，Release 模式得到 44
-    
-    println!("如果看到这行，说明没溢出"); // Release 模式下会执行
+    // 如果直接写 `x + y`：Debug 下会 panic，Release 下得到 44
+    // 所以生产代码里应该明确写出你要的溢出行为：
+    println!("wrapping_add: {}", x.wrapping_add(y));     // wrapping_add: 44
+    println!("checked_add: {:?}", x.checked_add(y));     // checked_add: None
+    println!("saturating_add: {}", x.saturating_add(y)); // saturating_add: 255
+    println!("overflowing_add: {:?}", x.overflowing_add(y)); // overflowing_add: (44, true)
 }
 ```
 
-##### 1.5.1.5 溢出行为控制
+#### 1.5.1.5 溢出行为控制
+
+可以在 `Cargo.toml` 的 profile 里配置溢出检查，也可以显式改用 `wrapping_*`、`checked_*`、`overflowing_*` 系列方法。
 
 ```rust
 // Cargo.toml 中配置
@@ -2572,11 +2656,13 @@ fn main() {
 }
 ```
 
-#### 1.5.2 位运算符
+### 1.5.2 位运算符
 
 位运算符直接操作二进制位，是系统编程的利器！
 
-##### 1.5.2.1 按位与、或、异或
+#### 1.5.2.1 按位与、或、异或
+
+`&`、`|`、`^` 分别对两个整数的每一位做与、或、异或运算。
 
 ```rust
 fn main() {
@@ -2615,7 +2701,9 @@ fn main() {
 }
 ```
 
-##### 1.5.2.2 左移右移
+#### 1.5.2.2 左移右移
+
+`<<`、`>>` 按位移动；移位量超过位宽在 Debug 构建下会 panic。
 
 ```rust
 fn main() {
@@ -2654,7 +2742,9 @@ fn main() {
 }
 ```
 
-##### 1.5.2.3 按位取反
+#### 1.5.2.3 按位取反
+
+`!` 对整数按位取反，而不是逻辑非。
 
 ```rust
 fn main() {
@@ -2683,9 +2773,11 @@ fn main() {
 }
 ```
 
-#### 1.5.3 比较运算符与逻辑运算符
+### 1.5.3 比较运算符与逻辑运算符
 
-##### 1.5.3.1 相等性比较
+#### 1.5.3.1 相等性比较
+
+`==`、`!=` 需要类型实现 `PartialEq`。
 
 ```rust
 fn main() {
@@ -2704,7 +2796,9 @@ fn main() {
 }
 ```
 
-##### 1.5.3.2 大小比较
+#### 1.5.3.2 大小比较
+
+`<`、`>`、`<=`、`>=` 需要类型实现 `PartialOrd`。
 
 ```rust
 fn main() {
@@ -2725,7 +2819,9 @@ fn main() {
 }
 ```
 
-##### 1.5.3.3 逻辑与或非
+#### 1.5.3.3 逻辑与或非
+
+逻辑运算符的结果是 `bool`，不会像按位运算那样返回整数。
 
 ```rust
 fn main() {
@@ -2750,7 +2846,9 @@ fn main() {
 }
 ```
 
-##### 1.5.3.4 短路求值行为
+#### 1.5.3.4 短路求值行为
+
+`&&` 左侧为假、`||` 左侧为真时，右侧表达式根本不会被求值。
 
 ```rust
 fn main() {
@@ -2783,7 +2881,7 @@ fn main() {
 }
 ```
 
-##### 1.5.3.5 比较运算符的链式写法
+#### 1.5.3.5 比较运算符的链式写法
 
 **重要提醒**：Rust **不支持**链式比较！
 
@@ -2814,9 +2912,11 @@ fn main() {
 }
 ```
 
-#### 1.5.4 赋值运算符
+### 1.5.4 赋值运算符
 
-##### 1.5.4.1 基本赋值
+#### 1.5.4.1 基本赋值
+
+赋值把右边的值放进左边的变量，要求变量必须是 `mut` 的。
 
 ```rust
 fn main() {
@@ -2833,7 +2933,9 @@ fn main() {
 }
 ```
 
-##### 1.5.4.2 复合赋值
+#### 1.5.4.2 复合赋值
+
+`+=`、`-=` 这类复合运算符等价于「读出来、算一下、写回去」。
 
 ```rust
 fn main() {
@@ -2877,7 +2979,9 @@ fn main() {
 }
 ```
 
-##### 1.5.4.3 多重赋值
+#### 1.5.4.3 多重赋值
+
+Rust 不支持 C 风格的 `int a, b;` 声明，但可以用元组解构一次绑定多个变量。
 
 ```rust
 fn main() {
@@ -2898,104 +3002,76 @@ fn main() {
 }
 ```
 
-#### 1.5.5 const 泛型运算符（Rust 1.51+）
+### 1.5.5 常量泛型（const generics，Rust 1.51+）
 
-这是 Rust 1.51 引入的强大特性！允许在泛型中使用常量作为参数。
-
-##### 1.5.5.1 const 泛型上的比较运算符
+常量泛型允许把「值」本身当作泛型参数，数组长度就是最常见的例子。自 Rust 1.51 起，`const N: usize` 这种写法在稳定版就能直接用：
 
 ```rust
-// 这个特性在 stable Rust 中需要开启
-// #![feature(generic_const_exprs)]
+// 稳定版写法：把长度作为常量泛型参数
+fn print_array<const N: usize>(arr: [i32; N]) {
+    println!("数组长度: {}, 内容: {:?}", N, arr);
+}
+
+struct Matrix<const ROWS: usize, const COLS: usize> {
+    data: [[f64; COLS]; ROWS],
+}
 
 fn main() {
-    // 编译期可以确定大小的数组
-    let arr = [1, 2, 3, 4, 5];
-    println!("数组长度: {}", arr.len()); // 数组长度: 5
-    
-    // Rust 1.51+ 支持 const泛型参数
-    // struct ArrayWrapper<const N: usize> { ... }
+    print_array([1, 2, 3]);          // 数组长度: 3, 内容: [1, 2, 3]
+    print_array([1, 2, 3, 4, 5, 6]); // 数组长度: 6, 内容: [1, 2, 3, 4, 5, 6]
+
+    let identity = Matrix::<2, 2> {
+        data: [[1.0, 0.0], [0.0, 1.0]],
+    };
+    println!("{}", identity.data[0][0]); // 1
 }
 ```
 
-##### 1.5.5.2 const 泛型上的算数运算符
+这里要分清两件事：
 
-```rust
-// 示例：编译期计算的数组大小
-fn main() {
-    // 假设我们有一个固定大小的矩阵
-    const ROWS: usize = 3;
-    const COLS: usize = 4;
-    const SIZE: usize = ROWS * COLS; // 编译期计算！
-    
-    println!("矩阵大小: {} x {} = {}", ROWS, COLS, SIZE);
-    // 矩阵大小: 3 x 4 = 12
-    
-    // 数组需要编译期确定的大小
-    let _matrix: [[f64; COLS]; ROWS] = [
-        [1.0, 2.0, 3.0, 4.0],
-        [5.0, 6.0, 7.0, 8.0],
-        [9.0, 10.0, 11.0, 12.0],
-    ];
-}
-```
+- `const N: usize` 参数本身是稳定的（Rust 1.51+），上面的代码直接编译即可。
+- 让类型级数字参与运算（比如把数组长度写成 `N + 1`）需要 nightly 的 `generic_const_exprs`，至今仍未稳定，而且要额外补上 `where [(); N + 1]:` 这类约束。稳定版通常改用 `typenum`、`generic-array` 之类的 crate 来表达这类长度关系。
 
-##### 1.5.5.3 [u8; N] 中的 N 作为类型级数字
+另外注意，`const ROWS: usize = 3;` 只是普通的常量项，和常量泛型参数不是一回事：常量项在编译期求值，但它不会让两个类型之间自动建立联系。
 
-```rust
-fn main() {
-    // 数组类型签名中的 N 就是类型级数字
-    fn print_array<const N: usize>(arr: [i32; N]) {
-        println!("数组长度: {}, 内容: {:?}", N, arr);
-    }
-    
-    let arr1 = [1, 2, 3];
-    print_array(arr1); // 数组长度: 3, 内容: [1, 2, 3]
-    
-    let arr2 = [1, 2, 3, 4, 5, 6];
-    print_array(arr2); // 数组长度: 6, 内容: [1, 2, 3, 4, 5, 6]
-    
-    // N 在编译期就知道了！
-}
-```
-
-mermaid
 ```mermaid
 flowchart TD
-    A[运算符] --> B[算术运算符]
-    A --> C[位运算符]
-    A --> D[比较运算符]
-    A --> E[逻辑运算符]
-    A --> F[赋值运算符]
+    A["运算符"] --> B["算术运算符"]
+    A --> C["位运算符"]
+    A --> D["比较运算符"]
+    A --> E["逻辑运算符"]
+    A --> F["赋值运算符"]
     
-    B --> B1[+ - * / %]
+    B --> B1["+ - * / %"]
     B --> B2[溢出处理方法]
     
-    C --> C1[& | ^]
-    C --> C2[<< >>]
-    C --> C3[!]
+    C --> C1["& | ^"]
+    C --> C2["<< >>"]
+    C --> C3["!"]
     
-    D --> D1[< > <= >=]
-    D --> D2[== !=]
-    D --> D3[链式比较需用 &&]
+    D --> D1["< > <= >="]
+    D --> D2["== !="]
+    D --> D3["链式比较需用 &&"]
     
-    E --> E1[&&]
-    E --> E2[||]
-    E --> E3[![]
+    E --> E1["&&"]
+    E --> E2["||"]
+    E --> E3["!"]
     
-    F --> F1[=]
-    F --> F2[+= -= *= ...]
+    F --> F1["="]
+    F --> F2["+= -= *= ..."]
 ```
 
 ---
 
-### 1.6 控制流
+## 1.6 控制流
 
 控制流就是程序的"交通规则"——告诉程序什么时候该走哪条路，什么时候该掉头，什么时候该绕圈圈。Rust 的控制流语句非常强大，而且还有一个独特的优点：**几乎所有控制流语句都是表达式！**
 
-#### 1.6.1 条件分支
+### 1.6.1 条件分支
 
-##### 1.6.1.1 if 基本语法
+#### 1.6.1.1 if 基本语法
+
+`if` 的条件必须是 `bool`，Rust 不会把数字或指针自动当真值。
 
 ```rust
 fn main() {
@@ -3020,7 +3096,9 @@ fn main() {
 }
 ```
 
-##### 1.6.1.2 else if 链
+#### 1.6.1.2 else if 链
+
+多个条件用 `else if` 串联，从上到下第一个成立的分支胜出。
 
 ```rust
 fn main() {
@@ -3054,7 +3132,7 @@ fn main() {
 }
 ```
 
-##### 1.6.1.3 if 作为表达式
+#### 1.6.1.3 if 作为表达式
 
 这是 Rust 和 C 语言最大的区别之一！在 Rust 里，`if` 是表达式，可以返回值！
 
@@ -3066,16 +3144,20 @@ fn main() {
     let value = if condition { 100 } else { 200 };
     println!("value = {}", value); // value = 100
     
-    // else 是必须的！如果 condition 可能为 false，就必须有 else
-    let value2 = if condition { 42 }; // 编译错误！缺少 else！
+    // else 是必须的！如果这是"表达式"而不是"语句"，就必须有 else
+    // 下面这行是故意的编译错误示范：
+    // let value2 = if condition { 42 }; // 编译错误！缺少 else！
+    // 但如果不用它的值，写成语句就没问题：
+    if condition {
+        println!("只当语句用的时候，if 可以没有 else");
+    }
     
-    // 如果 if 的分支返回类型不同呢？
+    // 所有分支必须返回相同类型
     let value3: i32 = if condition { 100 } else { 200 }; // 都是 i32，没问题
     println!("value3 = {}", value3); // value3 = 100
     
-    // 所有分支必须返回相同类型！
     // 下面这样不行：
-    // let value = if condition { 100 } else { "hello" }; // 编译错误！
+    // let value4 = if condition { 100 } else { "hello" }; // 编译错误！类型不一致
 }
 ```
 
@@ -3100,7 +3182,7 @@ fn main() {
 }
 ```
 
-##### 1.6.1.4 if let 简化单分支模式
+#### 1.6.1.4 if let 简化单分支模式
 
 当只想匹配一个模式时，`if let` 比完整的 `match` 更简洁：
 
@@ -3129,11 +3211,13 @@ fn main() {
 }
 ```
 
-#### 1.6.2 match 模式匹配
+### 1.6.2 match 模式匹配
 
 `match` 是 Rust 最强大的控制流工具！它允许你根据一个值匹配不同的模式。
 
-##### 1.6.2.1 match 基本语法
+#### 1.6.2.1 match 基本语法
+
+`match` 把值与一系列模式逐一比较，比长长的 `if` 链更清晰。
 
 ```rust
 fn main() {
@@ -3150,7 +3234,7 @@ fn main() {
 }
 ```
 
-##### 1.6.2.2 match 必须穷尽所有情况
+#### 1.6.2.2 match 必须穷尽所有情况
 
 这是 Rust 编译器的强制要求！如果你的 `match` 没有覆盖所有可能，编译器会报错！
 
@@ -3190,7 +3274,9 @@ fn main() {
 }
 ```
 
-##### 1.6.2.3 通配符 _ 捕获剩余情况
+#### 1.6.2.3 通配符 _ 捕获剩余情况
+
+`_` 能匹配任何值且不绑定变量，通常放在最后作为兜底分支。
 
 ```rust
 fn main() {
@@ -3213,7 +3299,9 @@ fn main() {
 }
 ```
 
-##### 1.6.2.4 匹配多个值
+#### 1.6.2.4 匹配多个值
+
+用 `|` 可以把多个模式并成一个分支。
 
 ```rust
 fn main() {
@@ -3233,7 +3321,9 @@ fn main() {
 }
 ```
 
-##### 1.6.2.5 范围匹配
+#### 1.6.2.5 范围匹配
+
+区间模式可以直接写出范围，`..=` 表示两端都包含。
 
 ```rust
 fn main() {
@@ -3257,7 +3347,7 @@ fn main() {
 }
 ```
 
-##### 1.6.2.6 匹配守卫（Match Guard）
+#### 1.6.2.6 匹配守卫（Match Guard）
 
 在模式后面加一个 `if` 条件：
 
@@ -3285,7 +3375,7 @@ fn main() {
 }
 ```
 
-##### 1.6.2.7 @ 绑定
+#### 1.6.2.7 @ 绑定
 
 `@` 允许你在匹配的同时绑定变量名：
 
@@ -3326,7 +3416,9 @@ fn main() {
 }
 ```
 
-##### 1.6.2.8 match 作为表达式
+#### 1.6.2.8 match 作为表达式
+
+`match` 是表达式，各分支求值的结果就是整个表达式的值。
 
 ```rust
 fn main() {
@@ -3352,7 +3444,9 @@ fn main() {
 }
 ```
 
-##### 1.6.2.9 match 嵌套与解构
+#### 1.6.2.9 match 嵌套与解构
+
+模式可以嵌套，一次把多层 `Option` 拆开。
 
 ```rust
 fn main() {
@@ -3384,11 +3478,13 @@ fn main() {
 }
 ```
 
-#### 1.6.3 循环
+### 1.6.3 循环
 
 Rust 有三种循环：`loop`、`while` 和 `for...in`。
 
-##### 1.6.3.1 loop 无限循环
+#### 1.6.3.1 loop 无限循环
+
+`loop` 是唯一带「无限」语义的循环，`break` 时还能把值带出来。
 
 ```rust
 fn main() {
@@ -3408,7 +3504,9 @@ fn main() {
 }
 ```
 
-##### 1.6.3.2 while 条件循环
+#### 1.6.3.2 while 条件循环
+
+`while` 在条件为真时反复执行循环体。
 
 ```rust
 fn main() {
@@ -3423,7 +3521,9 @@ fn main() {
 }
 ```
 
-##### 1.6.3.3 for...in 迭代循环
+#### 1.6.3.3 for...in 迭代循环
+
+`for ... in` 遍历任何实现了 `IntoIterator` 的值，是 Rust 中最常用的循环形式。
 
 ```rust
 fn main() {
@@ -3451,7 +3551,9 @@ fn main() {
 }
 ```
 
-##### 1.6.3.4 break 退出循环
+#### 1.6.3.4 break 退出循环
+
+`break` 立即结束循环；用在 `loop` 里还能顺带返回一个值。
 
 ```rust
 fn main() {
@@ -3470,7 +3572,9 @@ fn main() {
 }
 ```
 
-##### 1.6.3.5 continue 跳到下一轮
+#### 1.6.3.5 continue 跳到下一轮
+
+`continue` 跳过本轮剩余语句，直接进入下一轮。
 
 ```rust
 fn main() {
@@ -3483,7 +3587,7 @@ fn main() {
 }
 ```
 
-##### 1.6.3.6 循环标签
+#### 1.6.3.6 循环标签
 
 当有多层循环时，可以用标签指定要 break 或 continue 哪一层：
 
@@ -3514,7 +3618,9 @@ fn main() {
 }
 ```
 
-##### 1.6.3.7 while let 模式
+#### 1.6.3.7 while let 模式
+
+`while let` 在模式持续匹配时循环，常用于不断取出容器元素直到为空。
 
 ```rust
 fn main() {
@@ -3536,9 +3642,11 @@ fn main() {
 }
 ```
 
-#### 1.6.4 if let 与 while let
+### 1.6.4 if let 与 while let
 
-##### 1.6.4.1 if let 简化单分支 if
+#### 1.6.4.1 if let 简化单分支 if
+
+只关心一个分支时，`if let` 比完整 `match` 更简洁。
 
 ```rust
 fn main() {
@@ -3558,7 +3666,9 @@ fn main() {
 }
 ```
 
-##### 1.6.4.2 if let...else 变体
+#### 1.6.4.2 if let...else 变体
+
+`if let ... else` 用来处理「没有匹配上」的情况。
 
 ```rust
 fn main() {
@@ -3583,7 +3693,9 @@ fn main() {
 }
 ```
 
-##### 1.6.4.3 while let 循环模式
+#### 1.6.4.3 while let 循环模式
+
+下面用 `while let` 持续解包，直到遇到 `None` 才停下。
 
 ```rust
 fn main() {
@@ -3600,7 +3712,9 @@ fn main() {
 }
 ```
 
-##### 1.6.4.4 常见用法：Option / Result 解包
+#### 1.6.4.4 常见用法：Option / Result 解包
+
+下面演示 `if let` 解包 `Option` 与 `Result` 两种最常见的场景。
 
 ```rust
 fn main() {
@@ -3622,7 +3736,7 @@ fn main() {
 }
 ```
 
-##### 1.6.4.5 matches! 宏
+#### 1.6.4.5 matches! 宏
 
 `matches!` 宏让你可以像写 match 一样测试一个值：
 
@@ -3652,7 +3766,6 @@ fn main() {
 }
 ```
 
-mermaid
 ```mermaid
 flowchart TD
     A[控制流] --> B[条件分支]
@@ -3665,7 +3778,7 @@ flowchart TD
     
     C --> C1[基本 match]
     C --> C2[match guard]
-    C --> C3[@ 绑定]
+    C --> C3["@ 绑定"]
     C --> C4[穷尽检查]
     
     D --> D1[loop 无限循环]
@@ -3678,13 +3791,15 @@ flowchart TD
 
 ---
 
-### 1.7 函数
+## 1.7 函数
 
 函数是组织代码的基本单位。在 Rust 里，函数是"一等公民"——可以像变量一样传递、返回、赋值。Rust 的函数有很多独特之处，让我来一一揭晓！
 
-#### 1.7.1 函数定义与调用
+### 1.7.1 函数定义与调用
 
-##### 1.7.1.1 fn 关键字定义函数
+#### 1.7.1.1 fn 关键字定义函数
+
+函数用 `fn` 定义，参数必须写明类型。
 
 ```rust
 fn main() {
@@ -3705,7 +3820,7 @@ fn add(a: i32, b: i32) {
 }
 ```
 
-##### 1.7.1.2 参数类型标注（必须显式标注）
+#### 1.7.1.2 参数类型标注（必须显式标注）
 
 和很多语言不同，Rust **要求**你标注参数的类型：
 
@@ -3723,7 +3838,9 @@ fn main() {
 }
 ```
 
-##### 1.7.1.3 返回值类型标注
+#### 1.7.1.3 返回值类型标注
+
+返回类型写在 `->` 后面，函数体最后一个表达式就是返回值（注意不要加分号）。
 
 ```rust
 // 返回值类型用 -> 指定
@@ -3748,7 +3865,9 @@ fn another_no_return() -> () {
 }
 ```
 
-##### 1.7.1.4 无返回值函数的隐含 ()
+#### 1.7.1.4 无返回值函数的隐含 ()
+
+没有写返回类型的函数，其返回类型其实是 `()`。
 
 ```rust
 fn main() {
@@ -3762,9 +3881,11 @@ fn returns_nothing() {
 }
 ```
 
-#### 1.7.2 函数参数
+### 1.7.2 函数参数
 
-##### 1.7.2.1 值传递参数（Copy 类型按位复制，其他移动）
+#### 1.7.2.1 值传递参数（Copy 类型按位复制，其他移动）
+
+`Copy` 类型按位复制进函数，其他类型默认被移动，调用后就无法再使用。
 
 ```rust
 fn main() {
@@ -3786,7 +3907,7 @@ fn take_ownership(s: String) {
 } // s 在这里被 drop
 ```
 
-##### 1.7.2.2 引用传递参数
+#### 1.7.2.2 引用传递参数
 
 如果你不想转移所有权，可以用引用：
 
@@ -3818,7 +3939,7 @@ fn modify(s: &mut String) {
 }
 ```
 
-##### 1.7.2.3 可变数量参数
+#### 1.7.2.3 可变数量参数
 
 Rust **不直接支持**可变数量参数（variadic parameters），但可以用其他方式实现：
 
@@ -3845,7 +3966,7 @@ fn main() {
 }
 ```
 
-##### 1.7.2.4 默认参数
+#### 1.7.2.4 默认参数
 
 Rust **不直接支持**默认参数，但可以用几种方式模拟：
 
@@ -3901,9 +4022,11 @@ fn main() {
 }
 ```
 
-#### 1.7.3 返回值
+### 1.7.3 返回值
 
-##### 1.7.3.1 早期返回
+#### 1.7.3.1 早期返回
+
+用 `return` 可以中途返回，把守卫条件写进函数开头。
 
 ```rust
 fn main() {
@@ -3921,7 +4044,7 @@ fn find_first_even(numbers: &[i32]) -> Option<i32> {
 }
 ```
 
-##### 1.7.3.2 末尾表达式隐含返回
+#### 1.7.3.2 末尾表达式隐含返回
 
 在 Rust 里，**函数最后一个表达式的值会自动返回**（不需要 `return`，也不能加分号）：
 
@@ -3946,7 +4069,7 @@ fn max(a: i32, b: i32) -> i32 {
 }
 ```
 
-##### 1.7.3.3 发散函数：fn foo() -> !
+#### 1.7.3.3 发散函数：fn foo() -> !
 
 发散函数（diverging function）永远不返回：
 
@@ -3975,35 +4098,41 @@ fn exit_program() -> ! {
 }
 ```
 
-##### 1.7.3.4 -> ! 的使用场景
+#### 1.7.3.4 -> ! 的使用场景
+
+返回类型 `!` 表示函数永不返回（如 `panic!`）；要让「不会失败」的 `Result` 有具体类型，稳定版用 `Infallible`。
 
 ```rust
+use std::convert::Infallible;
+
 fn main() {
-    // 场景1：表示程序不会正常返回
-    fn read_file(path: &str) -> Result<String, !> {
-        if path.is_empty() {
-            panic!("路径不能为空");
-        }
-        Ok(std::fs::read_to_string(path).unwrap())
+    // 想表达"这个 Result 永远不会失败"，稳定版的做法是用 Infallible
+    // （`!` 类型本身写在类型位置仍是 nightly 特性，例如 Result<String, !>）
+    fn read_file(path: &str) -> Result<String, Infallible> {
+        Ok(std::fs::read_to_string(path).unwrap_or_default())
     }
     
-    // 场景2：在 match 中穷尽所有情况
+    // match 中穷尽所有情况
     let x: i32 = 5;
     let y: &'static str = match x {
         1 => "one",
         2 => "two",
         _ => {
             println!("未知数字: {}", x);
-            // 如果 x 是其他值，程序会 panic 并退出
-            panic!("未处理的数字");
+            "other"
         }
     };
+    println!("{} -> {}", x, y); // 5 -> other
+
+    println!("读到的字节数: {:?}", read_file("/etc/hostname").map(|s| s.len()));
 }
 ```
 
-#### 1.7.4 方法与关联函数
+### 1.7.4 方法与关联函数
 
-##### 1.7.4.1 impl 块定义方法
+#### 1.7.4.1 impl 块定义方法
+
+`impl` 块把方法挂到结构体上，方法的第一个参数通常是某种形式的 `self`。
 
 ```rust
 struct Rectangle {
@@ -4031,27 +4160,40 @@ fn main() {
 }
 ```
 
-##### 1.7.4.2 &self 参数（不可变借用）
+#### 1.7.4.2 &self 参数（不可变借用）
+
+只读方法用 `&self`；也不能用固有 `impl` 给标准库的外部类型加方法（那属于孤儿规则限制）。
 
 ```rust
-fn main() {
-    let s = String::from("hello");
-    
-    // &self 表示不可变借用
-    let len = s.len();
-    println!("'{}' 的长度是 {}", s, len); // 'hello' 的长度是 5
+// ⚠️ 反面教材：不能给外部类型（比如标准库的 String）添加固有 impl
+// impl String {
+//     fn len(&self) -> usize { 42 }
+// }
+// 会报错：cannot define inherent `impl` for a type outside of the crate where the type is defined
+
+// 正确做法：定义自己的 trait，然后为 String 实现它
+trait MyLen {
+    fn my_len(&self) -> usize;
 }
 
-impl String {
-    fn len(&self) -> usize {
-        // &self 让你可以读取 self，但不修改它
-        // 等价于 fn len(self: &String)
-        42 // 简化实现
+impl MyLen for String {
+    fn my_len(&self) -> usize {
+        self.chars().count() // 顺便注意区分"字节数"和"字符数"
     }
+}
+
+fn main() {
+    let s = String::from("hello 世界");
+    // String 自带的 len() 返回的是字节数
+    println!("len()（字节数）= {}", s.len()); // 12
+    // 我们自己实现的返回字符数
+    println!("my_len()（字符数）= {}", s.my_len()); // 8
 }
 ```
 
-##### 1.7.4.3 &mut self 参数（可变借用）
+#### 1.7.4.3 &mut self 参数（可变借用）
+
+`&mut self` 让方法可以修改字段。
 
 ```rust
 struct Counter {
@@ -4084,7 +4226,9 @@ fn main() {
 }
 ```
 
-##### 1.7.4.4 self 参数（获取所有权，消耗 self）
+#### 1.7.4.4 self 参数（获取所有权，消耗 self）
+
+按值接收 `self` 的方法会消耗实例，方法调用后原变量就不能再用。
 
 ```rust
 struct Person {
@@ -4114,7 +4258,7 @@ fn main() {
 }
 ```
 
-##### 1.7.4.5 关联函数（Associated Functions）
+#### 1.7.4.5 关联函数（Associated Functions）
 
 关联函数是不带 `self` 参数的函数，通常用作构造函数：
 
@@ -4150,7 +4294,9 @@ fn main() {
 }
 ```
 
-##### 1.7.4.6 构造函数模式
+#### 1.7.4.6 构造函数模式
+
+惯例是用 `new` 这样的关联函数返回 `Self` 来构造对象。
 
 ```rust
 struct User {
@@ -4190,7 +4336,7 @@ fn main() {
 }
 ```
 
-##### 1.7.4.7 多 impl 块
+#### 1.7.4.7 多 impl 块
 
 同一个类型可以有多个 `impl` 块：
 
@@ -4236,19 +4382,18 @@ fn main() {
 }
 ```
 
-mermaid
 ```mermaid
 flowchart LR
     A[函数 fn] --> B[普通函数]
     A --> C[方法 impl]
     
     B --> B1[自由函数]
-    B --> B2[关联函数<br/>fn new()]
-    B --> B3[发散函数<br/>fn -> !]
+    B --> B2["关联函数<br/>fn new()"]
+    B --> B3["发散函数<br/>fn -> !"]
     
-    C --> C1[&self<br/>不可变借用]
-    C --> C2[&mut self<br/>可变借用]
-    C --> C3[self<br/>获取所有权]
+    C --> C1["&self<br/>不可变借用"]
+    C --> C2["&mut self<br/>可变借用"]
+    C --> C3["self<br/>获取所有权"]
     
     style C1 fill:#90EE90
     style C2 fill:#FFB6C1
@@ -4257,13 +4402,15 @@ flowchart LR
 
 ---
 
-### 1.8 格式化输出
+## 1.8 格式化输出
 
 打印输出是调试程序的最基本技能。Rust 提供了功能强大的格式化宏，让你可以优雅地控制输出的每一个细节。
 
-#### 1.8.1 print! / println! / eprint! / eprintln! / format!
+### 1.8.1 print! / println! / eprint! / eprintln! / format!
 
-##### 1.8.1.1 格式化宏的基本用法
+#### 1.8.1.1 格式化宏的基本用法
+
+`println!` 打印并换行，`print!` 只打印不换行。
 
 ```rust
 fn main() {
@@ -4284,19 +4431,23 @@ fn main() {
 }
 ```
 
-##### 1.8.1.2 占位符详解
+#### 1.8.1.2 占位符详解
+
+`{}` 要求类型实现 `Display`，`{:?}` 要求实现 `Debug`。
 
 ```rust
 fn main() {
-    // {} - Display trait，大多数类型用这个
+    // {} - Display trait，不是所有类型都实现了它
     println!("{}", 42); // 42
     println!("{}", "hello"); // hello
-    println!("{}", [1, 2, 3]); // [1, 2, 3]
+    // 数组没有实现 Display，所以下面这行会编译错误：
+    // println!("{}", [1, 2, 3]); // 错误：`[{integer}; 3]` doesn't implement `Display`
+    // 想打印数组请用 Debug：
+    println!("{:?}", [1, 2, 3]); // [1, 2, 3]
     
     // {:?} - Debug trait，用于调试输出
     println!("{:?}", 42); // 42
     println!("{:?}", "hello"); // "hello"（带引号）
-    println!("{:?}", [1, 2, 3]); // [1, 2, 3]
     
     // {:#?} - 多行 Debug
     let nested = vec![
@@ -4331,7 +4482,9 @@ fn main() {
 }
 ```
 
-##### 1.8.1.3 位置参数与命名参数
+#### 1.8.1.3 位置参数与命名参数
+
+既可以在占位符里写下标挑选参数顺序，也可以直接引用捕获到的变量名。
 
 ```rust
 fn main() {
@@ -4349,7 +4502,9 @@ fn main() {
 }
 ```
 
-##### 1.8.1.4 宽度指定
+#### 1.8.1.4 宽度指定
+
+`{:>10}`、`{:<10}`、`{:^10}` 分别控制右对齐、左对齐和居中。
 
 ```rust
 fn main() {
@@ -4376,7 +4531,9 @@ fn main() {
 }
 ```
 
-##### 1.8.1.5 精度控制
+#### 1.8.1.5 精度控制
+
+浮点精度用 `{:.2}` 这样的写法控制小数位数。
 
 ```rust
 fn main() {
@@ -4396,7 +4553,9 @@ fn main() {
 }
 ```
 
-##### 1.8.1.6 填充字符
+#### 1.8.1.6 填充字符
+
+在宽度前加一个字符即可指定填充字符，例如 `{:*^10}`。
 
 ```rust
 fn main() {
@@ -4412,7 +4571,9 @@ fn main() {
 }
 ```
 
-##### 1.8.1.7 符号指示
+#### 1.8.1.7 符号指示
+
+`{:+}` 强制显示正负号，`{:x}` 输出十六进制。
 
 ```rust
 fn main() {
@@ -4431,7 +4592,7 @@ fn main() {
 }
 ```
 
-##### 1.8.1.8 format_args!
+#### 1.8.1.8 format_args!
 
 这是所有格式化宏的底层实现：
 
@@ -4458,11 +4619,13 @@ fn my_print<T: fmt::Debug>(args: T) {
 }
 ```
 
-#### 1.8.2 std::fmt::Formatter 与自定义格式化
+### 1.8.2 std::fmt::Formatter 与自定义格式化
 
 如果你想让自定义类型能格式化输出，需要实现 `Display` trait。
 
-##### 1.8.2.1 实现 Display trait
+#### 1.8.2.1 实现 Display trait
+
+为自己的类型实现 `Display`，就能被 `{}` 直接打印。
 
 ```rust
 use std::fmt;
@@ -4489,7 +4652,9 @@ fn main() {
 }
 ```
 
-##### 1.8.2.2 Formatter 常用方法
+#### 1.8.2.2 Formatter 常用方法
+
+`Formatter` 提供 `write_str`、`pad`、`debug_struct` 等方法来自定义输出。
 
 ```rust
 use std::fmt;
@@ -4524,7 +4689,9 @@ fn main() {
 }
 ```
 
-##### 1.8.2.3 Formatter 格式化辅助
+#### 1.8.2.3 Formatter 格式化辅助
+
+`Formatter` 还有对齐、填充相关的辅助方法，实现表格类输出时很有用。
 
 ```rust
 use std::fmt;
@@ -4564,23 +4731,43 @@ fn main() {
 }
 ```
 
-##### 1.8.2.4 Formatter 状态查询
+#### 1.8.2.4 Formatter 状态查询
+
+可以通过 `formatter.alternate()` 之类的接口查询调用方传入的格式标志。
 
 ```rust
 use std::fmt;
 
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+// 只有自定义类型的 fmt 实现里，才能拿到 Formatter 并查询格式标志
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if f.alternate() {
+            // 对应 {:#}
+            write!(f, "({}, {})", self.x, self.y)
+        } else {
+            write!(f, "{}, {}", self.x, self.y)
+        }
+    }
+}
+
 fn main() {
-    // Formatter 提供了格式化参数查询能力
-    // 这些在自定义类型的 fmt 实现中很有用
+    let p = Point { x: 1, y: 2 };
+    println!("{}", p);   // 1, 2
+    println!("{:#}", p); // (1, 2)
     
-    let result = format!("Flags: {:?}", std::fmt::Formatter::flags);
-    // 了解格式标志（如 +, -, 0, #, 空格）
-    
-    println!("了解 Formatter 的各种方法");
+    // 注意：Formatter 只能由格式化宏传进 fmt 方法，
+    // 不能像普通函数一样直接调用（std::fmt::Formatter::flags 是一个方法，不是一个值）
 }
 ```
 
-##### 1.8.2.5 实现 Binary / Octal / LowerHex 等格式化 Trait
+#### 1.8.2.5 实现 Binary / Octal / LowerHex 等格式化 Trait
+
+实现 `Binary`、`Octal`、`LowerHex` 等 trait 后，就能用 `{:b}`、`{:o}`、`{:x}` 打印自定义类型。
 
 ```rust
 use std::fmt;
@@ -4631,7 +4818,6 @@ fn main() {
 }
 ```
 
-mermaid
 ```mermaid
 flowchart TD
     A[格式化输出] --> B[print! / println!]
@@ -4639,8 +4825,8 @@ flowchart TD
     A --> D[format!]
     A --> E[自定义格式化]
     
-    B --> B1[{} Display]
-    B --> B2[{:?} Debug]
+    B --> B1["{} Display"]
+    B --> B2["{:?} Debug"]
     B --> B3[位置参数]
     B --> B4[宽度/精度]
     
@@ -4651,13 +4837,15 @@ flowchart TD
 
 ---
 
-### 1.9 注释与文档
+## 1.9 注释与文档
 
 代码写出来是给人看的，顺便给机器执行。注释和文档是让代码更易读的关键！Rust 对文档的支持非常棒，可以让你的代码自带"使用说明书"。
 
-#### 1.9.1 普通注释
+### 1.9.1 普通注释
 
-##### 1.9.1.1 行注释
+#### 1.9.1.1 行注释
+
+`//` 之后直到行尾的内容都会被忽略。
 
 ```rust
 fn main() {
@@ -4670,7 +4858,9 @@ fn main() {
 }
 ```
 
-##### 1.9.1.2 块注释
+#### 1.9.1.2 块注释
+
+`/* ... */` 可以跨多行，而且支持嵌套。
 
 ```rust
 fn main() {
@@ -4683,7 +4873,7 @@ fn main() {
 }
 ```
 
-##### 1.9.1.3 文档注释
+#### 1.9.1.3 文档注释
 
 文档注释以 `///` 开头，用于为下一个 item（函数、结构体等）添加文档：
 
@@ -4708,7 +4898,7 @@ pub fn add(a: i32, b: i32) -> i32 {
 }
 ```
 
-##### 1.9.1.4 内部文档注释
+#### 1.9.1.4 内部文档注释
 
 内部文档注释以 `//!` 开头，用于为包含它的 item 添加文档（常用于模块文档）：
 
@@ -4725,7 +4915,7 @@ mod inner {
 }
 ```
 
-##### 1.9.1.5 #[doc = "..."] 属性
+#### 1.9.1.5 #[doc = "..."] 属性
 
 可以用属性直接设置文档内容：
 
@@ -4738,11 +4928,13 @@ pub fn documented() {}
 pub fn documented2() {}
 ```
 
-#### 1.9.2 rustdoc 文档工具
+### 1.9.2 rustdoc 文档工具
 
 `rustdoc` 是 Rust 自带的文档生成工具，`cargo doc` 会自动调用它。
 
-##### 1.9.2.1 cargo doc
+#### 1.9.2.1 cargo doc
+
+`cargo doc` 依据文档注释生成 HTML 文档，加上 `--open` 可以直接打开浏览器查看。
 
 ```bash
 # 生成文档
@@ -4760,7 +4952,7 @@ cargo doc --quiet
 
 生成的文档在 `target/doc/` 目录下。
 
-##### 1.9.2.2 文档测试
+#### 1.9.2.2 文档测试
 
 文档中的代码示例会自动成为测试！这就是 Rust 的"文档即测试"理念：
 
@@ -4788,7 +4980,7 @@ cargo test --doc
 
 > 如果文档示例有错误，测试会失败！这样可以确保文档始终是最新的。
 
-##### 1.9.2.3 Markdown 中的代码块
+#### 1.9.2.3 Markdown 中的代码块
 
 文档注释支持 Markdown 语法，可以添加标题、列表、链接等：
 
@@ -4845,4 +5037,3 @@ pub fn to_uppercase(s: &str) -> String {
 
 **下一章预告：**
 第二章"所有权系统"将带你深入 Rust 最核心的概念——所有权、借用和生命周期。这些概念是 Rust 区别于其他语言的关键，也是 Rust 实现内存安全而无需 GC 的秘诀。准备好了吗？让我们继续探索 Rust 的奇妙世界！🚀
-

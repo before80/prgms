@@ -52,9 +52,12 @@ import subprocess
 result = subprocess.run(['ipconfig'], capture_output=True, text=True, encoding='gbk')
 
 # 或者跨平台的写法
-result = subprocess.run(['python', '--version'], capture_output=True, text=True)
+# ⚠️ 别写死 'python'：macOS / 多数 Linux 上根本不存在 `python` 这个命令，
+#    只有 `python3`。用 sys.executable 拿到"当前正在运行的这个解释器"最稳。
+import sys
+result = subprocess.run([sys.executable, '--version'], capture_output=True, text=True)
 
-print(result.stdout)  # Python 3.11.4
+print(result.stdout)  # Python 3.14.7
 print(result.stderr)  # 如果有错误，会在这里显示
 print(result.returncode)  # 0
 ```
@@ -74,7 +77,8 @@ import subprocess
 import time
 
 # 模拟一个耗时任务（实际上你不会真的这么用）
-result = subprocess.run(['python', '-c', 'import time; time.sleep(1); print("我醒了！")'],
+import sys
+result = subprocess.run([sys.executable, '-c', 'import time; time.sleep(1); print("我醒了！")'],
                         capture_output=True, text=True, timeout=5)
 print(result.stdout)  # 我醒了！
 ```
@@ -90,10 +94,15 @@ print(result.stdout)  # 我醒了！
 
 ```python
 import subprocess
+import sys
 
 # 启动一个 Python 进程
+# ⚠️ 关键：一定要加 -u（unbuffered）。子进程的 stdout 接的是管道而不是终端，
+#    Python 会改用"块缓冲"，print 的内容会一直攒在缓冲区里不吐出来，
+#    于是下面的 readline() 会永远等不到数据——程序直接卡死。
+#    -u 让它每写一行就立刻刷出来（也可以写在代码里：print(..., flush=True)）。
 proc = subprocess.Popen(
-    ['python', '-c', 'while True: import time; print("心跳..."); time.sleep(1)'],
+    [sys.executable, '-u', '-c', 'while True: import time; print("心跳..."); time.sleep(1)'],
     stdout=subprocess.PIPE,
     stderr=subprocess.PIPE,
     text=True
@@ -117,10 +126,11 @@ print("进程已终止，优雅退休！")
 
 ```python
 import subprocess
+import sys
 
 # 启动一个可以交互的程序，比如 Python 解释器本身
 proc = subprocess.Popen(
-    ['python', '-i'],  # -i 表示交互模式
+    [sys.executable, '-i'],  # -i 表示交互模式
     stdin=subprocess.PIPE,
     stdout=subprocess.PIPE,
     stderr=subprocess.PIPE,
@@ -143,6 +153,11 @@ print(f"Python 版本：{output.strip()}")
 
 # 退出交互式 Python
 proc.stdin.write('exit()\n')
+# ⚠️ 这里千万别忘了 flush()！
+#    text=True 下 stdin 是个带缓冲的文本流，不 flush 的话 'exit()' 就一直躺在
+#    缓冲区里没发出去，子进程永远收不到退出指令，proc.wait() 会**无限期卡住**。
+#    （上面两次 write 后面都有 flush，唯独这里最容易漏掉。）
+proc.stdin.flush()
 proc.wait()
 ```
 
@@ -163,9 +178,22 @@ os.system('ls -la')
 
 # 也可以这样（Linux 下）
 os.system('echo "Hello from the old school!"')
+
+# ⚠️ 坑点：os.system 的"返回值"不是干净的退出码！
+#    在 Unix 上它返回的是 C 语言 wait() 那种打包过的状态字（低 8 位是信号号，
+#    退出码被左移了 8 位），所以要除以 256，或者用官方函数解码：
+code = os.system('exit 1')
+print(code)                              # 256，而不是 1
+print(os.waitstatus_to_exitcode(code))   # 1 ← 这才是真正的退出码
+
+# 找不到命令时，退出码是 127（打包后是 32512）：
+print(os.system('nosuchcommand_xyz 2>/dev/null'))  # 32512
+
+# 结论：要判断"成功/失败"，直接用 subprocess.run(...).returncode 最省心，
+#       它给的就是普通退出码（成功 0，失败非 0）。
 ```
 
-> **历史小知识：** `os.system()` 诞生于 Python 1.x 时代，是元老级选手。它简单，但功能也简单——只能执行命令、返回退出码，没法捕获输出。后来有了 subprocess，它就慢慢退居二线了。现在的 `os.system()` 就像是退休的老干部，偶尔用用可以，但重要任务还是交给 subprocess 吧。
+> **历史小知识：** `os.system()` 诞生于 Python 1.x 时代，是元老级选手。它简单，但功能也简单——只能执行命令、返回一个"打包过的状态字"（还得自己解码），而且没法捕获输出。后来有了 subprocess，它就慢慢退居二线了。现在的 `os.system()` 就像是退休的老干部，偶尔用用可以，但重要任务还是交给 subprocess 吧。
 
 **对比一下三者的区别：**
 
@@ -173,9 +201,12 @@ os.system('echo "Hello from the old school!"')
 |------|-------------|-----------------|-------------------|
 | 诞生年代 | Python 1.x | Python 3.5 | Python 2.4 |
 | 获取输出 | ❌ 只能打印 | ✅ 可以捕获 | ✅ 实时读取 |
-| 管道通信 | ❌ | ❌ | ✅ |
-| 超时控制 | ❌ | ✅ | ✅ |
+| 管道通信 | ❌ | ❌ 只能一次性收集 | ✅ 可交互式读写 |
+| 超时控制 | ❌ | ✅ `timeout=` 参数 | ✅ 但要自己调 `communicate(timeout=)` |
 | 推荐程度 | ⭐ 不推荐 | ⭐⭐⭐ 推荐 | ⭐⭐⭐⭐ 专业场景 |
+
+> 表格里 `Popen` 的"超时"打勾是因为它**能**超时，但不像 `run()` 那样有现成的 `timeout=` 参数，
+> 得自己写 `proc.communicate(timeout=5)` 然后在 `TimeoutExpired` 里 `proc.kill()`。
 
 ```python
 import os
@@ -199,10 +230,15 @@ print(f"捕获的输出: {result.stdout.strip()}")
 
 ```python
 import subprocess
+import sys
 
 # 场景1：正常输出 vs 错误输出
+# ⚠️ 嵌套引用的坑：这里最外层是 Python 的字符串，里面还有要传给子进程的代码。
+#    如果写成 sys.stderr.write("我是错误输出\n")，那个 \n 会被**当前这一层**先解释成
+#    真正的换行符，于是子进程收到的是"字符串里夹了一个真换行"，直接报
+#    SyntaxError: unterminated string literal。想传字面量 \n，必须写 \\n。
 result = subprocess.run(
-    ['python', '-c', 'print("我是正常输出"); import sys; sys.stderr.write("我是错误输出\n")'],
+    [sys.executable, '-c', 'print("我是正常输出"); import sys; sys.stderr.write("我是错误输出\\n")'],
     capture_output=True,
     text=True
 )
@@ -212,12 +248,17 @@ print(result.stdout)  # 我是正常输出
 
 print("=== stderr（错误输出）===")
 print(result.stderr)  # 我是错误输出
+
+# 更省心的做法：用三引号写"一段完整的脚本"，就不用跟转义较劲了（见下面的场景2）
 ```
 
 ```python
 # 场景2：分别捕获
+import subprocess
+import sys
+
 result = subprocess.run(
-    ['python', '-c', '''
+    [sys.executable, '-c', '''
 import sys
 print("标准输出：我很好")
 print("标准错误：我有问题！", file=sys.stderr)
@@ -233,25 +274,36 @@ print(f"stderr: {result.stderr}")
 ```
 
 ```python
-# 场景3：shell=True 的情况下合并输出
-result = subprocess.run(
-    'echo "normal" && python -c "import sys; sys.stderr.write(\"error\\n\")"',
-    shell=True,
-    capture_output=True,
-    text=True
-)
-print(f"combined: {result.stdout}")
-print(f"stderr: {result.stderr}")
+# 场景3：shell=True 的写法，以及"如何把 stderr 合并进 stdout"
+import subprocess
+import sys
+
+cmd = f'echo "normal" && "{sys.executable}" -c "import sys; sys.stderr.write(\'error\\n\')"'
+
+# 默认情况：两个管道是分开的，各收各的
+result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+print(f"stdout: {result.stdout}")   # normal
+print(f"stderr: {result.stderr}")   # error
+
+# 想要"合并输出"，要显式告诉它把 stderr 也塞进 stdout 那个管道：
+#     stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+# ⚠️ 注意：这种写法不能再用 capture_output=True，
+#    否则会报 ValueError: stdout and stderr arguments may not be used with capture_output
+merged = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT, text=True)
+print(f"合并后: {merged.stdout!r}")  # 'normal\nerror\n'
 ```
 
 > **生活实例：** 想象你在看一个人演讲（程序运行）。stdout 就是他演讲的内容，stderr 就是他在台下小声嘀咕的抱怨。捕获输出就像是在他嘴边放两个录音笔，分别录下演讲和抱怨。
 
 ```python
 # 场景4：丢弃输出（不关心输出，只关心退出码）
-result = subprocess.run(['python', '-c', 'print("无声的输出")'], capture_output=True)
+import subprocess
+import sys
+
+result = subprocess.run([sys.executable, '-c', 'print("无声的输出")'], capture_output=True)
 
 # 丢弃所有输出
-import subprocess
 import os
 
 # 方法1：定向到 devnull
@@ -294,6 +346,10 @@ import ctypes
 
 # Linux 上
 # lib = ctypes.CDLL("libm.so.6")  # 数学库
+#
+# macOS 上没有 libm.so.6 这个文件——数学函数都在系统库 libSystem 里，
+# 想加载它得写全路径（系统库的安装名可以被 dlopen，但 "libm.so.6" 这种名字不存在）：
+# lib = ctypes.CDLL("libSystem.dylib")
 
 # 假设我们有一个 C 函数：int add(int a, int b)
 # lib.add.argtypes = [ctypes.c_int, ctypes.c_int]  # 指定参数类型
@@ -309,8 +365,14 @@ import ctypes
 **一个完整的例子（假设你有一个 C 写的加法函数）：**
 
 ```c
-// mylib.c - 这是一个 C 源文件
-// 编译命令：gcc -shared -fPIC -o libmylib.so mylib.c
+// mylib.c —— 一个 C 源文件
+// 编译命令（Linux）：gcc -shared -fPIC -o libmylib.so mylib.c
+// 编译命令（macOS）：clang -shared -fPIC -o libmylib.dylib mylib.c
+//
+// ⚠️ 一定要 #include <stdio.h>！少了它，printf 就成了"未声明就调用"。
+//    老编译器只是警告，但 GCC 14 / Clang 16 之后这是**编译错误**：
+//    error: call to undeclared library function 'printf'
+#include <stdio.h>
 
 int add(int a, int b) {
     return a + b;
@@ -320,7 +382,7 @@ double square(double x) {
     return x * x;
 }
 
-void greet(char* name) {
+void greet(const char* name) {
     printf("Hello, %s!\n", name);
 }
 ```
@@ -329,8 +391,9 @@ void greet(char* name) {
 import ctypes
 
 # 加载编译好的库（假设叫 libmylib.so 或 mylib.dll）
-lib = ctypes.CDLL("./libmylib.so")  # Linux/Mac
-# lib = ctypes.CDLL("./mylib.dll")  # Windows
+lib = ctypes.CDLL("./libmylib.so")   # Linux
+# lib = ctypes.CDLL("./libmylib.dylib")  # macOS（习惯用 .dylib，和上面的编译命令保持一致）
+# lib = ctypes.CDLL("./mylib.dll")       # Windows（扩展名是 .dll）
 
 # 设置函数签名（告诉 ctypes 参数和返回值的类型）
 lib.add.argtypes = [ctypes.c_int, ctypes.c_int]
@@ -339,6 +402,15 @@ lib.add.restype = ctypes.c_int
 # 调用 C 函数
 result = lib.add(10, 20)
 print(f"10 + 20 = {result}")  # 30
+
+# 小数要用 c_double，不能沿用 c_int
+lib.square.argtypes = [ctypes.c_double]
+lib.square.restype = ctypes.c_double
+print(f"3.5² = {lib.square(3.5)}")  # 12.25
+
+# 字符串参数要用 bytes，配 c_char_p
+lib.greet.argtypes = [ctypes.c_char_p]
+lib.greet(b"Python")  # 输出: Hello, Python!
 ```
 
 > **ctypes 的局限：** 它只能调用 C 函数，不能调用 C++ 类和方法。而且，你必须知道 C 函数的签名（参数类型、返回类型），否则就会乱套——就像让翻译软件翻译一篇它不懂专业的文章，结果会牛头不对马嘴。
@@ -351,7 +423,11 @@ CFFI 是"现代版"的 ctypes，比 ctypes 更强大、更灵活。如果说 cty
 - 语法更优雅
 - 支持更多的数据类型
 - 可以在 Python 中直接编写 C 代码片段
-- 对 C++ 的支持更好
+- 能直接编译"内嵌在 Python 里的 C 代码"（见下面的第二个例子）
+
+> ⚠️ **别误会 C++**：CFFI 和 ctypes 一样，本质上只能调用 **C 的 ABI**。
+> 想调 C++ 的类、重载函数、`std::string`，得先在 C++ 侧写一层 `extern "C"` 包装函数。
+> 想要"直接操作 C++ 对象"要用 pybind11 / cppyy 之类的工具。
 
 ```python
 # 安装：pip install cffi
@@ -364,7 +440,7 @@ ffi = FFI()
 ffi.cdef("""
     int add(int a, int b);
     double square(double x);
-    void greet(char* name);
+    void greet(const char* name);
 """)
 
 # 加载库
@@ -432,17 +508,21 @@ def py_sum(n):
 # speedup.pyx - Cython 代码（快）
 # 编译命令：cythonize -i speedup.pyx
 
-def cy_sum(int n):
-    cdef int total = 0  # cdef 是 Cython 的关键字，声明 C 类型的变量
-    cdef int i
+# ⚠️ 这里必须用 long long，不能写成 cdef int！
+#    C 的 int 是 32 位，最大约 21 亿；而 0+1+…+9999999 = 49999995000000（约 5 万亿），
+#    用 int 会溢出并回绕成一个负数（实测 -2014260032）。Cython 默认不做溢出检查，
+#    所以它"更快"的同时会安静地算错——这是 Cython 最常见的事故现场。
+def cy_sum(long long n):
+    cdef long long total = 0  # cdef 是 Cython 的关键字，声明 C 类型的变量
+    cdef long long i
     for i in range(n):
         total += i
     return total
 
 # 带类型标注的版本（更快）
-cpdef double cy_sum_float(int n):
+cpdef double cy_sum_float(long long n):
     cdef double total = 0.0
-    cdef int i
+    cdef long long i
     for i in range(n):
         total += i
     return total
@@ -484,6 +564,12 @@ cy_time = time.time() - start
 print(f"Python 用时: {py_time:.3f}秒")
 print(f"Cython 用时: {cy_time:.3f}秒")
 print(f"加速比: {py_time/cy_time:.1f}x")
+
+# ⚠️ 千万别只看速度！一定要核对两个结果是否相等：
+print(f"结果一致吗: {py_result == cy_result}")
+# 如果这里是 False，说明 Cython 版本算错了（十有八九就是 C 整数溢出）。
+# 正确做法：改类型为 long long，或者加 @cython.overflowcheck(True)，
+# 让溢出时直接抛 OverflowError 而不是悄悄算出一个错答案。
 ```
 
 > **Cython 的秘密：** Cython 其实是"带了类型注解的 Python"。它允许你在 Python 代码里加入 C 的类型声明，这样 Python 解释器就不用"猜"数据类型了，执行速度自然就快了。这就像从"普通话"升级到"英语"——外国人（CPU）听起来更清晰，执行起来更顺畅。
@@ -694,7 +780,9 @@ Node.js 可以通过 `child_process` 模块启动 Python 进程，然后通过�
 const { spawn } = require('child_process');
 
 // 启动 Python 解释器
-const python = spawn('python', ['-u', 'python_script.py']);
+// ⚠️ 这里写 'python3' 而不是 'python'：macOS 和不少 Linux 发行版根本没有 `python` 命令。
+//    （Windows 上通常叫 'python'，可以用 process.env.PYTHON 之类的方式做成可配置。）
+const python = spawn('python3', ['-u', 'python_script.py']);
 
 // 监听 Python 的输出
 python.stdout.on('data', (data) => {
@@ -713,6 +801,13 @@ python.stdin.end();  // 告诉 Python 我说完了
 python.on('close', (code) => {
     console.log(`Python process exited with code ${code}`);
 });
+
+// 实测输出：
+// Python says: Received: Hello from Node.js!
+// Hi there, Node.js!
+// Received: Another message
+// Got it!
+// Python process exited with code 0
 ```
 
 ```python
@@ -738,7 +833,7 @@ for line in sys.stdin:
 ```javascript
 // Node.js 端
 const { spawn } = require('child_process');
-const python = spawn('python', ['-u', 'json_server.py']);
+const python = spawn('python3', ['-u', 'json_server.py']);
 
 const request = {
     action: 'calculate',
@@ -1191,7 +1286,10 @@ print(f"姓名: {received_person.name}")
 print(f"电话: {received_person.phones[0].number}")
 ```
 
-> **Protobuf 的优势：** 序列化后的二进制数据比 JSON 小 3-10 倍，解析速度快 10-100 倍。而且，.proto 文件是"语言无关的契约"——只要 .proto 文件不变，不同语言之间就能互相通信。
+> **Protobuf 的优势：** Google 官方给出的对比是**相对于 XML**：体积小 3-10 倍，解析快 20-100 倍。
+> 和 JSON 比，通常也能小几倍、快几倍（具体倍数取决于数据里字符串的比例，别把"100 倍"当成对 JSON 的承诺）。
+> 它真正的杀手锏是：`.proto` 文件是"语言无关的契约"——只要 .proto 不变，不同语言之间就能互相通信，
+> 而且字段编号一旦定下就不能乱改，向前向后兼容性比手写 JSON 解析可靠得多。
 
 ---
 
@@ -1214,8 +1312,16 @@ import rpy2.robjects as ro
 from rpy2.robjects import r, pandas2ri
 from rpy2.robjects.packages import importr
 
-# 激活 pandas <-> R 数据框的自动转换
-pandas2ri.activate()
+# ⚠️ pandas2ri.activate() 已经废弃！
+#    从 rpy2 3.5 起它被标记为 deprecated，到 3.6.x 直接变成"调用就抛 DeprecationWarning"。
+#    现在的正确姿势是用 localconverter 上下文，把要转换的代码套在里面：
+from rpy2.robjects.conversion import localconverter
+
+with localconverter(ro.default_converter + pandas2ri.converter):
+    pass  # 这里面的 pandas DataFrame 会自动和 R 的 data.frame 互转
+
+# 老写法（现在会直接报错，别再抄了）：
+# pandas2ri.activate()
 
 # 执行 R 代码
 r('print("Hello from R!")')
@@ -1259,12 +1365,19 @@ df = pd.DataFrame({
 
 # 转换为 R 数据框
 from rpy2.robjects import pandas2ri
-r_df = pandas2ri.py2rpy(df)
+from rpy2.robjects.conversion import localconverter
+
+with localconverter(ro.default_converter + pandas2ri.converter):
+    r_df = ro.conversion.py2rpy(df)     # pandas.DataFrame -> R data.frame
+    # ⚠️ 关键一步：必须把 R 对象**放进 R 的全局环境**，
+    #    否则下面那段 R 代码里的 r_df 根本不存在，会报 object 'r_df' not found。
+#     （Python 变量名和 R 变量名是两个世界的东西，不会自动互通。）
+ro.globalenv['r_df'] = r_df
 
 # 用 R 的 ggplot2 绘图（结果可以在 R 的图形设备中显示）
 ro.r('''
 library(ggplot2)
-ggplot(data = r_df, aes(x = x, y = y)) + geom_point() + geom_line()
+print(ggplot(data = r_df, aes(x = x, y = y)) + geom_point() + geom_line())
 ''')
 ```
 
@@ -1376,11 +1489,22 @@ p2 = Process(target=receiver, args=(parent_conn,))
 p1.start()
 p2.start()
 
+# ⚠️ 关键一步：父进程必须把自己手里的两个连接都关掉！
+#    如果不关，管道的"写端"就一直有人持有，receiver 里的 recv()
+#    永远等不到 EOFError，进程会**永久卡住**（实测就是这么挂的）。
+#    这行看起来多余，其实是整个例子的命门。
+child_conn.close()    # 父进程不往管道里写
+parent_conn.close()   # 父进程不从管道里读
+
 p1.join()
 p2.join()
 ```
 
-> **管道的限制：** 管道是"半双工"的——同一时间只能一个方向传输数据。如果要双向通信，需要创建两个管道。而且，管道只适合有亲缘关系的进程。
+> **管道的限制：** 要分清楚两种"管道"：
+> - `os.pipe()` 创建的是**操作系统的匿名管道**，是**半双工**的——同一时间只能单向流动，想双向通信得开两个。
+> - `multiprocessing.Pipe()` 默认 `duplex=True`，返回的两个 `Connection` **本身就是双向的**（上面例子只是约定了一个发一个收而已），而且跨平台。
+>
+> 另外，匿名管道只适合有亲缘关系（父子/兄弟）的进程；不相干的进程之间要么用命名管道（FIFO），要么用消息队列、套接字。
 
 ### 21.7.2 消息队列（RabbitMQ / ZeroMQ）
 

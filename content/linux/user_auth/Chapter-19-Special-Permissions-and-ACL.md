@@ -23,13 +23,17 @@ draft = false
 
 ---
 
-## 19.1 SUID 特殊权限（4）：让普通用户执行 root 权限
+## 19.1 SUID 特殊权限（4）：让程序以文件所有者的身份运行
 
 **SUID**的全称是**Set User ID**，也叫Set-UID。
 
 ### 它的作用是什么？
 
 当一个可执行文件设置了SUID权限后，**任何运行这个程序的用户，都会以该文件所有者的身份运行它**。
+
+注意"文件所有者"不等于"root"——只是绝大多数设置了 SUID 的程序（`passwd`、`sudo`、`mount` 等）属于 root，所以看起来像"提权到了 root"。如果某个文件属于普通用户 `alice` 且带 SUID，那么别人运行它时获得的也是 `alice` 的权限。
+
+还有两个容易被忽略的限制：**Linux 会忽略脚本文件上的 SUID**（见 19.1.3），而且挂载时带了 `nosuid` 选项的分区（比如很多系统的 `/tmp`、`/home`）会整体无视 SUID。
 
 这听起来有点绕，让我举个例子：
 
@@ -90,14 +94,21 @@ ls -l /path/to/file
 #    S 表示SUID但没有执行权限（无效状态）
 ```
 
-### SUID的注意事项
+### 19.1.3 SUID 的注意事项与常见坑
+
+先记住三条"不生效"的情况，很多人第一次用 SUID 就是栽在这里：
+
+1. **脚本文件上的 SUID 会被内核直接忽略**。给 `.sh` 脚本 `chmod u+s` 是没用的，执行时依然是你自己的身份。想让脚本提权，正确做法是用 `sudo` 精确授权某条命令，或者写一个 C 程序当"启动器"。
+2. **挂载选项带 `nosuid` 的分区会整体禁用 SUID**。用 `findmnt -o TARGET,OPTIONS` 可以看到某个分区是否带了 `nosuid`。
+3. **SUID 位是"文件所有者的身份"，不是"root 的身份"**，也不代表程序一定安全——真正危险的是"程序本身能执行任意命令"（比如带 SUID 的 `bash`）。
 
 ```bash
 # 危险的SUID示例：
 chmod 4755 /bin/bash
-# 这会让任何人运行bash都以root身份运行！
-# 相当于给所有人开了个root后门！
-# 绝对不要这么做！
+# 这相当于给所有人留了一个后门：
+# 现代 bash 在检测到自己 euid != uid 时会主动把权限降回来，
+# 但只要用户加一个 -p（bash -p）就会保留 root 权限，
+# 于是任何普通用户都能拿到一个 root shell。绝对不要这么做！
 
 # 正确的做法：
 # SUID只应该用于确实需要的程序（如passwd）
@@ -142,6 +153,8 @@ ls -l /usr/bin/mlocate
 #        s 表示SGID
 ```
 
+> **这个工具正在换代**：老系统用 `mlocate`（它的数据库需要以 `mlocate` 组的身份更新，所以带 SGID）；较新的发行版（Debian 12、Ubuntu 22.04+）已经换成 `plocate`，实现机制不同，别再死记"/usr/bin/mlocate 一定是 SGID"。
+
 ### 19.2.2 目录继承组：协作目录的最佳实践
 
 SGID在目录上非常有用！假设一个团队在共享目录里工作：
@@ -158,15 +171,13 @@ sudo mkdir /workspace
 sudo chown :developers /workspace
 
 # 3. 设置SGID，这样目录下创建的文件都自动属于developers组
-sudo chmod 2775 /workspace
+sudo chmod 2770 /workspace
 #       ^^
 #       2 = SGID
-
-# 4. 给开发者们设置权限
-sudo chmod 770 /workspace
-# 或者让所有developers组的人都能访问
-sudo chmod 770 /workspace
+#       后面的 770 = 所有者rwx、组rwx、其他人无权限
 ```
+
+> **⚠️ 千万别再执行 `chmod 770`**：那一步会把刚设置的 SGID 位**抹掉**（`2770` 和 `770` 是两个不同的东西）。用数字法同时保留 SGID 和权限，必须写 **四位数字 `2770`**；一旦写成三位 `770`，特殊权限位就没了。
 
 ```bash
 # 现在验证一下SGID的效果
@@ -180,9 +191,11 @@ ls -l project.txt
 
 # 输出：
 # -rw-r--r-- 1 longx developers ... project.txt
-#              ^^^^^^^^^^
-#              自动继承了目录的组！
+#                    ^^^^^^^^^^
+#                    自动继承了目录的组 developers！
 ```
+
+> **但权限位还是 `rw-r--r--`**：组虽然继承对了，新建文件的权限仍受 `umask` 影响（默认 `022` 会去掉"组可写"）。如果希望组内成员互相修改文件，把 umask 调成 `002`（写进 `~/.bashrc`），或给目录设默认 ACL。
 
 ```bash
 # 设置SGID的命令
@@ -279,9 +292,9 @@ graph LR
 
 ---
 
-## 19.4 查看特殊权限：ls -l 第四位字符
+## 19.4 查看特殊权限：ls -l 里那个小写 s 和 t
 
-用`ls -l`查看文件权限时，特殊权限会显示在第四位：
+用 `ls -l` 查看权限时，特殊权限会**"占用"所有者/所属组/其他人的执行位**来显示——原本该是 `x` 的位置，如果变成了 `s` 或 `t`，就说明这一位同时带着特殊权限：
 
 ```bash
 # 普通权限
@@ -305,6 +318,13 @@ ls -ld /tmp
 ```
 
 ```bash
+# 三个特殊权限分别出现在这三个位置：
+#     -rwx rwx rwx
+#        ^    ^   ^
+#        |    |   └─ 其他人的位置出现 t → Sticky Bit
+#        |    └───── 所属组的位置出现 s → SGID
+#        └────────── 所有者的位置出现 s → SUID
+
 # 权限位对照表：
 #          SUID    SGID    Sticky
 # 文件：  -rwSrwSrwx  (无效状态，有SUID/SGID但没有执行位)
@@ -468,6 +488,9 @@ getfacl /workspace
 # default:other::r-x
 ```
 
+> **"默认 ACL"只对**之后**新建的内容生效**：设完 `d:` 开头的默认 ACL 后，目录里**已经存在**的文件不受影响；只有之后新建的文件/子目录才会继承。而且子目录会把默认 ACL 继续往下传，文件则把 `default:` 条目转换成普通 ACL 条目。
+> 如果 `setfacl` 报 `Operation not supported`，通常是该文件系统挂载时没有启用 ACL（`mount | grep acl` 检查）。ext4/xfs 一般都默认支持。
+
 ### ACL权限的删除
 
 ```bash
@@ -575,17 +598,22 @@ sudo chattr +a /var/log/auth.log
 # 3. 保护重要的日志文件（即使root也删不了）
 sudo chattr +i /var/log/syslog
 
-# 4. 查看所有设置了i属性的文件
-sudo find / -attr +i 2>/dev/null
+# 4. 查看所有设置了 i 属性的文件
+#    （find 没有 -attr 这个选项！要用 lsattr 配合过滤）
+sudo lsattr -R / 2>/dev/null | awk '$1 ~ /i/ {print}'
 ```
+
+> **`find` 没有 `-attr`**：网上不少教程写 `find / -attr +i`，这是**不存在的语法**，会直接报错。`lsattr` 的输出第一列是属性字母串（比如 `----i---------e-------`），所以用 `lsattr -R` 递归列出、再用 `awk` 过滤含 `i` 的那一列才靠谱。
 
 ```bash
 # chattr的属性对照表
 chattr +i file    # 不可删除、不可修改（完全锁死）
 chattr +a file    # 只能追加、不能覆盖
-chattr +s file    # 安全删除（删除时内容清零）
-chattr +u file    # 恢复删除（如果文件系统支持）
+chattr +s file    # 安全删除（删除时内容清零）——只有部分老文件系统支持，ext4 上无效
+chattr +u file    # 已废弃：这是"可恢复删除"，现代 Linux 文件系统不再支持
 ```
+
+> **`+s` 和 `+u` 现在基本是"历史名词"**：`u`（undelete）早已从内核移除；`s`（secure delete）只在极少数文件系统上有效，ext4/XFS 上写了也不生效。**实际上最常用的只有 `i` 和 `a` 两个**，掌握这两个就够日常使用了。
 
 ---
 
@@ -645,11 +673,12 @@ graph TD
    - `chattr +i`：不可修改（连root也挡不住）
    - `chattr +a`：只能追加
 
+6. **几个必须记住的坑**：
+   - 数字法写特殊权限时**必须写满四位**，`chmod 770` 会把 `2770` 的 SGID 抹掉
+   - **脚本上的 SUID 无效**，内核会忽略；带 `nosuid` 的分区会整体禁用 SUID
+   - SGID 只解决"组继承"，成员之间能否互相改文件还取决于 `umask`
+   - 定期审计 SUID 文件：`sudo find / -perm -4000 -type f`，发现来路不明的立即排查
+
 ### 💡 记住这个原则
 
 > **特殊权限是双刃剑**——用得好是神器，用不好是灾难。SUID/SGID不要滥用，Sticky Bit是共享目录的好帮手，ACL是细粒度权限的终极解决方案。
-
----
-
-**当前时间：2026年3月23日 20:42:03**
-**已完成"第十九章"！🎉**

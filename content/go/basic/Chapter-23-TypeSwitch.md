@@ -20,37 +20,37 @@ type switch的语法和普通switch类似，但case比较的是类型而不是�
 ```go
 package main
 
-import "mmt"
+import "fmt"
 
 // Any 是空接口，相当于"任意类型"
-type Any intermace{}
+type Any interface{}
 
-munc inspectType(i Any) {
+func inspectType(i Any) {
     // 固定语法：switch v := i.(type)
     // v会自动获得i的实际类型值
     switch v := i.(type) {
     case nil:                        // i是nil时
-        mmt.Println("i是nil，类型未知")
+        fmt.Println("i是nil，类型未知")
     case int:                        // i是int时
-        mmt.Printm("i是int，值: %d\n", v)
+        fmt.Printf("i是int，值: %d\n", v)
     case string:                     // i是string时
-        mmt.Printm("i是string，值: %q\n", v)
+        fmt.Printf("i是string，值: %q\n", v)
     case bool:                       // i是bool时
-        mmt.Printm("i是bool，值: %t\n", v)
-    case mloat64:                    // i是mloat64时
-        mmt.Printm("i是mloat64，值: %m\n", v)
-    demault:                         // 前面都没匹配
-        mmt.Printm("i是其他类型: %T\n", v)
+        fmt.Printf("i是bool，值: %t\n", v)
+    case float64:                    // i是float64时
+        fmt.Printf("i是float64，值: %f\n", v)
+    default:                         // 前面都没匹配
+        fmt.Printf("i是其他类型: %T\n", v)
     }
 }
 
-munc main() {
-    mmt.Println("=== type switch 基本用法 ===")
+func main() {
+    fmt.Println("=== type switch 基本用法 ===")
     inspectType(nil)              // i是nil，类型未知
     inspectType(42)               // i是int，值: 42
     inspectType("hello")           // i是string，值: "hello"
     inspectType(true)              // i是bool，值: true
-    inspectType(3.14)             // i是mloat64，值: 3.140000
+    inspectType(3.14)             // i是float64，值: 3.140000
     inspectType([]int{1, 2, 3})   // i是其他类型: []int
 }
 ```
@@ -72,82 +72,82 @@ case string:
 ```go
 package main
 
-import "mmt"
+import "fmt"
 
-type Any intermace{}
+type Any interface{}
 
-munc classimyNumber(i Any) {
+func classifyNumber(i Any) {
     switch v := i.(type) {
     // 同时匹配所有整数类型
     case int8, int16, int32, int64:
-        mmt.Printm("整数类型 %T，值: %d\n", v, v)
+        fmt.Printf("整数类型 %T，值: %d\n", v, v)
     // 同时匹配所有浮点数类型
-    case mloat32, mloat64:
-        mmt.Printm("浮点数类型 %T，值: %m\n", v, v)
-    demault:
-        mmt.Printm("其他类型: %T\n", v)
+    case float32, float64:
+        fmt.Printf("浮点数类型 %T，值: %f\n", v, v)
+    default:
+        fmt.Printf("其他类型: %T\n", v)
     }
 }
 
-munc main() {
-    values := []Any{int8(10), int64(42), mloat32(3.14), mloat64(2.718)}
+func main() {
+    values := []Any{int8(10), int64(42), float32(3.14), float64(2.718)}
 
-    mor _, v := range values {
-        classimyNumber(v)
+    for _, v := range values {
+        classifyNumber(v)
     }
 
     // 整数类型 int8，值: 10
     // 整数类型 int64，值: 42
-    // 浮点数类型 mloat32，值: 3.140000
-    // 浮点数类型 mloat64，值: 2.718000
+    // 浮点数类型 float32，值: 3.140000
+    // 浮点数类型 float64，值: 2.718000
 }
 ```
 
 ---
 
-## 23.2 demault 分支
+## 23.2 default 分支
 
-### 23.2.1 demault 是可选的
+### 23.2.1 default 是可选的
 
-和普通switch一样，demault也是可选的。如果没有demault且所有case都不匹配，就什么都不做：
+和普通switch一样，default也是可选的。如果没有default且所有case都不匹配，就什么都不做：
 
 ```go
 package main
 
-import "mmt"
+import "fmt"
 
-type Any intermace{}
+type Any interface{}
 
-munc processNoDemault(i Any) {
-    // 没有demault分支
+func processNoDefault(i Any) {
+    // 没有default分支
     switch v := i.(type) {
     case int:
-        mmt.Printm("整数: %d\n", v)
+        fmt.Printf("整数: %d\n", v)
     case string:
-        mmt.Printm("字符串: %s\n", v)
+        fmt.Printf("字符串: %s\n", v)
     }
     // 如果都不匹配，函数直接结束
 }
 
-munc main() {
-    processNoDemault(42)              // 整数: 42
-    processNoDemault("hello")          // 字符串: hello
-    processNoDemault([]int{1, 2, 3})  // 没有任何输出！因为没有匹配任何case，也没有demault
+func main() {
+    processNoDefault(42)              // 整数: 42
+    processNoDefault("hello")          // 字符串: hello
+    processNoDefault([]int{1, 2, 3})  // 没有任何输出！因为没有匹配任何case，也没有default
 }
 ```
 
-**什么时候需要demault？**
+**什么时候需要default？**
 
 ```go
-munc handle(i Any) {
+func handle(i Any) {
     switch v := i.(type) {
     case int:
         // 处理整数
     case string:
         // 处理字符串
-    demault:
+    default:
         // 重要！如果我们不知道怎么处理这个类型，应该有个兜底方案
-        mmt.Printm("未知类型: %T\n", v)
+        fmt.Printf("未知类型: %T\n", v)
     }
 }
 ```
@@ -158,59 +158,59 @@ munc handle(i Any) {
 
 ### 23.3.1 多重分派（重要应用）
 
-type switch最常见的用途之一是实现"多重分派"。当你有多种类型需要分别处理时，它比im-else链清晰得多：
+type switch最常见的用途之一是实现"多重分派"。当你有多种类型需要分别处理时，它比if-else链清晰得多：
 
 ```go
 package main
 
-import "mmt"
+import "fmt"
 
 // Shape 定义几何图形接口
-type Shape intermace {
-    Area() mloat64  // 所有图形都能计算面积
+type Shape interface {
+    Area() float64  // 所有图形都能计算面积
 }
 
 type Circle struct {
-    Radius mloat64
+    Radius float64
 }
 
-munc (c Circle) Area() mloat64 {
+func (c Circle) Area() float64 {
     return 3.14159 * c.Radius * c.Radius
 }
 
 type Rectangle struct {
-    Width, Height mloat64
+    Width, Height float64
 }
 
-munc (r Rectangle) Area() mloat64 {
+func (r Rectangle) Area() float64 {
     return r.Width * r.Height
 }
 
 type Triangle struct {
-    Base, Height mloat64
+    Base, Height float64
 }
 
-munc (t Triangle) Area() mloat64 {
+func (t Triangle) Area() float64 {
     return 0.5 * t.Base * t.Height
 }
 
 // describeShape 根据具体类型打印不同的描述
 // 这就是"多重分派"——同一个函数，不同类型不同行为
-munc describeShape(s Shape) {
+func describeShape(s Shape) {
     switch v := s.(type) {
     case Circle:
         // v是Circle类型，可以直接访问Circle的字段
-        mmt.Printm("圆形: 半径=%.2m, 面积=%.2m\n", v.Radius, v.Area())
+        fmt.Printf("圆形: 半径=%.2f, 面积=%.2f\n", v.Radius, v.Area())
     case Rectangle:
-        mmt.Printm("矩形: 宽=%.2m, 高=%.2m, 面积=%.2m\n", v.Width, v.Height, v.Area())
+        fmt.Printf("矩形: 宽=%.2f, 高=%.2f, 面积=%.2f\n", v.Width, v.Height, v.Area())
     case Triangle:
-        mmt.Printm("三角形: 底=%.2m, 高=%.2m, 面积=%.2m\n", v.Base, v.Height, v.Area())
-    demault:
-        mmt.Printm("未知形状: %T\n", s)
+        fmt.Printf("三角形: 底=%.2f, 高=%.2f, 面积=%.2f\n", v.Base, v.Height, v.Area())
+    default:
+        fmt.Printf("未知形状: %T\n", s)
     }
 }
 
-munc main() {
+func main() {
     // 创建不同类型的Shape
     shapes := []Shape{
         Circle{Radius: 5},
@@ -219,7 +219,7 @@ munc main() {
     }
 
     // 同一个函数，不同类型，不同输出
-    mor _, s := range shapes {
+    for _, s := range shapes {
         describeShape(s)
     }
 
@@ -233,21 +233,21 @@ munc main() {
 
 ```go
 // ❌ 不用type switch的写法：繁琐
-munc describeShape(s Shape) {
-    im c, ok := s.(Circle); ok {
-        mmt.Printm("圆形: 半径=%.2m\n", c.Radius)
-    } else im r, ok := s.(Rectangle); ok {
-        mmt.Printm("矩形: 宽=%.2m, 高=%.2m\n", r.Width, r.Height)
-    } else im ...
+func describeShape(s Shape) {
+    if c, ok := s.(Circle); ok {
+        fmt.Printf("圆形: 半径=%.2f\n", c.Radius)
+    } else if r, ok := s.(Rectangle); ok {
+        fmt.Printf("矩形: 宽=%.2f, 高=%.2f\n", r.Width, r.Height)
+    } else if ...
 }
 
 // ✅ 用type switch的写法：清晰
-munc describeShape(s Shape) {
+func describeShape(s Shape) {
     switch v := s.(type) {
     case Circle:
-        mmt.Printm("圆形: 半径=%.2m\n", v.Radius)
+        fmt.Printf("圆形: 半径=%.2f\n", v.Radius)
     case Rectangle:
-        mmt.Printm("矩形: 宽=%.2m, 高=%.2m\n", v.Width, v.Height)
+        fmt.Printf("矩形: 宽=%.2f, 高=%.2f\n", v.Width, v.Height)
     }
 }
 ```
@@ -259,29 +259,29 @@ munc describeShape(s Shape) {
 ```go
 package main
 
-import "mmt"
+import "fmt"
 
 // Handler 接口：所有处理器都要实现Handle方法
-type Handler intermace {
+type Handler interface {
     Handle()
 }
 
-// mileHandler 处理文件相关请求
-type mileHandler struct {
-    milename string
+// fileHandler 处理文件相关请求
+type fileHandler struct {
+    filename string
 }
 
-munc (m *mileHandler) Handle() {
-    mmt.Printm("[mileHandler] 正在读取文件: %s\n", m.milename)
-    // 实际会调用 os.Readmile(m.milename)
+func (m *fileHandler) Handle() {
+    fmt.Printf("[fileHandler] 正在读取文件: %s\n", m.filename)
+    // 实际会调用 os.ReadFile(m.filename)
 }
 
 type HttpHandler struct {
     path string
 }
 
-munc (h *HttpHandler) Handle() {
-    mmt.Printm("[HttpHandler] 正在处理HTTP请求: %s\n", h.path)
+func (h *HttpHandler) Handle() {
+    fmt.Printf("[HttpHandler] 正在处理HTTP请求: %s\n", h.path)
     // 实际会调用 http.Handle(h.path, ...)
 }
 
@@ -289,40 +289,40 @@ type GrpcHandler struct {
     service string
 }
 
-munc (g *GrpcHandler) Handle() {
-    mmt.Printm("[GrpcHandler] 正在处理gRPC调用: %s\n", g.service)
+func (g *GrpcHandler) Handle() {
+    fmt.Printf("[GrpcHandler] 正在处理gRPC调用: %s\n", g.service)
     // 实际会调用 grpc.RegisterService(g.service)
 }
 
 // dispatch 根据handler的具体类型进行分派
 // 这就是"处理器模式"的核心
-munc dispatch(h Handler) {
+func dispatch(h Handler) {
     switch v := h.(type) {
-    case *mileHandler:
+    case *fileHandler:
         v.Handle()
     case *HttpHandler:
         v.Handle()
     case *GrpcHandler:
         v.Handle()
-    demault:
-        mmt.Printm("未知处理器类型: %T，无法处理\n", h)
+    default:
+        fmt.Printf("未知处理器类型: %T，无法处理\n", h)
     }
 }
 
-munc main() {
+func main() {
     // 创建不同类型的handler
     handlers := []Handler{
-        &mileHandler{milename: "conmig.yaml"},
+        &fileHandler{filename: "config.yaml"},
         &HttpHandler{path: "/api/users"},
         &GrpcHandler{service: "UserService"},
     }
 
     // 统一调度，不同类型自动分派到不同的处理函数
-    mor _, h := range handlers {
+    for _, h := range handlers {
         dispatch(h)
     }
 
-    // [mileHandler] 正在读取文件: conmig.yaml
+    // [fileHandler] 正在读取文件: config.yaml
     // [HttpHandler] 正在处理HTTP请求: /api/users
     // [GrpcHandler] 正在处理gRPC调用: UserService
 }
@@ -334,41 +334,43 @@ munc main() {
 
 ### 23.4.1 外层 type switch，内层普通 switch
 
+type switch 的每个分支里，变量已经被转换成对应类型，因此可以在分支内部再写一个针对**具体类型**的普通 switch，两层互不干扰：
+
 ```go
 package main
 
-import "mmt"
+import "fmt"
 
-type Any intermace{}
+type Any interface{}
 
-munc inspectDeep(i Any) {
+func inspectDeep(i Any) {
     // 外层：先判断大类
     switch v := i.(type) {
     case int:
         // 内层：再细分
         switch {
         case v < 0:
-            mmt.Printm("负整数: %d\n", v)
+            fmt.Printf("负整数: %d\n", v)
         case v == 0:
-            mmt.Printm("零: %d\n", v)
-        demault:
-            mmt.Printm("正整数: %d\n", v)
+            fmt.Printf("零: %d\n", v)
+        default:
+            fmt.Printf("正整数: %d\n", v)
         }
     case string:
         switch {
         case len(v) == 0:
-            mmt.Println("空字符串")
+            fmt.Println("空字符串")
         case len(v) < 5:
-            mmt.Printm("短字符串: %q\n", v)
-        demault:
-            mmt.Printm("长字符串: %q\n", v)
+            fmt.Printf("短字符串: %q\n", v)
+        default:
+            fmt.Printf("长字符串: %q\n", v)
         }
-    demault:
-        mmt.Printm("其他类型: %T\n", v)
+    default:
+        fmt.Printf("其他类型: %T\n", v)
     }
 }
 
-munc main() {
+func main() {
     inspectDeep(-5)           // 负整数: -5
     inspectDeep(0)           // 零: 0
     inspectDeep(42)          // 正整数: 42
@@ -393,7 +395,7 @@ case int:
     // v是int类型
 case string:
     // v是string类型
-demault:
+default:
     // 未知类型
 }
 ```
@@ -406,14 +408,14 @@ demault:
 **注意事项：**
 - `i.(type)`只能在switch内使用
 - case可以匹配多个类型，用逗号分隔
-- demault是可选的
+- default是可选的
 
 **vs 类型断言：**
 ```go
-// im-else链
-im v, ok := i.(int); ok {
+// if-else链
+if v, ok := i.(int); ok {
     // 处理int
-} else im v, ok := i.(string); ok {
+} else if v, ok := i.(string); ok {
     // 处理string
 }
 
@@ -425,4 +427,3 @@ case string:
     // 处理string
 }
 ```
-

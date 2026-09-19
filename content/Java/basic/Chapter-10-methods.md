@@ -22,6 +22,10 @@ draft = false
 ```java
 public class BadExample {
     public static void main(String[] args) {
+        double salary = 8000;      // 基本工资
+        double base = 5000;        // 奖金基数
+        double performance = 1.2;  // 绩效系数
+
         // 扣税
         double tax = salary * 0.2;
         double afterTax = salary - tax;
@@ -44,6 +48,9 @@ public class BadExample {
         System.out.println("实发: " + total);
 
         // 第二个员工... 再来一遍
+        double salary2 = 9000;
+        double base2 = 6000;
+        double performance2 = 1.1;
         double tax2 = salary2 * 0.2;
         double afterTax2 = salary2 - tax2;
         double insurance2 = afterTax2 * 0.1;
@@ -55,7 +62,7 @@ public class BadExample {
 }
 ```
 
-哦不对，代码里还有 bug——`insurance2` 的计算用的是 `afterTax2` 而不是 `afterTax`，算出来的数字对不上。财务部的人看到这串数字怕是要提着刀来找你。
+看出问题了吗？**第二个人几乎是把第一个人的代码原样复制了一遍**，只是每个变量名后面加了个 `2`。这种"复制粘贴式编程"最危险的地方在于：万一某个变量名漏改了（比如第二段里写成了 `salary` 而不是 `salary2`），**编译器不会报错**——因为 `salary` 确实存在——但算出来的数字是错的。财务部的人看到这串数字怕是要提着刀来找你。
 
 **这就是不使用方法的惨烈后果：**
 
@@ -605,9 +612,9 @@ public class OverloadRules {
     public static void test(int a) {}
     public static void test(int a, int b) {}
 
-    // ✅ 正确：参数类型不同
-    public static void test(int a) {}
+    // ✅ 正确：参数类型不同（注意和上面的 test(int) 区分开）
     public static void test(double a) {}
+    public static void test(String a) {}
 
     // ✅ 正确：参数顺序不同（本质上也是类型不同）
     public static void test(int a, double b) {}

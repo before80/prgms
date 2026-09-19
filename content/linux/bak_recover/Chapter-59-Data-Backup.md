@@ -129,6 +129,34 @@ rsync -av /data/ "$backup_dir/"
 find /backup -maxdepth 1 -type d -mtime +7 -exec rm -rf {} \;
 ```
 
+> ⚠️ **用 rsync 做备份必须先弄明白两件事，否则可能把源数据删掉或把备份搞乱**：
+>
+> **① 源路径末尾有没有 `/`，含义完全不同**
+>
+> ```bash
+> rsync -av /data/  /backup/     # 复制 /data 里面的"内容" → /backup/xxx
+> rsync -av /data   /backup/     # 复制 /data 这个"目录本身" → /backup/data/xxx
+> ```
+>
+> 多一个斜杠，结果的结构就差一层。备份/恢复脚本里最容易出错的就是这里。
+>
+> **② `--delete` 会删除目标端多余的文件**
+>
+> `rsync -av --delete /data/ /backup/data/` 的意思是"让备份和目标**完全一致**"——如果 `/data` 里删了文件，备份里对应文件也会被删除。所以：
+>
+> - 它适合"镜像式备份"（要的就是一致），**不适合**"防止误删"的归档备份；
+> - 源路径写错（比如写成空目录）时，它会忠实地把备份清空；
+> - **跑之前先用 `--dry-run`（可简写 `-n`）试一遍**，这是 rsync 的"预演"模式：
+>
+> ```bash
+> rsync -avn --delete /data/ /backup/data/   # 只打印将要做什么，不改任何文件
+> rsync -av  --delete /data/ /backup/data/   # 确认无误后再真正执行
+> ```
+>
+> **③ `-P` 不只是"显示进度"**：它是 `--partial --progress` 的简写——断点续传（保留未完成的临时文件）+ 显示进度。同步大文件、跨网络传输时特别有用，**一定要加上**。
+>
+> **④ 别把 `-a` 当成万能**：`-a` 等于 `-rlptgoD`，它会保留权限、属主、时间、软链接等。跨用户/跨系统的场景（比如备份到 NAS）可能需要 `--no-owner --no-group`，否则会报一堆权限错误。
+
 ### 备份脚本示例
 
 ```bash
@@ -209,7 +237,7 @@ mysqldump -u root -p \
     --routines \
     --triggers \
     --events \
-    --master-data=2 \
+    --source-data=2 \
     database_name > backup.sql
 
 # 选项说明：
@@ -217,7 +245,11 @@ mysqldump -u root -p \
 # --routines: 存储过程和函数
 # --triggers: 触发器
 # --events: 事件调度器
-# --master-data: 记录备份时的 binlog 位置
+# --source-data=2: 把备份时刻的 binlog 文件名和位置以注释形式写进备份文件，
+#                  是做"时间点恢复（PITR）"的前提
+# ⚠️ MySQL 8.0.26 起 --master-data 已更名为 --source-data
+#    （旧名字在老版本可用，新版本会直接报错）；
+#    另外它需要 RELOAD 权限，且会短暂加全局读锁，请在低峰期执行
 ```
 
 ### MySQL 备份脚本

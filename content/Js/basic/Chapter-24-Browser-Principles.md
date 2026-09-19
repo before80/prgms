@@ -93,36 +93,47 @@ graph LR
 
 ```javascript
 // V8 的工作原理
-// 1. 解析源码生成 AST（抽象语法树）
-// 2. Ignition 解释器将 AST 编译成字节码并执行
-// 3. TurboFan 编译器识别热点代码，将其编译成优化机器码
-// 4. 如果优化后的代码遇到类型变化，会去优化（Deoptimization）
+// 1. 解析器（Parser）把源码变成 AST（抽象语法树）
+// 2. Ignition 解释器把 AST 编译成字节码并执行（先跑起来，启动快）
+// 3. 同时 V8 会收集运行时的类型信息，给函数"画像"（反馈向量）
+// 4. 热点代码（反复执行的函数）交给优化编译器编译成机器码
+//    —— 早期只有 TurboFan，后来加了基线编译器 Sparkplug 和中层编译器 Maglev，
+//       形成"解释 → 基线 → 中层 → 顶层"的多级阶梯，避免一上来就重编译
+// 5. 如果运行中类型假设被打破，就"去优化"（Deoptimization）退回字节码
 
 // 热点函数会被 V8 优化
 function add(a, b) {
   return a + b;
 }
 
-// 多次调用后，V8 会优化这个函数
+// 多次调用（且参数类型稳定）后，V8 会把 add 编译成高度优化的机器码
 for (let i = 0; i < 10000; i++) {
   add(1, 2);
 }
 ```
 
 ```javascript
-// 避免 V8 去优化的写法
-// 1. 不要动态改变函数结构
-function optimized() {
-  // 保持函数结构稳定
-}
+// ⚠️ 关于"怎么写才能让 V8 更快"，网上流传的很多建议已经过时了。
+// 那些说法大多来自 2017 年之前，如今的 V8 早就不在乎这些了：
+//   ❌ "不要用 arguments"        —— 现代 V8 处理 arguments 完全没问题
+//   ❌ "不要用 try/catch"        —— 早就不是性能杀手了
+//   ❌ "不要用 delete"           —— 只有删对象属性影响隐藏类，本身不算大问题
+//   ❌ "函数不要超过 600 字节"    —— 内联阈值早就换成了别的度量方式
+//
+// 真正值得注意的只有一条：
+// ✅ 让数据形状保持稳定（同一个对象的结构别变来变去），
+//    这样 V8 的隐藏类（Hidden Class）机制才能持续命中同一条快路径。
 
-// 2. 不要使用 arguments 对象（在优化函数中）
-function useArgs(a, b) {
-  // 避免：arguments.callee, arguments.length
-}
+// 反面示例：同一个位置一会儿是对象、一会儿是数字，
+// 每次赋值都会让隐藏类发生迁移，最终退化成"慢属性"字典模式
+const point = {};
+point.x = 1;        // 形状 A
+point.y = 2;        // 形状 B
+point.z = 'hello';  // 形状 C
+point.x = 'oops';   // 类型又变了，之前为数值类型做的优化直接作废
 
-// 3. 类型要一致
-// 如果传入的类型总是相同的，V8 优化效果更好
+// 推荐：一开始就把形状定好
+const betterPoint = { x: 1, y: 2, z: 'hello' };
 ```
 
 > 💡 **本章小结（第24章第1节）**
@@ -249,18 +260,33 @@ graph LR
 // 触发 Layout 的操作
 // 1. 添加或删除可见元素
 // 2. 元素位置/尺寸改变
-// 3. 浏览器窗口大小改变
-// 4. 获取某些属性（offsetWidth, offsetHeight, getComputedStyle 等）
+// 3. 浏览器窗口大小改变、字体加载完成（FOUT/FOIT）
+// 4. ⭐ 读取某些属性（offsetWidth、clientHeight、getBoundingClientRect、
+//    getComputedStyle 等）——这才是最容易出性能问题的一类
 ```
 
 ```javascript
-// 每次 Layout 都是昂贵的操作
-// 尽量避免：
-element.style.width = '100px';  // 触发 Layout
-element.style.height = '200px';  // 又触发一次！
+// ⭐ 一个非常容易被讲错的知识点：改样式并不会"立刻"触发 Layout
+//
+// 现代浏览器不会改一次样式就算一次布局。它会把这一轮的所有样式改动
+// 攒起来，等到"下一次渲染时机"再统一算一次布局，所以下面这两行合起来
+// 只算一次布局：
+element.style.width = '100px';
+element.style.height = '200px';
 
-// 应该合并：
-element.style.cssText = 'width: 100px; height: 200px;';  // 只触发一次
+// 真正致命的是"写完马上读"：读取布局属性会强迫浏览器
+// 立刻把攒着的改动全部算出来，这叫"强制同步布局"（forced synchronous layout）。
+element.style.width = '100px';
+const w = element.offsetWidth;   // 💥 强制立刻算一次布局
+element.style.width = '200px';
+const w2 = element.offsetWidth;  // 💥 又算一次
+
+// 在循环里这样写，就形成了著名的「布局抖动」（layout thrashing）：
+// 每次迭代都触发一次完整布局，元素一多页面就卡死。
+
+// 正确做法：批量写 → 批量读，读写分离
+element.style.cssText = 'width: 100px; height: 200px;';
+const w3 = element.offsetWidth;  // 只在这一刻算一次
 ```
 
 ---
@@ -272,14 +298,20 @@ element.style.cssText = 'width: 100px; height: 200px;';  // 只触发一次
 ```javascript
 // 触发 Paint 的操作
 // 1. 颜色/背景/边框等外观改变
-// 2. visibility: hidden 不触发，但 visibility: visible 会触发
-// 3. 阴影、圆角等视觉效果
+// 2. 阴影、圆角、滤镜等视觉效果
+// 3. visibility 在 hidden / visible 之间切换
+// 4. 文字内容变化
 ```
 
 ```javascript
 // Layout 比 Paint 更昂贵
-// Layout 一定会触发 Paint
-// Paint 不一定需要 Layout
+// Layout 一定会触发 Paint（布局变了，画的位置也就变了）
+// Paint 不一定需要 Layout（只是换了个颜色，位置没动）
+
+// ⭐ 还有第三层：有些改动连 Paint 都能省掉，直接交给合成器处理，
+// 前提是这个元素已经被提升为独立的合成层（compositing layer）。
+// 这类"只走合成"的属性主要是 transform 和 opacity。
+// 也就是说，性能代价大致是：Layout > Paint > Composite，而 Composite 最便宜。
 ```
 
 ---
@@ -290,11 +322,13 @@ element.style.cssText = 'width: 100px; height: 200px;';  // 只触发一次
 
 ```javascript
 // 浏览器使用多层合成来优化渲染性能
-// 每个图层独立绘制，然后合并
+// 每个图层独立绘制，最后由 GPU 合并成一张画面
+```
 
-// will-change 属性提示浏览器创建独立图层
+```css
+/* will-change 提示浏览器：这个元素马上要动，提前把它提升为独立图层 */
 .animated-element {
-  will-change: transform;  // 提示浏览器为 transform 创建独立图层
+  will-change: transform;
 }
 ```
 
@@ -310,9 +344,66 @@ element.style.cssText = 'width: 100px; height: 200px;';  // 只触发一次
 // 3. 过多图层会影响性能
 ```
 
+---
+
+### 渲染阻塞：为什么 `script` 标签会卡住页面
+
+上面这条流水线有个关键特性：**HTML 是一边下载一边解析的**，但遇到某些资源时会被迫停下来。理解这一点，比记住"回流重绘"更能解释真实的页面卡顿。
+
+```html
+<!-- 1. 普通 <script>：阻塞解析 -->
+<!-- 浏览器必须立刻下载并执行它，因为脚本里可能有 document.write -->
+<script src="./heavy.js"></script>
+
+<!-- 2. defer：延迟执行，不阻塞解析 -->
+<!-- 下载与 HTML 解析并行，等文档解析完、DOMContentLoaded 之前按顺序执行 -->
+<script defer src="./app.js"></script>
+
+<!-- 3. async：下载完成后立刻执行，不保证顺序 -->
+<!-- 适合独立、无依赖的脚本，比如统计代码 -->
+<script async src="./analytics.js"></script>
+
+<!-- 4. ES 模块默认相当于 defer，还能用 import 组织依赖 -->
+<script type="module" src="./main.js"></script>
+```
+
+```html
+<!-- CSS 也是"渲染阻塞"资源 -->
+<!-- 浏览器要等 CSSOM 建好才能开始渲染，因为不知道元素该长什么样 -->
+<link rel="stylesheet" href="./main.css">
+
+<!-- 首屏关键 CSS 内联，剩下的异步加载，可以减少白屏时间 -->
+<style>/* 首屏关键样式 */</style>
+<link rel="stylesheet" href="./rest.css" media="print" onload="this.media='all'">
+```
+
+```javascript
+// 三个时间点的区别（很容易记混）
+document.addEventListener('DOMContentLoaded', () => {
+  // DOM 树构建完成（defer 脚本已执行）
+  // 此时图片、iframe 可能还没加载完
+});
+
+window.addEventListener('load', () => {
+  // 包括图片、样式表、iframe 在内的所有资源都加载完成
+});
+```
+
+```mermaid
+graph LR
+    A["HTML 下载"] --> B["解析 HTML"]
+    B --> C["遇到普通 script：暂停解析"]
+    C --> D["下载并执行脚本"]
+    D --> B
+    B --> E["DOM 完成"]
+    E --> F["DOMContentLoaded"]
+    F --> G["图片等资源加载"]
+    G --> H["load"]
+```
+
 > 💡 **本章小结（第24章第2节）**
 > 
-> 渲染过程是：HTML → DOM Tree，CSS → CSSOM，DOM + CSSOM → Render Tree，然后 Layout（计算布局）、Paint（绘制）、Composite（合成）。**回流（Layout）**计算位置和尺寸，**重绘（Paint）**绘制外观。回流必定触发重绘，重绘不一定回流。了解渲染过程有助于写出高性能的代码。
+> 渲染过程是：HTML → DOM Tree，CSS → CSSOM，DOM + CSSOM → Render Tree，然后 Layout（计算布局）、Paint（绘制）、Composite（合成）。**回流（Layout）**计算位置和尺寸，**重绘（Paint）**绘制外观。回流必定触发重绘，重绘不一定回流。另外要记住两条真实影响体验的规则：CSS 阻塞渲染、普通 `script` 阻塞解析，所以首屏脚本该加 `defer` 或 `async`。了解这条流水线，才能写出真正高性能的页面。
 
 ---
 
@@ -320,7 +411,7 @@ element.style.cssText = 'width: 100px; height: 200px;';  // 只触发一次
 
 ### 触发回流的操作：元素尺寸 / 位置 / 字体大小变化
 
-回流（Reflow/Layout）是最昂贵的操作之一，以下操作会触发回流：
+回流（Reflow/Layout）是最昂贵的操作之一，以下改动会让浏览器"需要重新布局"：
 
 ```javascript
 // 1. 元素尺寸变化
@@ -339,32 +430,43 @@ element.style.fontSize = '18px';
 document.body.appendChild(newElement);
 element.remove();
 
-// 5. 浏览器窗口大小变化
-window.resizeTo(800, 600);
+// 5. 浏览器窗口大小变化（用户拖动窗口、手机横竖屏切换）
+window.addEventListener('resize', () => { /* 这里之后浏览器会重新布局 */ });
 
-// 6. 获取某些属性（强迫浏览器立即计算布局）
+// 注意：window.resizeTo() 只能调整"由脚本打开"的窗口，
+// 在普通标签页里调用通常直接被忽略，不要拿它当触发回流的例子。
+
+// 6. ⭐ 获取某些属性（会强迫浏览器立即执行之前攒下的所有布局）
 const width = element.offsetWidth;  // 强制 Layout
 const height = element.clientHeight;
 const rect = element.getBoundingClientRect();
+
+// ⭐ 前后语境的区别很重要：
+// 前 5 条只是"把布局标记为脏"，浏览器会在下一次渲染时机统一算；
+// 只有第 6 条会"当场逼着浏览器算完"，所以它才是循环里最危险的操作。
 ```
 
 ```javascript
 // 批量操作避免多次回流
-// 错误做法
+// 不推荐：一行行改，样式合并靠自己想像
 element.style.left = '10px';
 element.style.top = '20px';
 element.style.width = '100px';
 
-// 正确做法
+// 推荐做法一：一次性设置
 element.style.cssText = 'left: 10px; top: 20px; width: 100px;';
 
-// 或者使用 CSS 类
+// 推荐做法二：换成 CSS 类，样式与逻辑分离（实际项目里更常用）
+element.classList.add('element-transform');
+```
+
+```css
+/* 配合上面的 classList.add 使用 */
 .element-transform {
   left: 10px;
   top: 20px;
   width: 100px;
 }
-element.classList.add('element-transform');
 ```
 
 ---
@@ -374,14 +476,22 @@ element.classList.add('element-transform');
 不改变布局的外观变化只触发重绘：
 
 ```javascript
-// 触发重绘但不触发回流
+// ✅ 只触发重绘（不改变盒子尺寸和位置）
 element.style.backgroundColor = 'red';
 element.style.color = 'white';
-element.style.border = '1px solid black';
-element.style.visibility = 'hidden';  // visibility: hidden 触发重绘
-element.style.opacity = '0.5';
+element.style.borderColor = 'black';        // 只改颜色
+element.style.visibility = 'hidden';        // 占位不变，只是不画出来
+element.style.opacity = '0.5';              // 通常只重绘；已提升为合成层时连重绘都能省
 element.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+
+// ❌ 下面这些看着像"外观"，其实会触发回流！因为改变了盒子大小
+element.style.border = '1px solid black';   // 边框宽度会撑大盒子
+element.style.padding = '10px';
+element.style.fontWeight = 'bold';          // 可能让文字变宽，进而影响布局
 ```
+
+> 💡 判断标准很简单：**这个改动会不会让元素的尺寸或位置变化？**
+> 会 → 回流；不会 → 只重绘。`border-color` 不会，`border-width` 会。
 
 ---
 
@@ -452,18 +562,22 @@ element.style.willChange = 'auto';
 ```
 
 ```javascript
-// 使用 will-change 的正确姿势
-// 1. 在动画开始前设置
+// 使用 will-change 的正确姿势：提前声明 + 用完撤掉
+
+// 1. 交互开始前（比如 hover 到按钮那一刻）声明
 button.addEventListener('mouseenter', () => {
-  panel.style.willChange = 'height';
-  panel.style.height = panel.scrollHeight + 'px';
+  panel.style.willChange = 'transform';   // 和稍后真正动的属性保持一致
 });
 
-// 2. 动画结束后移除
+// 2. 动画结束后撤销，把图层还回去
 panel.addEventListener('transitionend', () => {
   panel.style.willChange = 'auto';
-  panel.style.height = 'auto';
 });
+
+// 💡 选属性的原则：will-change 只对"能被合成器接管的属性"有明显收益，
+// 典型代表就是 transform 和 opacity。
+// 写成 will-change: height / width / top / left 基本没用——
+// 这些属性每次变化仍然要重新布局，浏览器也没法提前算什么。
 ```
 
 ```mermaid
@@ -474,7 +588,7 @@ graph TD
     
     B --> B1["批量 DOM 操作"]
     B --> B2["使用 transform 代替位置改变"]
-    B --> B3["使用 position: fixed 代替 absolute"]
+    B --> B3["用 transform 动画代替 top/left"]
     
     C --> C1["使用 opacity/transform"]
     C --> C2["避免频繁样式修改"]
@@ -509,25 +623,26 @@ elements.forEach((elem, i) => {
 ```
 
 ```javascript
-// 3. 使用 requestAnimationFrame
-// bad
+// 3. 用 requestAnimationFrame 驱动动画，并且"只在帧里写、不读布局"
+
+// ✅ 推荐：状态自己用变量记着，每帧只写 transform
+let x = 0;
 function animate() {
-  element.style.left = x + 'px';
-  x++;
+  x += 1;
+  element.style.transform = `translateX(${x}px)`;   // 只写，不读 → 不触发同步布局
   requestAnimationFrame(animate);
 }
+requestAnimationFrame(animate);
 
-// good
-function animate() {
-  // 读取
-  const computedStyle = window.getComputedStyle(element);
-  const currentX = parseFloat(computedStyle.left);
-
-  // 写入
-  element.style.left = (currentX + 1) + 'px';
-
-  requestAnimationFrame(animate);
+// ❌ 反面教材：每帧都去读一次布局，再改 left（会同时触发同步布局和重绘）
+function animateBad() {
+  const currentX = parseFloat(getComputedStyle(element).left);  // 💥 强制同步布局
+  element.style.left = (currentX + 1) + 'px';                   // 💥 又改布局属性
+  requestAnimationFrame(animateBad);
 }
+
+// 两个坑叠在一起：getComputedStyle 每帧强制算布局 + 动画 left 每帧重新布局。
+// 改成 transform 并让状态留在 JS 变量里，两个问题一起消失。
 ```
 
 > 💡 **本章小结（第24章第3节）**
@@ -542,6 +657,7 @@ function animate() {
 - 用户界面、浏览器引擎、渲染引擎、JS 引擎、网络栈、数据存储
 - 主流渲染引擎：Blink（Chrome）、Gecko（Firefox）、WebKit（Safari）
 - 主流 JS 引擎：V8（Chrome）、SpiderMonkey（Firefox）、JavaScriptCore（Safari）
+- V8 的执行流水线：解析 → Ignition 解释执行 → 收集类型反馈 → 分层优化编译 → 必要时去优化
 
 ### 2. 渲染过程
 - HTML → DOM Tree
@@ -550,12 +666,15 @@ function animate() {
 - Layout（回流）：计算位置和尺寸
 - Paint（重绘）：绘制外观
 - Composite（合成）：图层合并
+- CSS 阻塞渲染，普通 `script` 阻塞解析；`defer` / `async` / `type="module"` 可避免
+- 事件时间点：`DOMContentLoaded`（DOM 就绪）早于 `load`（所有资源就绪）
 
 ### 3. 回流与重绘
-- 触发回流：尺寸、位置、字体变化，添加/删除可见元素，读取布局属性
-- 触发重绘：颜色、背景、边框等外观变化
+- 触发回流：尺寸、位置、字体变化，添加/删除可见元素，读取布局属性（强制同步布局）
+- 触发重绘：颜色、背景色、边框**颜色**等不改变盒子大小的外观变化
 - 回流必定触发重绘，重绘不一定回流
-- will-change 提示浏览器创建独立图层
+- 改样式本身是异步批处理的，真正致命的是"写完马上读"造成的布局抖动
+- will-change 提示浏览器创建独立图层，但只对 transform / opacity 这类可合成属性有意义，用完要撤销
 
 ### 性能优化口诀
 ```

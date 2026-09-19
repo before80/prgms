@@ -25,7 +25,9 @@ SSH（Secure Shell，安全外壳协议）是一种加密的网络协议，用�
 
 SSH的核心是加密。所有传输的数据——包括你输入的密码、你执行的命令、你传输的文件——全部被加密。攻击者即使在网络上抓包，也只能看到一堆乱码。
 
-SSH支持多种加密算法：AES、3DES、Blowfish、ChaCha20等。现代SSH默认使用AES-256-CTR或ChaCha20-Poly1305，安全性极高。
+SSH支持多种加密算法：AES、ChaCha20、3DES、Blowfish等。现代 SSH 的默认加密算法是 `chacha20-poly1305@openssh.com` 和 `aes*-ctr`、`aes*-gcm` 系列，安全性极高。
+
+> **顺带一提**：3DES 和 Blowfish 属于老算法，如今已经被移出 OpenSSH 的默认列表（`3des-cbc`、`blowfish-cbc` 都是禁用状态），只有在连接极老的设备时才会手动启用。可以用 `ssh -Q cipher` 查看当前客户端支持的全部加密算法。
 
 ### 32.1.2 端口：22
 
@@ -48,7 +50,7 @@ SSH的安全性来自于它的加密机制和密钥交换过程。整个连接�
 
 SSH连接建立的第一步是密钥交换（Key Exchange）。客户端和服务器协商确定使用哪种加密算法，并交换临时会话密钥。
 
-密钥交换算法（KEX）：ECDHE（椭圆曲线Diffie-Hellman）、DH（Diffie-Hellman）等。这些算法让双方在一条不安全的通道上，"协商"出一个只有双方知道的共享密钥，而攻击者无法推算出来。
+密钥交换算法（KEX）：Curve25519（`curve25519-sha256`，现代默认）、ECDH（椭圆曲线 Diffie-Hellman）、DH（Diffie-Hellman）等。这些算法让双方在一条不安全的通道上，"协商"出一个只有双方知道的共享密钥，而攻击者无法推算出来。`ssh -Q kex` 可以查看支持的 KEX 算法。
 
 ### 32.2.2 对称加密
 
@@ -56,14 +58,16 @@ SSH连接建立的第一步是密钥交换（Key Exchange）。客户端和服�
 
 对称加密的特点：加密和解密用同一把钥匙，速度快，适合加密大量数据。
 
-### 32.2.3 非对称加密
+### 32.2.3 非对称加密：验证身份
 
-在密钥交换过程中，SSH使用**非对称加密**（公钥加密、私钥解密）来安全地传输会话密钥。
+很多人以为 SSH 是"用服务器公钥把会话密钥加密后传过去"——**这是错的**（那是 TLS 早期 RSA 密钥交换的做法）。SSH 的会话密钥是双方通过 Diffie-Hellman 类算法**各自算出来**的，密钥本身从不在网络上传输。
 
-服务器和客户端各自有一对密钥：
+SSH 用到**非对称加密**（更准确地说，是数字签名）的地方是**验证服务器身份**：服务器用它自己的私钥，对本次密钥交换的结果做一次签名，客户端再拿服务器公钥去验证签名。验得过，说明对面确实是那台持有对应私钥的服务器，而不是中间人。
 
-- **服务器密钥对**：服务器上的主机公钥/私钥，用于验证服务器身份
-- **客户端密钥对**（可选）：用户的公钥/私钥，用于免密码登录
+服务器和客户端各自可能有一对密钥：
+
+- **服务器主机密钥对**：服务器上一对长期不变的密钥（通常在 `/etc/ssh/ssh_host_*`），用于验证服务器身份
+- **客户端用户密钥对**（可选）：用户的公钥/私钥，用于免密码登录（这是"用户认证"阶段的事，和上面的会话密钥、服务器身份验证是两回事）
 
 SSH连接建立流程：
 
@@ -72,14 +76,16 @@ sequenceDiagram
     participant C as SSH客户端
     participant S as SSH服务器
 
-    C->>S: 1. 客户端发送支持的算法列表
-    S->>C: 2. 服务器选择算法，发送主机公钥
-    C->>S: 3. 密钥交换（ECDH/DH），生成会话密钥
-    C->>S: 4. 客户端用服务器公钥加密会话密钥
-    S->>C: 5. 服务器解密，确认身份
-    Note over C,S: 此后所有通信用会话密钥加密
-    C->>S: 6. 客户端认证（密码或密钥）
-    S->>C: 7. 认证成功，建立连接
+    C->>S: 1. 发送协议版本与支持的算法列表
+    S->>C: 2. 选定算法并返回
+    C->>S: 3. 用 curve25519/ECDH 交换临时公钥
+    S->>C: 4. 返回自己的临时公钥
+    Note over C,S: 5. 双方各自算出同一个会话密钥（密钥不在网络中传输）
+    S->>C: 6. 服务器用主机私钥对交换结果签名
+    C->>S: 7. 客户端用主机公钥验证签名，确认服务器身份
+    Note over C,S: 8. 此后所有数据都用会话密钥对称加密
+    C->>S: 9. 用户认证（密码或用户公钥）
+    S->>C: 10. 认证通过，进入会话
 ```
 
 ## 32.3 SSH 客户端使用：ssh 命令
@@ -181,9 +187,11 @@ PermitRootLogin no
 # 只允许root用密钥登录（折中方案）
 PermitRootLogin prohibit-password
 
-# 完全禁止
-PermitRootLogin no
+# 只允许root执行预先指定的命令，不允许交互式登录（最严格）
+PermitRootLogin forced-commands-only
 ```
+
+> `prohibit-password` 和它的小名 `without-password` 是同一个意思：**密码登录不行，密钥登录可以**。取值的完整清单是 `yes`、`no`、`prohibit-password`、`forced-commands-only`，写别的值 sshd 会**拒绝启动**（先 `sshd -t` 校验）。
 
 ### 32.4.3 PasswordAuthentication：密码认证
 
@@ -224,6 +232,8 @@ Port 2222
 sudo systemctl restart sshd
 ```
 
+> **服务名在不同发行版不一样**：RHEL/CentOS/Rocky 上服务叫 `sshd`；Debian/Ubuntu 上叫 `ssh`（`sudo systemctl restart ssh`）。写错了会报 `Unit sshd.service not found`。用 `systemctl status ssh` / `systemctl status sshd` 试一下就知道自己机器上是哪个。
+
 > **远程修改SSH端口的注意事项**：如果通过SSH远程修改端口，**一定要先开一个新的SSH连接测试新端口是否通**，再关闭旧连接！否则你可能把自己锁在外面，只能去机房接显示器。
 
 ## 32.5 SSH 密钥对生成：ssh-keygen
@@ -255,6 +265,9 @@ Your public key has been saved in /home/user/.ssh/id_rsa.pub
 
 `passphrase`（密码短语）是私钥的二次保护。即使你的私钥文件被人复制走，没有密码短语也无法使用。建议设置一个强密码。
 
+> **RSA 的隐藏坑**：老客户端连接新服务器时，可能报 `no matching host key type found`。原因是 OpenSSH 8.8（2021 年）起默认禁用了 SHA-1 签名的 `ssh-rsa` 算法，改用 `rsa-sha2-256/512`。如果确实要连一台很老的设备，才用 `ssh -o HostKeyAlgorithms=+ssh-rsa ...` **临时**放开（不要写进全局配置，那样等于永久降低安全性）。
+> 正因如此，新部署的机器优先选 Ed25519；只有在对接老系统时才用 RSA，且位数不低于 3072（`-b 4096` 是好习惯）。
+
 ### 32.5.2 ssh-keygen -t ed25519
 
 生成Ed25519密钥对（现代算法，更安全、更短、更快）：
@@ -285,6 +298,27 @@ Ed25519的优势：密钥更短（256位 vs RSA 4096位）、性能更好、安�
 
 > **推荐**：新系统用Ed25519，老系统兼容性要求高用RSA 4096位。
 
+### 32.5.3 ssh-agent：密码短语只输一次
+
+给私钥设了密码短语，安全是安全了，但每次登录都要输一遍，非常烦。`ssh-agent` 就是来解决这个问题的：它把解密后的私钥**放在内存里**，之后同一台机器上的 ssh/scp/git 都直接向它要，不再重复输密码短语。
+
+```bash
+# 启动 agent（大多数桌面环境会自动启动，先看有没有）
+eval "$(ssh-agent -s)"
+
+# 把私钥交给 agent（会提示输入一次密码短语）
+ssh-add ~/.ssh/id_ed25519
+
+# 列出 agent 里现有哪些密钥
+ssh-add -l
+
+# 从 agent 里移除全部密钥
+ssh-add -D
+```
+
+> **注意有效期**：agent 里的私钥在**本次登录会话期间**有效，注销/重启后就没了。macOS 可以加 `-K` 把密钥存进钥匙串（`ssh-add -K ~/.ssh/id_ed25519`），持久化跨会话；Linux 的 `~/.ssh/config` 里加 `AddKeysToAgent yes` 也能让首次输完密码后自动交给 agent。
+> **服务器上别乱用 agent 转发**：`ssh -A` 会把 agent 连接转发到远端，如果那台跳板机被攻破，攻击者可以借你的 agent 登录你能去的其他机器。只在信任的机器上转发。
+
 ## 32.6 SSH 公钥认证：无密码登录
 
 公钥认证的原理：客户端持有私钥，服务器持有公钥。登录时，服务器生成一个随机挑战，客户端用私钥签名后发回，服务器用公钥验证——整个过程不需要传输密码。
@@ -298,27 +332,33 @@ Ed25519的优势：密钥更短（256位 vs RSA 4096位）、性能更好、安�
 cat ~/.ssh/authorized_keys
 ```
 
-文件格式：每行一个公钥，内容是`ssh-rsa AAAA... user@hostname`这样的字符串。
+文件格式：每行一个公钥，内容形如 `ssh-ed25519 AAAAC3Nza... user@hostname` 或 `ssh-rsa AAAAB3Nza... user@hostname`（`ssh-rsa` 开头的是 RSA 公钥，`ssh-ed25519` 开头的是 Ed25519 公钥，末尾的 `user@hostname` 只是注释，方便辨认是谁的钥匙）。
+
+> **想让某个公钥只能做特定的事**（比如只允许从固定 IP 登录、禁止端口转发），可以在每行开头加选项：`from="192.168.1.0/24",no-agent-forwarding ssh-ed25519 AAAA...`。
 
 ### 32.6.2 权限：700、600
 
 SSH对权限要求非常严格！如果权限不对，SSH会拒绝使用密钥。
 
 ```bash
-# 用户home目录权限必须是700或更严格（不能有组内用户可写）
+# ~/.ssh 目录权限推荐 700（至少不能让别人可写）
 chmod 700 ~/.ssh
 
-# authorized_keys文件权限必须是600
+# authorized_keys 文件权限推荐 600（至少不能让别人可写）
 chmod 600 ~/.ssh/authorized_keys
 
-# 公钥文件权限可以是644
-chmod 644 ~/.ssh/id_rsa.pub
+# 私钥权限必须是 600，绝不能给别人可读
+chmod 600 ~/.ssh/id_ed25519
+
+# 公钥文件权限随意，通常 644
+chmod 644 ~/.ssh/id_ed25519.pub
 ```
 
 常见权限问题：
 
-- `chmod 777 ~/.ssh`：权限太开，SSH拒绝使用（"It is required that your private key files are NOT accessible by others"）
-- SSH会同时检查用户home目录和`.ssh`目录的权限
+- `chmod 777 ~/.ssh`：权限太开，SSH 拒绝使用，报 `Authentication refused: bad ownership or modes for directory` 或 `It is required that your private key files are NOT accessible by others`
+- **家里目录（home）也参与检查**：如果 `/home/alice` 或它对应用户的主目录**对组或其他用户可写**（比如 `chmod 777 ~`），SSH 同样会拒绝公钥认证，报 `bad ownership or modes for directory /home/alice`。注意**可写**才是关键，`755`/`750` 都没问题，不是"必须 700"
+- `.ssh` 目录归**登录用户本人**所有，不能属于 root 或其他用户，否则一样失败
 
 ## 32.7 ssh-copy-id 公钥推送工具
 
@@ -507,6 +547,39 @@ ssh -R 8080:localhost:80 user@home-pc
 
 > **实战场景**：内网服务器没有公网IP，无法从外部访问。用远程转发，通过一台有公网IP的云服务器做跳板，实现从公网访问内网服务器。
 
+### 32.9.3 ProxyJump：一条命令穿过跳板机
+
+安全章节提到的"跳板机（Bastion）"是最常见的场景：你要访问的内网机器不暴露公网，必须先 SSH 到一台有公网 IP 的跳板机，再从跳板机连进内网。传统的做法是先连跳板机、再在跳板机上执行一次 `ssh`，很不方便。`-J`（ProxyJump）能一步到位。
+
+```bash
+# 直接连到内网机器，中间自动经过跳板机（不用手动两次 ssh）
+ssh -J user@bastion.example.com user@10.0.0.50
+
+# 跳板机和目标都指定端口
+ssh -J user@bastion.example.com:2222 -p 22 user@10.0.0.50
+
+# 多级跳板（先过 jump1 再过 jump2）
+ssh -J user@jump1,user@jump2 user@10.0.0.50
+```
+
+写进 `~/.ssh/config`，以后一句 `ssh db` 就能穿过去：
+
+```bash
+# ~/.ssh/config
+Host bastion
+    HostName bastion.example.com
+    User alice
+    Port 2222
+    IdentityFile ~/.ssh/id_ed25519
+
+Host db
+    HostName 10.0.0.50
+    User alice
+    ProxyJump bastion        # 自动经过上面那台跳板机
+```
+
+> **ProxyJump 比"端口转发 + 跳板机上装 nc"的老办法好得多**：它全程加密、不依赖跳板机上装什么工具、也不会在中途裸奔。如果跳板机很老、客户端不支持 `-J`，可以用等价的 `-o ProxyCommand="ssh -W %h:%p bastion"`（注意 `%h`/`%p` 是 ssh 自己的占位符，不是 shell 变量）。scp/sftp 也支持 `-o ProxyJump=bastion`。
+
 ## 32.10 SSH 隧道：SOCKS 代理
 
 SSH可以建立一个SOCKS5代理服务器，通过SSH隧道转发流量。适合在公共WiFi下安全上网，或者访问特定网络。
@@ -523,11 +596,16 @@ ssh -D 1080 user@remote-server
 所有通过这个代理的流量都会经过SSH隧道加密传输，在远程服务器上以服务器IP访问目标网站。
 
 ```bash
-# 保持后台运行（用Ctrl+Shift+T挂起当前session）
-# 或使用autossh自动重连
+# 让隧道在后台常驻（-N 不执行远程命令，-f 转入后台）
+ssh -f -N -D 1080 user@remote-server
+
+# 配合 autossh 在断开后自动重连
 sudo apt install autossh
-autossh -M 20000 -D 1080 user@remote-server
+autossh -M 0 -f -N -D 1080 -o ServerAliveInterval=30 -o ServerAliveCountMax=3 user@remote-server
 ```
+
+> **`-M 20000` 是旧写法**：老版本 autossh 需要一条额外的监控端口（`-M`），现代 autossh 推荐用 `-M 0` 关闭它，改靠 SSH 自带的 `ServerAliveInterval`/`ServerAliveCountMax` 探测连接是否还活着。
+> **关于"挂起当前 session"**：`Ctrl+Shift+T` 是终端软件（如 GNOME Terminal）的"新建标签页"，**不是**把进程放到后台。要让前台程序转入后台，应该按 `Ctrl+Z` 暂停它，再输入 `bg` 让它后台继续，或者干脆像上面那样用 `-f` 启动时就转后台。
 
 ## 32.11 SSH 安全加固
 
@@ -548,11 +626,13 @@ PubkeyAuthentication yes
 
 ### 32.11.2 更改默认端口
 
-把端口从22改成其他端口，减少99%的自动化攻击扫描：
+把端口从 22 改成其他端口，能让互联网上大量"扫 22 端口"的自动化机器人直接略过你，日志里的爆破噪音会明显减少：
 
 ```bash
 Port 2222
 ```
+
+> **但要清醒**：改端口**不是**安全措施，只是减少噪音的"降噪手段"。真正的安全来自密钥认证、防火墙白名单和 fail2ban。你仍然会看到少量扫全网端口的攻击（几天内就可能扫到你改后的端口），别以为改了端口就万事大吉。
 
 ### 32.11.3 限制用户
 
@@ -580,9 +660,11 @@ PermitRootLogin no
 # 只允许192.168.1.0/24网段连接SSH
 sudo ufw allow from 192.168.1.0/24 to any port 2222
 
-# 禁止所有连接SSH（慎用，别把自己锁外面）
+# 禁止通过22端口连接SSH（已经改用2222端口后再执行！否则会把自己锁在外面）
 sudo ufw deny 22/tcp
 ```
+
+> **顺序很重要**：改成 2222 端口后，先开一个新窗口**确认 2222 能连上**，再执行 `ufw deny 22/tcp`，最后才关闭旧连接。另外 ufw 在 RHEL 系默认不装，那边用 `firewall-cmd`（见防火墙章节）。
 
 **生产环境SSH加固完整配置**：
 
@@ -668,6 +750,9 @@ maxretry  = 5
 bantime   = 3600
 ```
 
+> **`logpath` 在发行版间不一样**：Debian/Ubuntu 的 SSH 日志在 `/var/log/auth.log`，而 RHEL/CentOS/Rocky 在 `/var/log/secure`。写错会导致 jail 一直"抓不到失败记录"，看似启动正常其实毫无作用。
+> 另外可以用 `banaction` 指定封禁方式（比如 `banaction = nftables-multiport` 适配 nftables 后端的系统），不确定时先用默认值。
+
 配置说明：
 
 - `enabled`：是否启用这个jail
@@ -722,11 +807,14 @@ sshd
 - **ssh命令**：登录（`ssh user@host`）、指定端口（`-p`）、指定密钥（`-i`）
 - **sshd_config**：服务器配置，端口、认证方式、安全加固
 - **ssh-keygen**：生成密钥对，RSA/Ed25519两种推荐算法
-- **公钥认证**：authorized_keys文件，权限700/600是铁律
+- **ssh-agent**：把私钥解密后放进内存，密码短语只输一次
+- **公钥认证**：authorized_keys文件，`.ssh` 用 700、私钥和 authorized_keys 用 600，且不能让别人可写
 - **ssh-copy-id**：一键推送公钥到服务器
 - **~/.ssh/config**：别名配置，让ssh命令从10个参数变成1个单词
-- **端口转发**：本地转发`-L`和远程转发`-R`，SSH隧道穿墙
+- **端口转发**：本地转发`-L`和远程转发`-R`、`-J` 跳板机，SSH隧道穿墙
 - **安全加固**：改端口、禁用密码、限制用户、防火墙
 - **fail2ban**：自动封禁暴力破解者，保护SSH服务
 
 SSH是Linux管理员每天都要用的工具，花时间熟悉它、配置好它，值得。
+
+> **最容易搞错的一点**：SSH 的会话密钥是双方通过密钥交换（Curve25519/ECDH）**各自算出来**的，不是"用服务器公钥加密后传过去"；服务器的公钥只用来**验证身份**，用户的公钥只用来**做用户认证**。把这两件事分清，SSH 的原理就不会再绕。

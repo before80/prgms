@@ -237,7 +237,7 @@ func main() {
 ```
 
 **工作流程：**
-```
+```text
 Get() ──> 池非空 ──> 返回缓存对象
    │
    └──> 池为空 ──> 调用New()创建
@@ -252,7 +252,6 @@ package main
 
 import (
     "fmt"
-    "time"
 )
 
 func leakExample() {
@@ -365,6 +364,8 @@ func main() {
 
 ### 25.5.1 查看内存统计
 
+想知道 GC 到底干了多少活、堆有多大，可以读 `runtime.MemStats`；更实时的做法是 `runtime/metrics`：
+
 ```go
 package main
 
@@ -416,4 +417,3 @@ func main() {
 - 不要返回局部变量的指针（Go会处理，但影响GC）
 - 及时清理不需要的引用
 - 高频对象使用对象池
-

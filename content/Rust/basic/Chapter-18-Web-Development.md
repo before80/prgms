@@ -60,7 +60,10 @@ Axum 是由 Tower 团队打造的 Web 框架，天生就站在 Tokio 这个巨�
 
 Axum 的设计哲学是"简洁而不简单"——它没有 Rocket 那么多魔法宏，也没有 Warp 那么函数式，但它的 API 非常直观，而且与 tower 中间件系统无缝集成。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：axum、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use axum::{
     routing::get,
     Router,
@@ -101,7 +104,10 @@ Actix-web 是 Rust Web 框架中的"性能怪兽"。它的性能可以媲美 C/C
 
 Actix-web 的设计理念是"让高性能成为默认设置"——它的异步处理、连接管理、HTTP 解析都是经过精心优化的。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：actix_web
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use actix_web::{web, App, HttpServer, HttpResponse};
 
 async fn index() -> HttpResponse {
@@ -176,7 +182,10 @@ Poem 是一个"轻量级选手"，它的设计目标就是做一个符合 HTTP �
 
 Poem 还有一个亮点，就是它对 OpenAPI（也就是以前的 Swagger）的支持非常好。如果你需要生成 API 文档，Poem 能让你省不少力气。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：poem、serde、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use poem::{
     handler,
     listener::TcpListener,
@@ -243,7 +252,10 @@ Warp 是"过滤器组合"理念的践行者。它基于 tower 的 Service trait 
 
 Warp 的过滤器就像是管道——数据从一端流入，经过各种过滤器的处理，从另一端流出。这种设计非常适合处理请求验证、参数提取等场景。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：serde_json、tokio、warp
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use warp::{Filter, Rejection, Reply};
 use std::convert::Infallible;
 
@@ -294,7 +306,7 @@ Warp 的学习曲线较陡，但一旦你掌握了过滤器的组合技巧，就
 
 ### 18.2.1 项目结构
 
-### 18.2.1.1 Cargo.toml 依赖（axum / tower / tokio）
+#### 18.2.1.1 Cargo.toml 依赖（axum / tower / tokio）
 
 # Axum 项目结构与依赖配置
 
@@ -317,12 +329,12 @@ cd my-axum-app
 [package]
 name = "my-axum-app"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 # Axum Web 框架核心
 # 这是我们的主角，所有 Web 开发的基础
-axum = "0.7"
+axum = "0.8"
 
 # Tokio 异步运行时
 # 想象 Tokio 是那个帮你处理所有繁琐异步工作的超级管家
@@ -330,11 +342,11 @@ tokio = { version = "1", features = ["full"] }
 
 # Tower 网络库
 # Tower 提供了一整套中间件和服务抽象，让你的代码模块化、可复用
-tower = "0.4"
+tower = "0.5"
 
 # Tower HTTP 扩展
 # 包含 CORS、压缩、静态文件服务等常用中间件
-tower-http = { version = "0.5", features = ["cors", "compression-full", "fs"] }
+tower-http = { version = "0.7", features = ["cors", "compression-full", "fs"] }
 
 # serde 用于序列化/反序列化
 # 有了 serde，JSON 和 Rust 结构体之间转换就像变魔术一样简单
@@ -378,7 +390,10 @@ my-axum-app/
 
 下面是一个最简单的 Axum 程序模板：
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：axum、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use axum::{
     routing::get,
     Router,
@@ -408,6 +423,8 @@ async fn handler() -> &'static str {
 
 ## Axum 核心依赖解析
 
+Axum 本身很薄，能力主要来自 tower / hyper 这一层；先看清依赖关系，后面读中间件代码会轻松很多。
+
 ```
 axum
  ├── axum-core    # 核心类型，如 Request、Response
@@ -427,7 +444,10 @@ tower-http
 
 Axum 的路由系统非常直观——你只需要定义路径和对应的处理函数即可。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：axum、serde、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use axum::{
     routing::{get, post, put, delete},
     Router,
@@ -506,7 +526,10 @@ async fn main() {
 
 当你的 API 变得复杂时，你需要对路由进行分组。Axum 允许你创建嵌套路由，就像整理文件夹一样。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：axum、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use axum::{
     routing::{get, post},
     Router,
@@ -561,7 +584,10 @@ async fn main() {
 
 tower-http 是 tower 生态在 HTTP 领域的扩展包，提供了很多开箱即用的中间件。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：axum、tokio、tower_http
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use axum::{
     routing::get,
     Router,
@@ -597,7 +623,10 @@ async fn main() {
 
 你可以使用 `axum::middleware::from_fn` 来创建自定义中间件。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：axum、tokio、tower
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use axum::{
     routing::get,
     Router,
@@ -656,7 +685,10 @@ hyper 是 Rust 生态中最底层、最核心的 HTTP 库。它直接操作 HTTP
 
 hyper 的设计理念是"专注、极致"——它只做 HTTP 相关的事情，而且要做到最好。其他的事情（如路由、中间件、模板）都交给上层的框架去做。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：hyper、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use hyper::{
     body::HttpBody,
     server::conn::http1,
@@ -716,7 +748,10 @@ hyper 支持 HTTP/1.1 和 HTTP/2，而且它的性能经过了大量优化。如
 
 hyper 不仅能做服务器，还能做客户端。以下是一个简单的 HTTP GET 请求示例：
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：hyper、tokio、tower
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use hyper::{body::HttpBody, Client};
 use hyper::body::Bytes;
 use tower::ServiceExt;
@@ -771,12 +806,20 @@ tower 的设计哲学是"组合优于继承"——你可以通过层层包装（
 
 #### 18.3.2.1 Service trait
 
-```rust
-use std::future::{Future, FutureExt};
+`Service` 是 tower 的核心抽象：把请求映射成 Future 形式的响应，中间件全靠它来组合。
+
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：futures、tokio、tower
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
+use std::future::Future;
 use std::task::{Context, Poll};
 use std::pin::Pin;
-use tower::{Service, Layer};
 use std::time::Instant;
+// ⚠️ 外部依赖：tower（Service trait）、futures（FutureExt::boxed）、tokio。
+//    FutureExt 来自 futures crate，不是 std::future！
+use futures::FutureExt;
+use tower::{Service, Layer};
 
 // === 基础 Service ===
 // 注意：EchoService 需要实现 Clone，因为 LogService 和 TimeoutService
@@ -809,6 +852,9 @@ impl<S, T> Service<T> for LogService<S>
 where
     S: Service<T> + Clone + Send + 'static,
     S::Future: Send + 'static,
+    // 下面用 `{:?}` 打印请求和响应，所以要加上 Debug 约束
+    T: std::fmt::Debug,
+    S::Response: std::fmt::Debug,
 {
     type Response = S::Response;
     type Error = S::Error;
@@ -842,6 +888,8 @@ impl<S, T> Service<T> for TimeoutService<S>
 where
     S: Service<T> + Clone + Send + 'static,
     S::Future: Send + 'static,
+    T: std::fmt::Debug + Send + 'static,
+    S::Response: std::fmt::Debug,
 {
     type Response = S::Response;
     type Error = tower::timeout::TimeoutError<S::Error>;
@@ -922,7 +970,10 @@ sqlx 是 Rust 数据库界的"学霸"——它在编译期就能验证你的 SQL
 
 sqlx 的核心秘密在于 `sqlx::query!` 宏——它会在编译时连接数据库并验证 SQL，而不是等到运行时才发现问题。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：chrono、serde、sqlx、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use sqlx::{postgres::PgPoolOptions, FromRow, query_as};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -1165,7 +1216,10 @@ Rust 的数据库连接池主要有三个玩家：
 - **deadpool**（支持多种后端，包括 PostgreSQL、Redis、MongoDB）
 - **bb8**（经典的连接池实现，稳定可靠）
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：mongodb、redis、sqlx、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::time::Duration;
 
@@ -1261,7 +1315,10 @@ graph LR
 
 sea-orm 最吸引人的地方是它的 **Active Record 模式**——你的模型自带 CRUD 方法，写起来非常自然。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：chrono、sea_orm、serde、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use sea_orm::{Database, DbConn, EntityTrait, Set, ActiveModelTrait, QueryTrait, PaginatorTrait};
 use serde::{Deserialize, Serialize};
 
@@ -1384,6 +1441,8 @@ async fn main() {
 
 ### 18.4.5 数据库小结
 
+把前面几套方案放在一起对比：`sqlx` 走「编译期校验 SQL」的路线，`diesel` 走类型安全的查询构建器路线。
+
 ```mermaid
 graph TD
     A[数据库库选择] --> B[sqlx]
@@ -1417,7 +1476,10 @@ Web 开发中，安全永远是第一位的。一个漂亮的网站如果被黑�
 
 JWT 是一种"无状态"的认证方式——服务器不需要存储用户的会话信息，只需要验证 Token 的签名即可。这就像是发"特别通行证"——只要通行证是官方签发的（且没过期），就能畅行无阻。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：chrono、jsonwebtoken、serde、sha2、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use serde::{Deserialize, Serialize};
 use chrono::{Utc, Duration};
 use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
@@ -1525,7 +1587,10 @@ async fn main() {
 
 与 JWT 不同，Session 是"有状态"的——服务器需要存储会话数据，客户端只需要持有 Session ID。这像是传统的"会员卡"模式——卡本身不值钱，但卡号关联着服务器上的信息。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：chrono、serde、tokio、uuid
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use chrono::{Utc, Duration};
@@ -1659,7 +1724,10 @@ async fn main() {
 
 OAuth2 是一个"委托授权"协议——它允许用户授权第三方应用访问他们在某个服务上的数据，而不需要分享密码。这就像是你授权装修公司进入你家（但不给他们钥匙），装修完成后你可以随时收回授权。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：serde、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use serde::{Deserialize, Serialize};
 
 // === OAuth2 核心概念 ===
@@ -1788,7 +1856,10 @@ async fn main() {
 
 CSRF 攻击的原理是：攻击者诱导已登录用户访问恶意页面，该页面自动用用户的 cookie 向你的网站发送请求。如果你的网站没有验证请求的来源，用户在不知情的情况下就执行了攻击者想要的操作（比如转账、改密码）。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：serde、sha2、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // === CSRF 防护策略 ===
 
 use serde::{Deserialize, Serialize};
@@ -1881,7 +1952,10 @@ async fn main() {
 
 XSS 攻击的原理是：攻击者在你的网站上注入恶意 JavaScript 代码，当其他用户访问这个页面时，恶意代码就会执行，窃取 cookie、监听输入等。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：serde、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // === XSS 防护策略 ===
 
 // ammonia 是 Rust 的 HTML 清理库，能移除危险的 HTML 标签和属性
@@ -1949,7 +2023,10 @@ async fn main() {
 
 SQL 注入的原理是：攻击者通过构造特殊的输入，让你的 SQL 查询"拐弯"，执行攻击者想要的操作（比如 `DROP TABLE`）。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：sqlx、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // === SQL 注入防护 ===
 
 use sqlx::{postgres::PgPoolOptions, query, PgPool};
@@ -1996,7 +2073,7 @@ async fn main() {
     println!("  let user = query!(\"SELECT * FROM users WHERE email = $1\", user_email)");
     println!("      .fetch_one(pool).await?;");
     println!("  // ⚠️ 错误做法");
-    println!("  let sql = format!(\"SELECT * FROM users WHERE email = '{}'\", user_email);");
+    println!("  let sql = format!(\"SELECT * FROM users WHERE email = '{{}}'\", user_email);");
 
     println!("\n💉 SQL 注入防护完成！");
 }
@@ -2017,7 +2094,10 @@ async fn main() {
 
 HTTP 是明文传输的——如果有人在网络上窃听，他们能直接看到你发送的用户名、密码、信用卡号等敏感信息。HTTPS 就是 HTTP 的加密版本，它在 HTTP 和 TCP 之间加了一层 TLS（传输层安全协议），让数据在传输过程中是加密的。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：rustls、serde、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // === HTTPS/TLS 配置 ===
 
 // 在生产环境中，HTTPS 配置通常在 Web 服务器层面完成（Nginx、Caddy 等）
@@ -2079,9 +2159,10 @@ async fn main() {
     println!("\n🚀 推荐: 使用 Caddy 服务器");
     println!("  Caddy 会自动为你申请 Let's Encrypt 证书");
     println!("  配置简单到只需要写:");
-    println!("  localhost {");
+    // 注意：println! 的格式串里要打印花括号必须写成 {{ 和 }}
+    println!("  localhost {{");
     println!("      reverse_proxy localhost:3000");
-    println!("  }");
+    println!("  }}");
 
     println!("\n🔒 HTTPS/TLS 配置完成！");
 }
@@ -2100,7 +2181,10 @@ async fn main() {
 
 速率限制（Rate Limiting）是防止 DDoS 和暴力破解的利器——它限制一个 IP 或用户在单位时间内的请求次数，超出限制就返回"滚，再来就拉黑"的错误。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：serde、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // === 速率限制实现 ===
 
 use std::collections::HashMap;
@@ -2282,6 +2366,8 @@ fn main() {
 
 ### 18.5.6 Web 安全全景图
 
+下图把 Web 应用常见的安全关注点按层次串起来，可以直接当作上线前的检查清单。
+
 ```mermaid
 graph TD
     A[Web 安全全景] --> B[认证层]
@@ -2339,6 +2425,8 @@ graph TD
 | | XSS/SQL/CRSF | 攻击防护 |
 
 ### 学习路径建议
+
+如果不知道该怎么排学习顺序，可以沿着下图这条主线从基础一路走到上生产。
 
 ```mermaid
 graph LR

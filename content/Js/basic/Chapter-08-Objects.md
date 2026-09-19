@@ -9,7 +9,9 @@ draft = false
 +++
 # 第 8 章 对象
 
-如果说数组是一条有序的「走廊」，那对象就是一个有标签的「储物柜」——每个格子里放什么，由你决定。对象是 JavaScript 的灵魂，几乎所有东西都是对象。
+如果说数组是一条有序的「走廊」，那对象就是一个有标签的「储物柜」——每个格子里放什么，由你决定。对象是 JavaScript 的灵魂：除了 `undefined`、`null`、布尔值、数字、字符串、Symbol、BigInt 这些基本类型，其余的值几乎都是对象，数组、函数、日期乃至正则都算。
+
+> 说明：本章 `console.log` 后面的注释表示该表达式的求值结果。浏览器控制台（Chrome / Firefox）和 Node 打印对象时的排版并不完全一致（例如 Chrome 会显示成 `{name: '张三'}`），请以实际输出为准，重点理解语义。
 
 ## 8.1 对象基础
 
@@ -273,13 +275,20 @@ const weird = {
     name: "I am weird"
 };
 
-// console.log(weird.hasOwnProperty("name")); // TypeError! 永远返回 false！
+console.log(weird.hasOwnProperty("name")); // false（不报错，但答案是错的！这就是问题所在）
+
+// 更极端的情况：用 Object.create(null) 创建的对象根本没有 hasOwnProperty 方法
+const bare = Object.create(null);
+bare.name = "无原型对象";
+// bare.hasOwnProperty("name"); // TypeError: bare.hasOwnProperty is not a function
 
 // 解决方案1：Object.prototype.hasOwnProperty.call
 console.log(Object.prototype.hasOwnProperty.call(weird, "name")); // true
+console.log(Object.prototype.hasOwnProperty.call(bare, "name")); // true（连没有原型的对象也能查）
 
 // 解决方案2：Object.hasOwn（ES2022+，最推荐）
 console.log(Object.hasOwn(weird, "name")); // true
+console.log(Object.hasOwn(bare, "name")); // true
 ```
 
 ### hasOwnProperty：检查属性是否存在
@@ -495,22 +504,38 @@ Object.defineProperty(obj, "fixed", {
 delete obj.fixed; // 不报错（严格模式会），但属性不会被删除
 console.log(obj.fixed); // "不能删除"
 
-// configurable: false 的属性，不能修改描述符
-Object.defineProperty(obj, "fixed2", {
-    value: "不能修改",
-    configurable: false,
-    writable: true
+// configurable: false 之后，好几类描述符修改都会被拒绝
+Object.defineProperty(obj, "locked", {
+    value: 1,
+    writable: false,
+    enumerable: true,
+    configurable: false
 });
 
-// 严格模式下会报错
-try {
-    Object.defineProperty(obj, "fixed2", {
-        value: "新值",
-        writable: false // 尝试修改 writable
-    });
-} catch (e) {
-    console.log("不能修改描述符！"); // 不能修改描述符！
+// 下面每一次都尝试都会抛 TypeError（严格模式与非严格模式都会抛，因为这里走的是内部方法而非普通赋值）
+const tries = [
+    { name: "writable: false → true", desc: { writable: true } },
+    { name: "enumerable: true → false", desc: { enumerable: false } },
+    { name: "configurable: false → true", desc: { configurable: true } },
+    { name: "writable 为 false 时改 value", desc: { value: 2 } }
+];
+
+for (const { name, desc } of tries) {
+    try {
+        Object.defineProperty(obj, "locked", desc);
+        console.log(name, "→ 居然成功了");
+    } catch (e) {
+        console.log(name, "→ 被拒绝：", e.message);
+    }
 }
+// 四行都会打印「被拒绝：Cannot redefine property: locked」
+
+// 反过来，writable: true → false 是允许的（从宽松变严格）
+const obj2 = {};
+Object.defineProperty(obj2, "open", { value: 1, writable: true, configurable: false });
+Object.defineProperty(obj2, "open", { writable: false }); // 允许
+obj2.open = 99; // 普通赋值：非严格模式静默失败，严格模式抛 TypeError
+console.log(obj2.open); // 1
 ```
 
 ### getter / setter：访问器属性
@@ -519,7 +544,7 @@ getter 和 setter 允许你定义属性的「读取方法」和「写入方法�
 
 ```javascript
 const person = {
-    _name: "张三", // 私有属性（约定以下划线开头）
+    _name: "张三", // 「私有」属性：这只是团队约定，下划线没有任何强制力
     _age: 25,
 
     // getter：读取 name 时调用
@@ -542,6 +567,8 @@ console.log(person.name); // 正在读取 name... 张三
 person.name = "李四";     // 正在设置 name 为：李四
 console.log(person.name); // 正在读取 name... 李四
 ```
+
+> 下划线开头只是「请大家别直接碰」的君子协定，属性依然公开可读写。真正需要对外隐藏时，可以在类里用 `#` 私有字段，或者用闭包把变量关起来（详见第 19 章）。
 
 ### 用 getter 和 setter 实现数据验证
 
@@ -737,16 +764,25 @@ const problemObj = {
     und: undefined, // undefined 丢失
     symbol: Symbol("id"), // Symbol 丢失
     nan: NaN, // NaN 变成 null
-    infinity: Infinity, // Infinity 变成 null
-    circular: null // 循环引用的处理
+    infinity: Infinity // Infinity 变成 null
 };
-problemObj.circular = problemObj; // 循环引用！
 
+const copy = JSON.parse(JSON.stringify(problemObj));
+console.log(copy);
+// { name: '张三',
+//   date: '2026-09-14T...Z',   ← 变成字符串，不再是 Date
+//   reg: {},                    ← 正则变成空对象
+//   nan: null,                  ← NaN 变 null
+//   infinity: null }            ← Infinity 变 null
+// fn、und、symbol 三个键直接消失了
+
+// 单独看循环引用：JSON.stringify 会直接抛错
+const circular = { name: "张三" };
+circular.self = circular;
 try {
-    const copy = JSON.parse(JSON.stringify(problemObj));
-    console.log(copy);
+    JSON.stringify(circular);
 } catch (e) {
-    console.log("循环引用会导致错误！"); // 循环引用会导致错误！
+    console.log(e.name, e.message); // TypeError Converting circular structure to JSON
 }
 ```
 
@@ -782,7 +818,7 @@ function deepClone(obj) {
     // 处理普通对象
     const clone = {};
     for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
+        if (Object.hasOwn(obj, key)) {
             clone[key] = deepClone(obj[key]);
         }
     }
@@ -798,6 +834,8 @@ const copy = deepClone(original);
 copy.info.age = 30;
 console.log(original.info.age); // 25（不变！）
 ```
+
+> 这个版本只适合用来理解「深拷贝在做什么」：它没处理 `Symbol` 键、没保留原型、`Map`/`Set`/`TypedArray` 也会被当成普通对象处理。真实项目请优先使用 `structuredClone`，或者用 Lodash 的 `cloneDeep` 这类成熟实现。
 
 ### 手写深拷贝加强版：处理循环引用 / 特殊类型
 
@@ -861,10 +899,11 @@ console.log(copy === original); // false
 console.log(copy.self === copy); // true（循环引用正确处理！）
 ```
 
-### structuredClone：原生深拷贝（ES2021+）
+### structuredClone：原生深拷贝
 
 ```javascript
-// structuredClone 是 JavaScript 内置的深拷贝方法
+// structuredClone 是宿主环境（浏览器 / Node）提供的内置深拷贝方法，
+// 它不属于 ECMAScript 标准，而是 Web 平台 API。2022 年起在主流浏览器和 Node 17+ 中可用。
 // 可以处理循环引用、Set、Map、Date、RegExp 等
 
 const original = {
@@ -890,16 +929,31 @@ console.log(objClone.self === objClone); // true
 
 ```javascript
 // structuredClone 的限制
-// 1. 不能克隆函数
-// const obj = { fn: () => {} };
-// structuredClone(obj); // TypeError!
+// 1. 不能克隆函数、Symbol 值
+// structuredClone({ fn: () => {} });      // DataCloneError
+// structuredClone(Symbol("id"));          // DataCloneError
 
-// 2. 克隆 DOM 节点
+// 2. 不能克隆 DOM 节点
 // const div = document.createElement("div");
-// structuredClone(div); // DOMException!
+// structuredClone(div);                    // DataCloneError
 
-// 3. 性能：对于大对象，可能比手写深拷贝慢
+// 3. 会丢掉原型：类的实例会被「降级」成普通对象
+class Point {
+    constructor(x, y) { this.x = x; this.y = y; }
+    distance() { return Math.hypot(this.x, this.y); }
+}
+const clonedPoint = structuredClone(new Point(3, 4));
+console.log(clonedPoint instanceof Point); // false（只剩数据，方法没了）
+console.log(clonedPoint);                  // { x: 3, y: 4 }
+
+// 4. 可转移对象（Transferable）可以「搬家」而不是复制，适合大块二进制数据
+const buffer = new ArrayBuffer(8);
+const moved = structuredClone(buffer, { transfer: [buffer] });
+console.log(moved.byteLength); // 8
+console.log(buffer.byteLength); // 0（原来的被移交走了，已经不能用）
 ```
+
+> 选型建议：能用 `structuredClone` 就用它（简单、可靠）；需要保留类的方法、处理函数或 `Symbol` 时，才考虑手写深拷贝或使用成熟的库。
 
 ### 对象比较：== / === / Object.is
 
@@ -935,6 +989,8 @@ function isEqual(objA, objB) {
 console.log(isEqual(obj1, obj2)); // true（内容相同）
 ```
 
+> 注意：上面这个 `isEqual` 是「浅比较」，只对比第一层的值。嵌套对象依旧按引用比较，内容相同也会返回 `false`；要递归比较请自行扩展，或使用 `structuredClone` 思路写递归，或引入 Lodash 的 `isEqual`。
+
 ```javascript
 // Object.is()：精确比较
 console.log(Object.is(obj1, obj2)); // false（不同引用）
@@ -954,9 +1010,9 @@ console.log(Object.is(+0, -0)); // false（比 === 更准确）
 const person = { name: "张三", age: 25, city: "北京" };
 
 // 传统写法
-const name = person.name;
-const age = person.age;
-console.log(name, age); // 张三 25
+const oldName = person.name;
+const oldAge = person.age;
+console.log(oldName, oldAge); // 张三 25
 
 // 解构赋值（ES6+）
 const { name: n, age: a } = person;
@@ -1194,12 +1250,14 @@ const obj2 = {
 };
 console.log(JSON.stringify(obj2)); // {"nan":null,"infinity":null,"negInfinity":null}
 
-// 3. Symbol 作为键会被忽略，作为值会变成 undefined
+// 3. Symbol 作为键会被忽略；作为值放进对象属性时该属性也会消失
 const obj3 = {
     [Symbol("id")]: 1,
     name: Symbol("name")
 };
 console.log(JSON.stringify(obj3)); // {}
+// 但 Symbol 出现在数组里会变成 null（因为数组不能「丢」元素，只能占位）
+console.log(JSON.stringify([Symbol("a"), 1])); // [null,1]
 
 // 4. 循环引用会导致错误
 const obj4 = {};
@@ -1224,6 +1282,40 @@ const obj6 = {
 };
 console.log(JSON.stringify(obj6)); // {"zero":0,"emptyStr":"","boolFalse":false}
 // 注意：0 和 false 不会被变成 null！
+
+// 7. BigInt 会直接抛错，而不是「转成字符串」或「丢掉」
+try {
+    JSON.stringify({ big: 1n });
+} catch (e) {
+    console.log(e.name, e.message); // TypeError Do not know how to serialize a BigInt
+}
+// 要序列化 BigInt，得先用自定义 replacer 处理
+console.log(JSON.stringify({ big: 1n }, (k, v) => typeof v === "bigint" ? v.toString() : v));
+// {"big":"1"}
+
+// 8. Map 和 Set 会被序列化成空对象，因为它们的数据不在自有可枚举属性上
+console.log(JSON.stringify({ m: new Map([["a", 1]]), s: new Set([1, 2]) })); // {"m":{},"s":{}}
+// 想序列化它们，先转成数组或普通对象
+console.log(JSON.stringify({ m: [...new Map([["a", 1]])] })); // {"m":[["a",1]]}
+
+// 9. 类实例的方法会丢失，只留下数据属性
+class Point {
+    constructor(x, y) { this.x = x; this.y = y; }
+    toString() { return `(${this.x}, ${this.y})`; }
+}
+console.log(JSON.stringify(new Point(3, 4))); // {"x":3,"y":4}
+
+// 10. -0 会变成 0，无穷大以外的特殊值都要留个心眼
+console.log(JSON.stringify({ neg: -0 })); // {"neg":0}
+const parsedBack = JSON.parse('{"neg":0}');
+console.log(Object.is(parsedBack.neg, -0)); // false
+```
+
+```javascript
+// 顺带提醒：replacer 传数组时，只会保留列表里的键，而且是逐层过滤
+const nested = { a: 1, b: { a: 2, c: 3 } };
+console.log(JSON.stringify(nested, ["a", "b"])); // {"a":1,"b":{"a":2}}
+// 注意 b.c 也一起没了 —— 数组形式的 replacer 无法只作用于顶层
 ```
 
 ---
@@ -1234,15 +1326,15 @@ console.log(JSON.stringify(obj6)); // {"zero":0,"emptyStr":"","boolFalse":false}
 
 1. **对象基础**：字面量、`new Object()`、`Object.create()` 的区别；属性访问（点语法 vs 中括号语法）；动态添加/修改/删除属性。
 
-2. **属性操作**：`Object.keys/values/entries`、`Object.fromEntries`、`Object.hasOwn()`、`in` 运算符。
+2. **属性操作**：`Object.keys/values/entries`、`Object.fromEntries`、`Object.hasOwn()`、`in` 运算符。注意 `hasOwnProperty` 在对象自定义了同名属性或对象没有原型（`Object.create(null)`）时不可靠，`Object.hasOwn` 是新代码的首选；`in` 会连原型链一起查。
 
-3. **属性描述符**：`configurable`、`enumerable`、`value`、`writable`、`getter/setter`；`Object.defineProperty`/`Object.defineProperties`。
+3. **属性描述符**：`configurable`、`enumerable`、`value`、`writable`、`getter/setter`；`Object.defineProperty`/`Object.defineProperties`。`configurable: false` 之后不仅不能删除，连改 `enumerable`、把 `writable` 从 `false` 改回 `true` 都会被拒绝（`writable` 由 `true` 改 `false` 仍允许）。下划线开头的「私有属性」只是约定，真私有要用 `#` 或闭包。
 
-4. **拷贝与比较**：赋值是引用复制；浅拷贝（`Object.assign`、展开运算符）只拷贝一层；深拷贝（`JSON.parse(JSON.stringify())`、手写递归、`structuredClone`）；对象比较用 `===`（引用比较）或手动比较内容。
+4. **拷贝与比较**：赋值是引用复制；浅拷贝（`Object.assign`、展开运算符）只拷贝一层；深拷贝优先用 `structuredClone`（可处理循环引用、`Date`、`Map`、`Set`，但克隆不了函数、`Symbol`、DOM 节点，也会丢掉原型），`JSON.parse(JSON.stringify())` 只适合纯数据；对象比较默认是引用比较（`==`、`===`、`Object.is` 都不比较内容）。
 
-5. **解构与展开**：对象解构 `const { name, age } = person`；数组解构 `const [a, b, ...rest] = arr`；解构别名 `const { name: userName }`；解构默认值 `const { name = "匿名" }`；展开运算符合并对象。
+5. **解构与展开**：对象解构 `const { name, age } = person`；数组解构 `const [a, b, ...rest] = arr`；解构别名 `const { name: userName }`；解构默认值只在值为 `undefined` 时生效；剩余模式 `...rest` 收集剩下的属性；展开运算符合并对象时后面的会覆盖前面的，且同样是浅拷贝。
 
-6. **序列化**：`JSON.stringify`（参数 replacer、space）和 `JSON.parse`（参数 reviver）；序列化注意事项（undefined/函数忽略、循环引用报错等）。
+6. **序列化**：`JSON.stringify`（参数 replacer、space）和 `JSON.parse`（参数 reviver）；`toJSON` 可自定义输出。陷阱很多：`undefined`、函数、`Symbol` 值会被丢掉，`NaN`/`Infinity` 变 `null`，`BigInt` 直接抛 `TypeError`，循环引用报错，`Map`/`Set`/正则变成空对象，类实例会丢失方法。
 
 ---
 
@@ -1258,6 +1350,3 @@ console.log(JSON.stringify(obj6)); // {"zero":0,"emptyStr":"","boolFalse":false}
 - ✅ 第8章：对象
 
 接下来你可以继续学习：函数、作用域与闭包、原型与原型链、异步编程、模块化、ES6+ 新特性等。加油！🚀
-
-
-

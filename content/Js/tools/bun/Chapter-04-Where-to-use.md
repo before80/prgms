@@ -16,7 +16,7 @@ draft = false
 
 ## 4.1 前端项目依赖管理
 
-Bun 的包管理器 `bun install` 是 npm/yarn/pnpm 的直接替代品，而且**快 30 倍**。
+Bun 的包管理器 `bun install` 是 npm/yarn/pnpm 的直接替代品。官方给出的口径是**安装速度最多可提升约 25 倍**（相对 `npm install`，特定基准场景；实际差距取决于是首次安装还是缓存安装、依赖数量与磁盘速度）。
 
 前端项目通常有大量的 npm 依赖，第一次 `npm install` 可能要等几分钟。用 Bun 的话，同样的项目几十秒搞定。依赖少的话？十秒以内收工，喝口水的时间都省了。
 
@@ -491,34 +491,45 @@ console.log(signedUrl);
 await s3file.delete();
 ```
 
-### Bun.KV（轻量级键值存储）
+### 键值存储与缓存：没有内置 KV，但有 Redis 客户端
 
-Bun.KV 是 Bun 内置的轻量键值存储，适合简单的持久化需求，和 SQLite 是兄弟关系，但用起来更简单：
+> ⚠️ **澄清一个常见误传**：Bun **没有** `Bun.KV` 这类内置键值存储 API。截至 1.4.2，官方文档 "Data & Storage" 分类下只有 Cookies、File I/O、Streams、Binary Data、Archive、SQL、SQLite、S3、Redis；`Bun.KV.open(...)`、`kv.setMany(...)` 之类的写法并不存在，写了会直接报错。看到这类代码请以官方文档为准。
+
+键值 / 缓存需求，按下面这张表选方案就不会错：
+
+| 需求 | 推荐方案 |
+|------|----------|
+| 单机、随应用一起走的小数据 | `bun:sqlite`（建一张 key/value 表，事务、索引、查询都现成） |
+| 分布式缓存、会话、限流计数、消息队列 | `Bun.redis`（1.3+，同时支持 Valkey） |
+| 存文件、图片、备份、静态资源 | `Bun.s3`（1.2+，兼容 R2 / MinIO 等 S3 协议存储） |
+
+`Bun.redis` 提供两种用法：全局单例（默认读环境变量 `REDIS_URL`）与自建连接：
 
 ```typescript
-import { Bun } from "bun";
-const kv = await Bun.KV.open("my-data");
+// 用法一：全局单例（适合大多数场景）
+import { redis } from "bun";
 
-// 存储（永久）
-await kv.set("name", "Bun Fan");
-const name = await kv.get("name");
-console.log(name); // Bun Fan
+await redis.set("name", "Bun Fan");
+console.log(await redis.get("name"));   // "Bun Fan"
 
-// 带过期时间（秒）
-await kv.set("token", "abc123", { expireIn: 3600 }); // 1小时
+await redis.set("session:123", "active");
+await redis.expire("session:123", 3600); // 1 小时后过期
+console.log(await redis.ttl("session:123"));
 
-// 删除
-await kv.delete("name");
+await redis.incr("counter");            // 原子自增，适合计数器/限流
+await redis.del("name");
 
-// 批量操作
-await kv.setMany([
-  ["key1", "value1"],
-  ["key2", "value2"],
-]);
+// 用法二：自建连接，可以指定地址，也能用于发布/订阅
+import { RedisClient } from "bun";
 
-const all = await kv.getMany(["key1", "key2"]);
-console.log(all); // ["value1", "value2"]
+const client = new RedisClient("redis://localhost:6379");
+await client.connect();
+await client.set("name", "Bun Fan");
+console.log(await client.get("name"));
+client.close();
 ```
+
+> 💡 官方把 Redis 的**发布/订阅**（1.2.23 加入）标注为实验性：订阅会独占连接，带订阅的客户端只能调用订阅相关方法，不能再执行普通命令，需要另外建一个客户端做读写。
 
 ---
 
@@ -528,13 +539,13 @@ console.log(all); // ["value1", "value2"]
 
 | 场景 | 核心能力 | 关键命令 |
 |------|----------|----------|
-| 前端依赖管理 | 包安装快 30 倍 | `bun install` / `bun add` |
+| 前端依赖管理 | 包安装最多快约 25 倍（官方口径） | `bun install` / `bun add` |
 | TS/JS 开发 | TypeScript 开箱即用 | `bun run` |
 | HTTP 服务 | 比 Node.js 快 2-3 倍 | `Bun.serve` |
 | 前端构建 | 极速打包 + HMR | `bun build` |
 | 自动化脚本 | 跨平台 `$` 语法 | `$` 模板字符串 |
 | Serverless | Cloudflare / Vercel 支持 | 零配置部署 |
-| 数据库 | SQLite/PostgreSQL/MySQL(v1.3)/Redis(v1.3)/S3/KV | 内置驱动，无需安装 |
+| 数据库与存储 | SQLite/PostgreSQL/MySQL/MariaDB(v1.3)/Redis(v1.3)/S3(v1.2) | 内置驱动，无需安装 |
 | 测试 | Jest 兼容，TypeScript 原生 | `bun test` |
 
 总的来说，Bun 覆盖了 JavaScript 开发中**绝大多数高频场景**，而且每个场景都比传统工具更快、更简单。你不需要换掉所有工具，只需要在任何一个环节试试 Bun——大概率就回不去了。

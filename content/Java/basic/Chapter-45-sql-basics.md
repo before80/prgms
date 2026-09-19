@@ -21,16 +21,20 @@ draft = false
 
 ### SQL的"门派"之分
 
-江湖上主要有两派SQL方言：
+SQL 有一套国际标准（ANSI SQL），但各家数据库在标准之上都有自己的"方言"。常见的主流数据库产品有：
 
 - **MySQL** —— 开源免费，小巧灵活，野路子出身但粉丝众多，互联网公司的最爱
 - **Oracle** —— 企业级大佬，稳定可靠，你值得拥有（如果你不差钱的话）
 - **PostgreSQL** —— 学霸型选手，功能全面，学术圈和高端项目常客
 - **SQL Server** —— 微软嫡系，Windows平台上的企业级首选
 
+它们的 SQL 大体相通，但细节上各有脾气，比如：**MySQL** 用反引号 `` `列名` `` 包标识符，分页写 `LIMIT offset, count`；**PostgreSQL** 用双引号包标识符，分页写 `LIMIT ... OFFSET`；**Oracle** 用双引号包标识符，分页写 `OFFSET ... FETCH FIRST n ROWS ONLY`（12c 之前还得靠 `ROWNUM` 套子查询）；**SQL Server** 分页用 `OFFSET ... FETCH`，取前几行还可以用 `TOP n`。所以换数据库时，"能跑的 SQL" 往往需要小改。
+
 我们这套教程的示例，主要跑在MySQL上，因为它最亲民、最常见、最重要的是——免费！
 
 ### SQL的基本语法规则
+
+先看几条最基本的书写规则：
 
 ```sql
 -- SQL语句以分号结尾（大部分数据库都这样）
@@ -47,7 +51,7 @@ SELECT * FROM users WHERE name = '张三';
 SELECT * FROM users WHERE id = 1;  -- 查询id为1的用户
 ```
 
-> 小知识：SQL对大小写不敏感，意味着你可以写成`select SELECT SeLeCt`，数据库都能听懂。但为了代码可读性，请保持大写关键字的习惯。
+> 小知识：SQL 的**关键字**不区分大小写（`select`、`SELECT`、`SeLeCt` 效果完全一样），所以上面两种写法数据库都认。但**数据和标识符另说**：字符串 `'张三'` 与 `'張三'` 当然不同；在 PostgreSQL 里，不加引号的表名/列名会被统一转成小写，加双引号才会区分大小写。为了代码可读性，请保持"关键字大写、标识符小写"的习惯。
 
 ## 45.2 表操作
 
@@ -69,7 +73,7 @@ CREATE TABLE users (
 建表的时候，你需要告诉数据库：
 
 - 字段叫什么名字
-- 字段存什么类型的 data（数据类型）
+- 字段存什么类型的数据（数据类型）
 - 字段能不能为空（NULL）
 - 字段要不要唯一（UNIQUE）
 - 字段有没有默认值（DEFAULT）
@@ -106,6 +110,8 @@ ALTER TABLE users RENAME TO registered_users;
 
 ### 删除表——拆迁队来了
 
+删表会把结构和数据一起抹掉，属于最危险的 DDL 操作，执行前先确认表名和备份。
+
 ```sql
 -- 删除整个表，包括数据和结构都没了！
 DROP TABLE users;
@@ -122,6 +128,8 @@ DROP TABLE IF EXISTS users;
 
 ### 基础查询
 
+`SELECT` 是日常使用频率最高的语句，最基本的用法就是指定要取哪些列、从哪张表取。
+
 ```sql
 -- 查询所有用户的所有信息
 SELECT * FROM users;
@@ -130,10 +138,17 @@ SELECT * FROM users;
 SELECT username, email FROM users;
 
 -- 给列取个中文别名，看着更亲切
-SELECT username AS '用户名', email AS '邮箱' FROM users;
+SELECT username AS 用户名, email AS 邮箱 FROM users;
+
+-- 如果别名里有空格或特殊字符，MySQL 用反引号包起来
+SELECT username AS `用户 名` FROM users;
 ```
 
+> ⚠️ **别用单引号当别名**：`AS '用户名'` 在 MySQL 里"碰巧能用"，但那是把字符串当别名用的历史遗留行为；在 PostgreSQL、Oracle 里会直接报错。要写可移植的 SQL，别名就别加引号，或者统一用各家的标识符引号（MySQL 反引号 / PostgreSQL 双引号）。
+
 ### 条件查询——WHERE的艺术
+
+`WHERE` 负责筛选出满足条件的行，比较运算、区间判断、模糊匹配、逻辑组合都写在它后面。
 
 ```sql
 -- 查询年龄大于18的用户
@@ -157,6 +172,8 @@ SELECT * FROM users WHERE age < 18 OR age > 60;
 
 ### 排序——谁站C位
 
+`ORDER BY` 决定结果集的排列顺序，可以按一列排，也可以按多列依次比较。
+
 ```sql
 -- 按年龄升序排序（从小到大，数字小的在前）
 SELECT * FROM users ORDER BY age ASC;
@@ -169,6 +186,8 @@ SELECT * FROM users ORDER BY age DESC, username ASC;
 ```
 
 ### 分页查询——数据太多了怎么办
+
+数据量大时一次性取回所有行既慢又占内存，分页只取当前页需要的那一段。
 
 ```sql
 --  LIMIT offset, count
@@ -201,6 +220,8 @@ SELECT SUM(age) FROM users;
 ```
 
 ### 分组查询——物以类聚
+
+`GROUP BY` 先把行按某个字段归类，再对每一类分别做统计。
 
 ```sql
 -- 按性别分组，统计每组的人数
@@ -252,11 +273,25 @@ FROM users u
 RIGHT JOIN orders o ON u.id = o.user_id;
 ```
 
-![SQL表关系图](https://via.placeholder.com/800x400?text=SQL+Table+Relationships+Diagram)
+```mermaid
+erDiagram
+    USERS ||--o{ ORDERS : "一个用户可以有多个订单"
+    USERS {
+        int id PK "主键"
+        string username "用户名"
+    }
+    ORDERS {
+        int id PK "主键"
+        int user_id FK "外键，指向 users.id"
+        decimal amount "订单金额"
+    }
+```
 
-> 图示说明：用户表（users）和订单表（orders）通过user_id关联。一个用户可以有多个订单（1对多关系），这是数据库设计中最常见的关系模式。
+> 图示说明：用户表（users）和订单表（orders）通过 `orders.user_id → users.id` 关联。一个用户可以没有订单，也可以有多个订单；反过来，一个订单只属于一个用户——这就是数据库设计中最常见的"一对多"关系。上面 `INNER JOIN`、`LEFT JOIN`、`RIGHT JOIN` 三种写法的差别，正是在于"没有匹配数据时，要不要保留某一边的行"。
 
 ### 子查询——查询里面套查询
+
+子查询就是让一个 `SELECT` 的结果作为另一个 `SELECT` 的输入条件。
 
 ```sql
 -- 查询比平均年龄大的用户
@@ -274,12 +309,18 @@ SQL不仅能做数据筛选和计算，还内置了大量**函数**来处理数�
 
 ### 字符串函数
 
+字符串函数用于拼接、求长度、截取、大小写转换和去除空白。
+
 ```sql
 -- 拼接字符串
 SELECT CONCAT(username, '-', email) FROM users;
 
 -- 计算字符串长度
 SELECT username, LENGTH(username) FROM users;
+
+-- 注意 LENGTH 数的是"字节数"，CHAR_LENGTH 数的才是"字符数"
+-- 在 utf8mb4 下，一个汉字占 3 个字节，所以 LENGTH('张三') = 6，CHAR_LENGTH('张三') = 2
+SELECT LENGTH('张三'), CHAR_LENGTH('张三');
 
 -- 截取字符串（从第1个字符开始，截取5个）
 SELECT SUBSTRING(username, 1, 5) FROM users;
@@ -292,6 +333,8 @@ SELECT TRIM('  hello  ');
 ```
 
 ### 数值函数
+
+数值函数负责四舍五入、取整、求绝对值和生成随机数这类计算。
 
 ```sql
 -- 四舍五入
@@ -311,6 +354,8 @@ SELECT RAND();
 ```
 
 ### 日期函数
+
+日期函数用来获取当前时间、提取日期的某个部分，以及做日期加减与格式化。
 
 ```sql
 -- 获取当前日期时间
@@ -337,9 +382,11 @@ SELECT DATE_FORMAT(NOW(), '%Y年%m月%d日 %H:%i:%s');
 
 ### 条件函数
 
+条件函数让 SQL 也能写分支逻辑，根据条件返回不同的值。
+
 ```sql
 -- IF函数：类似Java的三元运算符
-SELECT username, IF(age >= 18, '成年人', '未成年人') AS '身份' FROM users;
+SELECT username, IF(age >= 18, '成年人', '未成年人') AS 身份 FROM users;
 
 -- IFNULL函数：如果值为NULL就替换成指定值
 SELECT IFNULL(email, '未填写') FROM users;
@@ -352,7 +399,7 @@ SELECT
         WHEN age < 30 THEN '青年'
         WHEN age < 60 THEN '中年'
         ELSE '老年'
-    END AS '年龄段'
+    END AS 年龄段
 FROM users;
 ```
 
@@ -369,6 +416,8 @@ FROM users;
 查询的时候，数据库先在索引树里快速定位，然后直接跳转到目标数据行——不用一行一行去扫描了。
 
 ### 创建索引
+
+创建索引有两条路：单独用 `CREATE INDEX` 补建，或者在建表时一并声明。
 
 ```sql
 -- 直接创建索引
@@ -390,6 +439,8 @@ CREATE TABLE users (
 
 ### 删除索引
 
+索引可以随时删除，但删掉之后原本依赖它的查询会退化成全表扫描。
+
 ```sql
 DROP INDEX idx_username ON users;
 ```
@@ -405,6 +456,8 @@ DROP INDEX idx_username ON users;
 > 最佳实践：只为**查询频繁**、**数据量大**、**区分度高**的字段建立索引。
 
 ### 何时使用索引？
+
+要不要建索引，取决于查询能不能真正用上它——`EXPLAIN` 一看便知。
 
 ```sql
 -- 适合建索引的情况
@@ -439,6 +492,8 @@ SELECT * FROM users WHERE gender = '男';           -- 区分度太低的字段
 
 ### 事务的基本操作
 
+事务用 `START TRANSACTION`（或 `BEGIN`）开启，最后用 `COMMIT` 提交或 `ROLLBACK` 撤销。
+
 ```sql
 -- 开启事务
 START TRANSACTION;
@@ -470,7 +525,10 @@ ROLLBACK;
 
 ```sql
 -- 查看当前隔离级别
-SELECT @@tx_isolation;
+SELECT @@transaction_isolation;
+
+-- 老版本 MySQL（8.0 之前）里这个变量叫 @@tx_isolation，
+-- 从 8.0 起已改名并移除了旧名字，写老名字会直接报错
 
 -- 设置隔离级别
 SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
@@ -486,6 +544,8 @@ SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
 > MySQL的InnoDB引擎在REPEATABLE READ级别下，通过MVCC（多版本并发控制）基本解决了幻读问题，所以通常不用把隔离级别调到最高的SERIALIZABLE。
 
 ### 实战例子
+
+下面把前面学的语法串起来，模拟一次完整的转账事务。
 
 ```sql
 -- 模拟转账操作
@@ -514,9 +574,11 @@ JDBC采用**驱动管理器 + 数据库驱动**的模式。应用程序只需要
 Java程序 → JDBC API → JDBC驱动管理器 → 数据库驱动 → 数据库
 ```
 
-### JDBC编程七步曲
+### JDBC 编程六步曲
 
 #### 第一步：加载驱动
+
+JDBC 4.0 以后驱动可以自动发现，但在显式指定驱动、或使用连接池时仍会看到手动加载的写法。
 
 ```java
 // 方式一：手动加载驱动类（老派写法）
@@ -527,6 +589,8 @@ Class.forName("com.mysql.cj.jdbc.Driver");
 ```
 
 #### 第二步：建立连接
+
+连接由 `DriverManager`（或连接池的 `DataSource`）根据 URL、用户名、密码创建。
 
 ```java
 // 数据库连接地址
@@ -540,6 +604,8 @@ Connection conn = DriverManager.getConnection(url, username, password);
 
 #### 第三步：创建语句对象
 
+`Statement` 用来执行拼接好的 SQL，`PreparedStatement` 则先用 `?` 占位再逐个填值。
+
 ```java
 // 创建普通SQL语句对象
 Statement stmt = conn.createStatement();
@@ -552,6 +618,8 @@ pstmt.setInt(1, 1);  // 第一个问号的值设为1
 
 #### 第四步：执行SQL
 
+查询用 `executeQuery()` 拿回 `ResultSet`，增删改用 `executeUpdate()` 拿到影响行数。
+
 ```java
 // 执行查询，返回ResultSet
 ResultSet rs = pstmt.executeQuery();
@@ -561,6 +629,8 @@ int rows = stmt.executeUpdate("INSERT INTO users (username) VALUES ('张三')");
 ```
 
 #### 第五步：处理结果
+
+`ResultSet` 是一张游标式的结果表，`next()` 每调用一次就往下移一行，直到返回 `false`。
 
 ```java
 // 遍历ResultSet
@@ -574,6 +644,8 @@ while (rs.next()) {
 
 #### 第六步：关闭资源
 
+资源要按"后创建的先关闭"的顺序释放，否则连接池很快就会被耗尽。
+
 ```java
 // 按照后创建先关闭的原则，依次关闭
 if (rs != null) rs.close();
@@ -583,11 +655,14 @@ if (conn != null) conn.close();
 
 ### 完整示例
 
+下面这个例子把六步完整地走了一遍，可以直接作为入门模板。
+
 ```java
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class JdbcDemo {
     
@@ -672,6 +747,8 @@ try (Connection conn = DriverManager.getConnection(url, "root", "123456");
 ```
 
 ### 增删改操作示例
+
+增删改共用同一套写法，区别只在 SQL 和参数绑定上。下面三个方法假定你已经有一个返回 `Connection` 的 `getConnection()` 辅助方法（见上一节的完整示例）。
 
 ```java
 // 插入数据

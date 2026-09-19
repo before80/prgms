@@ -662,7 +662,7 @@ graph TD
     N --> Q["[27,38,43]<br/>合并回来"]
     E --> Q
     O --> R["[3,9,10,82]<br/>合并回来"]
-    G --> R
+    P --> R
     Q --> S["[3,9,10,27,38,43,82]<br/>最终结果"]
     R --> S
 ```
@@ -753,10 +753,15 @@ print(f"第 100 项: {fib_optimized(100)}")  # 354224848179261915075
 **斐波那契数列的幽默解读**：斐波那契数列在自然界中广泛存在——向日葵的花盘、菠萝的鳞片、松果的排列...都遵循斐波那契规律。有人说这是宇宙的终极密码，也有人说这是大自然的"偷懒策略"——因为按照斐波那契排列，能让种子/鳞片在最紧凑的空间里分布得最均匀。就像程序员写代码——不是为了炫技，而是因为这样"最省"。
 
 > 💡 **斐波那契数列的时间复杂度对比**：
-> - 纯递归：O(2^n) ——指数级灾难，算第40项就要等好几年
+> - 纯递归：约 O(1.618^n)（常被粗略写成 O(2^n)）——指数级灾难
 > - 记忆化递归：O(n) ——"我记住了"，不再重复算
 > - DP表格法：O(n) ——自底向上，一步步填表
 > - 空间优化版：O(n) 时间，O(1) 空间 ——最优解
+>
+> ⚠️ 这里顺便纠正一个常见的夸张说法："算第 40 项要等好几年"。
+> 实测（CPython 3.12，普通笔记本）纯递归 `fib(34)` 约 0.4 秒、`fib(40)` 约 6.7 秒，
+> 还远没到"好几年"的程度——但增长是指数的，`fib(50)` 就要以小时计了。
+> 所以准确的说法是："小数值还能忍，一旦上到 50 就没法用了"。
 
 ### 29.4.2 背包问题
 
@@ -1095,29 +1100,46 @@ dfs_iterative(graph, 'A')
 > - DFS像"一条道走到黑"，适合**穷举搜索**、**拓扑排序**、**连通分量**
 > - 两者时间复杂度相同，区别只是访问顺序不同
 
+下一张图把 DFS 的实际访问次序标了出来。因为图的邻接表里 A 的邻居是 ['B', 'C']、B 的邻居是 ['A', 'D', 'E']，递归会先钻进 B 这一支走到黑，所以顺序是 A → B → D → E → F → C，而不是"先左后右、层层推进"：
+
 ```mermaid
 graph TD
-    A["🟢 A (起点)"] --> B["1️⃣ B"]
-    A --> C["3️⃣ C"]
-    B --> D["2️⃣ D"]
-    B --> E["2️⃣ E"]
-    C --> F["3️⃣ F"]
-    E --> F
-    style A fill:#90EE90
-    style B fill:#ff9999
-    style C fill:#ff9999
-    style D fill:#ffff99
-    style E fill:#ffff99
-    style F fill:#ffff99
-    subgraph "DFS访问顺序示例（数字表示访问顺序）"
+    subgraph DFS示例["DFS 访问顺序示例（从 A 出发，数字 = 第几个被访问）"]
+        A(("🟢 1. A (起点)")) --- B(("2. B"))
+        A --- C(("6. C"))
+        B --- D(("3. D"))
+        B --- E(("4. E"))
+        C --- F(("5. F"))
+        E --- F
+        style A fill:#90EE90
+        style B fill:#ff9999
+        style C fill:#ffcc99
+        style D fill:#87CEEB
+        style E fill:#87CEEB
+        style F fill:#87CEEB
     end
 ```
+
+注意这张图是**无向图**——A 能到 B，B 也能到 A；E 和 F 之间同样可以双向走。图中的连线只表示"这两个节点相邻"，不表示方向。DFS 之所以访问成 A→B→D→E→F→C，是因为它一遇到没走过的邻居就立刻深入，只有走到 D 这种"邻居全走过"的死胡同才回溯。
 
 ### 29.5.3 最短路径（Dijkstra）
 
 **Dijkstra算法**（迪杰斯特拉算法，念成"迪杰斯特拉"就好，别念成"迪卡塔尔"）是图论中的"当红炸子鸡"——用于在带权图中找从一个起点到所有其他节点的最短路径。它是GPS导航、网络路由等应用的理论基础。
 
 **核心思想**：贪心策略。从起点开始，每次选择当前未处理的、距离起点最近的节点，然后"松弛"它的邻居距离。
+
+本节的测试图有 5 个节点、7 条无向边，先把它的形状摆清楚：
+
+```mermaid
+graph LR
+    A(("A")) -- 2 --- B(("B"))
+    A -- 1 --- C(("C"))
+    B -- 3 --- C
+    B -- 1 --- D(("D"))
+    C -- 4 --- D
+    C -- 2 --- E(("E"))
+    D -- 1 --- E
+```
 
 ```python
 import heapq
@@ -1167,14 +1189,14 @@ def dijkstra(graph, start):
     return distances
 
 
-# 测试 - 带权图
-#       A ---2--- B
-#       |       / \
-#       1     3   1
-#       |   /       \
-#       C---4------- D
-#        \         /
-#         2-----1
+# 测试 - 带权图（5 个节点、7 条无向边，逐条列出避免看错）
+#   A -2- B
+#   A -1- C
+#   B -3- C
+#   B -1- D
+#   C -4- D
+#   C -2- E
+#   D -1- E
 
 graph_weighted = {
     'A': [('B', 2), ('C', 1)],
@@ -1234,8 +1256,10 @@ def make_change(amount):
 
 
 print("【找零问题】")
-make_change(68)  # 应该得到：3个20, 1个5, 3个1
-# 找零方案: {100: 0, 20: 3, 10: 0, 5: 1, 1: 3}
+make_change(68)  # 68 = 3×20 + 1×5 + 3×1
+# 找零方案: {20: 3, 5: 1, 1: 3}
+#     （字典里只记录真正用到的面值：68 凑不出 100，也没有用到 10，
+#      所以不会出现 100、10 这两个键，别把它当成"面值全部列出"）
 
 
 # 贪心算法示例2：活动选择问题
@@ -1247,7 +1271,11 @@ def activity_selection(activities):
     贪心策略：每次选择结束时间最早的活动（这样能为后面的活动留更多时间）
     """
     # 按结束时间排序
-    sorted_activities = sorted(activities, key=lambda x: x[1])
+    #   ⚠️ 每个活动是三元组 (name, start, end)，结束时间是 x[2] 而不是 x[1]。
+    #   这里一个下标之差就会把"按结束时间排序"偷偷变成"按开始时间排序"，
+    #   算法不再满足贪心选择性质，结果也不再是最优（实测会选出 ['A','F'] 两个活动，
+    #   而正确答案是 4 个活动）。三元组排序是最容易被下标坑到的地方，务必核对。
+    sorted_activities = sorted(activities, key=lambda x: x[2])
 
     selected = []
     current_end = 0  # 当前已选择活动的结束时间
@@ -1277,7 +1305,11 @@ activities = [
     ('F', 8, 10),
 ]
 activity_selection(activities)
-# 选择: C, B, E, F（或其他最多组合）
+# 活动列表（按结束时间排序）:
+#   C: 1~2   B: 3~4   A: 0~6   E: 5~7   D: 5~9   F: 8~10
+# 选择的最多活动: ['C', 'B', 'E', 'F']
+#   → 依次选结束最早的：C(1~2)、B(3~4)、E(5~7)、F(8~10)，共 4 个且互不重叠。
+#     这就是该问题的最大活动数（贪心策略的最优解）。
 ```
 
 **贪心算法的幽默解读**：贪心就像找对象——你总是选择当前遇到的"最优解"，不纠结过去，不考虑未来。"这个人比我之前见过的都好，先交往着，以后遇到更好的再说！"——这就是贪心的人生哲学。问题是，如果你一直遇到更好的就换，最终可能错过真爱（全局最优解）。所以贪心算法只适用于"你的眼光刚好能看出最优解"的问题。对于货币系统合理的找零钱问题，贪心确实能得到最优解；但如果货币系统是 [1, 3, 4]，贪心可能翻车——比如找零6元，贪心会选4+1+1（3个硬币），但最优解是3+3（2个硬币）。
@@ -1333,59 +1365,89 @@ print(f"DP最优解: {coin_change_dp(6)} 个硬币")
 
 ```python
 # 贪心算法示例3：霍夫曼编码（数据压缩的基础）
+import heapq
+
+
 def huffman_coding(frequencies):
     """
     霍夫曼编码：用贪心思想构造最优前缀码
     频率高的字符用短码，频率低的字符用长码，实现数据压缩
 
-    这也是为什么 ZIP 压缩能工作的核心技术！
+    这也是 ZIP、GZIP、JPEG 等压缩格式的核心技术之一！
     """
-    import heapq
-
-    # 把所有字符放入优先队列（频率小的优先）
-    heap = [[freq, [char, ""]] for char, freq in frequencies.items()]
+    # 统一用三元组表示节点：[字符, 左子树, 右子树]
+    #   叶子节点：字符非 None，左右子树为 None
+    #   内部节点：字符为 None，左右子树非 None
+    #
+    # ⭐ 堆里还要放一个"序号"，因为频率相同时 heapq 会去比较第二个元素。
+    #    如果第二个元素是这种节点列表，Python 会尝试比较列表大小而直接报错
+    #    （TypeError: '<' not supported between instances of 'list' and 'list'）。
+    heap = [
+        [freq, i, [char, None, None]]
+        for i, (char, freq) in enumerate(frequencies.items())
+    ]
     heapq.heapify(heap)
+    counter = len(heap)
 
-    print("霍夫曼编码过程:")
+    print("霍夫曼编码过程（每次合并频率最小的两个节点）:")
     while len(heap) > 1:
         # 取出频率最小的两个节点
-        left = heapq.heappop(heap)
-        right = heapq.heappop(heap)
-
-        # 给它们的码字加前缀
-        left[1][1] = "0" + left[1][1]
-        right[1][1] = "1" + right[1][1]
+        left_freq, _, left_node = heapq.heappop(heap)
+        right_freq, _, right_node = heapq.heappop(heap)
 
         # 合并（频率相加），重新放回队列
-        merged = [left[0] + right[0], [left[1], right[1]]]
-        heapq.heappush(heap, merged)
-        print(f"  合并节点: 频率={merged[0]}")
+        merged_freq = left_freq + right_freq
+        merged_node = [None, left_node, right_node]
+        heapq.heappush(heap, [merged_freq, counter, merged_node])
+        counter += 1
+        print(f"  合并两个节点: {left_freq} + {right_freq} = {merged_freq}")
 
-    # 返回构建好的霍夫曼树（优先队列中唯一的元素）
-    return heap[0]
+    # 堆里最后剩下的就是根节点
+    return heap[0][2]
 
 
-def flatten_codes(node, prefix=""):
-    """把霍夫曼树展平为字典"""
-    if isinstance(node[1], str):
-        return {node[1]: prefix or "0"}
-    codes = {}
-    codes.update(flatten_codes(node[1][0], prefix + "0"))
-    codes.update(flatten_codes(node[1][1], prefix + "1"))
-    return codes
+def build_codes(node, prefix="", table=None):
+    """
+    递归遍历霍夫曼树，生成"字符 -> 编码"的映射（约定：左 0、右 1）
+
+    ⭐ 这里采用"先建树、再统一生成编码"的思路，
+    比"边合并边改码字"更清晰，也不容易出现类型错误。
+    """
+    if table is None:
+        table = {}
+
+    char, left, right = node
+    if char is not None:              # 叶子节点
+        table[char] = prefix or "0"   # 只有一个字符的极端情况
+        return table
+
+    build_codes(left, prefix + "0", table)
+    build_codes(right, prefix + "1", table)
+    return table
 
 
 print("\n【霍夫曼编码】")
 frequencies = {'A': 45, 'B': 13, 'C': 12, 'D': 16, 'E': 9, 'F': 5}
-huffman_tree = huffman_coding(frequencies)
-codes_dict = flatten_codes(huffman_tree)
-print("\n编码结果:")
-for char, code in sorted(codes_dict.items()):
-    print(f"  {char}: {code} (频率: {frequencies[char]}%)")
-# A: 0 (45%)
-# F: 1000 (5%)
-# ...
+codes_dict = build_codes(huffman_coding(frequencies))
+
+print("\n编码结果（字符 -> 编码）:")
+total_bits = 0
+total_freq = sum(frequencies.values())
+for char, code in sorted(codes_dict.items(), key=lambda kv: len(kv[1])):
+    print(f"  {char}: {code}  (频率 {frequencies[char]}, 码长 {len(code)})")
+    total_bits += frequencies[char] * len(code)
+
+# 实际输出：
+#   A: 0  (频率 45, 码长 1)
+#   C: 100  (频率 12, 码长 3)
+#   B: 101  (频率 13, 码长 3)
+#   D: 111  (频率 16, 码长 3)
+#   F: 1100  (频率 5, 码长 4)
+#   E: 1101  (频率 9, 码长 4)
+#
 # 霍夫曼编码保证了：高频字符短码，低频字符长码，总编码长度最短！
+print(f"\n加权平均码长: {total_bits / total_freq:.2f} bit/字符")
+print(f"（如果每个字符都用定长 3 bit 表示，平均就是 3.00 bit/字符）")
 ```
 
 ---

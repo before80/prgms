@@ -23,6 +23,12 @@ draft = false
 
 我们学习用社区版就够了！
 
+> 补充一句：Docker EE 在 2019 年已被卖给 Mirantis，"Docker EE"这个叫法现在基本不用了。
+> 今天 Docker 公司的商业产品主要是 **Docker Desktop / Docker Business 订阅**（面向桌面和企业内部使用），
+> 服务器上的引擎依然是免费的 Docker Engine（社区版，包名就是 `docker-ce`）。
+> 另外从 2019 年起，`docker` 命令背后的容器运行时被拆成了独立的 `containerd`，
+> 所以安装时经常看到 `containerd.io` 这个包，它是被 `docker-ce` 依赖的，不用单独去管。
+
 ### 在Ubuntu上安装Docker
 
 #### 方法一：使用apt安装（推荐新手）
@@ -70,24 +76,32 @@ curl -fsSL https://get.docker.com | sh
 ### 在CentOS/RHEL上安装Docker
 
 ```bash
-# 1. 安装依赖
-sudo yum install -y yum-utils
+# 1. 安装依赖（CentOS 8+/Rocky/AlmaLinux 用 dnf，CentOS 7 用 yum）
+sudo dnf install -y dnf-plugins-core
 
 # 2. 添加Docker仓库
-sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
 # 3. 安装Docker
-sudo yum install -y docker-ce docker-ce-cli containerd.io
+sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 # 4. 启动Docker
 sudo systemctl start docker
 
 # 5. 设置开机自启
-sudo systemctl enable docker
+sudo systemctl enable --now docker
 
 # 6. 验证安装
 docker --version
 ```
+
+> ⚠️ **版本提醒**：
+> - **CentOS Linux 8 已于 2021-12-31 停止维护，CentOS Linux 7 已于 2024-06-30 停止维护**，
+>   都不建议再用于新环境。RHEL 系现在推荐用 Rocky Linux 9 / AlmaLinux 9 / CentOS Stream 9。
+> - 在 **RHEL 8/9 上与订阅无关的第三方仓库**要用 RHEL 自己的地址：
+>   `sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo`
+> - 在 CentOS Stream 9 / Rocky 9 / AlmaLinux 9 上，用 `.../linux/centos/docker-ce.repo` 即可。
+> - 如果只是想要一个"够用"的容器运行时，也可以直接 `sudo dnf install -y podman`（详见第51章）。
 
 ### 在Windows上安装Docker
 
@@ -103,13 +117,14 @@ Windows用户需要使用 **Docker Desktop**：
 
 # 4. 打开PowerShell验证
 docker --version
-docker-compose --version
+# Compose 现在已随 Docker 一起安装，命令是 "docker compose"（中间是空格）
+docker compose version
+# 老式的独立命令 "docker-compose"（中间是连字符）属于 Compose V1，已停止维护
 ```
 
 **Docker Desktop的系统要求：**
 - Windows 10/11 专业版/企业版/家庭版（需要WSL2）
 - 注意：家庭版通过 WSL2 后端运行，无需 Hyper-V
-- 至少4GB内存
 - 至少4GB内存
 - 至少64GB磁盘空间
 
@@ -146,16 +161,19 @@ docker run hello-world
 
 在中国，Docker Hub访问较慢，建议配置镜像加速器：
 
+> ⚠️ **先说结论**：下面这几个地址（USTC、网易 163、百度）近几年基本都已停止对外服务，
+> 直接照抄是拉不到镜像的。**请以云厂商当前文档里的地址为准**——阿里云容器镜像服务会给每个账号
+> 分配专属地址 `https://<你的ID>.mirror.aliyuncs.com`（在"容器镜像服务"控制台可以看到），
+> 腾讯云、华为云等也都有类似服务。下面只是配置方法的示例。
+
 ```bash
 # 编辑Docker配置
 sudo nano /etc/docker/daemon.json
 
-# 添加镜像加速器
+# 添加镜像加速器（换成你自己账号的地址）
 {
     "registry-mirrors": [
-        "https://docker.mirrors.ustc.edu.cn",
-        "https://hub-mirror.c.163.com",
-        "https://mirror.baidubce.com"
+        "https://<你的ID>.mirror.aliyuncs.com"
     ]
 }
 
@@ -165,6 +183,9 @@ sudo systemctl restart docker
 # 验证配置
 docker info | grep -A 10 "Registry Mirrors"
 ```
+
+如果加速器地址失效，`docker pull` 会报 `dial tcp ... i/o timeout` 或 403，
+把 `registry-mirrors` 里失效的地址删掉即可（留空数组表示仍走 Docker Hub 官方源）。
 
 #### 3. 配置Docker开机启动
 
@@ -182,15 +203,20 @@ sudo systemctl enable docker
 
 ```bash
 # Ubuntu/Debian
-sudo apt purge docker-ce docker-ce-cli containerd.io
+sudo apt purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras
 sudo rm -rf /var/lib/docker
 sudo rm -rf /var/lib/containerd
+# 顺手把配置文件也清掉（可选）
+sudo rm -rf /etc/docker /etc/containerd
 
-# CentOS/RHEL
-sudo yum remove docker-ce docker-ce-cli containerd.io
+# CentOS/RHEL/Rocky/AlmaLinux
+sudo dnf remove docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo rm -rf /var/lib/docker
 sudo rm -rf /var/lib/containerd
 ```
+
+> 小提醒：卸载命令里的 `rm -rf /var/lib/docker` 会**删掉所有本地镜像、容器和数据卷**，
+> 如果还有需要的数据，请先用 `docker save` / `docker cp` 导出来，或者干脆别删这个目录。
 
 ### Docker服务管理
 
@@ -278,7 +304,7 @@ flowchart TD
 
 Docker安装要点：
 - **Ubuntu**：`apt install docker-ce`
-- **CentOS**：`yum install docker-ce`
+- **CentOS/Rocky/AlmaLinux**：`dnf install docker-ce`（CentOS 7 已 EOL，命令用 `yum`）
 - **Windows/Mac**：下载Docker Desktop
 - 安装后运行 `docker run hello-world` 测试
 
@@ -436,13 +462,24 @@ docker volume prune
 Dockerfile是构建镜像的"配方"，里面包含了一系列指令：
 
 ```dockerfile
-# Dockerfile示例
-FROM ubuntu:22.04              # 基础镜像
-LABEL maintainer="you@email.com" # 元数据
-RUN apt-get update && apt-get install -y nginx  # 构建时命令
-EXPOSE 80                      # 暴露端口
-CMD ["nginx", "-g", "daemon off;"]  # 启动命令
+# Dockerfile示例：每一行的作用见下方注释
+
+# 基础镜像
+FROM ubuntu:22.04
+# 元数据
+LABEL maintainer="you@email.com"
+# 构建时执行：装 nginx
+RUN apt-get update && apt-get install -y nginx
+# 声明容器监听 80 端口
+EXPOSE 80
+# 容器启动时运行的命令
+CMD ["nginx", "-g", "daemon off;"]
 ```
+
+> ⚠️ **一个新手常踩的坑**：Dockerfile 里的 `#` 只有**独占一行**时才是注释。
+> 像 `FROM ubuntu:22.04 # 基础镜像` 这样把注释写在指令后面，`#` 以及后面的内容会被当成
+> **指令的参数**传进去，构建时会直接报错（例如 `FROM requires either one or three arguments`）。
+> 所以注释要么单独一行，要么写在指令的上一行。
 
 #### 构建镜像
 
@@ -473,7 +510,7 @@ docker build -t myapp:v1 .
 # => [1/4] FROM ubuntu:22.04
 # => [2/4] RUN apt-get update && apt-get install -y nginx
 # => [3/4] COPY . /app
-# => [4/4] CMD ["python", "app.py"]
+# => [4/4] CMD ["nginx", "-g", "daemon off;"]
 # => naming to docker.io/library/myapp:v1
 ```
 
@@ -959,7 +996,7 @@ flowchart LR
     
     B --> B1[Docker存储<br/>-v myvolume:/data]
     C --> C1[宿主机目录<br/>-v /host:/container]
-    D --> D1[内存<br/>-v /tmp]
+    D --> D1[内存<br/>--tmpfs /data]
     
     style B fill:#99ccff
     style C fill:#90EE90
@@ -1104,14 +1141,16 @@ docker run -d \
     sh -c "echo 'Hello from container A' > /data/file.txt"
 
 # 3. 启动容器B，读取数据
-docker run -d \
-    --name reader \
+#    注意：busybox 不带参数时会立刻退出，容器随即停止，
+#    所以要么让它跑一个长命进程（sleep），要么用一次性容器直接读文件。
+docker run --rm \
     -v shared-data:/data \
-    busybox
-
-# 4. 验证数据共享
-docker exec reader cat /data/file.txt
+    busybox cat /data/file.txt
 # 输出：Hello from container A
+
+# 4. 也可以让 reader 常驻，再进去反复查看
+docker run -d --name reader -v shared-data:/data busybox sleep 3600
+docker exec reader cat /data/file.txt
 ```
 
 ### 一图总结数据卷
@@ -1307,10 +1346,11 @@ docker run -d \
     -e MYSQL_ROOT_PASSWORD=secret123 \
     mysql:8.0
 
-# 3. 启动PHP
+# 3. 启动PHP（把代码目录同时挂载进来，否则nginx会报502 File not found）
 docker run -d \
     --name php \
     --network lnmp-net \
+    -v /var/www/html:/var/www/html \
     php:8-fpm
 
 # 4. 启动Nginx
@@ -1318,22 +1358,35 @@ docker run -d \
     --name nginx \
     --network lnmp-net \
     -p 80:80 \
+    -v /var/www/html:/var/www/html \
     nginx:latest
 
 # 5. 配置Nginx连接PHP
-docker exec nginx sh -c "echo 'server {
+#    这里用 heredoc 写入配置文件：
+#    - 用 'EOF'（带引号）可以阻止宿主机shell提前展开 $fastcgi_script_name 等变量
+#    - 如果用双引号的 docker exec ... sh -c "...$fastcgi_script_name..."，
+#      $fastcgi_script_name 会在宿主机上就被展开成空字符串，写进容器的配置就是错的
+docker exec -i nginx sh -c 'cat > /etc/nginx/conf.d/default.conf' <<'EOF'
+server {
     listen 80;
     index index.php;
-    location ~ \\.php$ {
+    root /var/www/html;
+    location ~ \.php$ {
         fastcgi_pass php:9000;
-        fastcgi_param SCRIPT_FILENAME /var/www/html/$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }
-}' > /etc/nginx/conf.d/default.conf"
+}
+EOF
 
-# 6. 测试
+# 6. 重新加载Nginx配置，然后测试
+docker exec nginx nginx -s reload
 curl http://localhost/index.php
 ```
+
+> 说明：`fastcgi_pass php:9000` 里的 `php` 不是域名，而是**容器名**。
+> 因为两个容器都接在自定义网络 `lnmp-net` 上，Docker 内置的 DNS 会把容器名解析成它的 IP，
+> 所以可以用名字互相访问（这也是为什么生产上几乎不用 `--link`）。
 
 ### 小结
 
@@ -1360,24 +1413,33 @@ Dockerfile是一个文本文件，包含构建镜像所需的指令。就像烹�
 ### Dockerfile基本结构
 
 ```dockerfile
-# Dockerfile示例
-FROM ubuntu:22.04              # 基础镜像
+# 基础镜像
+FROM ubuntu:22.04
 
-LABEL maintainer="you@email.com"  # 元数据（可选）
+# 元数据（可选）
+LABEL maintainer="you@email.com"
 LABEL version="1.0"
 
-RUN apt-get update && apt-get install -y nginx  # 构建命令
+# 构建时执行的命令
+RUN apt-get update && apt-get install -y nginx
 
-EXPOSE 80                      # 暴露端口
+# 声明监听的端口
+EXPOSE 80
 
-COPY ./app /var/www/html       # 复制文件
+# 把构建上下文里的 ./app 复制进镜像
+COPY ./app /var/www/html
 
-ENV APP_ENV=production         # 环境变量
+# 环境变量
+ENV APP_ENV=production
 
-WORKDIR /var/www/html          # 工作目录
+# 工作目录
+WORKDIR /var/www/html
 
-CMD ["nginx", "-g", "daemon off;"]  # 启动命令
+# 容器启动时运行的命令
+CMD ["nginx", "-g", "daemon off;"]
 ```
+
+注意：这里的注释都**独占一行**——Dockerfile 不支持把 `#` 注释写在同一行指令的后面（原因见 49.2.4 的说明）。
 
 ### Dockerfile指令详解
 
@@ -1466,12 +1528,14 @@ COPY package.json package-lock.json /app/
 
 #### COPY vs ADD
 
-| 指令 | 复制文件 | 解压远程URL | 解压tar |
-|------|----------|-------------|---------|
+| 指令 | 复制本地文件 | 下载远程URL | 自动解压本地tar |
+|------|--------------|-------------|-----------------|
 | `COPY` | ✅ | ❌ | ❌ |
-| `ADD` | ✅ | ✅ | ✅ |
+| `ADD` | ✅ | ✅（只下载，**不会解压**远程文件） | ✅ |
 
-**推荐使用COPY**，ADD只在需要解压时才用。
+**推荐使用COPY**，ADD只在需要自动解压时才用。另外注意：用 `ADD` 从 URL 下载的压缩包
+只会被原样存下来，要解压还得再写一条 `RUN tar`；而且 `ADD` 的远程下载不做校验，
+不适合替代 `curl` + `sha256sum` 这种可验证的下载方式。
 
 ### 49.6.4 EXPOSE——声明端口
 
@@ -1491,14 +1555,23 @@ EXPOSE 80/tcp
 ### 49.6.5 CMD/ENTRYPOINT——启动命令
 
 ```dockerfile
-# CMD的三种形式
-CMD ["executable", "param1", "param2"]  # Exec形式（推荐）
-CMD command param1 param2                  # Shell形式
-CMD ["param1", "param2"]                  # 作为ENTRYPOINT参数
+# CMD的三种形式（下面是三种写法，实际使用时同一个 Dockerfile 里只写一条）
+
+# 1. Exec形式（推荐）：直接执行，不经过 shell，能正确接收信号
+CMD ["executable", "param1", "param2"]
+
+# 2. Shell形式：会以 /bin/sh -c "command param1 param2" 的方式执行
+CMD command param1 param2
+
+# 3. 只给参数：真正的命令由 ENTRYPOINT 提供，这里只提供默认参数
+CMD ["param1", "param2"]
 
 # ENTRYPOINT的两种形式
-ENTRYPOINT ["executable", "param1", "param2"]  # Exec形式
-ENTRYPOINT command param1                            # Shell形式
+# 1. Exec形式（推荐）
+ENTRYPOINT ["executable", "param1", "param2"]
+
+# 2. Shell形式
+ENTRYPOINT command param1
 
 # 示例：设置默认命令
 CMD ["python", "app.py"]
@@ -1564,8 +1637,9 @@ WORKDIR /app
 # 复制package文件
 COPY package*.json ./
 
-# 安装依赖
-RUN npm ci --only=production
+# 安装依赖（只装 dependencies，跳过 devDependencies）
+# 注意：npm 7+ 里 --only=production 已废弃，改用 --omit=dev
+RUN npm ci --omit=dev
 
 # 复制源代码
 COPY . .
@@ -1677,8 +1751,13 @@ Docker Compose是用于**定义和运行多容器Docker应用**的工具。
 
 ### docker-compose.yml基本结构
 
+> 文件名说明：Compose V2 的**推荐默认文件名是 `compose.yaml`（或 `compose.yml`）**，
+> 但为了兼容老项目，`docker-compose.yml` / `docker-compose.yaml` 依然会被自动识别。
+> 如果两个文件名同时存在，`docker compose` 会优先使用 `compose.yaml`，找不到才回退到 `docker-compose.yml`。
+
 ```yaml
-version: "3.8"  # Compose文件版本
+# 注意：顶层的 "version:" 字段在 Compose V2 里已经废弃，写上去只会收到一条警告
+# 老教程里的 version: "3.8" / "3" 都可以直接删掉，其余结构不变
 
 services:  # 服务定义
   web:       # 服务1：Nginx Web服务器
@@ -1721,13 +1800,16 @@ networks:  # 网络定义
 # Ubuntu/Debian
 sudo apt install docker-compose-plugin
 
-# 或者独立安装
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.23.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+# 或者手动装成 Docker CLI 插件（推荐，这样 "docker compose" 才能用）
+DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+mkdir -p $DOCKER_CONFIG/cli-plugins
+curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
+  -o $DOCKER_CONFIG/cli-plugins/docker-compose
+chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 
 # 验证安装
 docker compose version
-# Docker Compose version v2.23.0
+# Docker Compose version v2.x.y
 ```
 
 ### Docker Compose常用命令
@@ -1780,8 +1862,6 @@ docker compose up -d --scale web=3
 
 ```yaml
 # docker-compose.yml
-version: "3.8"
-
 services:
   db:
     image: mysql:8.0
@@ -1863,7 +1943,9 @@ services:
   db:
     image: mysql:8.0
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping"]
+      # -h 127.0.0.1 让 mysqladmin 走 TCP 检查真的能连上服务；
+      # 不写 -h 时它可能连 unix socket 都连不上而一直报 unhealthy
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -1932,25 +2014,26 @@ Docker Compose常用命令：
 
 ### Docker安装
 - Ubuntu: `apt install docker-ce`
-- CentOS: `yum install docker-ce`
+- RHEL / Rocky / Alma: `dnf install docker-ce`
 - Windows/Mac: Docker Desktop
 
 ### 镜像操作
 ```bash
 docker pull nginx        # 拉取镜像
-docker images          # 查看镜像
-docker rmi nginx       # 删除镜像
-docker build -t myapp . # 构建镜像
+docker images            # 查看镜像
+docker rmi nginx         # 删除镜像
+docker build -t myapp .  # 构建镜像
 ```
 
 ### 容器操作
 ```bash
 docker run -d -p 80:80 nginx  # 运行容器
 docker ps                      # 查看容器
-docker stop/start nginx         # 启停容器
+docker stop nginx              # 停止容器
+docker start nginx             # 启动已停止的容器
 docker exec -it nginx bash      # 进入容器
-docker logs -f nginx           # 查看日志
-docker rm nginx                # 删除容器
+docker logs -f nginx            # 查看日志
+docker rm nginx                 # 删除容器（需要先停止）
 ```
 
 ### 数据卷
@@ -1992,5 +2075,3 @@ services:
 > Docker Compose（多容器）："我们一起唱更精彩！"
 >
 > 记住：**一个人能走得更快，一群人能走得更远！** 🎵
-
-

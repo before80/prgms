@@ -48,29 +48,31 @@ JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
 - **JUnit Vintage**：为了兼容旧项目而生的模块，允许在 JUnit 5 平台上运行 JUnit 3 和 JUnit 4 的测试。
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      JUnit 5 架构图                          │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│   ┌─────────────────────────────────────────────────────┐   │
-│   │                  JUnit Platform                      │   │
-│   │    （测试运行基础设施，定义 TestEngine API）           │   │
-│   └─────────────────────────────────────────────────────┘   │
-│          ▲                ▲                ▲               │
-│          │                │                │               │
-│   ┌──────┴───┐      ┌─────┴────┐      ┌────┴────┐          │
-│   │ Jupiter   │      │ Vintage   │      │ 其他引擎 │          │
-│   │ Engine    │      │ Engine    │      │(TestNG等)│          │
-│   │(JUnit 5)  │      │(JUnit 3/4)│      │          │          │
-│   └───────────┘      └──────────┘      └──────────┘          │
-│                                                             │
-│   ┌─────────────────────────────────────────────────────┐   │
-│   │                   JUnit Jupiter                      │   │
-│   │         （编程模型 + 扩展模型 = 你写测试的API）        │   │
-│   └─────────────────────────────────────────────────────┘   │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│                       JUnit 5 架构图                          │
+├───────────────────────────────────────────────────────────────┤
+│                                                               │
+│   ┌───────────────────────────────────────────────────────┐   │
+│   │                   JUnit Platform                      │   │
+│   │    （测试运行基础设施，定义 TestEngine API）          │   │
+│   └───────────────────────────────────────────────────────┘   │
+│                 ▲              ▲              ▲               │
+│                 │              │              │               │
+│         ┌───────┴──────┐ ┌─────┴──────┐ ┌─────┴──────┐        │
+│         │ Jupiter      │ │ Vintage    │ │ 其他引擎   │        │
+│         │ Engine       │ │ Engine     │ │ (TestNG 等)│        │
+│         │ (JUnit 5)    │ │ (JUnit 3/4)│ │            │        │
+│         └──────────────┘ └────────────┘ └────────────┘        │
+│                                                               │
+│   ┌───────────────────────────────────────────────────────┐   │
+│   │                   JUnit Jupiter                       │   │
+│   │    （编程模型 + 扩展模型 = 你写测试时用的 API）       │   │
+│   └───────────────────────────────────────────────────────┘   │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
 ```
+
+> 箭头方向表示**发现与调用关系**：Platform 通过 `TestEngine` SPI 去发现各个引擎，再由引擎去执行测试。你日常写的注解和断言来自 Jupiter，而 Platform 更像是一个"调度中心"——IDEA 的测试运行按钮、Maven Surefire、Gradle 实际上都是在跟 Platform 打交道。
 
 简单说：Platform 是舞台，Jupiter 是台柱子演员，Vintage 是从老戏骨那里借来的演员（别急着退休）。
 
@@ -84,7 +86,7 @@ JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
     <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-api</artifactId>
-        <version>5.11.0</version>
+        <version>5.14.4</version>
         <scope>test</scope>
     </dependency>
 
@@ -92,7 +94,7 @@ JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
     <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-engine</artifactId>
-        <version>5.11.0</version>
+        <version>5.14.4</version>
         <scope>test</scope>
     </dependency>
 </dependencies>
@@ -109,11 +111,12 @@ JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
 </build>
 ```
 
+> **关于版本**：上面用的是 JUnit 5 系列当前的最新版 5.14.4（基线下限 Java 8）。JUnit 团队也已经发布了 **JUnit 6.x**（6.1.3 等），API 与 5.x 基本一致，主要变化是**要求 Java 17+**、并把默认的 `junit-jupiter` 聚合依赖做得更完整。新项目用 `junit-jupiter` 一个坐标就够了；老项目想体验 6.x，先确认你的 JDK 是 17 及以上。
+
 如果你用 Gradle，依赖更简洁：
 
 ```groovy
-testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.0'
-testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.0'
+testImplementation 'org.junit.jupiter:junit-jupiter:5.14.4'
 ```
 
 ### 39.1.3 第一个 JUnit 5 测试
@@ -242,7 +245,33 @@ class LifecycleDemoTest {
 【@AfterAll】所有测试之后执行一次
 ```
 
-注意：**`@BeforeAll` 和 `@AfterAll` 必须配 static 关键字**（或在接口 default 方法上使用），因为它们在实例创建之前/之后执行，不属于某个具体实例。
+注意：**`@BeforeAll` 和 `@AfterAll` 默认必须是 `static` 方法**，因为它们在测试实例创建之前/之后就执行，不属于任何一个具体实例。如果你确实需要访问实例字段（比如 `@Autowired` 注入的成员），可以在测试类上加上 `@TestInstance(TestInstance.Lifecycle.PER_CLASS)`——这时整个测试类只创建**一个**实例，`@BeforeAll` 就可以不写 `static` 了：
+
+```java
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)  // 每个测试类只创建一个实例
+class PerClassLifecycleTest {
+
+    // 非 static 成员：比如框架注入进来的数据源、连接池
+    private String connectionInfo;
+
+    @BeforeAll
+    void prepare() {                 // 因此这里也不需要 static
+        connectionInfo = "初始化一次，所有测试共用";
+        System.out.println(connectionInfo);
+    }
+
+    @Test
+    void canUseSharedState() {
+        System.out.println(connectionInfo);
+    }
+}
+```
+
+两种生命周期各有取舍：默认的 `PER_METHOD`（每个测试方法一个新实例）能保证测试之间互不干扰；`PER_CLASS` 省事但要求你自己保证状态干净——**能被测试修改的字段，用 `PER_CLASS` 时要格外小心**。
 
 ### 39.1.5 断言（Assertions）
 
@@ -298,10 +327,13 @@ class AssertionsDemoTest {
     // 异常断言：期待抛出的异常类型
     @Test
     void testExceptionAssertions() {
-        int result = assertThrows(
+        // assertThrows 返回被捕获的异常对象，类型是 T extends Throwable，
+        // 所以这里要声明成异常类型（写成 int 会直接编译不过）
+        ArithmeticException ex = assertThrows(
             ArithmeticException.class,
             () -> 10 / 0  // 期待这里抛出 ArithmeticException
         );
+        assertEquals("/ by zero", ex.getMessage());
     }
 
     // 超时断言：测试方法执行时间不超过指定值
@@ -353,6 +385,13 @@ class AssertionsDemoTest {
     }
 }
 ```
+
+关于上面这段代码，有几个容易踩的坑必须说清楚：
+
+- **`assertThrows` 的返回值是异常对象本身**，不是被调用方法的返回值。它的类型参数是 `T extends Throwable`，所以只能赋给异常类型；很多人下意识写成 `int result = assertThrows(...)`，编译直接过不去。
+- **`assertTimeout` 不会中断超时的代码**。它会等被测代码跑完，再比较耗时并报失败——也就是说一个卡住 30 秒的方法，用 `assertTimeout(Duration.ofSeconds(2), ...)` 你的测试仍然要等 30 秒。真正想"到点就掐断"要用 `assertTimeoutPreemptively(...)`，代价是它会在**另一个线程**里执行测试代码，`ThreadLocal`、事务上下文这类东西可能不生效。
+- 传给 `assertTimeout` 的 lambda 如果有返回值，就等价于 `ThrowingSupplier`（可以返回结果），如果只做动作不返回，则是可执行的 `ThrowingRunnable`——两种都有对应重载，不用担心。
+- **`assertAll` 的价值在于"全部跑完再报告"**：普通断言第一个失败就中断，后面写的问题你根本看不到；`assertAll` 会把每个失败都收集起来一次性列给你。一个业务对象的多字段校验，用它最合适。
 
 ### 39.1.6 嵌套测试（Nested Tests）
 
@@ -455,10 +494,12 @@ class StackTest {
 <dependency>
     <groupId>org.junit.jupiter</groupId>
     <artifactId>junit-jupiter-params</artifactId>
-    <version>5.11.0</version>
+    <version>5.14.4</version>
     <scope>test</scope>
 </dependency>
 ```
+
+> 如果直接用聚合坐标 `junit-jupiter`，这个模块已经包含在里面，不用单独再写一遍。另外别把它和 `junit-jupiter-api` 的版本写成两个数字——**所有 `org.junit.jupiter:*` 的版本必须一致**，否则运行期会出现 `NoSuchMethodError` 之类的诡异报错。
 
 ```java
 package com.example;
@@ -633,24 +674,32 @@ class ConditionalDemoTest {
 
 ### 39.2.2 Maven 依赖
 
+Mockito 需要两个坐标：`mockito-core` 提供核心能力，`mockito-junit-jupiter` 提供与 JUnit 5 的桥接：
+
 ```xml
 <dependency>
     <groupId>org.mockito</groupId>
     <artifactId>mockito-core</artifactId>
-    <version>5.11.0</version>
+    <version>5.23.0</version>
     <scope>test</scope>
 </dependency>
 
-<!-- 如果你用 Java 9+ 并且遇到模块化问题，可能需要这个 -->
+<!-- Mockito 与 JUnit 5 的集成包：有了它才能用 @ExtendWith(MockitoExtension.class) -->
 <dependency>
     <groupId>org.mockito</groupId>
     <artifactId>mockito-junit-jupiter</artifactId>
-    <version>5.11.0</version>
+    <version>5.23.0</version>
     <scope>test</scope>
 </dependency>
 ```
 
+这里要纠正一个常见误解：`mockito-junit-jupiter` **不是**为了解决"Java 9+ 模块化问题"才需要的，它提供的是 `MockitoExtension` 这个 JUnit 5 扩展——也就是下面 `@ExtendWith(MockitoExtension.class)` 能被识别的关键。如果你不打算用 `@Mock` / `@InjectMocks` 注解、坚持手写 `Mockito.mock(...)`，那就只需要 `mockito-core`。
+
+另外，`mockito-core` 会传递依赖 `byte-buddy` 和 `objenesis`，**不要**手工去锁定这两个包的旧版本，否则在不同 JDK 上很容易报 `Cannot mock ... / InaccessibleObjectException`。
+
 ### 39.2.3 Mock 对象的创建与基本使用
+
+Mockito 的入门就三件事：**造对象（`mock`）、设行为（`when...thenReturn`）、验调用（`verify`）**。下面这段代码把三件事一次性演示完：
 
 ```java
 package com.example;
@@ -1184,8 +1233,12 @@ class OrderServiceTest {
             .thenReturn(true);
 
         // 模拟支付网关：支付成功
+        // 注意金额必须和被测代码算出来的完全一致：
+        // 商品A 80.00 × 2 + 商品B 70.00 × 1 = 230.00，
+        // 而且 BigDecimal 的比较连 scale 一起比，写成 150.00 这一桩根本匹配不上，
+        // 默认返回 false（布尔类型打桩后的默认值），测试会莫名其妙地失败。
         when(paymentGateway.process("6222-****-****-1234",
-            new BigDecimal("150.00")))
+            new BigDecimal("230.00")))
             .thenReturn(true);
 
         // 准备订单

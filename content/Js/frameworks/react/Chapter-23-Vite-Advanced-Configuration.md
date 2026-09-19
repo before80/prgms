@@ -174,7 +174,7 @@ export default defineConfig({
 ```mermaid
 flowchart LR
     A["浏览器\nlocalhost:5173"] -->|"请求 /api/users"| B["Vite 开发服务器"]
-    B -->|"代理到| http://localhost:3000/api/users"| C["后端 API"]
+    B -->|"代理到<br/> http://localhost:3000/api/users"| C["后端 API"]
     C -->|"响应"| B -->|"返回"| A
 ```
 

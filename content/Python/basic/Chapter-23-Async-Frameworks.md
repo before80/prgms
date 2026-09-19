@@ -48,6 +48,8 @@ Starlette 不是"全家桶"式的框架，它更像是给你的异步 Web 开发
 
 ### 23.1.3 安装 Starlette
 
+Starlette 是 FastAPI 底层的 ASGI 框架，也能单独使用。`starlette[full]` 会带上模板、WebSocket 等可选依赖；只写基础路由的话，裸装就够。
+
 ```bash
 # 安装 Starlette
 pip install starlette
@@ -455,6 +457,8 @@ graph LR
 - **协程支持**：全面支持 Python 协程（`async/await`）
 
 ### 23.2.2 安装 Tornado
+
+Tornado 是单包安装。它比 asyncio 更早，自带一套事件循环（`IOLoop`），所以在老项目里会看到它自己那套异步写法。
 
 ```bash
 pip install tornado
@@ -920,6 +924,8 @@ Sanic 的设计目标很明确：**在保持 Python 优雅的同时，提供极�
 
 ### 23.3.2 安装 Sanic
 
+Sanic 同样是单包安装。它一个显著特点是默认就跑多进程（`sanic app:app --workers=N`），和 Starlette + Uvicorn 的组合方式不太一样。
+
 ```bash
 pip install sanic
 ```
@@ -1383,6 +1389,8 @@ Python 的传统组合是 **Flask/Django + Gunicorn**。在异步时代，**Star
 
 ### 23.4.3 安装 Uvicorn
 
+Uvicorn 本身是纯 Python 的 ASGI 服务器。装上 `uvloop`（更快的事件循环）和 `httptools`（更快的 HTTP 解析器）后，Uvicorn 会**自动检测并使用**，代码一行都不用改。
+
 ```bash
 # 基本安装
 pip install uvicorn
@@ -1613,6 +1621,8 @@ uvicorn app:app --ssl-keyfile key.pem --ssl-certfile cert.pem
 
 ### 23.4.10 性能优化技巧
 
+生产环境的两条基本建议：单机多核就用多个 worker（Uvicorn 的 `--workers`，或 Gunicorn 的 UvicornWorker）；同时确保装上 uvloop/httptools，让单进程本身也更快。
+
 ```bash
 # 1. 使用 uvloop（需要安装）
 pip install uvloop httptools
@@ -1642,6 +1652,8 @@ uvicorn app:app \
 ```
 
 ### 23.4.11 Uvicorn 在 ASGI 生态中的位置
+
+ASGI 生态是分层的：上面是应用（FastAPI / Starlette / Django），中间是规范（ASGI），下面是服务器（Uvicorn / Hypercorn / Daphne）。只要遵守同一份规范，上层应用就能随意更换底下的服务器。
 
 ```mermaid
 graph BT

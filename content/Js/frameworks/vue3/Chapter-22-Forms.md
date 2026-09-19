@@ -734,8 +734,6 @@ const formConfig: FormField[] = [
 实现思路：用 `v-for` 遍历字段配置数组，根据每个字段的 `type` 动态选择渲染的组件类型：
 
 ```vue
-
-```vue
 <!-- DynamicForm.vue -->
 <template>
   <el-form

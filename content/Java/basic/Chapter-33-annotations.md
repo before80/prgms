@@ -11,6 +11,8 @@ draft = false
 
 > 📌 **先打个预防针**：注解（Annotation）是 Java 里最容易被人"眼熟"但又最容易被用歪的东西。很多人以为它只是 `@Override` 前面那个 `@`，其实它的本事大着呢——框架用它来生成代码、IDE 用它来做检查、编译器用它来提示警告……可以说，注解就是 Java 世界里的"便签贴"，贴在代码上，告诉别人"这段代码是干啥吃的"。
 
+> 📌 **本章代码的组织方式**：自定义注解、`@Repeatable`、反射读取注解这些例子都需要"注解 + 被注解的类 + 处理逻辑"三部分配合，因此会拆成多个代码块展示。请把它们视为**同一个目录下的一组 `.java` 文件**，一起编译运行。
+
 ## 33.1 Java 内置注解
 
 Java 从 1.5 开始就内置了一些注解，这些注解你肯定见过，只是可能没注意。它们是 Java 默认提供的小工具，贴在 JDK 自带的类和方法上，帮编译器做检查。
@@ -580,7 +582,9 @@ import java.lang.annotation.*;
     // expected 属性：期望抛出的异常类型
     Class<? extends Throwable> expected() default None.class;
 
-    static class None { }  // 占位类，表示"不期望异常"
+    // 占位类，表示"不期望异常"。
+    // 注意：它必须继承 Throwable，否则 None.class 不能赋给 Class<? extends Throwable>
+    static class None extends Throwable { }
 }
 
 @Retention(RetentionPolicy.RUNTIME)

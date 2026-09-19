@@ -523,7 +523,7 @@ git push origin feature-xxx --tags
 ```mermaid
 flowchart TD
     A[完成功能开发] --> B[git add .]
-    B --> C[git commit -m "xxx"]
+    B --> C["git commit -m 'xxx'"]
     C --> D{首次推送?}
     D -->|是| E[git push -u origin feature-xxx]
     D -->|否| F[git push]
@@ -1381,7 +1381,7 @@ git pull origin main
 
 ### 团队迁移通知模板
 
-```markdown
+````markdown
 ## 📢 仓库迁移通知
 
 各位团队成员：
@@ -1414,7 +1414,7 @@ https://gitlab.com/team/project.git
 - 如有问题，请联系 @管理员
 
 谢谢配合！
-```
+````
 
 ### 常见问题
 
@@ -1500,4 +1500,3 @@ git push gitlab main
 ---
 
 **第16章完**
-

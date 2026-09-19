@@ -66,6 +66,8 @@ func (s *Sorter) Sort(data []int) {
 
 ### Go语言实现策略模式
 
+策略模式把“用什么算法”从调用逻辑里抽出来，变成一个可以替换的对象。在 Go 里这个“对象”通常就是一个**函数值**或一个小接口：
+
 ```go
 // ========== 第一步：定义策略接口 ==========
 
@@ -194,6 +196,7 @@ func (s *Sorter) Sort(data []int) []int {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 策略模式：排序算法选择 ===\n")
@@ -240,7 +243,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 策略模式：排序算法选择 ===
 
 --- 场景1: 快速排序 ---
@@ -273,6 +276,7 @@ func main() {
 看到了吗？**排序器（Sorter）从头到尾不需要知道用的是什么排序算法**，它只需要调用 `strategy.Sort(data)`。算法可以随时切换，互不影响。
 
 ### 策略模式的 UML 图
+下图展示了策略接口、各个具体策略与上下文之间的关系：
 
 ```mermaid
 classDiagram
@@ -357,7 +361,7 @@ classDiagram
 
 先讲一个你每天早上都会经历的固定流程：
 
-```
+```text
 起床 → 刷牙洗脸 → 吃早餐 → 换衣服 → 出门上班
 ```
 
@@ -369,9 +373,9 @@ classDiagram
 - **换衣服**：工作穿正装，周末穿休闲
 - **出门上班**：开车、骑车、地铁、走路
 
-**模板方法模式（Template Method Pattern）** 就是来解决这个问题的：**定义一个算法的骨架，把某些步骤的具体实现延迟到子类**。
+**模板方法模式（Template Method Pattern）** 就是来解决这个问题的：**定义一个算法的骨架，把某些步骤的具体实现延迟出去**。在 Java/C++ 里，“延迟出去”指的是子类；而在 Go 里，我们用接口来扮演这个角色。
 
-模板方法模式的核心思想是：**在一个方法里定义一个算法的骨架，把一些步骤的具体实现留给子类去完成**。
+模板方法模式的核心思想是：**在一个方法里定义一个算法的骨架，把一些步骤的具体实现留给别的类型去完成**。
 
 ### 模板方法模式 vs 策略模式
 
@@ -389,155 +393,144 @@ classDiagram
 
 ### Go语言实现模板方法模式
 
-```go
-// ========== 第一步：定义模板方法基类 ==========
+模板方法模式的本质是：**把算法骨架固定下来，把可变的步骤留给别人填**。在 Java/C++ 里这靠继承加抽象方法实现，而 Go 既没有继承、也没有抽象方法，所以要换一套写法。
 
-// DailyRoutine 是每日生活模板
-// 这是一个"骨架"，定义了每天的固定流程
-type DailyRoutine struct {
-    // 这个结构体定义了一个"模板方法"：MorningRoutine()
+> ⚠️ **先看一个几乎所有人都会踩的坑**：用嵌入结构体来"重写"骨架里的步骤。下面这段代码能编译、能运行，但结果**完全不是你以为的那样**：
+>
+> ```go
+> type DailyRoutine struct{}
+>
+> // 模板方法：定义骨架
+> func (r *DailyRoutine) MorningRoutine() {
+>     r.EatBreakfast()   // 注意这里的 r 是 *DailyRoutine
+> }
+>
+> func (r *DailyRoutine) EatBreakfast() { fmt.Println("[骨架] 吃面包") }
+>
+> // "子类"：嵌入 DailyRoutine，覆写 EatBreakfast
+> type WorkdayRoutine struct{ *DailyRoutine }
+>
+> func (r *WorkdayRoutine) EatBreakfast() { fmt.Println("[工作日] 吃包子") }
+>
+> func main() {
+>     w := &WorkdayRoutine{DailyRoutine: &DailyRoutine{}}
+>     w.MorningRoutine()  // 输出：[骨架] 吃面包   ← 不是 [工作日] 吃包子！
+> }
+> ```
+>
+> 原因是：`MorningRoutine` 的接收者是 `*DailyRoutine`，方法体里的 `r.EatBreakfast()` 在**编译期**就绑定到了 `DailyRoutine.EatBreakfast`。Go 没有虚函数表，方法调用不做动态分发，所以外层那个同名方法永远不会被调用到。
+>
+> 结论：在 Go 里想让"骨架"调用到外部提供的实现，**必须经过接口**。
+
+#### 正确写法：骨架 + 接口
+
+下面的写法把所有可变步骤都放进接口里，骨架只负责“按什么顺序调用它们”。
+
+```go
+// ========== 第一步：把"可变的步骤"定义成接口 ==========
+
+// MorningSteps 描述一天流程里那些可以变化的步骤。
+// 模板方法模式的关键就在这一步：骨架负责"按什么顺序做"，
+// 接口负责"每步具体怎么做"。
+type MorningSteps interface {
+    WakeUp()
+    EatBreakfast()
+    ChangeClothes()
+    GoOut()
 }
 
-// MorningRoutine 是模板方法——它定义了算法的骨架
-// 注意：这个方法是不可重写的（Go没有final关键字，这里用约定俗成）
+// DefaultSteps 提供所有步骤的默认实现。
+// 具体场景嵌入它，只需要覆写自己关心的那几步。
+type DefaultSteps struct{}
+
+func (DefaultSteps) WakeUp()        { fmt.Println("[骨架] 起床") }
+func (DefaultSteps) EatBreakfast()  { fmt.Println("[骨架] 吃早餐（默认：吃面包）") }
+func (DefaultSteps) ChangeClothes() { fmt.Println("[骨架] 换衣服（默认：穿休闲装）") }
+func (DefaultSteps) GoOut()         { fmt.Println("[骨架] 出门上班") }
+```
+
+```go
+// ========== 第二步：骨架本身 ==========
+
+// DailyRoutine 是"模板"：它只做两件事——
+// 1. 固定各步骤之间的顺序；
+// 2. 把可变步骤委托给 steps。
+type DailyRoutine struct {
+    steps MorningSteps
+}
+
+func NewDailyRoutine(steps MorningSteps) *DailyRoutine {
+    return &DailyRoutine{steps: steps}
+}
+
+// MorningRoutine 就是模板方法：顺序写死在这里，细节由 steps 决定
 func (r *DailyRoutine) MorningRoutine() {
     fmt.Println("=== 早晨例行流程 ===")
 
-    r.wakeUp()        // 第一步：起床（固定）
-    r.brushTeeth()    // 第二步：刷牙（固定）
-    r.eatBreakfast()  // 第三步：吃早餐（可变）
-    r.changeClothes() // 第四步：换衣服（可变）
-    r.goOut()         // 第五步：出门（固定）
+    r.steps.WakeUp()        // 可变
+    r.brushTeeth()          // 固定：骨架自己实现，外部改不了
+    r.steps.EatBreakfast()  // 可变
+    r.steps.ChangeClothes() // 可变
+    r.steps.GoOut()         // 可变
 
-    fmt.Println("=== 流程结束 ===\n")
+    fmt.Println("=== 流程结束 ===")
 }
 
-// WakeUp 起床——骨架的一部分，通常不需要变化
-func (r *DailyRoutine) wakeUp() {
-    fmt.Println("[骨架] 起床")
-}
-
-// BrushTeeth 刷牙洗脸——骨架的一部分
+// brushTeeth 是真正"不需要变化"的步骤，所以留在骨架里（小写 = 外部看不到）
 func (r *DailyRoutine) brushTeeth() {
     fmt.Println("[骨架] 刷牙洗脸")
 }
-
-// EatBreakfast 吃早餐——这是一个"钩子方法"，子类可以重写
-func (r *DailyRoutine) eatBreakfast() {
-    fmt.Println("[骨架] 吃早餐（默认：吃面包）")
-}
-
-// ChangeClothes 换衣服——这是一个"钩子方法"，子类可以重写
-func (r *DailyRoutine) changeClothes() {
-    fmt.Println("[骨架] 换衣服（默认：穿休闲装）")
-}
-
-// GoOut 出门——骨架的一部分，通常不需要变化
-func (r *DailyRoutine) goOut() {
-    fmt.Println("[骨架] 出门上班")
-}
 ```
 
 ```go
-// ========== 第二步：定义具体的子类实现 ==========
+// ========== 第三步：三个具体场景 ==========
 
-// WorkdayRoutine 工作日的routine
-type WorkdayRoutine struct {
-    *DailyRoutine // 匿名嵌套，相当于"继承"
-}
+// 工作日：只覆写早餐和穿衣两步
+type WorkdayRoutine struct{ DefaultSteps }
 
-func NewWorkdayRoutine() *WorkdayRoutine {
-    routine := &DailyRoutine{}
-    return &WorkdayRoutine{DailyRoutine: routine}
-}
+func (WorkdayRoutine) EatBreakfast()  { fmt.Println("[工作日] 快速吃个包子，边走边吃") }
+func (WorkdayRoutine) ChangeClothes() { fmt.Println("[工作日] 穿正装，打领带") }
 
-// 重写吃早餐
-func (r *WorkdayRoutine) eatBreakfast() {
-    fmt.Println("[工作日] 快速吃个包子，边走边吃")
-}
+// 周末：同样只覆写这两步
+type WeekendRoutine struct{ DefaultSteps }
 
-// 重写换衣服
-func (r *WorkdayRoutine) changeClothes() {
-    fmt.Println("[工作日] 穿正装，打领带")
-}
+func (WeekendRoutine) EatBreakfast()  { fmt.Println("[周末] 精心做个煎饼果子，加蛋加肠") }
+func (WeekendRoutine) ChangeClothes() { fmt.Println("[周末] 穿睡衣，舒服最重要") }
 
-// WeekendRoutine 周末的routine
-type WeekendRoutine struct {
-    *DailyRoutine
-}
+// 旅行：连起床和出门都要改，那就四个都覆写
+type TravelRoutine struct{ DefaultSteps }
 
-func NewWeekendRoutine() *WeekendRoutine {
-    routine := &DailyRoutine{}
-    return &WeekendRoutine{DailyRoutine: routine}
-}
-
-func (r *WeekendRoutine) eatBreakfast() {
-    fmt.Println("[周末] 精心做个煎饼果子，加蛋加肠")
-}
-
-func (r *WeekendRoutine) changeClothes() {
-    fmt.Println("[周末] 穿睡衣，舒服最重要")
-}
+func (TravelRoutine) WakeUp()        { fmt.Println("[旅行] 睡到自然醒，酒店真舒服") }
+func (TravelRoutine) EatBreakfast()  { fmt.Println("[旅行] 酒店自助餐，吃个够") }
+func (TravelRoutine) ChangeClothes() { fmt.Println("[旅行] 穿旅游装，准备出发") }
+func (TravelRoutine) GoOut()         { fmt.Println("[旅行] 出发去景点！") }
 ```
 
 ```go
-// ========== 第三步：更灵活的钩子机制 ==========
+// ========== 第四步：跑起来 ==========
 
-// TravelRoutine 出差/旅行的routine，展示了更多钩子用法
-type TravelRoutine struct {
-    *DailyRoutine
-}
-
-func NewTravelRoutine() *TravelRoutine {
-    routine := &DailyRoutine{}
-    return &TravelRoutine{DailyRoutine: routine}
-}
-
-// 重写所有可变步骤
-func (r *TravelRoutine) wakeUp() {
-    fmt.Println("[旅行] 睡到自然醒，酒店真舒服")
-}
-
-func (r *TravelRoutine) eatBreakfast() {
-    fmt.Println("[旅行] 酒店自助餐，吃个够")
-}
-
-func (r *TravelRoutine) changeClothes() {
-    fmt.Println("[旅行] 穿旅游装，准备出发")
-}
-
-func (r *TravelRoutine) goOut() {
-    fmt.Println("[旅行] 出发去景点！")
-}
-```
-
-```go
 func main() {
-    fmt.Println("=== 模板方法模式 ===\n")
+    scenarios := []struct {
+        name  string
+        steps MorningSteps
+    }{
+        {"工作日", WorkdayRoutine{}},
+        {"周末", WeekendRoutine{}},
+        {"旅行", TravelRoutine{}},
+    }
 
-    // ===== 场景1：工作日 =====
-    fmt.Println("--- 场景1: 工作日早晨 ---")
-    workday := NewWorkdayRoutine()
-    workday.MorningRoutine()
-
-    // ===== 场景2：周末 =====
-    fmt.Println("--- 场景2: 周末早晨 ---")
-    weekend := NewWeekendRoutine()
-    weekend.MorningRoutine()
-
-    // ===== 场景3：旅行 =====
-    fmt.Println("--- 场景3: 旅行早晨 ---")
-    travel := NewTravelRoutine()
-    travel.MorningRoutine()
+    for _, s := range scenarios {
+        fmt.Printf("--- 场景：%s ---\n", s.name)
+        NewDailyRoutine(s.steps).MorningRoutine()
+        fmt.Println()
+    }
 }
 ```
 
 运行结果：
 
-```
-=== 模板方法模式 ===
-
---- 场景1: 工作日早晨 ---
+```text
+--- 场景：工作日 ---
 === 早晨例行流程 ===
 [骨架] 起床
 [骨架] 刷牙洗脸
@@ -546,7 +539,7 @@ func main() {
 [骨架] 出门上班
 === 流程结束 ===
 
---- 场景2: 周末早晨 ---
+--- 场景：周末 ---
 === 早晨例行流程 ===
 [骨架] 起床
 [骨架] 刷牙洗脸
@@ -555,150 +548,141 @@ func main() {
 [骨架] 出门上班
 === 流程结束 ===
 
---- 场景3: 旅行早晨 ---
+--- 场景：旅行 ---
 === 早晨例行流程 ===
 [旅行] 睡到自然醒，酒店真舒服
 [骨架] 刷牙洗脸
 [旅行] 酒店自助餐，吃个够
 [旅行] 穿旅游装，准备出发
-[骨架] 出发去景点！
+[旅行] 出发去景点！
 === 流程结束 ===
 ```
 
-看到了吗？**模板方法 `MorningRoutine()` 从头到尾没有改**，但具体每一步做什么，由子类决定。这就是模板方法模式的威力：**骨架固定，细节可变**。
+这一次是真的生效了：`MorningRoutine()` 一行都不用改，三个场景的顺序完全一致，而每一步真正做到什么由传入的 `steps` 决定——因为 `r.steps` 是**接口**，接口方法的落点在运行期才确定。这就是模板方法模式的威力：**骨架固定，细节可变**。
 
 ### 模板方法模式的结构
 
+下图是上一节代码的结构：注意 `DailyRoutine` 是**持有**一个 `MorningSteps` 接口，而不是继承它。
+
 ```mermaid
 classDiagram
+    class MorningSteps {
+        <<interface>>
+        +WakeUp()
+        +EatBreakfast()
+        +ChangeClothes()
+        +GoOut()
+    }
+
+    class DefaultSteps {
+        +WakeUp()
+        +EatBreakfast()
+        +ChangeClothes()
+        +GoOut()
+    }
+
     class DailyRoutine {
-        <<abstract>>
-        +MorningRoutine() // 模板方法（骨架）
-        +wakeUp()
-        +brushTeeth()
-        +eatBreakfast() // 钩子方法
-        +changeClothes() // 钩子方法
-        +goOut()
+        -MorningSteps steps
+        +MorningRoutine()
+        -brushTeeth()
     }
 
-    class WorkdayRoutine {
-        +eatBreakfast()
-        +changeClothes()
-    }
+    class WorkdayRoutine
+    class WeekendRoutine
+    class TravelRoutine
 
-    class WeekendRoutine {
-        +eatBreakfast()
-        +changeClothes()
-    }
-
-    class TravelRoutine {
-        +wakeUp()
-        +eatBreakfast()
-        +changeClothes()
-        +goOut()
-    }
-
-    DailyRoutine <|-- WorkdayRoutine
-    DailyRoutine <|-- WeekendRoutine
-    DailyRoutine <|-- TravelRoutine
+    MorningSteps <|.. DefaultSteps
+    MorningSteps <|.. WorkdayRoutine
+    MorningSteps <|.. WeekendRoutine
+    MorningSteps <|.. TravelRoutine
+    DefaultSteps <|-- WorkdayRoutine
+    DefaultSteps <|-- WeekendRoutine
+    DefaultSteps <|-- TravelRoutine
+    DailyRoutine o-- MorningSteps
 ```
+
+> 和经典 UML 的差别在于箭头方向：模板方法模式在 Java 里是"子类继承抽象父类"，在 Go 里变成了"骨架**持有**一个接口"。骨架不再依赖具体实现，扩展新场景也不用碰骨架代码——这一点反而比继承更干净。
 
 ### 钩子方法（Hook Method）
 
-在模板方法模式中，有一个重要的概念：**钩子方法**。
+**钩子方法**指的是那种"有默认实现、子类可以选择性覆写"的步骤。骨架里通常会给它一个空实现或最保守的实现。
 
-钩子方法是基类提供的一个"默认实现"，子类可以选择性地重写它。如果不重写，就用默认实现；如果重写，就用子类自己的实现。
+在 Go 里，默认实现放在一个可以被嵌入的结构体里，覆写就是在自己身上再定义一个同名方法（就像上面的 `DefaultSteps`）。下面把"空钩子"单独抽出来演示：
 
 ```go
-// 钩子方法的经典用法：允许子类在某个步骤之前或之后添加额外逻辑
+// Step 是必须实现的核心步骤
+type Step interface {
+    Main()
+}
 
-type AlgorithmWithHook struct{}
+// Hooks 是可选的钩子，两个方法都有默认实现
+type Hooks interface {
+    Before()
+    After()
+}
 
-func (a *AlgorithmWithHook) TemplateMethod() {
+// NoopHooks 提供"什么都不做"的默认钩子
+type NoopHooks struct{}
+
+func (NoopHooks) Before() {}
+func (NoopHooks) After()  {}
+```
+
+```go
+// Pipeline 是骨架：它规定 before → main → after 的顺序
+type Pipeline struct {
+    step  Step
+    hooks Hooks
+}
+
+// NewPipeline 在调用方不传钩子时，自动补上空实现
+func NewPipeline(step Step, hooks Hooks) *Pipeline {
+    if hooks == nil {
+        hooks = NoopHooks{}
+    }
+    return &Pipeline{step: step, hooks: hooks}
+}
+
+// Run 是模板方法
+func (p *Pipeline) Run() {
     fmt.Println("步骤1：准备工作")
-
-    // 钩子：子类可以选择性地在这里添加逻辑
-    a.beforeMainStep()
-
+    p.hooks.Before()   // 空钩子：默认什么都不做
     fmt.Println("步骤2：核心步骤")
-    a.mainStep()
-
-    // 钩子：另一个钩子
-    a.afterMainStep()
-
+    p.step.Main()
+    p.hooks.After()    // 空钩子：默认什么都不做
     fmt.Println("步骤3：收尾工作")
 }
-
-// 默认实现的钩子（空实现）
-func (a *AlgorithmWithHook) beforeMainStep() {
-    // 默认什么都不做
-}
-
-// 默认实现的钩子（空实现）
-func (a *AlgorithmWithHook) afterMainStep() {
-    // 默认什么都不做
-}
-
-// 核心步骤——必须实现
-func (a *AlgorithmWithHook) mainStep() {
-    panic("子类必须实现 mainStep")
-}
 ```
 
 ```go
-// 子类A：不需要额外逻辑
-type ConcreteAlgorithmA struct {
-    *AlgorithmWithHook
-}
+// 算法A：只实现核心步骤，不使用钩子
+type AlgoA struct{}
 
-func NewConcreteAlgorithmA() *ConcreteAlgorithmA {
-    return &ConcreteAlgorithmA{&AlgorithmWithHook{}}
-}
+func (AlgoA) Main() { fmt.Println("算法A的核心步骤执行中...") }
 
-func (a *ConcreteAlgorithmA) mainStep() {
-    fmt.Println("算法A的核心步骤执行中...")
-}
+// 算法B：除了核心步骤，还把两个钩子都填上了
+type AlgoB struct{}
 
-// 子类B：需要添加额外逻辑
-type ConcreteAlgorithmB struct {
-    *AlgorithmWithHook
-}
+func (AlgoB) Main()   { fmt.Println("算法B的核心步骤执行中...") }
+func (AlgoB) Before() { fmt.Println("[钩子] 算法B：在核心步骤之前做一些准备工作") }
+func (AlgoB) After()  { fmt.Println("[钩子] 算法B：在核心步骤之后做一些清理工作") }
 
-func NewConcreteAlgorithmB() *ConcreteAlgorithmB {
-    return &ConcreteAlgorithmB{&AlgorithmWithHook{}}
-}
-
-func (a *ConcreteAlgorithmB) mainStep() {
-    fmt.Println("算法B的核心步骤执行中...")
-}
-
-// 重写钩子
-func (a *ConcreteAlgorithmB) beforeMainStep() {
-    fmt.Println("[钩子] 算法B：在核心步骤之前做一些准备工作")
-}
-
-func (a *ConcreteAlgorithmB) afterMainStep() {
-    fmt.Println("[钩子] 算法B：在核心步骤之后做一些清理工作")
-}
-```
-
-```go
 func main() {
     fmt.Println("--- 算法A（不使用钩子）---")
-    algoA := NewConcreteAlgorithmA()
-    algoA.TemplateMethod()
+    NewPipeline(AlgoA{}, nil).Run()
 
     fmt.Println()
 
     fmt.Println("--- 算法B（使用钩子）---")
-    algoB := NewConcreteAlgorithmB()
-    algoB.TemplateMethod()
+    NewPipeline(AlgoB{}, AlgoB{}).Run()
 }
 ```
 
+> 💡 对比一下两种"必须实现"的做法：把 `Main()` 放进接口，缺方法会在**编译期**报错；而用 `panic("子类必须实现")` 占位，则要把问题拖到**运行期**。显然前者更好。
+
 运行结果：
 
-```
+```text
 --- 算法A（不使用钩子）---
 步骤1：准备工作
 步骤2：核心步骤
@@ -734,7 +718,7 @@ func main() {
 
 模板方法模式就像是**酒店的自助早餐流程**：
 
-```
+```text
 取盘 → 拿食物 → 找座位 → 吃 → 收盘 → 离开
 ```
 
@@ -769,6 +753,8 @@ func main() {
 - **ConcreteObserver（具体观察者）**：实现更新接口，保持与主题状态一致
 
 ### Go语言实现观察者模式
+
+观察者模式的关键在于“被观察者不需要知道观察者的具体类型，只知道它们实现了通知接口”。Go 的接口 + 切片天然适合这件事：
 
 ```go
 // ========== 第一步：定义观察者接口 ==========
@@ -896,6 +882,7 @@ func (u *WeChatUser) GetID() string {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 观察者模式：新闻订阅系统 ===\n")
@@ -949,7 +936,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 观察者模式：新闻订阅系统 ===
 
 [央视一套] 新闻频道 央视一套 开通了！
@@ -1009,6 +996,7 @@ func main() {
 - **解耦**：发布者不需要知道有多少观察者，它们是谁
 
 ### 观察者模式的 UML 图
+下图展示了被观察者与多个观察者之间的通知关系：
 
 ```mermaid
 classDiagram
@@ -1108,6 +1096,7 @@ func (s *SimpleSubject) Notify(message string) {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     subject := NewSimpleSubject()
@@ -1130,7 +1119,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 [SimpleSubject] 新订阅者注册，当前共 1 个订阅者
 [SimpleSubject] 新订阅者注册，当前共 2 个订阅者
 
@@ -1213,6 +1202,8 @@ for k, v := range m {
 ### Go语言实现迭代器模式
 
 #### 示例：自定义链表的迭代器
+
+同一套 `HasNext` / `Next` 协议，可以适配完全不同内部结构的容器。下面先给自定义链表写一个迭代器：
 
 ```go
 // ========== 第一步：定义节点 ==========
@@ -1318,6 +1309,7 @@ func (list *LinkedList) Size() int {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 迭代器模式 ===\n")
@@ -1356,7 +1348,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 迭代器模式 ===
 
 链表大小: 5
@@ -1378,6 +1370,8 @@ func main() {
 ```
 
 ### 更复杂的迭代器：二叉树的迭代器
+
+二叉树没法像链表那样“顺着 next 指针走”，需要借助一个显式的栈来保存遍历路径。这一段是迭代器模式里最有教学价值的部分：
 
 ```go
 // ========== 二叉树节点 ==========
@@ -1431,6 +1425,7 @@ func (it *BinaryTreeIterator) Reset() {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 二叉树迭代器 ===\n")
@@ -1470,7 +1465,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 二叉树迭代器 ===
 
 中序遍历（递归结果应该是: 1 2 3 4 5 6 7）:
@@ -1479,6 +1474,7 @@ func main() {
 ```
 
 ### 迭代器模式的 UML 图
+下图展示了迭代器接口、具体迭代器与聚合对象之间的关系：
 
 ```mermaid
 classDiagram
@@ -1590,13 +1586,13 @@ for e := l.Front(); e != nil; e = e.Next() {
 
 如果你的请假天数是3天，那么流程是：
 
-```
+```text
 你的申请 → 组长（批不了，传给下一个）→ 经理（批了！）
 ```
 
 如果你的请假天数是10天，那么流程是：
 
-```
+```text
 你的申请 → 组长（批不了，传给下一个）→ 经理（批不了，传给下一个）→ 总监（批不了，传给下一个）→ HR（批了！）
 ```
 
@@ -1614,6 +1610,8 @@ for e := l.Front(); e != nil; e = e.Next() {
 - **责任链模式**：一个请求只会被一个处理者处理（或者没人处理）
 
 ### Go语言实现责任链模式
+
+责任链把多个处理者串成一条链，请求沿着链传递，直到有人处理它。在 Go 里，链上的下一环通常直接存成一个**接口字段**：
 
 ```go
 // ========== 第一步：定义请求结构 ==========
@@ -1796,6 +1794,7 @@ func BuildApprovalChain() *TeamLeader {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 责任链模式：请假审批流程 ===\n")
@@ -1854,7 +1853,7 @@ func (a *SilentApprover) HandleRequest(request *LeaveRequest) bool {
 
 运行结果：
 
-```
+```text
 === 责任链模式：请假审批流程 ===
 
 --- 场景1: 请假1天 ---
@@ -1877,6 +1876,7 @@ func (a *SilentApprover) HandleRequest(request *LeaveRequest) bool {
 ```
 
 ### 责任链模式的 UML 图
+下图展示了请求在处理器链上依次传递的结构：
 
 ```mermaid
 classDiagram
@@ -1982,6 +1982,8 @@ classDiagram
 - **Receiver（接收者）**：实际执行命令的对象
 
 ### Go语言实现命令模式
+
+命令模式把“一次操作”打包成一个对象，于是它就能被排队、撤销、重放、记录日志。Go 里常用结构体 + 接口来实现：
 
 ```go
 // ========== 第一步：定义命令接口 ==========
@@ -2162,6 +2164,7 @@ func (r *RemoteControl) PressUndo() {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 命令模式：智能遥控器 ===\n")
@@ -2218,7 +2221,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 命令模式：智能遥控器 ===
 
 [遥控器] 按钮0已设置
@@ -2258,6 +2261,7 @@ func main() {
 看到了吗？**命令模式完美支持"撤销"操作**，因为每个命令都知道怎么撤销自己。
 
 ### 命令模式的 UML 图
+下图展示了命令、调用者、接收者三者的协作关系：
 
 ```mermaid
 classDiagram
@@ -2343,6 +2347,7 @@ func (q *CommandQueue) ExecuteAll() {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     // 继续上面的例子...
@@ -2365,7 +2370,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 命令队列：批量操作 ===
 
 [队列] 添加命令，当前队列长度: 1
@@ -2460,6 +2465,8 @@ func (e *Elevator) PressButton(button string) {
 策略模式是"我想用哪个用哪个"，状态模式是"我变成什么样就做什么样的事"。
 
 ### Go语言实现状态模式
+
+状态模式把“每种状态下允许的行为”各自封装成一个类型，对象只需在运行时切换当前状态——这样就避免了满屏的 `switch status`：
 
 ```go
 // ========== 第一步：定义状态接口 ==========
@@ -2633,6 +2640,7 @@ func (s *RunningState) Stop(e *Elevator) {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 状态模式：电梯控制 ===\n")
@@ -2680,7 +2688,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 状态模式：电梯控制 ===
 
 电梯当前楼层: 1
@@ -2713,6 +2721,7 @@ func main() {
 看到了吗？**每个状态都知道自己在什么情况下可以做什么，不可以做什么**。客户端不需要知道状态转换的逻辑，只需要调用方法，状态内部自己会决定接下来怎么变。
 
 ### 状态模式的 UML 图
+下图展示了上下文与各个状态对象之间的切换关系：
 
 ```mermaid
 classDiagram
@@ -2977,6 +2986,7 @@ func (e *DivideExpression) Interpret(context *Context) int {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 解释器模式：算术表达式计算器 ===\n")
@@ -3049,7 +3059,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 解释器模式：算术表达式计算器 ===
 
 --- 表达式1: 3 + 5 ---
@@ -3068,6 +3078,7 @@ a=10, x=3, y=5
 ```
 
 ### 解释器模式的 UML 图
+下图展示了抽象表达式与各个具体表达式节点之间的组合关系：
 
 ```mermaid
 classDiagram
@@ -3218,6 +3229,8 @@ func Accept(visitor Visitor) {
 ```
 
 ### Go语言实现访问者模式
+
+访问者模式把“数据结构”和“施加在数据上的操作”解耦：元素只提供一个 `Accept` 入口，具体做什么由访问者决定。想加一种新操作，只需要新增一个访问者，不用改任何元素类型：
 
 ```go
 // ========== 第一步：定义元素接口 ==========
@@ -3396,6 +3409,7 @@ func (h *Hospital) Accept(visitor PersonVisitor) {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 访问者模式：医院信息系统 ===\n")
@@ -3436,7 +3450,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 访问者模式：医院信息系统 ===
 
 ========== 打印所有人 ==========
@@ -3514,6 +3528,7 @@ type Element interface {
 不过，在Go中实现泛型访问者模式比较复杂，因为Go的泛型系统比较简单。通常我们还是用第一种方式（接口+类型断言）来实现访问者模式。
 
 ### 访问者模式的 UML 图
+下图展示了元素与访问者之间「双向选择」的结构：
 
 ```mermaid
 classDiagram
@@ -3626,6 +3641,8 @@ classDiagram
 ### Go语言实现备忘录模式
 
 #### 示例：游戏存档系统
+
+这一节用备忘录模式 + 命令模式做一个小综合：既能随时存档、读档，也能把操作序列回放出来：
 
 ```go
 // ========== 第一步：定义备忘录结构 ==========
@@ -3767,6 +3784,7 @@ func (m *SaveManager) ListSaves() {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 备忘录模式：游戏存档系统 ===\n")
@@ -3822,7 +3840,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 备忘录模式：游戏存档系统 ===
 
 [游戏] 当前状态: 等级:1 HP:100 MP:50 金币:0 场景:新手村
@@ -3871,6 +3889,7 @@ func main() {
 - **当需要恢复时，游戏从备忘录中读取状态并恢复**
 
 ### 备忘录模式的 UML 图
+下图展示了发起人、备忘录与管理者的职责划分：
 
 ```mermaid
 classDiagram
@@ -3955,9 +3974,9 @@ classDiagram
 
 **解决的问题**：算法的骨架固定，但某些步骤需要子类来实现。
 
-**核心思想**：在父类中定义算法的骨架，子类通过重写钩子方法来提供不同实现。
+**核心思想**：骨架里固定算法的步骤顺序，可变步骤交给接口去实现。
 
-**Go实现要点**：使用嵌入结构体模拟继承，重写特定方法来定制行为。
+**Go实现要点**：把可变步骤抽成接口，骨架持有这个接口并固定调用顺序。**不要**想用嵌入结构体去“重写”骨架里的步骤——Go 的方法调用是静态绑定的，那样写出来的代码看着能跑，实际调用到的永远是骨架自己的默认实现（详见本模式里那个错误示范）。
 
 ### 观察者模式（Observer Pattern）
 
@@ -4048,4 +4067,3 @@ classDiagram
 ---
 
 **第40章 行为型模式 · 完结** 🎉
-

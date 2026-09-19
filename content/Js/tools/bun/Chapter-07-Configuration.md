@@ -92,9 +92,9 @@ logLevel = "warning"  # debug | info | warning | error
 
 ---
 
-## 7.2 bun.lockb（锁文件）
+## 7.2 bun.lock（锁文件）
 
-Bun 的锁文件叫 `bun.lockb`，是一个**二进制格式**的文件——对，你没看错，不是 JSON/YAML， Bun 就喜欢搞点不一样的。
+> 📌 **重要变更（Bun v1.2 起）**：Bun 的默认锁文件已经改成**文本格式**的 **`bun.lock`**（JSONC 风格，可读、可 diff、冲突好处理）。老的二进制文件 `bun.lockb` 是 **1.2 之前的产物**：Bun 仍然能读它，但默认不再生成它。很多老教程还在讲 `bun.lockb`，那已经是历史了。
 
 ### 为什么要用锁文件？
 
@@ -102,20 +102,34 @@ Bun 的锁文件叫 `bun.lockb`，是一个**二进制格式**的文件——对
 
 ### 锁文件格式说明
 
-`bun.lockb` 是二进制格式，**不要手动编辑**！手贱改坏了怎么办？淡定，删掉重装就行：
+`bun.lock` 是文本格式，一般也不需要手动编辑。改坏了怎么办？删掉重装就行：
 
 ```bash
-rm bun.lockb
-bun install  # 重新生成
+rm bun.lock
+bun install          # 重新生成 bun.lock
+
+# 只想生成/更新锁文件、不装到 node_modules：
+bun install --lockfile-only
+
+# 从旧的二进制锁文件迁移到文本锁文件（迁移后手动删除 bun.lockb）
+bun install --save-text-lockfile --frozen-lockfile --lockfile-only
 ```
+
+另外两个常用的开关：
+
+- `bun install --no-save`：装依赖但不写锁文件（临时试装用，别在团队项目里当常规操作）；
+- `bun install --frozen-lockfile`（或直接 `bun ci`）：CI 里要求"锁文件必须和 package.json 完全一致"，否则报错退出——这才是可复现构建该用的命令。
+
+**自动迁移**：如果项目里只有 `yarn.lock`、`package-lock.json`（lockfileVersion 2/3/4）或 `pnpm-lock.yaml`，第一次运行 `bun install` 时 Bun 会自动读取并转换它们（原锁文件会保留，验证无误后可自行删除）。注意 npm 6 及更早的 `lockfileVersion: 1` 不会被迁移，Bun 会打印警告并直接从 `package.json` 解析。
 
 ### 与其他锁文件的区别
 
 | 锁文件 | 格式 | 可读性 |
 |---|---|---|
-| bun.lockb | 二进制 | ❌ 别碰 |
+| bun.lock | 文本（JSONC 风格） | ✅ 可读、可 diff（Bun 1.2+ 默认） |
+| bun.lockb | 二进制 | ⚠️ 旧格式，仍被读取但没有必要再用 |
 | package-lock.json | JSON | ✅ 可读 |
-| yarn.lock | YAML | ✅ 可读 |
+| yarn.lock | 类 YAML 的自定义格式 | ✅ 可读 |
 | pnpm-lock.yaml | YAML | ✅ 可读 |
 
 ### 提交到 Git
@@ -326,19 +340,21 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 
 Bun 自带了一套"体检套餐"，帮你快速定位环境问题。
 
-### bun doctor - 环境自检
+### 环境自检怎么做
+
+> ⚠️ **先纠正一个常见误传**：截至 Bun 1.4.2，官方文档里**没有 `bun doctor` 这条命令**。你在别处看到 `bun doctor` 的输出示例（"Checking for Bun…"那一类），不要照抄——运行时会直接报未知命令。
+
+排查环境问题，官方的可靠做法是这几条：
 
 ```bash
-bun doctor
-
-# 真实输出示例（来自 bun v1.x）：
-# Checking for Bun...      ✓ Bun is installed
-# Checking for node...     ✓ node is installed
-# Checking for npm...      ✓ npm is installed
-# Checking environment variables... ✓
-# Bun can find "npm"       ✓
-# Bun can find "node"      ✓
+bun --version      # 我装的是哪个版本
+bun --revision     # 版本的完整信息（含 commit）
+bun upgrade        # 升级到最新版
+bun pm cache       # 缓存相关：查看缓存目录
+bun install --verbose   # 安装出错时打开详细日志，看真正卡在哪一步
 ```
+
+再配合 `which bun` / `which node`（Windows 上是 `where bun`）确认 PATH 里谁在前面，绝大多数"环境不对劲"的问题都能定位。
 
 ### bun --version - 查看版本
 
@@ -370,6 +386,6 @@ bun info react
 
 本章介绍了 Bun 的配置体系，帮你从"会用"进化到"会配"。
 
-**bunfig.toml** 是 Bun 的全局配置文件，可配置镜像源、缓存目录、自动安装行为、日志级别等。国内用户最重要的配置就是镜像——配完你就知道什么叫"飞一般的感觉"。**bun.lockb** 是二进制锁文件，必须提交到 Git，但不要手贱去编辑它。**package.json 中的 Bun 配置**：overrides 用于强制依赖版本，scripts 中可以指定 bun 命令，workspaces 配置 monorepo。**环境变量**：BUN_INSTALL、BUN_ENV、BUN_CONFIG_REGISTRY、BUN_CACHE_DIR 等都是高频使用的配置项。**国内镜像**：bunfig.toml 中配一行 registry 就够了。**IDE 支持**：VS Code 装插件、WebStorm 原生支持、Neovim 配 LSP，各取所需。**与 Node.js 共存**：两者可以同时装，通过 PATH 决定谁出场。**诊断工具**：`bun doctor` 跑一遍，环境有没有问题一目了然。
+**bunfig.toml** 是 Bun 的全局配置文件，可配置镜像源、缓存目录、自动安装行为、日志级别等。国内用户最重要的配置就是镜像——配完就能明显感到差别。**锁文件**：1.2 起默认是文本格式的 `bun.lock`（取代二进制的 `bun.lockb`），必须提交到 Git；CI 里用 `bun install --frozen-lockfile` 或 `bun ci` 保证可复现安装。**package.json 中的 Bun 配置**：overrides 用于强制依赖版本，scripts 中可以指定 bun 命令，workspaces 配置 monorepo。**环境变量**：BUN_INSTALL、BUN_ENV、BUN_CONFIG_REGISTRY、BUN_CACHE_DIR 等都是高频使用的配置项。**国内镜像**：bunfig.toml 中配一行 registry 就够了。**IDE 支持**：VS Code 装插件、WebStorm 原生支持、Neovim 配 LSP，各取所需。**与 Node.js 共存**：两者可以同时装，通过 PATH 决定谁出场。**诊断工具**：`bun --version`、`bun --revision`、`bun pm cache`、`bun install --verbose`（注意：截至 1.4.2 官方**没有** `bun doctor` 命令）。
 
 配置好的 Bun，配上国内镜像——这时候你再回头看 npm 的速度，就像在老式电脑上跑 VS Code。差距，就是这么残酷。

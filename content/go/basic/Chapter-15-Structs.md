@@ -88,21 +88,26 @@ cfg := Config{
 结构体字段的**顺序**也是类型的一部分。字段顺序不同的两个结构体类型，即使字段名和字段类型都一样，Go 也认为它们是不同的类型：
 
 ```go
-type A struct { X int; Y int }
-type B struct { X int; Y int }
-// A 和 B 字段完全一样，但 Go 认为它们是不同的类型，不能相互赋值
+// 具名类型之间永远不相等——即使字段一模一样
+type A struct{ X, Y int }
+type B struct{ X, Y int }
+// A 和 B 是不同的类型，不能互相赋值（要转必须显式写成 A(b)）
 
-type C struct { X int; Y int }
-type D struct { Y int; X int }  // 顺序不同，也是不同的类型
+// 字段顺序属于结构体类型本身，对匿名结构体类型也一样成立
+var c struct{ X, Y int }
+var d struct{ Y, X int }
+// c = d  // 编译错误：cannot use d (variable of type struct{Y int; X int}) as struct{X int; Y int} value
 ```
 
-这一点很重要：Go 不像某些语言那样忽略字段顺序，Go 认为字段顺序是类型签名的一部分。
+这一点很重要：字段的**名字、类型和顺序**共同构成了结构体类型。顺序不同就是不同的类型，同理字段名不同、类型不同也都是不同的类型。（另外，**标签**也参与类型标识：两个字段完全一样、只有 `json` 标签不同的结构体，也是不同的类型。）
 
 ### 15.1.3 嵌入字段
 
 这是 Go 里一个独特且强大的特性，叫**类型嵌入（type embedding）**。它允许你把一个已有的类型作为"匿名字段"嵌入到结构体里，这个字段的方法会直接"提升"到外层结构体上。
 
 #### 15.1.3.1 类型嵌入
+
+把一个类型名单独写在一行、不给它起字段名，这个字段就叫**匿名字段**，这种写法叫**嵌入（embedding）**。嵌入类型自己的字段和它的方法都会被**提升**到外层结构体上：
 
 ```go
 type Base struct {
@@ -119,7 +124,7 @@ type Derived struct {
 }
 ```
 
-这样 Derived 就"继承"了 Base 的所有字段和方法：
+从使用者的角度看，Derived 好像"继承"了 Base 的字段和方法：
 
 ```go
 d := Derived{}
@@ -128,6 +133,11 @@ d.Age = 30
 d.Greet()             // 直接调用 Base 的 Greet 方法
 fmt.Println(d.Base.Name) // 也可以显式访问
 ```
+
+但要记住两个关键区别，否则很容易把 Go 当成 C++ 或 Java 来写：
+
+1. **这不是继承，而是组合加语法糖。** 字段其实还在 `d.Base` 里，只是编译器允许你写 `d.Name` 来省掉中间那一层。
+2. **提升的方法，接收者是内层的值。** `d.Greet()` 完全等价于 `d.Base.Greet()`——收到的是 `d.Base` 这个副本，不是 `d`。所以如果 Greet 里想读 `d.Age`，是读不到的（编译不过）。
 
 #### 15.1.3.2 指针嵌入
 
@@ -153,7 +163,7 @@ d.Base.Name = "Charlie"  // 也可以通过 Base 指针访问
 
 #### 15.1.3.3 嵌入接口
 
-嵌入接口意味着外层结构体也实现了这个接口（如果它满足这个接口的所有方法）：
+嵌入接口时，接口的方法同样会被提升到外层结构体上——于是外层结构体也就满足了这个接口：
 
 ```go
 type Reader interface {
@@ -164,7 +174,15 @@ type Logger struct {
     Reader  // 嵌入接口
     Prefix string
 }
+
+// Logger 现在也有 Read 方法，所以它满足 Reader 接口
+var _ Reader = Logger{}
 ```
+
+⚠️ 这个特性的一个直接后果是：**即使你根本没写 Read 的实现，`Logger` 也"看起来"满足 `Reader`**。如果嵌入的 `Reader` 字段是 nil，调用 `Read` 会在运行时 panic（nil 接口调用）。所以嵌入接口适合两种场景：
+
+- 想在自己的类型里内嵌一个已有实现，只覆写其中少数几个方法；
+- 故意用嵌入接口来"占位"，强制实现者补齐方法（类似未实现方法直接 panic 的技巧）。
 
 ---
 
@@ -253,6 +271,8 @@ fmt.Println(p)  // &{Frank 35 }
 
 #### 15.3.1.1 直接访问
 
+结构体变量用点号访问字段，读和写是同一个语法：
+
 ```go
 p := Person{Name: "Alice", Age: 30, City: "Beijing"}
 fmt.Println(p.Name)  // Alice
@@ -260,6 +280,8 @@ fmt.Println(p.Age)   // 30
 ```
 
 #### 15.3.1.2 指针访问
+
+结构体指针不需要先写 `*` 再取字段，Go 会自动解引用——`p.Name` 和 `(*p).Name` 完全等价：
 
 ```go
 p := &Person{Name: "Bob", Age: 25, City: "Shanghai"}
@@ -272,6 +294,8 @@ fmt.Println((*p).Name) // Bob — 手动解引用，跟上面等价
 当结构体 A 嵌入了结构体 B，B 的字段会"提升"到 A 上，可以直接用 A 的名字访问 B 的字段，就像 A 自己有这些字段一样。
 
 #### 15.3.2.1 提升规则
+
+提升的查找规则很直白：沿着嵌入链由外向内逐层查找，外层先命中就返回。下面这个例子里，`Name`、`ID` 都来自内层，`Age` 来自外层：
 
 ```go
 type Base struct {
@@ -520,7 +544,7 @@ s3 := NewServer("localhost", WithPort(443), WithTLS("cert.pem", "key.pem"))  // 
 
 ### 15.5.2 不可变对象模式
 
-Go 没有内置的 const 概念，但可以通过工厂函数 + 指针导出 + 小写字段来模拟不可变对象：
+Go 的 `const` 只能用于编译期常量，对结构体值无能为力。想模拟不可变对象，常用套路是：**小写字段 + 只暴露 getter + 用 `WithXXX` 返回新实例**：
 
 ```go
 type Config struct {
@@ -537,11 +561,11 @@ func NewConfig(host string, port int) Config {
 func (c Config) Host() string { return c.host }
 func (c Config) Port() int     { return c.port }
 
-// 提供 WithXXX 方法，返回新实例（保持不可变）
+// 提供 WithXXX 方法，返回新实例（保持原实例不变）
 func (c Config) WithPort(port int) Config {
-    new := c
-    new.port = port
-    return new
+    next := c      // 值接收者拿到的是副本，改的是副本
+    next.port = port
+    return next
 }
 
 cfg := NewConfig("localhost", 8080)
@@ -568,10 +592,14 @@ var bufferPool = sync.Pool{
 }
 
 buf := bufferPool.Get().(*PooledBuffer)
-buf.Data = append(buf.Data, "hello"...)
+buf.Data = append(buf.Data[:0], "hello"...)  // 复用底层数组，先截断再写
 // ... 使用 buf ...
-bufferPool.Put(buf)  // 放回池中，供下次使用
+
+buf.Data = buf.Data[:0]   // 放回前一定要重置状态！
+bufferPool.Put(buf)       // 放回池中，供下次使用
 ```
+
+> ⚠️ 两个容易踩的坑：(1) 从池里取出的对象**状态是上一次留下的**，必须自己重置；(2) `sync.Pool` 里的对象随时可能被 GC 回收，**不能**把它当缓存用，也不能依赖"放进去就还在"。
 
 ---
 
@@ -639,6 +667,8 @@ type Response struct {
 
 #### 15.7.1.2 忽略字段
 
+标签写 `json:"-"` 表示这个字段**完全跳过**序列化和反序列化；写 `omitempty` 则表示"值为零值时不输出"，注意它只是**不输出**，反序列化时照常接收：
+
 ```go
 type User struct {
     Username string `json:"username"`
@@ -648,6 +678,8 @@ type User struct {
 ```
 
 #### 15.7.1.3 空值处理
+
+不加 `omitempty` 时，零值字段会老老实实出现在 JSON 里：
 
 ```go
 type Item struct {
@@ -663,6 +695,8 @@ fmt.Println(string(b))  // {"name":"","price":0} — 空值正常输出
 
 #### 15.7.1.4 嵌套结构
 
+结构体字段是另一个结构体时，JSON 会自然地嵌套一层：
+
 ```go
 type Inner struct{ Value int }
 type Outer struct {
@@ -677,6 +711,8 @@ fmt.Println(string(b))  // {"inner":{"value":42}}
 
 #### 15.7.2.1 XML 标签
 
+`encoding/xml` 用 `>` 表示嵌套层级：`xml:"server>host"` 意思是把 Host 放在外层 `<server>` 标签里的 `<host>` 中：
+
 ```go
 type Config struct {
     Host string `xml:"server>host"`
@@ -686,6 +722,8 @@ type Config struct {
 
 #### 15.7.2.2 YAML 标签
 
+YAML 不是标准库，需要引入第三方库（如 `gopkg.in/yaml.v3`），它读取的是 `yaml` 标签：
+
 ```go
 type Config struct {
     Host string `yaml:"host"`
@@ -694,6 +732,8 @@ type Config struct {
 ```
 
 #### 15.7.2.3 数据库标签
+
+`db` 标签本身不是标准库识别的，而是 `database/sql` 生态里的库（如 `sqlx`）约定俗成的字段名映射方式：
 
 ```go
 type User struct {
@@ -740,14 +780,37 @@ type Dog struct {
     Breed string
 }
 
-func (d Dog) Speak() {  // 重写（override）Animal 的 Speak
+func (d Dog) Speak() {  // 覆盖（遮蔽）Animal 的提升方法
     fmt.Println("Woof!")
 }
 
 dog := Dog{}
 dog.Name = "Buddy"  // 提升字段
-dog.Speak()          // Woof! — 调用的是 Dog 的 Speak，不是 Animal 的
+dog.Speak()          // Woof! — 命中外层的 Dog.Speak，Animal.Speak 被遮蔽
+dog.Animal.Speak()   // ...   — 想调内层的，必须显式写出来
 ```
+
+⚠️ 这不是虚函数重写。Go 的方法调用是**编译期静态确定**的，没有虚函数表，也不会在运行时"按实际类型分发"。看下面这段：
+
+```go
+type Animal struct{ Name string }
+
+func (a Animal) Speak() { fmt.Println("...") }
+
+func (a Animal) Describe() {
+    fmt.Print("I am ", a.Name, " and I say ")
+    a.Speak()   // 这里的 a 静态类型是 Animal，永远调用 Animal.Speak
+}
+
+type Dog struct{ Animal }
+
+func (d Dog) Speak() { fmt.Println("Woof!") }
+
+d := Dog{Animal{Name: "Buddy"}}
+d.Describe()   // 输出：I am Buddy and I say ...   ← 不是 Woof!
+```
+
+想得到真正的多态，必须走接口（见下一节）。
 
 ### 15.8.3 多态实现
 
@@ -839,21 +902,38 @@ func (ip *IP) UnmarshalJSON(data []byte) error {
 
 ### 15.9.3 未知字段处理
 
-反序列化 JSON 时，结构体中没有对应字段的 JSON 键会被默认忽略。如果想捕获它们：
+反序列化 JSON 时，结构体里没有对应字段的键会被**静默丢弃**——拼错的字段名不会报错，只会悄悄变成零值。这是线上事故的常见来源。想发现它们有两种办法：
 
 ```go
-import "encoding/json"
+import (
+    "encoding/json"
+    "fmt"
+    "strings"
+)
 
 type Result struct {
     Known string `json:"known"`
 }
 
-var raw json.RawMessage
-r := Result{Known: "test"}
-data, _ := json.Marshal(r)
-json.Unmarshal(data, &raw)
-fmt.Println(string(raw))  // 原始 JSON 数据
+data := []byte(`{"known":"ok","extra":42}`)
+
+// 办法一：先解到 map，再和结构体的字段对照
+var m map[string]json.RawMessage
+_ = json.Unmarshal(data, &m)
+var r Result
+_ = json.Unmarshal(data, &r)
+fmt.Println(r.Known)     // ok
+fmt.Println(string(m["extra"]))  // 42 —— 结构体里没有字段接住它
+
+// 办法二：开严格模式，遇到未知字段直接报错
+dec := json.NewDecoder(strings.NewReader(`{"known":"ok","extra":42}`))
+dec.DisallowUnknownFields()
+var r2 Result
+err := dec.Decode(&r2)
+fmt.Println(err)  // json: unknown field "extra"
 ```
+
+> `DisallowUnknownFields` 的代价是接口不能向后兼容地加字段，所以更适合内部服务之间的协议解析，用在前端传来的 JSON 上要慎重。
 
 ---
 
@@ -894,27 +974,29 @@ type Product struct {
 
 ### 15.10.3 关系映射
 
+GORM 用结构体字段来表达表之间的关系。下面是最常见的两种：`belongs to`（子表持有外键）和 `has many`（子表反向持有外键）：
+
 ```go
 type Order struct {
-    ID      uint    `gorm:"primaryKey"`
-    UserID  uint    `gorm:"index"`
-    User    User    `gorm:"foreignKey:UserID"`  // 一对一关系
+    ID     uint `gorm:"primaryKey"`
+    UserID uint `gorm:"index"`
+    // belongs to：外键 UserID 就在本表上
+    User User `gorm:"foreignKey:UserID"`
 }
 
 type Company struct {
-    ID      uint    `gorm:"primaryKey"`
-    Name    string
-    Employees []Employee `gorm:"foreignKey:CompanyID"`  // 一对多关系
+    ID   uint   `gorm:"primaryKey"`
+    Name string
+    // has many：外键 CompanyID 在 Employee 表上
+    Employees []Employee `gorm:"foreignKey:CompanyID"`
 }
 ```
 
----
-
-
+> 别把 `belongs to` 叫成"一对一"：`Order` 持有 `User` 只是"这个订单属于某个用户"，一个用户可以有多个订单。
 
 ---
 
-# 本章小结
+## 本章小结
 
 结构体是 Go 语言里组织异构数据的基本方式，它把不同类型的命名字段打包成一个整体。相比数组（同类数据集合），结构体更像一张表格——每行一个字段，每行有自己的名字和类型。
 
@@ -924,7 +1006,7 @@ type Company struct {
 
 2. **创建方式**：字段名初始化（最推荐，`Person{Name: "Alice", Age: 30}`）、位置初始化（危险，不推荐）、`&Person{}`（指针创建）、`new(Person)`（返回零值指针）。
 
-3. **类型嵌入**：这是 Go 特有的"继承"方式。把已有类型作为匿名字段嵌入，嵌入类型的字段和方法会"提升"到外层结构体。外层字段会遮蔽内层同名提升字段。
+3. **类型嵌入**：把已有类型作为匿名字段嵌入，它的字段和方法会被**提升**到外层结构体上。但这是组合加语法糖，不是继承：提升方法的接收者是内层的那个值，Go 也没有虚函数，多态必须靠接口。
 
 4. **字段访问**：结构体变量用 `.` 访问字段，指针变量也用 `.`（编译器自动解引用）。嵌入字段可以直接访问（提升）。
 
@@ -941,4 +1023,3 @@ type Company struct {
 10. **OOP 模拟**：Go 用结构体+方法+接口模拟面向对象。封装靠首字母大/小写，控制导出。继承靠嵌入模拟。重写靠同名方法遮蔽。接口实现是隐式的，满足即实现。
 
 11. **不可变对象**：通过返回非指针值、提供 `WithXXX` 方法返回新实例来模拟不可变性。
-

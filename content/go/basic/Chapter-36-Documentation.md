@@ -1,4 +1,4 @@
-+++
+﻿+++
 title = "第36章 文档"
 weight = 360
 date = "2026-03-23T08:39:00+08:00"
@@ -282,9 +282,9 @@ func Add(a, b int) int {
 
 ## 36.4 godoc 工具
 
-> 📚 `godoc` 是 Go 标准库提供的文档工具。它可以从源代码中提取注释，生成 HTML 文档，让你的代码"自己会说话"。
-
-Go 1.14 之前，`godoc` 是一个独立的工具；从 Go 1.14 开始，`godoc` 的核心功能被集成到了 `go doc` 命令中。
+> 📚 先说结论：**`godoc` 早就不再随 Go 发行版一起分发了**。今天 `go install` 的 Go 工具链里根本没有 `godoc` 这个可执行文件，想用它得自己去 `go install golang.org/x/tools/cmd/godoc@latest` 装回来。
+>
+> 日常查文档，用**内置的 `go doc`** 就够了；想在本机开一个和 pkg.go.dev 一样的网页文档站，用官方主推的 **pkgsite**（见下一节）。老教程里"直接敲 `godoc -http=:8080`"的写法，在现在的机器上会提示 command not found。
 
 ```bash
 # 查看某个包的文档
@@ -296,15 +296,20 @@ go doc json.Marshal
 # 查看某个函数的具体文档
 go doc json.Unmarshal
 
-# 启动本地文档服务器（Go 1.13 之前）
-godoc -http=:8080
+# 启动网页版文档服务器：现在请用 pkgsite（见 36.5.1）
+# 如果你确实想用老的 godoc，需要先自行安装：
+#   go install golang.org/x/tools/cmd/godoc@latest
+#   godoc -http=:8080
 ```
 
 **`go doc` 命令的常用选项**：
 
 ```bash
-# 显示更多细节（包括未导出的成员，但通常用 -short)
+# 显示该包的全部文档（默认只显示概要，-all 会把所有已导出符号的文档都列出来）
 go doc -all fmt
+
+# 连未导出的符号一起显示（-u = unexported，通常要和 -all 搭配使用）
+go doc -u -all ./mypackage
 
 # 显示源码（使用 -src）
 go doc -src fmt.Sprintf
@@ -332,7 +337,7 @@ go doc MyStruct
 go doc MyStruct.MethodName
 ```
 
-> 💡 **提示**：`go doc` 会使用**折叠显示**。如果你只想看第一行概要，加 `-short` 标志。
+> 💡 **提示**：`go doc` 默认只列**已导出**符号的概要。想看全一点用 `-all`，想连未导出的成员也看用 `-u`，只想看一句话概要则加 `-short`。
 
 ---
 
@@ -366,11 +371,20 @@ pkgsite
 Go 的测试框架有一个独特的功能：**示例测试**。这些示例既可以作为文档展示，又可以作为测试自动运行！
 
 ```go
+// ============ 文件：greeting/greeting.go ============
 package greeting
 
 import "fmt"
 
-// ExampleHello 展示了 Hello 函数的基本用法
+// Hello 返回一句问候语
+func Hello(name string) string { return "Hello, " + name + "!" }
+
+// ============ 文件：greeting/example_test.go ============
+// （同一个包，文件名以 _test.go 结尾，go test 才会执行它。
+//   真实项目里它在单独的文件中，需要自己再写一遍 package greeting 与 import "fmt"）
+
+// ExampleHello 展示了 Hello 函数的基本用法。
+// 注意函数名必须是 Example<被示例的标识符>，最后的 Output 注释会被 go test 自动校验。
 func ExampleHello() {
     fmt.Println(Hello("张三"))
     // Output: Hello, 张三!
@@ -385,7 +399,7 @@ go test -v -run Example
 
 输出会显示：
 
-```
+```text
 === RUN   ExampleHello
 --- PASS: ExampleHello (0.00s)
 PASS
@@ -487,6 +501,8 @@ func GetUsers() {
 
 **gin-swagger** 是 Gin 框架的 Swagger 中间件，可以把生成的 Swagger UI 集成到你的 Gin 应用中。
 
+> 下面这段代码依赖三个外部模块（`gin`、`swaggo/files`、`swaggo/gin-swagger`）以及 `go run github.com/swaggo/swag/cmd/swag init` 生成的 `docs` 包，没法直接复制到 Playground 运行。要跑起来，先执行 `go get` 把依赖装上、再用 `swag init` 生成 `docs` 目录。
+
 ```go
 package main
 
@@ -551,7 +567,7 @@ swag init -g ./cmd/server/main.go -o ./docs -w
 
 生成的文件：
 
-```
+```text
 docs/
 ├── docs.go      # 包含 Swagger 文档的 Go 代码
 ├── swagger.json # JSON 格式的 OpenAPI 文档
@@ -683,6 +699,7 @@ package sorter
 - 特性3：具体说明
 
 ## 安装
+使用 `go get` 安装本项目：
 
 ```bash
 go get github.com/username/project
@@ -725,28 +742,18 @@ MIT / Apache 2.0 / 等等。
 ## 架构设计
 
 ### 系统组件
+下图展示了各个组件之间的依赖与调用关系：
 
+```mermaid
+flowchart TD
+    C[客户端] --> G["API Gateway<br/>路由 / 认证 / 限流"]
+    G --> U["User Svc"]
+    G --> O["Order Svc"]
+    G --> P["Product Svc"]
+    U --> DB[("PostgreSQL")]
+    O --> DB
+    P --> DB
 ```
-┌─────────────────────────────────────────────────────────┐
-│                      API Gateway                        │
-│                   (路由、认证、限流)                      │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-        ┌───────────────┼───────────────┐
-        │               │               │
-        ▼               ▼               ▼
-┌───────────┐   ┌───────────┐   ┌───────────┐
-│ User Svc  │   │ Order Svc│   │Product Svc│
-│   用户    │   │   订单    │   │   商品    │
-└─────┬─────┘   └─────┬─────┘   └─────┬─────┘
-      │               │               │
-      └───────────────┼───────────────┘
-                      ▼
-            ┌─────────────────┐
-            │   PostgreSQL     │
-            │   (主数据库)      │
-            └─────────────────┘
-`\`\`
 
 ### 数据流
 
@@ -811,9 +818,16 @@ MIT / Apache 2.0 / 等等。
 Go 的示例测试是特殊的测试函数，它们以 `Example` 开头，并且不需要 `*testing.T` 参数：
 
 ```go
+// ============ 文件：greeting/greeting.go ============
 package greeting
 
 import "fmt"
+
+// Hello 返回一句问候语
+func Hello(name string) string { return "Hello, " + name + "!" }
+
+// ============ 文件：greeting/example_test.go ============
+// （真实项目里它是单独的文件，需要自己再写一遍 package greeting 与 import "fmt"）
 
 // ExampleHello 展示 Hello 函数的基本用法
 func ExampleHello() {
@@ -927,7 +941,7 @@ This is the main documentation in English...
 
 大型项目通常需要维护多个版本的文档：
 
-```
+```text
 docs/
 ├── v1/           # v1.x 的文档
 │   ├── index.md
@@ -944,7 +958,7 @@ docs/
 
 维护变更日志的重要性我们前面已经说过了。这里推荐使用 **Semantic Versioning（语义化版本）**：
 
-```
+```text
 主版本号.次版本号.修订号
 
 - 主版本号：当你做了不兼容的 API 修改
@@ -1003,4 +1017,3 @@ func NewClient(config *Config) (*Client, error) {
 - ✅ 定期审查和更新文档
 
 > 💡 **最后一句话**：好的文档就像好的代码一样，需要细心呵护和持续改进。别等代码写完了再补文档——从写第一行代码开始，就顺便写文档。文档写得好，代码一定不会太差；代码写得烂，文档也救不了它。
-

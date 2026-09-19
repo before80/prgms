@@ -284,8 +284,11 @@ server {
     # 安全头
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    # 注意：不要再配 X-XSS-Protection —— 这个头早已被现代浏览器废弃，
+    # 设置 "1; mode=block" 在部分旧浏览器上反而可能被利用来制造 XSS，
+    # 现在统一用 CSP 来防 XSS：
+    # add_header Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'" always;
     
     # HSTS（可选，启用后浏览器会强制使用 HTTPS）
     # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;

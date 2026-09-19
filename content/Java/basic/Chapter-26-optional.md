@@ -15,6 +15,8 @@ draft = false
 
 ## 26.1 Optional 的背景
 
+> 📌 **本章代码的组织方式**：讲 Optional 往往需要先有一个"数据类"（比如 `User`、`Address`）来做示范，因此本章有些代码块会引用前面代码块里定义过的类。请把它们看作**同一个目录下的一组 `.java` 文件**，一起编译运行。
+
 ### 26.1.1 null 的前世今生
 
 在 Java 的世界里，`null` 是一个神奇的存在。它代表"什么都没有"，但偏偏你不能对"什么都没有"做任何操作。一旦你试图调用一个 null 对象的方法，JVM 会毫不留情地扔出一个 `NullPointerException`（简称 NPE）。
@@ -120,9 +122,9 @@ import java.util.Optional;
 public class OptionalHelloWorld {
     public static void main(String[] args) {
         // 传统方式：需要手动判断
-        String name = findNameById(1L);
-        if (name != null) {
-            System.out.println("找到的名字：" + name);
+        String foundName = findNameById(1L);
+        if (foundName != null) {
+            System.out.println("找到的名字：" + foundName);
         } else {
             System.out.println("未找到名字");
         }
@@ -677,17 +679,17 @@ public class OptionalFlatMapDemo {
         Optional<Car> flatCar = user.flatMap(User::getCar);
         System.out.println("扁平化的 Optional：" + flatCar.orElse(new Car("未知")));
 
-        // 实战：安全获取嵌套 Optional 的值
-        Optional<String> brand = user.flatMap(User::getCar)
-                                      .map(Car::getBrand)
-                                      .orElse("无品牌");
+        // 实战：安全获取嵌套 Optional 的值（orElse 返回的是 String，不是 Optional）
+        String brand = user.flatMap(User::getCar)
+                           .map(Car::getBrand)
+                           .orElse("无品牌");
         System.out.println("汽车品牌：" + brand);
 
         // 同样适用空值情况
         Optional<User> noCarUser = Optional.of(new User("小妖", null));
-        Optional<String> noBrand = noCarUser.flatMap(User::getCar)
-                                             .map(Car::getBrand)
-                                             .orElse("无品牌");
+        String noBrand = noCarUser.flatMap(User::getCar)
+                                  .map(Car::getBrand)
+                                  .orElse("无品牌");
         System.out.println("小妖的汽车品牌：" + noBrand);
     }
 
@@ -949,6 +951,8 @@ public class BadUser {
 ```
 
 ```java
+import java.util.Optional;
+
 // 推荐：字段可以是 null，返回值用 Optional
 public class GoodUser {
     private String name; // 字段可以是 null
@@ -1192,19 +1196,22 @@ Optional 会带来轻微的性能开销（对象包装），在性能敏感的�
 
 ```java
 import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.OptionalDouble;
 
 public class OptionalPerformanceNote {
     public static void main(String[] args) {
         // 基本类型有专门的 Optional 变体，避免装箱/拆箱开销
         // OptionalInt, OptionalLong, OptionalDouble
 
-        // ❌ 不推荐：对基本类型使用 Optional<String>
+        // ❌ 不推荐：用泛型 Optional 装基本类型（会带来装箱开销）
         Optional<Integer> boxedInt = Optional.of(42); // 装箱：int -> Integer
 
         // ✅ 推荐：使用基本类型 Optional
         OptionalInt unboxedInt = OptionalInt.of(42); // 无装箱开销
         OptionalLong unboxedLong = OptionalLong.of(42L);
-        Optional<Double> unboxedDouble = OptionalDouble.of(42.0);
+        OptionalDouble unboxedDouble = OptionalDouble.of(42.0);
 
         System.out.println("基本类型 OptionalInt：" + unboxedInt.getAsInt());
         System.out.println("基本类型 OptionalLong：" + unboxedLong.getAsLong());

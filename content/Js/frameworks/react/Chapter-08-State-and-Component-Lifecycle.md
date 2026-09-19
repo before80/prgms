@@ -9,7 +9,7 @@ draft = false
 +++
 
 
-﻿# Chapter-08 - State 与组件生命周期
+# Chapter-08 - State 与组件生命周期
 
 ## 8.1 State 基础
 

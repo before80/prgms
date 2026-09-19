@@ -75,16 +75,16 @@ Cursor 和 VS Code 一样，依赖 `Python: Select Interpreter` 命令来找到�
 ```text
 命令面板中的效果
 ┌──────────────────────────────────────────────────────────┐
-│ > Python: Select Interpreter                    🔍      │
+│ > Python: Select Interpreter                    🔍       │
 ├──────────────────────────────────────────────────────────┤
-│   ✅ Python 3.12.3 64-bit ('venv': Virtual)             │
-│     C:\Users\longx\AppData\Local\Programs\Python\       │
+│   ✅ Python 3.12.3 64-bit ('venv': Virtual)              │
+│     C:\Users\longx\AppData\Local\Programs\Python\        │
 │     Python312\python.exe                                 │
 │                                                          │
 │   🐍 Python 3.11.9 64-bit                                │
 │     C:\Python311\python.exe                              │
 │                                                          │
-│   ⚙️ Enter interpreter path...                          │
+│   ⚙️ Enter interpreter path...                           │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -567,6 +567,8 @@ pip install debugpy
 
 #### 8.3.2.2 Dap 配置示例
 
+Neovim 的调试依赖 DAP（Debug Adapter Protocol）：先配置调试适配器（这里是 `nvim-dap-python`），再定义"怎么启动、怎么附加"的具体配置，最后才能用快捷键打断点、单步执行。
+
 ```lua
 -- ~/.config/nvim/lua/plugins/dap.lua
 return {
@@ -711,6 +713,8 @@ Jupyter 是 **Julia + Python + R** 的缩写（没错，这是个组合词），
 
 #### 8.4.1.1 pip install jupyterlab
 
+JupyterLab 是 Notebook 的新一代界面，支持多标签、内置终端和编辑器。经典 Notebook 仍可用（`pip install notebook`），但官方开发重心已经转向 Lab。
+
 ```bash
 # 安装 JupyterLab（推荐，新版）
 pip install jupyterlab
@@ -839,7 +843,7 @@ print("运行我！")
 | `Z` | 撤销删除 | 命令模式 |
 | `H` | 显示快捷键帮助 | 命令模式 |
 
-```markdown
+````markdown
 # 演示：Notebook 里的 Markdown 单元格
 
 ## 这是一个标题
@@ -856,7 +860,7 @@ print("运行我！")
 # 代码块也可以放在 Markdown 里
 print("看，我是一段代码！")
 ```
-```
+````
 
 ### 8.4.3 插件安装
 
@@ -940,7 +944,7 @@ jupyter server extension enable --sys-prefix voila
 
 **示例：创建一个简单的 Voila 应用**
 
-```python
+```bash
 # 首先安装 ipywidgets（Voila 的 UI 组件）
 pip install ipywidgets
 
@@ -1105,13 +1109,13 @@ Mounted at /content/drive
 Colab 文件浏览器效果
 ┌──────────────────────────────────────────────────────────┐
 │ 📁 文件                                                  │
-│   ├─ /content/              # Colab 临时存储            │
-│   │   └─ drive/                                       │
-│   │       └─ My Drive/      # 你的 Google Drive        │
-│   │           ├─ 📁 我的项目                            │
-│   │           │   └─ 📄 model.pth                       │
-│   │           └─ 📄 data.csv                            │
-│   └─ /sample_data/          # Colab 示例数据           │
+│   ├─ /content/              # Colab 临时存储             │
+│   │   └─ drive/                                          │
+│   │       └─ My Drive/      # 你的 Google Drive          │
+│   │           ├─ 📁 我的项目                             │
+│   │           │   └─ 📄 model.pth                        │
+│   │           └─ 📄 data.csv                             │
+│   └─ /sample_data/          # Colab 示例数据             │
 └──────────────────────────────────────────────────────────┘
 ```
 

@@ -14,13 +14,13 @@ draft = false
 
 ---
 
-# 1.1 Python 诞生背景
+## 1.1 Python 诞生背景
 
 话说天下大势，分久必合，合久必分。20 世纪 80 年代末的编程语言江湖，正处于一个群雄并起的乱世——C 语言独领风骚，C++ 虎视眈眈，Pascal 余威尚存，而 Lisp 和 Scheme 这对函数式兄弟则在学术圈里自得其乐。
 
 就在这看似岁月静好的表象下，一位荷兰程序员悄悄拿起了键盘……
 
-## 1.1.1 创始人 Guido van Rossum 简介
+### 1.1.1 创始人 Guido van Rossum 简介
 
 ![Guido van Rossum](./Chapter-01-Hello-Python_img/Guido_van_Rossum_OSCON_2006.jpg)
 
@@ -37,7 +37,7 @@ Guido 本人曾说过一句经典的话："我是在圣诞假期无聊的时候�
 
 > 彩蛋：Guido 在 Dropbox 工作期间，有一次内部调查显示公司 50% 的服务器端代码都是 Python 写的。这大概就是"我不是针对谁，我是说在座各位写的代码都是我的"的最佳诠释吧。
 
-## 1.1.2 诞生时间：1991 年 12 月
+### 1.1.2 诞生时间：1991 年 12 月
 
 1991 年 12 月，对于绝大多数人来说，可能只是一个普通的年末——苏联刚刚解体，美国正在打海湾战争，香港还没回归中国。
 
@@ -56,7 +56,7 @@ Guido 本人曾说过一句经典的话："我是在圣诞假期无聊的时候�
 
 你可能会问：为什么是 0.9.0 而不是 1.0.0？答案很简单——Guido 觉得还没准备好，要先让社区试试水。这种"先发布再迭代"的思路，和互联网时代的 MVP（最小可行产品）不谋而合，Guido 领先了业界至少二十年。
 
-## 1.1.3 诞生地点：荷兰 CWI（国家数学与计算机科学研究所）
+### 1.1.3 诞生地点：荷兰 CWI（国家数学与计算机科学研究所）
 
 **CWI** 的全称是 Centrum Wiskunde & Informatica，中文翻译过来是"国家数学与计算机科学研究所"。这名字听起来就很正经，确实，它就是一个正经的荷兰国家级研究机构。
 
@@ -70,7 +70,7 @@ Guido 在 CWI 工作期间，参与了 ABC 语言的开发。虽然 ABC 最终�
 
 > 八卦：Guido 后来离开 CWI 去美国闯荡，但在 2013 年又回到了荷兰，加入了 Dropbox 的欧洲分部。他说："我只是想在家门口吃顿荷兰薯条。"——好吧，这是我自己脑补的，但荷兰薯条确实好吃。
 
-## 1.1.4 起源语言：ABC 语言（Guido 参与过 ABC 语言开发）
+### 1.1.4 起源语言：ABC 语言（Guido 参与过 ABC 语言开发）
 
 在讲 ABC 语言之前，先科普一个冷知识：**Python 的基因里，有一半来自 ABC。**
 
@@ -93,7 +93,7 @@ Guido 总结了 ABC 失败的经验教训，决定在 Python 中避免这些坑�
 
 这段历史告诉我们一个道理：失败是成功他妈，但前提是你得从失败里学到东西。
 
-## 1.1.5 Python 名字的由来：Monty Python 的 Flying Circus
+### 1.1.5 Python 名字的由来：Monty Python 的 Flying Circus
 
 终于到了八卦时间！
 
@@ -115,7 +115,7 @@ Monty Python 的喜剧风格是荒诞、超现实、无厘头的。Python 语言
 
 如果你想了解 Monty Python，建议去看看《The Ministry of Silly Walks》（愚蠢走路的部门），保证笑到肚子疼。
 
-## 1.1.6 Python 的设计哲学：简洁、易读、可扩展
+### 1.1.6 Python 的设计哲学：简洁、易读、可扩展
 
 Guido 在设计 Python 之初，就定下了三条核心原则：
 
@@ -164,13 +164,13 @@ Python 底层是用 C 写的，所以你可以用 C 或 C++ 编写扩展模块�
 
 ---
 
-# 1.2 Python 发展史关键里程碑
+## 1.2 Python 发展史关键里程碑
 
-## 1.2.1 Python 0.9.0（1991 年）—— 出生
+### 1.2.1 Python 0.9.0（1991 年）—— 出生
 
 1991 年 12 月，Python 0.9.0 正式发布！这是一个值得所有 Python 程序员纪念的日子——就像人类第一次登月一样，只不过 Python 登的是"编程语言之月"。
 
-### 1.2.1.1 类（class）的引入
+#### 1.2.1.1 类（class）的引入
 
 Python 0.9.0 就已经支持**面向对象编程**（Object-Oriented Programming，简称 OOP）的核心概念——类（class）。
 
@@ -192,7 +192,7 @@ d.bark()  # 旺财 说：汪汪汪！
 
 在当时，大多数脚本语言（如 Perl、Bash）都不支持面向对象，Python 0.9.0 能做到这一点，确实很有远见。
 
-### 1.2.1.2 异常处理（try/except）
+#### 1.2.1.2 异常处理（try/except）
 
 **异常处理**（Exception Handling）是一种"出错了怎么办"的机制。传统的做法是检查返回值，但这种方式既繁琐又容易遗漏。Python 借鉴了 ABC 语言的异常机制，引入了 `try/except` 语法：
 
@@ -207,7 +207,7 @@ except ZeroDivisionError:
 
 > 为什么要用异常而不是检查返回值？想象一下：如果每次调用函数都要检查返回值，代码会变成什么样？——大概会和金字塔一样高。
 
-### 1.2.1.3 函数（def）
+#### 1.2.1.3 函数（def）
 
 **函数**（Function）是组织代码的基本单元。把一段逻辑封装成函数，给它起个名字，以后想用这段逻辑就直接"叫名字"。
 
@@ -221,7 +221,7 @@ print(greet("小明"))  # 你好，小明！欢迎学习 Python！
 
 `def` 是"define"（定义）的缩写，非常直观。在 Python 里，函数是一等公民（first-class citizen）——也就是说，函数可以赋值给变量、作为参数传递、从函数里返回。这为后面的装饰器（decorator）和函数式编程埋下了伏笔。
 
-### 1.2.1.4 列表（list）、字符串、格式化
+#### 1.2.1.4 列表（list）、字符串、格式化
 
 Python 的**列表**（list）是一种动态数组，可以存储任意类型的数据：
 
@@ -256,7 +256,7 @@ print("我叫{}，今年{}岁".format(name, age))  # 我叫小明，今年8岁
 print("我叫%s，今年%d岁" % (name, age))  # 我叫小明，今年8岁
 ```
 
-### 1.2.1.5 模块系统（import）
+#### 1.2.1.5 模块系统（import）
 
 **模块**（module）就是"把代码分文件存放"的机制。你可以把相关的函数、类、常量放到一个 `.py` 文件里，然后其他文件通过 `import` 来使用它。
 
@@ -287,13 +287,13 @@ print(random.randint(1, 10))  # 随机整数，1到10之间
 
 ---
 
-## 1.2.2 Python 1.0（1994 年）—— 函数式特性加入
+### 1.2.2 Python 1.0（1994 年）—— 函数式特性加入
 
 1994 年 1 月，Python 1.0 正式发布。从 0.9.0 到 1.0，花了大约三年时间——主要是 Guido 在不断完善语言特性，同时还要应付日常工作。
 
 这一版本最大的亮点是引入了**函数式编程**（Functional Programming，简称 FP）的一些特性。函数式编程是一种"像数学函数一样写代码"的编程范式——没有副作用，函数只依赖输入，输出完全可预测。
 
-### 1.2.2.1 lambda 表达式
+#### 1.2.2.1 lambda 表达式
 
 **lambda** 表达式就是"匿名函数"——一种不需要命名、直接定义的函数。它通常用在需要函数作为参数的场合。
 
@@ -312,7 +312,7 @@ lambda 的语法是：`lambda 参数: 返回值`
 
 它为什么叫 lambda？这要追溯到 Lisp 语言，Lisp 用 lambda 表示匿名函数，而 lambda 来自数学里的 λ 演算——这是一个很深奥的概念，你可以简单理解为"一个表示函数的希腊字母"。
 
-### 1.2.2.2 map()、filter()、reduce()
+#### 1.2.2.2 map()、filter()、reduce()
 
 这三个函数是函数式编程的经典工具，在 Python 1.0 中作为内置函数引入（`reduce` 在 Python 3 中被移至 functools 模块）。
 
@@ -346,7 +346,7 @@ print(product)  # 120
 
 > 不过实话实说，现在 Python 社区更推荐用**列表推导式**（List Comprehension）来做这些事情，因为更直观、更 Pythonic。关于列表推导式，我们后面讲 Python 2.0 时会详细介绍。
 
-### 1.2.2.3 复数支持
+#### 1.2.2.3 复数支持
 
 **复数**（Complex Number）就是形如 `a + bi` 的数，其中 `i` 是虚数单位，`i² = -1`。Python 从 1.0 就开始支持复数了，比某些"直到 2020 年还在争论要不要加这个特性"的语言不知道高到哪里去了。
 
@@ -368,13 +368,13 @@ print(z1.conjugate())  # (3-4j)（共轭复数）
 
 ---
 
-## 1.2.3 Python 2.0（2000 年）—— 社区时代
+### 1.2.3 Python 2.0（2000 年）—— 社区时代
 
 2000 年 10 月 16 日，Python 2.0 发布。这是 Python 发展史上的一个重要转折点——**开源社区正式登场**。
 
 在 Python 2.0 之前，Python 的发展基本靠 Guido 和少数几个贡献者推动。2.0 采用了 **SourceForge** 上的开源项目模式，设立了 Python 核心开发团队，开始接受全球开发者的贡献。
 
-### 1.2.3.1 列表推导式（List Comprehension）
+#### 1.2.3.1 列表推导式（List Comprehension）
 
 **列表推导式**（List Comprehension）是 Python 最受欢迎的特性之一，没有之一。它是一种"用一行代码创建列表"的简洁语法。
 
@@ -408,7 +408,7 @@ print(evens_squared)  # [4, 16]
 
 > 列表推导式在 Python 社区引发了"到底要不要用它"的讨论。有人觉得它简洁优雅，有人觉得嵌套超过两层就不可读了。Guido 的态度是：能用就用，不能用就别勉强。
 
-### 1.2.3.2 垃圾回收机制（Garbage Collection）
+#### 1.2.3.2 垃圾回收机制（Garbage Collection）
 
 在编程中，**内存管理**（Memory Management）是一个让人头疼的问题。你分配了一块内存，用完了要释放，否则就会"内存泄漏"（Memory Leak）——程序越跑越慢，最后崩溃。
 
@@ -428,7 +428,7 @@ Python 的垃圾回收主要基于**引用计数**（Reference Counting）——
 
 > 但引用计数有个致命问题：**循环引用**会导致内存泄漏。什么是循环引用？想象两个对象互相引用对方，虽然外部已经没有引用它们了，但引用计数都不是 0。Python 用"分代回收"（Generational GC）来解决这个问题——定期检查所有对象，清除那些"已死"但还没被回收的循环引用对象。
 
-### 1.2.3.3 Unicode 支持
+#### 1.2.3.3 Unicode 支持
 
 在计算机里，文字是用数字编码存储的。早期最流行的编码是 **ASCII**——它只能表示英文字母、数字和一些符号，总共 128 个字符。对于英语国家来说够用了，但中文有上万个汉字，根本装不下。
 
@@ -447,7 +447,7 @@ Unicode 支持让 Python 终于可以愉快地处理各种语言了。中国程�
 
 > 吐槽：Python 2 时代，Unicode 和 bytes 的关系曾经让无数人头疼。很多人写代码时遇到 `UnicodeDecodeError` 或 `UnicodeEncodeError`，简直欲仙欲死。Python 3 在这方面做了大刀阔斧的改革，我们后面再讲。
 
-### 1.2.3.4 PEP（Python Enhancement Proposal）提案机制诞生
+#### 1.2.3.4 PEP（Python Enhancement Proposal）提案机制诞生
 
 **PEP** 的全称是 Python Enhancement Proposal，翻译过来就是"Python 增强提案"。你可以把它理解为"Python 的 RFC"（Request For Comments）——一种让社区参与语言设计讨论的机制。
 
@@ -467,11 +467,11 @@ Unicode 支持让 Python 终于可以愉快地处理各种语言了。中国程�
 
 ---
 
-## 1.2.4 Python 2.4（2004 年）—— 协程与生成器
+### 1.2.4 Python 2.4（2004 年）—— 协程与生成器
 
 2004 年 11 月 30 日，Python 2.4 发布。这是 Python 2 系列的一个重要版本，引入了两个影响深远的特性：**生成器**（Generator）和**装饰器**（Decorator）语法糖。
 
-### 1.2.4.1 生成器（yield 关键字）
+#### 1.2.4.1 生成器（yield 关键字）
 
 **生成器**是一种"懒加载"的序列。普通列表是把所有元素都计算好、存到内存里；生成器则是"你需要什么我才计算什么"，像流水线一样，边用边生产。
 
@@ -509,7 +509,7 @@ for line in read_large_file("huge_file.txt"):
     print(line)
 ```
 
-### 1.2.4.2 decorators（@decorator 语法糖引入）
+#### 1.2.4.2 decorators（@decorator 语法糖引入）
 
 **装饰器**（Decorator）是 Python 中一种"给函数或类增加额外功能"的语法糖。简单来说，就是"包装"一个函数，让它在执行前后做一些额外的事情。
 
@@ -541,11 +541,11 @@ say_hello("小明")
 
 ---
 
-## 1.2.5 Python 2.7（2010 年）—— Python 2 最后一版
+### 1.2.5 Python 2.7（2010 年）—— Python 2 最后一版
 
 2010 年 7 月，Python 2.7 发布。这是 Python 2.x 系列的**最后一个版本**，也是一个"缝缝补补又三年"的版本——为了照顾大量还在用 Python 2 的用户，2.7 吸收了一些 Python 3 的特性。
 
-### 1.2.5.1 argparse 命令行模块
+#### 1.2.5.1 argparse 命令行模块
 
 **argparse** 是 Python 标准库里处理命令行参数的模块。在 argparse 出现之前，程序员通常用 `sys.argv`（一个简陋的字符串列表）来接收命令行参数，或者用 `getopt` 这种"反人类"的模块。
 
@@ -579,7 +579,7 @@ $ python calc.py 3 5 --verbose
 3 + 5 = 8
 ```
 
-### 1.2.5.2 更多的 Python 2 兼容特性
+#### 1.2.5.2 更多的 Python 2 兼容特性
 
 Python 2.7 作为 Python 2 的最终版本，还吸收了一些 Python 3 的特性，为平滑迁移做准备。例如，新增了 `str.format()` 方法的更多功能支持，以及一些之前只在 Python 3 中可用的标准库改进。
 
@@ -592,7 +592,7 @@ print("我叫{}，今年{}岁".format(name, age))  # 我叫小明，今年8岁
 
 这主要是为了和 Python 3 的字符串格式化保持兼容。但说实话，用处不大，因为 Python 3 里所有字符串默认就是 Unicode，格式化也更统一。
 
-### 1.2.5.3 Python 2.7 生命周期结束（2020 年）
+#### 1.2.5.3 Python 2.7 生命周期结束（2020 年）
 
 2020 年 1 月 1 日，Python 2.7 正式**停止维护**。这标志着 Python 2 时代的彻底终结。
 
@@ -606,7 +606,7 @@ print("我叫{}，今年{}岁".format(name, age))  # 我叫小明，今年8岁
 
 ---
 
-## 1.2.6 Python 3.0（2008 年）—— 划时代变革
+### 1.2.6 Python 3.0（2008 年）—— 划时代变革
 
 2008 年 12 月 3 日，Python 3.0 发布。这大概是 Python 历史上**最具争议**的一个版本——因为它**完全不兼容 Python 2**。
 
@@ -614,7 +614,7 @@ Python 3 的设计目标非常明确：**修复 Python 2 的设计缺陷，让�
 
 这波操作，用现在的话说就是：**breaking change（破坏性变更）** 。
 
-### 1.2.6.1 print 成为函数（print()）
+#### 1.2.6.1 print 成为函数（print()）
 
 在 Python 2 里，`print` 是一个**语句**（statement），语法是这样的：
 
@@ -647,7 +647,7 @@ with open("output.txt", "w") as f:
 
 Guido 的回应大概是：**优雅是有代价的，但代价是值得的。**
 
-### 1.2.6.2 Unicode 默认（str 为 Unicode，bytes 为字节）
+#### 1.2.6.2 Unicode 默认（str 为 Unicode，bytes 为字节）
 
 Python 2 的字符串处理是出了名的坑：
 
@@ -662,7 +662,8 @@ Python 3 直接"拨乱反正"：
 ```python
 # Python 3 时代
 s1 = "你好"        # 默认就是 Unicode 字符串
-s2 = b"你好"       # 如果要字节串，加 b 前缀
+s1 = "你好"                    # 默认就是 Unicode 字符串
+s2 = "你好".encode("utf-8")    # 要字节串就手动编码（Python 3 里 b"你好" 是非法写法）
 ```
 
 在 Python 3 里：
@@ -679,7 +680,7 @@ recovered = data.decode("utf-8")  # 解码回 str
 print(recovered)                  # Hello, Python!
 ```
 
-### 1.2.6.3 整数除法：/ 返回浮点数，// 返回整数
+#### 1.2.6.3 整数除法：/ 返回浮点数，// 返回整数
 
 Python 2 的除法行为让人窒息：
 
@@ -699,7 +700,7 @@ negative = -5 // 2     # -3（向下取整，不是 -2！）
 
 > 这就是"地板除"（floor division）——总是向下取整。对于正数，`/` 和 `//` 结果相同；对于负数，就不一样了。
 
-### 1.2.6.4 xrange 消失，range 优化
+#### 1.2.6.4 xrange 消失，range 优化
 
 Python 2 有两个"范围"相关的类型：
 
@@ -718,7 +719,7 @@ print(list(r))          # [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 print(100 in r)         # False
 ```
 
-### 1.2.6.5 异常链语法：raise ... from ...
+#### 1.2.6.5 异常链语法：raise ... from ...
 
 Python 3 引入了**异常链**（Exception Chaining），让你可以"追踪异常的来源"：
 
@@ -744,16 +745,19 @@ except ValueError as e:
 
 > 顺便说一句，Python 3.11 还引入了异常组（Exception Group），用 `except*` 来同时捕获多个异常，详见 1.2.15。
 
-### 1.2.6.6 long 类型与 int 类型统一
+#### 1.2.6.6 long 类型与 int 类型统一
 
 Python 2 有两种整数类型：
 - `int`：普通整数（有范围限制，通常是 32 位或 64 位）
 - `long`：长整数（没有范围限制，但占用更多内存）
 
 ```python
-# Python 2
-a = 42        # int
-b = 42L       # long
+# Python 2 里整数有两种类型：
+#   a = 42    # int
+#   b = 42L   # long（带 L 后缀），超出 int 范围会自动升级成 long
+# Python 3 把两者合并成了 int，并且整数没有上限，所以 L 后缀被彻底删掉了：
+a = 42
+print(a * 10**30)  # 想多大就多大
 ```
 
 Python 3 统一成了一种 `int`——没有上限，想多大就多大：
@@ -765,7 +769,7 @@ b = 42 ** 1000  # 这是一个巨大的整数，照样能算
 print(b)         # 写不下，自己试试
 ```
 
-### 1.2.6.7 经典类（old-style class）被移除
+#### 1.2.6.7 经典类（old-style class）被移除
 
 Python 2 有两种类：**新式类**（new-style class）和**经典类**（old-style class）。
 
@@ -791,7 +795,7 @@ class Dog:
 
 Python 3 移除了经典类，所有类默认继承自 `object`。这简化了语言，也避免了类型系统里的一些坑。
 
-### 1.2.6.8 与 Python 2 不兼容（破坏性升级）
+#### 1.2.6.8 与 Python 2 不兼容（破坏性升级）
 
 这是 Python 3 最重要的特点，也是最"臭名昭著"的特点——**Python 3 不兼容 Python 2**。
 
@@ -808,11 +812,11 @@ Python 社区为迁移付出了巨大代价：
 
 ---
 
-## 1.2.7 Python 3.3（2012 年）—— 虚拟环境与命名空间包
+### 1.2.7 Python 3.3（2012 年）—— 虚拟环境与命名空间包
 
 2012 年 9 月，Python 3.3 发布。这个版本带来了两个重要特性：**虚拟环境**（venv）和**命名空间包**（namespace package）。
 
-### 1.2.7.1 venv 模块引入
+#### 1.2.7.1 venv 模块引入
 
 **虚拟环境**（Virtual Environment）是一种"隔离的 Python 运行环境"。它的作用是：每个项目用不同的 Python 版本、不同的第三方库，互不干扰。
 
@@ -896,7 +900,7 @@ deactivate
 
 > 面试题预警：如果面试官问你"Python 虚拟环境是用来干什么的"，标准答案是："隔离项目依赖，避免版本冲突。"——这句话一定要背下来。
 
-### 1.2.7.2 命名空间包（namespace package）
+#### 1.2.7.2 命名空间包（namespace package）
 
 **命名空间包**（namespace package）允许**同一个顶级包**的**不同子包**分散在多个目录中，这些目录可以来自不同的项目、不同的团队，甚至不同的文件系统位置。在 Python 3.3+ 中，**PEP 420** 引入了隐式命名空间包：只要一个目录没有 `__init__.py` 文件，且其父目录在 `sys.path` 中，该目录就会自动被视为命名空间包的一部分。。听起来很抽象，举个例子：
 
@@ -954,11 +958,11 @@ print(namespacepkg.package2.module_b.world())
 
 ---
 
-## 1.2.8 Python 3.4（2014 年）—— 异步与打包
+### 1.2.8 Python 3.4（2014 年）—— 异步与打包
 
 2014 年 3 月，Python 3.4 发布。这个版本带来了 `asyncio` 模块（异步编程）和 pip 的推广。
 
-### 1.2.8.1 asyncio 模块引入
+#### 1.2.8.1 asyncio 模块引入
 
 **asyncio** 是 Python 的异步 I/O 框架。异步 I/O 就是"不等 I/O 操作完成，先去干别的事"。
 
@@ -990,7 +994,7 @@ asyncio.run(main())
 
 > `asyncio` 在 Python 3.4 是实验性的，Python 3.5 引入了 `async/await` 语法糖，才算正式成熟。
 
-### 1.2.8.2 pip 成为推荐包管理器
+#### 1.2.8.2 pip 成为推荐包管理器
 
 **pip** 是 Python 的包管理器，全称是"Pip Installs Packages"（递归缩写，和 GNU 一样）。
 
@@ -1020,7 +1024,7 @@ pip uninstall numpy
 
 Python 3.4 把 pip 设为推荐工具，并内置了 `ensurepip`（自动安装 pip）。
 
-### 1.2.8.3 ensurepip（自动安装 pip）
+#### 1.2.8.3 ensurepip（自动安装 pip）
 
 `ensurepip` 是一个"如果没 pip 就自动安装 pip"的模块。
 
@@ -1036,11 +1040,11 @@ pip install -i https://pypi.tuna.tsinghua.edu.cn/simple some-package
 
 ---
 
-## 1.2.9 Python 3.5（2015 年）—— 类型提示元年
+### 1.2.9 Python 3.5（2015 年）—— 类型提示元年
 
 2015 年 9 月，Python 3.5 发布。这个版本在 Python 历史上具有里程碑意义——**类型提示**（Type Hints）正式登场。
 
-### 1.2.9.1 typing 模块引入
+#### 1.2.9.1 typing 模块引入
 
 **类型提示**（Type Hints）让你可以在代码里标注变量的类型、函数的参数类型和返回值类型。
 
@@ -1073,7 +1077,7 @@ def process_data(
 
 > 类型提示是"可选的"——加了类型提示的代码和不加的代码运行起来完全一样。Python 不会因为类型不匹配就报错（除非你用 mypy 等静态检查工具）。
 
-### 1.2.9.2 async/await 原生协程语法
+#### 1.2.9.2 async/await 原生协程语法
 
 Python 3.5 引入了 `async` 和 `await` 关键字，让协程（Coroutine）成为 Python 的一等公民。
 
@@ -1098,7 +1102,7 @@ print(users)  # ['用户1', '用户2', '用户3']
 
 `async` 用来定义一个"协程函数"（coroutine function），`await` 用来"等待"一个协程完成。这比 Python 3.4 的 `@asyncio.coroutine` 装饰器写法优雅多了。
 
-### 1.2.9.3 matrix multiplication operator（@）
+#### 1.2.9.3 matrix multiplication operator（@）
 
 Python 3.5 引入了 `@` 运算符，专门用于**矩阵乘法**。
 
@@ -1122,7 +1126,7 @@ print(A * B)
 
 `@` 运算符可以被任何类重载（实现 `__matmul__` 方法），所以不只是 numpy 可以用。你也可以在自己的类里定义矩阵乘法的行为。
 
-### 1.2.9.4 可迭代对象解包：*iterable
+#### 1.2.9.4 可迭代对象解包：*iterable
 
 Python 3.5 引入了**可迭代对象解包**（Iterable Unpacking）的增强语法。
 
@@ -1146,11 +1150,11 @@ print(*numbers)  # 1 2 3（输出 1 2 3）
 
 ---
 
-## 1.2.10 Python 3.6（2016 年）—— f-string 时代
+### 1.2.10 Python 3.6（2016 年）—— f-string 时代
 
 2016 年 12 月，Python 3.6 发布。这个版本带来了 **f-string**（格式化字符串字面量）——这大概是 Python 3 最受欢迎的特性之一。
 
-### 1.2.10.1 f-string 格式化字符串（f"{}"）
+#### 1.2.10.1 f-string 格式化字符串（f"{}"）
 
 **f-string** 是一种在字符串前面加 `f` 或 `F` 前缀，支持在字符串内部直接嵌入表达式的语法。
 
@@ -1188,7 +1192,7 @@ print("我叫{}，今年{}岁".format(name, age))
 print(f"我叫{name}，今年{age}岁")
 ```
 
-### 1.2.10.2 变量注解（Variable Annotations：x: int = 5）
+#### 1.2.10.2 变量注解（Variable Annotations：x: int = 5）
 
 Python 3.6 引入了**变量注解**（Variable Annotations），让你可以给变量加类型提示。
 
@@ -1205,7 +1209,7 @@ print(name)  # 小明
 
 变量注解和函数注解（Python 3.5 引入的）一起，构成了 Python 的"类型提示"体系。
 
-### 1.2.10.3 异步生成器
+#### 1.2.10.3 异步生成器
 
 Python 3.6 还支持了**异步生成器**（Async Generator）——在生成器里使用 `await`。
 
@@ -1230,7 +1234,7 @@ asyncio.run(main())
 # 获取到值: 2
 ```
 
-### 1.2.10.4 secrets 模块
+#### 1.2.10.4 secrets 模块
 
 Python 3.6 引入了 **secrets** 模块，专门用于生成**密码学安全的随机数**。
 
@@ -1258,11 +1262,11 @@ print(random_int)
 
 ---
 
-## 1.2.11 Python 3.7（2018 年）—— dataclass 与上下文
+### 1.2.11 Python 3.7（2018 年）—— dataclass 与上下文
 
 2018 年 6 月，Python 3.7 发布。这个版本带来了 `@dataclass` 装饰器和一些协程相关的改进。
 
-### 1.2.11.1 @dataclass 装饰器
+#### 1.2.11.1 @dataclass 装饰器
 
 **dataclass**（数据类）是一种自动生成 `__init__`、`__repr__`、`__eq__` 等方法的类。简单来说，就是让你少写很多样板代码（boilerplate）。
 
@@ -1306,7 +1310,7 @@ print(p1 == p2)  # True（自动生成 __eq__）
 
 一行顶七行，不香吗？
 
-### 1.2.11.2 contextvars（上下文变量）
+#### 1.2.11.2 contextvars（上下文变量）
 
 **contextvars** 模块提供了**上下文变量**（Context Variable）的支持。这在异步编程中特别有用——每个异步任务可以有自己的变量副本，互不干扰。
 
@@ -1329,12 +1333,15 @@ print(get_request_id())  # req-123
 
 在 Flask、Django 等 Web 框架里，上下文变量被用来存储"当前请求"相关的信息，这样在异步代码里也能正确获取。
 
-### 1.2.11.3 asyncio.run()
+#### 1.2.11.3 asyncio.run()
 
 Python 3.7 简化了 asyncio 程序的启动方式——用 `asyncio.run()` 即可。
 
 ```python
-# Python 3.7 之前
+# Python 3.7 之前（仅作历史对照，这段现在跑不起来了）
+# ⚠️ @asyncio.coroutine 已在 Python 3.11 被彻底删除（3.14 里 asyncio.coroutine 根本不存在），
+#    而且 asyncio.get_event_loop() 在没有运行中的事件循环时会直接抛 RuntimeError。
+#    下面的代码只是让你看懂老代码，新代码一律用 asyncio.run()。
 import asyncio
 
 @asyncio.coroutine
@@ -1356,7 +1363,7 @@ async def main():
 asyncio.run(main())  # 就这一行！
 ```
 
-### 1.2.11.4 Data Classes 简化
+#### 1.2.11.4 Data Classes 简化
 
 dataclass 的设计目标是"存储数据的类"。它自动生成了：
 - `__init__`：构造函数
@@ -1384,11 +1391,11 @@ print(s.average_grade())  # 91.6666...
 
 ---
 
-## 1.2.12 Python 3.8（2019 年）—— 赋值表达式
+### 1.2.12 Python 3.8（2019 年）—— 赋值表达式
 
 2019 年 10 月，Python 3.8 发布。这个版本最"炸裂"的新特性是**海象运算符**（Walrus Operator）`:=`。
 
-### 1.2.12.1 赋值表达式：:=（海象运算符）
+#### 1.2.12.1 赋值表达式：:=（海象运算符）
 
 **海象运算符**（:=）允许在表达式内部赋值变量。它的名字来源于 ":=" 两个符号组合起来像海象的象牙。
 
@@ -1426,7 +1433,7 @@ while (line := f.readline()):
 
 > 注意：海象运算符的优先级很低，使用时经常需要加括号，否则可能产生意外结果。Guido 自己也承认这是"有争议的"特性，但最终还是加了。
 
-### 1.2.12.2 位置参数仅限关键字（/ 分隔符）
+#### 1.2.12.2 位置参数仅限关键字（/ 分隔符）
 
 Python 3.8 引入了**位置参数仅限关键字**（Keyword-Only Arguments）的增强语法——在函数定义时用 `/` 分隔。
 
@@ -1443,7 +1450,7 @@ f(1, 2, 3, 4, e=5, f=6)  # 正确
 - 强制某些参数按位置传递，避免用关键字传参时拼写错误
 - 让 API 更灵活，未来可以改参数名而不破坏调用代码
 
-### 1.2.12.3 f-string 支持 = 说明符
+#### 1.2.12.3 f-string 支持 = 说明符
 
 Python 3.8 让 f-string 可以更方便地调试了——支持 `=` 说明符：
 
@@ -1460,11 +1467,11 @@ print(f"{x * 2 = }")  # x * 2 = 84
 
 这比手动写 `f"x = {x}"` 方便多了，特别适合调试时打印变量值。
 
-### 1.2.12.4 Reversible protocols
+#### 1.2.12.4 Reversible protocols
 
 Python 3.8 引入了一些新的协议（Protocol），比如 `Reversible`（可逆）和 `Coroutine`。
 
-### 1.2.12.5 typing.Final
+#### 1.2.12.5 typing.Final
 
 Python 3.8 在 `typing` 模块里添加了 `Final`，用来标记"不能再重新赋值"的变量：
 
@@ -1479,11 +1486,11 @@ PI = 3.14  # 类型检查器会报错：Cannot assign to a Final
 
 ---
 
-## 1.2.13 Python 3.9（2020 年）—— 字典合并运算符
+### 1.2.13 Python 3.9（2020 年）—— 字典合并运算符
 
 2020 年 10 月，Python 3.9 发布。这个版本带来了字典合并运算符和类型提示泛型的语法改进。
 
-### 1.2.13.1 字典合并运算符：| 和 |=
+#### 1.2.13.1 字典合并运算符：| 和 |=
 
 终于，Python 字典可以用 `|` 和 `|=` 来合并了！
 
@@ -1517,7 +1524,7 @@ merged = {**d1, **d2, **d3}
 
 现在 `|` 运算符比解包写法直观多了。
 
-### 1.2.13.2 类型提示泛型（内置类型作为泛型：list[str]）
+#### 1.2.13.2 类型提示泛型（内置类型作为泛型：list[str]）
 
 Python 3.9 之前，泛型类型必须从 `typing` 模块导入：
 
@@ -1541,7 +1548,7 @@ def process(items: list[int]) -> dict[str, int]:
 
 > 目前 Python 官方推荐使用内置类型写法（`list[int]`），`typing.List` 等仍在支持，但最终会被弃用。
 
-### 1.2.13.3 字符串方法：removeprefix()、removesuffix()
+#### 1.2.13.3 字符串方法：removeprefix()、removesuffix()
 
 Python 3.9 给字符串添加了两个新方法，专门用于去除前缀和后缀：
 
@@ -1561,7 +1568,7 @@ print(filename[:-4])  # report_2024（要记得减4）
 
 这两个方法让"去掉文件扩展名"和"去掉路径前缀"的代码更可读、更不容易出错。
 
-### 1.2.13.4 ZoneInfo（时区模块）
+#### 1.2.13.4 ZoneInfo（时区模块）
 
 Python 3.9 引入了 **ZoneInfo** 模块，用于处理时区信息：
 
@@ -1586,11 +1593,11 @@ print(now_utc)
 
 ---
 
-## 1.2.14 Python 3.10（2021 年）—— match 语句
+### 1.2.14 Python 3.10（2021 年）—— match 语句
 
 2021 年 10 月，Python 3.10 发布。这个版本最吸引眼球的是**结构化模式匹配**（Structural Pattern Matching），即 `match...case` 语句。
 
-### 1.2.14.1 match...case 结构化模式匹配
+#### 1.2.14.1 match...case 结构化模式匹配
 
 `match...case` 是一种"根据数据结构匹配不同分支"的语法。它借鉴自函数式语言（如 Haskell、Scala）和一些系统语言（如 Rust）。
 
@@ -1661,7 +1668,7 @@ print(describe_shape([Point(0, 0), Point(1, 1)]))  # 从原点开始的多边形
 
 > match...case 是 Python 3.10 才有的语法，别在 Python 3.9 上试，否则会报 `SyntaxError`。
 
-### 1.2.14.2 精确错误信息（Better Error Messages）
+#### 1.2.14.2 精确错误信息（Better Error Messages）
 
 Python 3.10 大幅改进了错误提示信息，让调试更轻松。
 
@@ -1681,7 +1688,7 @@ Python 3.10 大幅改进了错误提示信息，让调试更轻松。
 # SyntaxError: expected ':'
 ```
 
-### 1.2.14.3 zip() 增加 strict 参数
+#### 1.2.14.3 zip() 增加 strict 参数
 
 Python 3.10 给 `zip()` 函数添加了 `strict` 参数。
 
@@ -1699,7 +1706,7 @@ except ValueError as e:
     print(f"错误: {e}")  # ValueError: zip() argument 2 is shorter than argument 1
 ```
 
-### 1.2.14.4 Union 类型简化：X | Y
+#### 1.2.14.4 Union 类型简化：X | Y
 
 Python 3.10 简化了联合类型的写法：
 
@@ -1718,11 +1725,11 @@ def process(x: int | str) -> int | str:
 
 ---
 
-## 1.2.15 Python 3.11（2022 年）—— 异常组
+### 1.2.15 Python 3.11（2022 年）—— 异常组
 
 2022 年 10 月，Python 3.11 发布。这个版本带来了异常组（Exception Group）和更友好的错误提示。
 
-### 1.2.15.1 except* 异常组语法
+#### 1.2.15.1 except* 异常组语法
 
 **异常组**（Exception Group）是 Python 3.11 引入的新特性，用 `except*` 来同时捕获多个异常。
 
@@ -1747,7 +1754,7 @@ except* Exception as e:
 
 `except*` 是"捕获异常组中匹配的类型"，而不是"同时捕获多个异常"。它的设计主要是为了异步编程中的并发任务——多个任务可能同时抛出异常，需要统一处理。
 
-### 1.2.15.2 更友好的错误提示
+#### 1.2.15.2 更友好的错误提示
 
 Python 3.11 的错误提示进一步优化，增加了"代码片段"和"箭头指向"：
 
@@ -1759,13 +1766,13 @@ Traceback (most recent call last):
                # SyntaxError: invalid assignment expression
 ```
 
-### 1.2.15.3 启动速度提升 10~25%
+#### 1.2.15.3 启动速度提升 10~25%
 
 Python 3.11 对解释器做了大量优化，启动速度比 3.10 快了 10%~25%。
 
 这听起来不多，但想象一下：如果你每天运行 100 次 Python 脚本，每次节省 0.1 秒，一年就能省下将近 1 个小时。
 
-### 1.2.15.4 异步任务组：TaskGroup
+#### 1.2.15.4 异步任务组：TaskGroup
 
 Python 3.11 引入了 `TaskGroup`，让异步并发任务的管理更方便：
 
@@ -1799,35 +1806,49 @@ asyncio.run(main())
 
 ---
 
-## 1.2.16 Python 3.12（2023 年）—— 解释器优化
+### 1.2.16 Python 3.12（2023 年）—— 解释器优化
 
 2023 年 10 月，Python 3.12 发布。这个版本继续打磨解释器性能，并大幅改进了 f-string 和错误提示。
 
-### 1.2.16.1 解释器启动速度进一步提升
+#### 1.2.16.1 解释器启动速度进一步提升
 
 Python 3.12 的解释器启动速度比 3.11 再快 5%~15%。此外，运行速度也有小幅提升（得益于更高效的字节码）。
 
-### 1.2.16.2 f-string 重大改进（支持调试）
+#### 1.2.16.2 f-string 语法大修（PEP 701）
 
-Python 3.12 的 f-string 终于支持更强大的调试语法了！
+先说清楚一件事：`=` 自说明符（打印"表达式 = 值"）是 **Python 3.8** 就有的功能，不是 3.12 的新东西：
 
 ```python
 x = 42
 name = "小明"
 
-# Python 3.8+：= 说明符可以直接打印变量名和值
 print(f"{x = }")       # x = 42
-print(f"{name = }")    # name = 小明
-
-# Python 3.12+：= 说明符更简洁，且支持在表达式中使用
-print(f"{x=}")         # x=42
-print(f"{name=}")      # name='小明'
+print(f"{name = }")    # name = '小明'（注意：用的是 repr，字符串带引号）
 print(f"{x + 5 = }")   # x + 5 = 47
 ```
 
-> 注意：Python 3.12 修复了 f-string 里不能写 `f"{"hello"}"` 这种嵌套引用的限制（之前会报 `SyntaxError`）。
+**Python 3.12 真正做的，是把 f-string 的解析器彻底重写（PEP 701）**，从此 f-string 内部就是一个完整的表达式语法位置，不再有那些奇怪的限制：
 
-### 1.2.16.3 更清晰的错误信息
+```python
+# ① 可以复用外层同样的引号了（3.12 之前会报 SyntaxError）
+print(f"{"hello"}")            # hello
+
+# ② 表达式里可以出现反斜杠（3.11 及以前不允许）
+print(f"{'\n'.join(['a', 'b'])}")
+# a
+# b
+
+# ③ 表达式可以跨行、可以写注释
+print(f"{x + 1  # 这里可以写注释
+}")
+
+# ④ 嵌套 f-string 也不再稀奇
+print(f"{f'{x:03d}'}")         # 042
+```
+
+几条最常见的报错信息，也大多来自 3.11 及更早的版本，升级到 3.12+ 后都会消失。
+
+#### 1.2.16.3 更清晰的错误信息
 
 Python 3.12 的错误信息继续改进，增加了更多"猜测性建议"：
 
@@ -1840,23 +1861,23 @@ ImportError: cannot import name 'Iterable' from 'collections'.
 Instead of 'from collections import Iterable', use 'from collections.abc import Iterable'.
 ```
 
-### 1.2.16.4 typing 模块改进
+#### 1.2.16.4 typing 模块改进
 
 Python 3.12 对 `typing` 模块做了多处改进，包括但不限于：
 
-- **`typing.TypeIs`**（PEP 742）：比 `typing.TypeGuard` 更精确的类型收窄标记
-- **`typing.TypeAlias`** 的改进，使显式类型别名更清晰
-- 更完善的泛型语法支持
+- **PEP 695 类型参数语法**：函数可以写 `def f[T](x: T) -> T`，类可以写 `class Stack[T]:`，类型别名可以写 `type Vector = list[float]`
+- **`typing.override`**（PEP 698）：显式标记"这个方法是覆盖父类的"，写错了会被类型检查器抓出来
+- **泛型对象的运行时开销更低**：新语法不再为每个泛型类生成臃肿的 `Generic` 子类
 
-这些改进让静态类型检查更精确，也减少了运行时开销。
+> ⚠️ **两个极易记错的版本号**：`typing.TypeIs`（PEP 742）是 **Python 3.13** 才加入的，不是 3.12；而 `typing.TypeAlias`（PEP 613）更早，属于 **Python 3.10**。3.12 的招牌是上面那套 PEP 695 新语法。
 
 ---
 
-## 1.2.17 Python 3.13（2024 年）—— 实验性 JIT
+### 1.2.17 Python 3.13（2024 年）—— 实验性 JIT
 
 2024 年 10 月，Python 3.13 发布。这个版本带来了一个重磅特性：**实验性 JIT 编译器**。
 
-### 1.2.17.1 实验性 JIT 编译器（启用方式）
+#### 1.2.17.1 实验性 JIT 编译器（启用方式）
 
 **JIT**（Just-In-Time Compiler，即时编译器）是一种"在运行时把热点代码编译成机器码"的技术。和静态编译器（如 C 语言）不同，JIT 可以根据运行时信息动态优化代码。
 
@@ -1871,11 +1892,11 @@ python your_script.py
 
 > 注意：Python 3.13 的 JIT 还是实验性的，不建议在生产环境使用。目前 CPython 的默认解释器还是 bytecode interpreter（字节码解释器）。
 
-### 1.2.17.2 解释器启动速度再提升
+#### 1.2.17.2 解释器启动速度再提升
 
 Python 3.13 的解释器启动速度继续优化，据说比 3.12 再快 10%。
 
-### 1.2.17.3 改进的 GIL 讨论
+#### 1.2.17.3 改进的 GIL 讨论
 
 **GIL**（Global Interpreter Lock，全局解释器锁）是 Python 历史上最"臭名昭著"的设计之一。GIL 的意思是：在任意时刻，只有一个线程可以执行 Python 字节码。
 
@@ -1886,11 +1907,16 @@ Python 社区为了解决这个问题，尝试了各种方法：
 - **multiprocessing**：用进程代替线程，每个进程有自己的 GIL
 - **asyncio**：单线程异步，避免 GIL 的并发问题
 - **C 扩展**：把性能关键代码用 C 写，绕过 GIL
-- **PEP 703**：提议移除 GIL，但目前还在讨论中
+- **PEP 703**：让 CPython 可以在**没有 GIL** 的模式下构建。这份提案在 2023 年 7 月就被指导委员会**接受**了，不是"还在讨论中"。
 
-Python 3.13 改进了 GIL 相关的一些内部机制，但没有移除 GIL。PEP 703 的进展值得关注。
+后续进展（很多人容易记错，这里按官方时间线说清楚）：
 
-### 1.2.17.4 交互式解释器改进（默认彩色输出）
+- **Python 3.13（2024）**：首次提供**实验性**的 free-threaded 构建，可执行文件叫 `python3.13t`，需要单独编译/下载，默认构建仍然带 GIL。
+- **Python 3.14（2025）**：free-threaded 构建**转为官方正式支持**（PEP 779，进入 phase II）——不再标着"实验性"，但仍是一个**可选**的构建变体，而不是默认版本。
+
+也就是说：默认的 CPython 依然带 GIL，但"无 GIL 的 Python"已经从实验玩具变成了被官方背书的正式选项。
+
+#### 1.2.17.4 交互式解释器改进（默认彩色输出）
 
 Python 3.13 的交互式解释器（REPL）终于支持**彩色输出了**！
 
@@ -1906,36 +1932,53 @@ $ python
 
 ---
 
-## 1.2.18 Python 3.14（2025 年）—— 更快的解释器
+### 1.2.18 Python 3.14（2025 年）—— 无 GIL 转正、JIT 进官方二进制
 
-> 📅 按照 Python 每年 10 月发布一个新版本的节奏，Python 3.14.0 预计在 2025 年 10 月发布。以下内容基于已公开的 PEP 和开发进度，属于"合理预期"而非最终定论。
+> 📅 Python 3.14.0 已经于 **2025 年 10 月 7 日**正式发布。下面是这一版的真实亮点（不是"预告"，是已落地的功能）。
 
-### 1.2.18.1 解释器性能提升
+#### 1.2.18.1 自由线程（free-threaded，无 GIL）转正
 
-Python 3.14 继续聚焦解释器优化。多项内部改进使得字节码执行更高效。
+这是 3.14 最受关注的变化：free-threaded 构建从"实验性"升级为**官方支持**（PEP 779），进入 phase II。它仍然是**可选的独立构建**，默认 CPython 依旧带 GIL；但官方承诺这个构建不会在没有正规弃用流程的情况下被删掉。
 
-### 1.2.18.2 typing 模块增强
+#### 1.2.18.2 JIT 进入官方二进制
 
-- **typing.ReadOnly**（PEP 826）：新增只读类型标记，用于更精确地描述"不允许修改"的类型
-- 泛型语法的持续完善
+官方的 macOS / Windows 安装包从 3.14 起**自带了实验性 JIT**，可以用环境变量开启：
 
-### 1.2.18.3 标准库改进
+```bash
+PYTHON_JIT=1 python3.14 your_script.py
+```
 
-- **`jiter` 模块**（PEP 738）：提供更高效的迭代器实现，减少内存拷贝
-- **`asyncio`**：异步生态继续壮大
-- **`typing`**：更多类型工具加入
+它依然**不建议用于生产**。自己从源码编译时，对应的配置项是 `--enable-experimental-jit=yes-off`。（顺便纠个常见错：JIT 是 **Python 3.13（PEP 744）** 引入的，不是 3.12。）
 
-### 1.2.18.4 CPython 实现层面
+#### 1.2.18.3 模板字符串（t-string，PEP 750）
 
-- **JIT 编译器进一步完善**：experimental JIT 正在走向成熟
-- **PEP 703 自由线程模式**：无 GIL 的 CPython 仍在积极开发中，未来版本可能会更稳定
-- **模块加载速度**：持续打磨
+f-string 之外新增了 `t` 前缀的**模板字符串**，它不会立刻拼成字符串，而是产出一个 `Template` 对象，方便做安全的 SQL 组装、HTML 转义等：
+
+```python
+name = "世界"
+t = t"你好，{name}！"
+print(t.strings)          # ('你好，', '！')
+print(t.interpolations)   # (Interpolation('世界', 'name', None, ''),)
+print(t.interpolations[0].value)  # 世界
+```
+
+#### 1.2.18.4 注解延迟求值（PEP 649 / PEP 749）
+
+函数与类的注解不再在定义时立即求值，而是改成**按需延迟求值**。这解决了长期困扰的前向引用问题，也让 `from __future__ import annotations` 逐渐退出历史舞台。用 `typing.get_type_hints()` 或 `annotationlib` 可以拿到不同形态的注解。
+
+#### 1.2.18.5 标准库的其它亮点
+
+- **PEP 734**：标准库终于提供了**子解释器**接口（`concurrent.interpreters`）
+- **PEP 784**：标准库内置 **Zstandard（zstd）** 压缩支持（`compression.zstd`）
+- **PEP 768**：安全的外部调试器接口
+- **`pathlib`**：新增 `Path.copy()` / `Path.move()` / `Path.info`
+- **错误提示继续改进**：拼错关键字、链条式调用等场景提示更清楚
 
 ---
 
-# 1.3 Python 两大版本分支的告别
+## 1.3 Python 两大版本分支的告别
 
-## 1.3.1 Python 2.7 的最终停更（2020 年 1 月 1 日）
+### 1.3.1 Python 2.7 的最终停更（2020 年 1 月 1 日）
 
 2020 年 1 月 1 日，Python 2.7 正式**停止维护**。这一天，全球无数还在跑 Python 2 代码的服务器同时打了个喷嚏。
 
@@ -1951,7 +1994,7 @@ Python 3.14 继续聚焦解释器优化。多项内部改进使得字节码执�
 
 > 据说 Guido 在 Python 2.7 停更那天发了一条推特："Python 2 的时代正式结束了。感谢大家这 20 年的陪伴。现在，去拥抱 Python 3 吧，它在等你。"
 
-## 1.3.2 迁移工具：2to3.py 的使用
+### 1.3.2 迁移工具：2to3.py 的使用
 
 Python 社区为迁移 Python 2 到 Python 3 开发了一个官方工具：**`2to3.py`**。
 
@@ -1991,7 +2034,7 @@ input("Enter: ")
 
 > 最佳实践：先用 `2to3` 跑一遍，然后用手动 review，最后全面测试。迁移是痛苦的，但 Python 3 的好处是长远的。
 
-## 1.3.3 Python 2 兼容代码示例与 Python 3 对比
+### 1.3.3 Python 2 兼容代码示例与 Python 3 对比
 
 让我们看一些 Python 2 和 Python 3 的典型差异对比：
 
@@ -2038,7 +2081,7 @@ print(42 / 5)  # 输出 8.4（浮点除法）
 print(42 // 5) # 输出 8（整数除法）
 ```
 
-## 1.3.4 为什么 Python 3 不兼容 Python 2
+### 1.3.4 为什么 Python 3 不兼容 Python 2
 
 这个问题值得深入探讨。Python 3 为什么宁可"得罪"整个社区，也要做一个破坏性升级？
 
@@ -2064,9 +2107,9 @@ Python 2 的字符串设计是"历史包袱"的产物。在互联网时代之前
 
 ---
 
-# 1.4 Python 的哲学思想
+## 1.4 Python 的哲学思想
 
-## 1.4.1 The Zen of Python（import this）全文解读
+### 1.4.1 The Zen of Python（import this）全文解读
 
 Python 有一首著名的"诗"——**The Zen of Python**（Python 之禅）。只要在 Python 解释器里输入 `import this`，就会显示出来：
 
@@ -2116,7 +2159,7 @@ Namespaces are one honking great idea -- let's do more of those!
 
 下面，让我们一句一句来解读。
 
-### 1.4.1.1 Beautiful is better than ugly.
+#### 1.4.1.1 Beautiful is better than ugly.
 
 **美优于丑。**
 
@@ -2140,7 +2183,7 @@ def get_active_values(data):
     ]
 ```
 
-### 1.4.1.2 Explicit is better than implicit.
+#### 1.4.1.2 Explicit is better than implicit.
 
 **显优于隐。**
 
@@ -2159,7 +2202,7 @@ def add(a, b):
     return a + b
 ```
 
-### 1.4.1.3 Simple is better than complex.
+#### 1.4.1.3 Simple is better than complex.
 
 **简单优于复杂。**
 
@@ -2183,13 +2226,13 @@ result = calc.compute("add", 1, 2)
 result = 1 + 2
 ```
 
-### 1.4.1.4 Complex is better than complicated.
+#### 1.4.1.4 Complex is better than complicated.
 
 **复杂优于一团糟。**
 
 有时候问题本身就是复杂的，不能硬要把复杂问题简化，否则会丢失重要信息。Python 并不追求"最小化代码"，而是追求"不过度设计"。如果你的业务逻辑确实复杂，就让它复杂——但要有条理地复杂。
 
-### 1.4.1.5 Flat is better than nested.
+#### 1.4.1.5 Flat is better than nested.
 
 **扁平优于嵌套。**
 
@@ -2221,7 +2264,7 @@ def process(data):
             do_something(item)
 ```
 
-### 1.4.1.6 Sparse is better than dense.
+#### 1.4.1.6 Sparse is better than dense.
 
 **稀疏优于密集。**
 
@@ -2240,7 +2283,7 @@ def greet(names):
     ]
 ```
 
-### 1.4.1.7 Readability counts.
+#### 1.4.1.7 Readability counts.
 
 **可读性很重要。**
 
@@ -2258,19 +2301,19 @@ radius = 5
 circumference = 2 * PI * radius
 ```
 
-### 1.4.1.8 Special cases aren't special enough to break the rules.
+#### 1.4.1.8 Special cases aren't special enough to break the rules.
 
 **特殊不足以打破规则。**
 
 规则是团队协作的基础。偶尔一次"就特殊一下"可能带来技术债务的积累，最终导致规则形同虚设。
 
-### 1.4.1.9 Although practicality beats purity.
+#### 1.4.1.9 Although practicality beats purity.
 
 **实用优于纯粹。**
 
 规则是死的，代码是活的。完全遵守规则但做不出有用的东西，那规则还有什么意义？Python 鼓励务实——规则是指导方针，不是枷锁。
 
-### 1.4.1.10 Errors should never pass silently.
+#### 1.4.1.10 Errors should never pass silently.
 
 **错误不应静默通过。**
 
@@ -2292,7 +2335,7 @@ except Exception as e:
     raise
 ```
 
-### 1.4.1.11 Unless explicitly silenced.
+#### 1.4.1.11 Unless explicitly silenced.
 
 **除非显式地沉默。**
 
@@ -2306,13 +2349,13 @@ except KeyError:
     pass  # optional_key 不存在是正常的，使用默认值即可
 ```
 
-### 1.4.1.12 In the face of ambiguity, refuse the temptation to guess.
+#### 1.4.1.12 In the face of ambiguity, refuse the temptation to guess.
 
 **面对歧义时，拒绝猜测的诱惑。**
 
 如果代码的行为不确定，不要靠"猜测"来写，而是要搞清楚逻辑、查阅文档、问清楚需求。猜测是 bug 的温床。
 
-### 1.4.1.13 There should be one-- and preferably only one --obvious way to do it.
+#### 1.4.1.13 There should be one-- and preferably only one --obvious way to do it.
 
 **应该有一种——最好只有一种——显而易见的实现方式。**
 
@@ -2329,19 +2372,19 @@ for x in items:
         result.append(x)
 ```
 
-### 1.4.1.14 Although that way may not be obvious at first unless you're Dutch.
+#### 1.4.1.14 Although that way may not be obvious at first unless you're Dutch.
 
 **虽然除非你是荷兰人，否则那种方式一开始可能并不明显。**
 
 这是 Guido van Rossum 的"私货"——因为他是荷兰人。这句话的意思是：Python 的设计哲学有时候需要一段时间才能理解，但一旦理解，就会觉得"嗯，确实是这样"。
 
-### 1.4.1.15 Now is better than never.
+#### 1.4.1.15 Now is better than never.
 
 **现在优于永远不做。**
 
 与其等到"完美方案"出现，不如现在就开始做。迭代比等待更重要。
 
-### 1.4.1.16 Although never is often better than *right* now.
+#### 1.4.1.16 Although never is often better than *right* now.
 
 **但永远不做通常优于仓促行动。**
 
@@ -2349,19 +2392,19 @@ for x in items:
 
 这两句话看似矛盾，其实是一个**平衡**：不要永远不做，也不要冲动去做。
 
-### 1.4.1.17 If the implementation is hard to explain, it's a bad idea.
+#### 1.4.1.17 If the implementation is hard to explain, it's a bad idea.
 
 **如果实现很难解释，它就是个坏主意。**
 
 好的设计应该是"显而易见的"。如果你需要长篇大论来解释你的实现，说明这个设计有问题——或者你根本就没想清楚。
 
-### 1.4.1.18 If the implementation is easy to explain, it may be a good idea.
+#### 1.4.1.18 If the implementation is easy to explain, it may be a good idea.
 
 **如果实现很容易解释，它可能是个好主意。**
 
 好的想法通常是简单的。如果你发现自己的想法/实现可以用三句话解释清楚，那大概率是个好想法。
 
-### 1.4.1.19 Namespaces are one honking great idea -- let's do more of those!
+#### 1.4.1.19 Namespaces are one honking great idea -- let's do more of those!
 
 **命名空间是一个绝妙的主意——让我们多用它！**
 
@@ -2377,7 +2420,7 @@ print(mymodule.pi)   # 可能是 3.14，或者别的什么
 
 命名空间的好处是：避免名字冲突，让代码模块化。
 
-## 1.4.2 Python 之禅在编码实践中的应用
+### 1.4.2 Python 之禅在编码实践中的应用
 
 Python 之禅不是挂在墙上的标语，而是可以落实到每一行代码的指导原则。以下是一些实践例子：
 
@@ -2425,11 +2468,11 @@ result = dict(zip(keys, doubled_values))
 
 ---
 
-# 1.5 Python 的应用领域
+## 1.5 Python 的应用领域
 
 Python 的应用领域广泛到让人怀疑它是不是"万金油"——但它确实就是这么厉害。让我来一一介绍。
 
-## 1.5.1 Web 后端开发（Django、Flask、FastAPI）
+### 1.5.1 Web 后端开发（Django、Flask、FastAPI）
 
 Python 有三大 Web 框架：
 
@@ -2462,7 +2505,7 @@ async def read_item(item_id: int, q: str = None):
     return {"item_id": item_id, "q": q}
 ```
 
-## 1.5.2 数据科学与数据分析（NumPy、Pandas、Matplotlib）
+### 1.5.2 数据科学与数据分析（NumPy、Pandas、Matplotlib）
 
 Python 是**数据科学领域**的霸主。这三剑客分工明确：
 
@@ -2493,7 +2536,7 @@ plt.title("成绩对比")
 plt.show()
 ```
 
-## 1.5.3 人工智能与机器学习（TensorFlow、PyTorch、scikit-learn）
+### 1.5.3 人工智能与机器学习（TensorFlow、PyTorch、scikit-learn）
 
 Python 在 AI/ML 领域是绝对的王者：
 
@@ -2522,7 +2565,7 @@ for epoch in range(1000):
 print(model.weight.item(), model.bias.item())  # 接近 2.0 和 0.0
 ```
 
-## 1.5.4 大语言模型（LLM）与 AI Agent（LangChain、OpenAI SDK）
+### 1.5.4 大语言模型（LLM）与 AI Agent（LangChain、OpenAI SDK）
 
 2023 年开始，AI 大模型爆发，Python 凭借其生态优势成为 **LLM 应用开发**的首选语言：
 
@@ -2558,7 +2601,7 @@ agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION
 agent.run("2024 年诺贝尔物理学奖得主是谁？")
 ```
 
-## 1.5.5 自动化测试（pytest、Selenium、Playwright）
+### 1.5.5 自动化测试（pytest、Selenium、Playwright）
 
 Python 是测试工程师的最爱：
 
@@ -2597,7 +2640,7 @@ print(driver.title)
 driver.quit()
 ```
 
-## 1.5.6 浏览器自动化与爬虫（Selenium、Playwright、Scrapy）
+### 1.5.6 浏览器自动化与爬虫（Selenium、Playwright、Scrapy）
 
 Python 是**爬虫领域的传统豪强**：
 
@@ -2630,7 +2673,7 @@ with sync_playwright() as p:
     browser.close()
 ```
 
-## 1.5.7 网络编程与 API 开发（asyncio、aiohttp、FastAPI）
+### 1.5.7 网络编程与 API 开发（asyncio、aiohttp、FastAPI）
 
 Python 3.5+ 的 `asyncio` 让高并发网络编程变得简单：
 
@@ -2657,7 +2700,7 @@ results = asyncio.run(fetch_all(urls))
 print(len(results))  # 2
 ```
 
-## 1.5.8 脚本与系统工具开发（Click、Typer、Rich）
+### 1.5.8 脚本与系统工具开发（Click、Typer、Rich）
 
 Python 是写**系统脚本**的好帮手：
 
@@ -2699,7 +2742,7 @@ table.add_row("Java", "3", "12.12%")
 console.print(table)
 ```
 
-## 1.5.9 云计算与 DevOps（Docker、Ansible、CI/CD）
+### 1.5.9 云计算与 DevOps（Docker、Ansible、CI/CD）
 
 Python 在运维领域同样活跃：
 
@@ -2723,7 +2766,7 @@ for bucket in response["Buckets"]:
 s3.upload_file("local_file.txt", "my-bucket", "remote_file.txt")
 ```
 
-## 1.5.10 游戏开发（Pygame、Godot-Python）
+### 1.5.10 游戏开发（Pygame、Godot-Python）
 
 Python 在游戏开发领域也有存在感：
 
@@ -2749,7 +2792,7 @@ while True:
     pygame.display.flip()
 ```
 
-## 1.5.11 图形界面开发（PyQt、Tkinter）
+### 1.5.11 图形界面开发（PyQt、Tkinter）
 
 Python 可以开发桌面 GUI 应用：
 
@@ -2775,7 +2818,7 @@ button.pack()
 root.mainloop()
 ```
 
-## 1.5.12 区块链与密码学（web3.py、cryptography）
+### 1.5.12 区块链与密码学（web3.py、cryptography）
 
 Python 在区块链和密码学领域也有应用：
 
@@ -2804,12 +2847,13 @@ key = Fernet.generate_key()
 cipher = Fernet(key)
 
 # 加密
-encrypted = cipher.encrypt(b"Python 密码学真有趣！")
+# encrypt 需要 bytes：中文要先 encode
+encrypted = cipher.encrypt("Python 密码学真有趣！".encode())
 print(f"加密后: {encrypted}")
 
-# 解密
-decrypted = cipher.decrypt(encrypted)
-print(f"解密后: {decrypted}")  # b'Python 密码学真有趣！'
+# decrypt 返回 bytes，再 decode 回字符串（源文件本身要存成 UTF-8）
+decrypted = cipher.decrypt(encrypted).decode()
+print(f"解密后: {decrypted}")  # Python 密码学真有趣！
 ```
 
 ---
@@ -2831,7 +2875,8 @@ print(f"解密后: {decrypted}")  # b'Python 密码学真有趣！'
 - **1991**：Python 0.9.0 诞生——类、异常、函数、列表、模块系统
 - **1994**：Python 1.0——引入 lambda、map/filter/reduce、复数
 - **2000**：Python 2.0——列表推导式、垃圾回收、Unicode、PEP 机制
-- **2004**：Python 2.4——生成器（yield）、装饰器语法糖
+- **2002**：Python 2.2——生成器（yield，PEP 255）、新式类
+- **2004**：Python 2.4——装饰器语法糖（PEP 318）、`itertools`
 - **2008**：Python 3.0——破坏性升级，print 函数、Unicode 默认、除法改革
 - **2012**：Python 3.3——venv 虚拟环境、命名空间包
 - **2014**：Python 3.4——asyncio、pip 成为推荐包管理器
@@ -2842,9 +2887,9 @@ print(f"解密后: {decrypted}")  # b'Python 密码学真有趣！'
 - **2020**：Python 3.9——字典合并运算符 |、内置类型泛型、ZoneInfo
 - **2021**：Python 3.10——match...case、精确错误提示
 - **2022**：Python 3.11——异常组（except*）、TaskGroup、启动速度优化
-- **2023**：Python 3.12——JIT 进展、f-string 调试改进
+- **2023**：Python 3.12——f-string 语法重写（PEP 701）、类型参数新语法（PEP 695）、每解释器独立 GIL（PEP 684）
 - **2024**：Python 3.13——实验性 JIT、交互式解释器彩色输出
-- **2025**：Python 3.14——持续优化中
+- **2025**：Python 3.14——自由线程（无 GIL）构建转正（PEP 779）、官方安装包带实验性 JIT、模板字符串（PEP 750）、注解延迟求值（PEP 649/749）
 
 ### 3. Python 2 vs Python 3
 - Python 2.7 于 **2020 年 1 月 1 日**正式停更

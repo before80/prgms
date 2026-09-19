@@ -261,7 +261,7 @@ draft = false
 
 ## 25.7 持续学习：Git 的新特性跟进
 
-```markdown
+````markdown
 ## 跟进 Git 更新
 
 ### 获取更新
@@ -283,7 +283,7 @@ brew upgrade git
 # Ubuntu
 sudo apt update && sudo apt upgrade git
 ```
-```
+````
 
 ### 幽默一刻
 
@@ -354,4 +354,3 @@ sudo apt update && sudo apt upgrade git
 **全书完**
 
 **感谢阅读！**
-

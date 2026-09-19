@@ -89,6 +89,10 @@ draft = false
 }
 ```
 
+> ⚠️ **重名的坑：** `@keyframes` 的名字是全局的，而且**后定义的会覆盖先定义的**（同名时以文档中最后出现的那份为准），
+> 浏览器不会报错，只会安静地用最后一份。所以同一个名字（比如 `fadeIn`）在样式表里只应该定义一次。
+> 后面 30.3 节的示例会另外取名字，就是为了避开这个坑。
+
 ### 30.2.2 animation-name——关联关键帧名称
 
 ```css
@@ -111,12 +115,13 @@ draft = false
 缓动曲线控制动画的速度节奏——是"一脚油门踩到底"还是"犹豫三秒才迈步"。
 
 ```css
-.ease { transition-timing-function: ease; }
-.linear { transition-timing-function: linear; }
-.ease-in { transition-timing-function: ease-in; }
-.ease-out { transition-timing-function: ease-out; }
-.ease-in-out { transition-timing-function: ease-in-out; }
-.bezier { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+/* 注意：这里是 animation-timing-function，别和 30.1.3 的 transition-timing-function 写混了 */
+.ease { animation-timing-function: ease; }
+.linear { animation-timing-function: linear; }
+.ease-in { animation-timing-function: ease-in; }
+.ease-out { animation-timing-function: ease-out; }
+.ease-in-out { animation-timing-function: ease-in-out; }
+.bezier { animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
 
 /* steps() 是动画界的"定格动画模式"——不像正常动画那样平滑过渡，而是一顿一顿的，像翻书动画或老式胶片电影 */
 .steps-4 { animation-timing-function: steps(4); }         /* 分4步跳过去 */
@@ -181,13 +186,24 @@ draft = false
 
 ### 30.2.9 animation 缩写
 
-所有 `animation-*` 属性可以合并成一行简写，顺序很重要（记不住？没关系，浏览器有时候比你还宽容）：
+所有 `animation-*` 属性可以合并成一行简写。写出来的顺序可以比较自由，但**解析规则**是有讲究的：
 
 ```css
+/* 一个真实可用的例子： */
 .animation {
-  animation: name duration timing-function delay iteration-count direction fill-mode;
+  /*   名称   时长  缓动        延迟  次数      方向       填充模式 */
+  animation: fadeIn 1s ease-in-out 0.2s infinite alternate both;
 }
 ```
+
+> 📖 **简写是怎么"认"出每个值的？**（顺序不用背，但规则得懂）
+> 1. **第一个时间值是 `duration`，第二个时间值是 `delay`**。所以 `1s 0.2s` 是"时长 1s、延迟 0.2s"，
+>    写成 `0.2s 1s` 就变成"时长 0.2s、延迟 1s"了——这是个静默的灾难。
+> 2. 纯数字（或 `infinite`）是 `iteration-count`。
+> 3. 能匹配上关键字的是 `direction`（normal/reverse/alternate…）、`play-state`（running/paused）、
+>    `fill-mode`（none/forwards/backwards/both）和 `timing-function`（ease/linear/cubic-bezier…）。
+> 4. 剩下那个"谁都不像"的标识符就是动画的**名字**（`animation-name`）。
+> 5. 没写的子属性会被重置成初始值——最容易翻车的是 `fill-mode` 默认 `none`。
 
 > ⚠️ 简写虽爽，但调试时容易被"隐藏的默认值"坑到——比如没写的 `animation-fill-mode` 默认是 `none`，而不是你以为的 `forwards`。
 
@@ -206,11 +222,12 @@ draft = false
 ### 30.3.2 滑入
 
 ```css
-@keyframes slideIn {
+/* 名字故意用 slideUp，避免和 30.2.1 里那个 translateX 版的 slideIn 撞名 */
+@keyframes slideUp {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
-.slide-in { animation: slideIn 0.5s ease-out forwards; }
+.slide-in { animation: slideUp 0.5s ease-out forwards; }
 ```
 
 ### 30.3.3 脉冲
@@ -236,7 +253,19 @@ draft = false
 
 ### 30.4.1 只动画 transform 和 opacity
 
-浏览器的GPU对这两个属性"开绿灯"，动画丝滑且不吃性能，其他属性（比如 `width`、`background-color`）则会触发"重排"（reflow），代价昂贵。
+浏览器对这两个属性"开绿灯"：它们可以交给 GPU 合成（composite），动画丝滑而且基本不吃渲染性能。
+其他属性按代价从低到高分三档：
+
+- **只触发重绘（repaint）**：`color`、`background-color`、`visibility`、`box-shadow` 等。
+  元素的位置和大小没变，只重画像素，比重新布局便宜，但帧率高时依然肉疼。
+- **触发重排（reflow / layout）**：`width`、`height`、`top`、`left`、`margin`、`padding`、`font-size` 等。
+  浏览器得重新计算一大片区域的几何位置，是最贵的。
+- **可以合成**：`transform` 和 `opacity`。改它们通常既不重排也不重绘，交给 GPU 就完事。
+  （`filter`、`backdrop-filter` 在多数浏览器里也能走合成路径，但更依赖具体实现，不如前两个稳。）
+
+> 💡 **实践口诀：** 想移动，用 `transform: translate()` 而不是 `left/top`；
+> 想变大，用 `transform: scale()` 而不是 `width/height`；
+> 想淡出，用 `opacity` 而不是 `visibility` 或改颜色。
 
 ```css
 .fast-animation {
@@ -244,6 +273,20 @@ draft = false
   opacity: 0.5;
 }
 ```
+
+> ♿ **别忘了"减少动态效果"的用户：** 有些人对运动非常敏感（前庭功能障碍），系统里开了"减少动态效果"。
+> 用 `@media (prefers-reduced-motion: reduce)` 尊重这个设置，是专业与不专业的分水岭：
+>
+> ```css
+> @media (prefers-reduced-motion: reduce) {
+>   * {
+>     animation-duration: 0.01ms !important;
+>     animation-iteration-count: 1 !important;
+>     transition-duration: 0.01ms !important;
+>     scroll-behavior: auto !important;
+>   }
+> }
+> ```
 
 ### 30.4.2 will-change——提前告诉浏览器"我要动啦"
 
@@ -271,4 +314,3 @@ draft = false
 ### 下章预告
 
 下一章我们将学习滤镜与混合模式！
-

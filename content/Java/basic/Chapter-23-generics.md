@@ -16,6 +16,8 @@ draft = false
 
 ---
 
+> 📌 **本章代码的组织方式**：讲泛型免不了先定义"工具类/容器类"，再用它写示例。所以本章有些代码块只包含类定义（比如 `Box<T>`、`Pair<K,V>`），后面紧跟的示例代码块会直接使用这些类。阅读时把它们放在**同一个目录**里一起编译即可（`javac *.java`）。
+
 ## 23.1 为什么需要泛型？
 
 ### 故事的起源：没有泛型的日子
@@ -37,18 +39,27 @@ public class OldStyleBox {
 }
 
 // 使用时
-OldStyleBox box = new OldStyleBox("Hello");
-// 取出来用，得强制转型
-String s = (String) box.getValue();
+public class OldStyleBoxDemo {
+    public static void main(String[] args) {
+        OldStyleBox box = new OldStyleBox("Hello");
+        // 取出来用，得强制转型
+        String s = (String) box.getValue();
+        System.out.println(s);
+    }
+}
 ```
 
 这段代码看起来没什么问题，直到有一天：
 
 ```java
-OldStyleBox box = new OldStyleBox(123);
-// 我以为取出来是 String，实际情况是...
-String s = (String) box.getValue(); // 编译通过，运行时炸了！
-// 抛出 ClassCastException: java.lang.Integer cannot be cast to java.lang.String
+public class OldStyleBoxBug {
+    public static void main(String[] args) {
+        OldStyleBox box = new OldStyleBox(123);
+        // 我以为取出来是 String，实际情况是...
+        String s = (String) box.getValue(); // 编译通过，运行时炸了！
+        // 抛出 ClassCastException: java.lang.Integer cannot be cast to java.lang.String
+    }
+}
 ```
 
 > 💥 **ClassCastException** — 编译时笑嘻嘻，运行时哭唧唧。
@@ -74,8 +85,13 @@ public class GenericBox<T> {
 }
 
 // 使用时
-GenericBox<String> box = new GenericBox<>("Hello");
-String s = box.getValue(); // 不需要转型！直接就是 String！
+public class GenericBoxDemo {
+    public static void main(String[] args) {
+        GenericBox<String> box = new GenericBox<>("Hello");
+        String s = box.getValue(); // 不需要转型！直接就是 String！
+        System.out.println(s);
+    }
+}
 ```
 
 如果你敢这么写：
@@ -179,8 +195,12 @@ public class Triple<A, B, C> {
 }
 
 // 使用
-Triple<String, Integer, Boolean> flags = new Triple<>("debug", 1, true);
-System.out.println(flags); // (debug, 1, true)
+class TripleDemo {
+    public static void main(String[] args) {
+        Triple<String, Integer, Boolean> flags = new Triple<>("debug", 1, true);
+        System.out.println(flags); // (debug, 1, true)
+    }
+}
 ```
 
 ### 泛型类的继承
@@ -545,6 +565,9 @@ public class WildcardDemo {
 ```
 
 ```java
+import java.util.ArrayList;
+import java.util.List;
+
 public class Main {
     public static void main(String[] args) {
         // extends 用法
@@ -693,7 +716,8 @@ public int compareTo(Person other) {
 
 因为类型信息被擦除了，有些事情在泛型代码里是做不了的：
 
-```java
+```java,ignore
+// ❌ 下面四种写法都编译不过，请把这段当作"泛型做不到什么"的清单
 public class ErasureLimitation<T> {
     // 编译错误！不能 new T()
     public T create() {

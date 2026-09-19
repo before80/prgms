@@ -19,7 +19,7 @@ UFW（Uncomplicated Firewall）是Ubuntu默认的防火墙管理工具。它的�
 
 ## 35.1 UFW 简介：Uncomplicated Firewall
 
-UFW由 Canonical 公司开发，专门为Ubuntu/Debian设计。它的底层是强大的iptables/netfilter框架，但上层提供了一个简洁的命令行界面。
+UFW 由 Canonical 发起，专为 Ubuntu/Debian 设计，现在由社区维护。它的底层是 iptables/nftables 这一套内核框架，上面包了一层简洁的命令行界面。
 
 ### 35.1.1 基于 iptables
 
@@ -39,7 +39,7 @@ graph TB
     style E fill:#ff6666
 ```
 
-简单理解：UFW = iptables的GUI（命令行版）。
+简单理解：**UFW 是 iptables 的一个前端**（注意不是"图形界面"，它本身就是命令行工具）。你只需要说"放行 22 端口"，剩下的按顺序插入规则、处理 IPv6、维护规则文件，UFW 都替你做了。
 
 ### 35.1.2 命令简化
 
@@ -100,12 +100,12 @@ sudo ufw status numbered
 ```bash
 Status: active
 
-     Status                         Action                   From
-     --                         ------                   ----
 [ 1] 22/tcp                     ALLOW IN                Anywhere
 [ 2] 80/tcp                     ALLOW IN                Anywhere
 [ 3] 443/tcp                    ALLOW IN                Anywhere
 ```
+
+`numbered` 模式的输出**没有表头**，每行开头的 `[ 1]` 就是规则编号；编号是按当前顺序临时排的，删掉一条之后其余编号会跟着变。
 
 ## 35.3 ufw enable：启用防火墙
 
@@ -231,6 +231,8 @@ Proceed with operation [y/n] y
 Rule deleted.
 ```
 
+> ⚠️ **按编号删除后，一定要重新 `ufw status numbered` 再删下一条**：删掉 `[2]` 之后，原来的 `[3]` 就变成了 `[2]`，凭记忆连着删很容易删错。更稳妥的写法是按内容删（`sudo ufw delete allow 80/tcp`），内容只影响那一条规则。
+
 ## 35.8 ufw allow 'OpenSSH'：按服务名开放
 
 UFW支持直接用服务名代替端口号，`OpenSSH`对应22端口，`Nginx Full`会开放80和443。
@@ -290,6 +292,19 @@ sudo ufw limit 22/tcp
 sudo ufw limit 2222/tcp
 ```
 
+准确的规则是：**同一个来源 IP，在 30 秒内新建连接超过 6 次，就拒绝（丢弃）后续的连接请求**，而不是"60 秒封 6 次"。UFW 底层用的是 iptables 的 `recent` 模块（`--seconds 30 --hitcount 6`），看源码或 `iptables -L -n` 都能对出来。
+
+使用前要注意两点：
+
+```bash
+# 1. 如果原来已经有普通的 allow 规则，先删掉再换成 limit，否则两条并存
+sudo ufw delete allow 22/tcp
+sudo ufw limit 22/tcp
+
+# 2. limit 只针对"新建连接"，已经建立的 SSH 会话不受影响
+sudo ufw status numbered
+```
+
 ```bash
 # 查看结果
 sudo ufw status numbered
@@ -301,7 +316,9 @@ sudo ufw status numbered
 [ 1] 22/tcp                     LIMIT IN                Anywhere
 ```
 
-> **适用场景**：`ufw limit`最适合SSH这种需要开放但又容易被暴力破解的服务。脚本小子用自动化工具扫描22端口，`ufw limit`会让他们吃闭门羹。
+> **适用场景**：`ufw limit` 适合 SSH 这种"必须开放、又容易被反复尝试密码"的服务。它能在不改端口的情况下抬高暴力破解的成本。
+>
+> ⚠️ 但它**不能替代 fail2ban**：`limit` 只在 30 秒的窗口里计数，攻击者放慢速度（比如每 10 秒试一次）就能绕开；而且它不会通知你、也不会把 IP 拉黑。真正要挡暴力破解，请把 `ufw limit` 当作第一层，再配合 `fail2ban` 或"仅允许密钥登录 + 禁用密码登录"。
 
 ## 35.11 ufw default：默认策略
 
@@ -341,9 +358,16 @@ UFW的日志记录了所有被允许和被拒绝的连接尝试，是排查问�
 # 查看UFW日志（实时跟踪）
 sudo tail -f /var/log/ufw.log
 
-# 查看最近的UFW日志（最后50行）
-sudo tail -50 /var/log/ufw.log
+# 查看最近的UFW日志（最后 50 行）
+sudo tail -n 50 /var/log/ufw.log
 ```
+
+> ⚠️ `/var/log/ufw.log` 是 rsyslog 按 `/etc/rsyslog.d/20-ufw.conf` 里的规则写出来的。**如果系统没装 rsyslog、或者日志只进 journald，这个文件就不存在**。这种情况改用下面这条命令看（UFW 的日志来自内核）：
+>
+> ```bash
+> sudo journalctl -k | grep UFW
+> sudo dmesg | grep UFW
+> ```
 
 ```bash
 # 日志示例
@@ -382,14 +406,82 @@ sudo ufw logging off
 ```
 
 ```bash
-# 用grep过滤特定IP或端口的日志
-sudo grep "DPT=22" /var/log/ufw.log | tail -20
+# 用 grep 过滤特定端口（注意 [UFW BLOCK] 出现在行首附近，别把匹配顺序写反）
+sudo grep "DPT=22" /var/log/ufw.log | tail -n 20
 
-# 统计被阻止SSH连接的IP
-sudo grep "DPT=22.*BLOCK" /var/log/ufw.log | awk '{print $11}' | sort | uniq -c | sort -rn
+# 统计"被阻止的 SSH 连接"都来自哪些 IP：
+# 用 grep -o 精确抠出 SRC= 字段，比按"第几列"去数更稳（列数会随 OUT=、MAC= 等字段变化）
+sudo grep 'UFW BLOCK' /var/log/ufw.log | grep 'DPT=22' | grep -o 'SRC=[0-9.]*' | sort | uniq -c | sort -rn | head -20
 ```
 
+如果同一个 IP 频繁出现在统计结果的前几名，说明它正在扫描或爆破你的 22 端口。可选的处置：改掉 SSH 端口、只允许密钥登录、用 `ufw allow from <可信网段> to any port 22` 做白名单，或者上 fail2ban 自动拉黑。
+
 > **安全运维建议**：定期查看UFW日志，你会惊讶地发现，全世界有多少"好奇"的IP在扫描你的服务器端口。
+
+---
+
+## 35.13 其他常用操作与避坑
+
+### 35.13.1 看有哪些现成的服务配置
+
+```bash
+# 列出 UFW 自带的"应用配置"（来自 /etc/ufw/applications.d/ 和已安装服务）
+sudo ufw app list
+
+# 看某个配置到底开了哪些端口
+sudo ufw app info 'Nginx Full'
+# Port: 80,443/tcp
+```
+
+用 `ufw app info` 确认端口再放行，比凭记忆敲 `ufw allow 80` 靠谱。
+
+### 35.13.2 改配置前先"演习"
+
+```bash
+sudo ufw --dry-run enable          # 只看会生成哪些规则，不真正启用
+sudo ufw --dry-run allow 8080/tcp  # 任何命令都能加 --dry-run
+
+sudo ufw reload                    # 重新加载规则（改完配置文件后）
+sudo ufw reset                     # 清空所有规则并回到默认状态（会问你确认）
+```
+
+### 35.13.3 一条"改 SSH 端口也不掉线"的操作顺序
+
+这是远程操作防火墙最容易出事故的场景，顺序必须是：**先放行新端口，再用新端口验证能连上，最后才删旧规则**。
+
+```bash
+# 假设把 SSH 从 22 改到 2222
+sudo sed -i 's/^#\?Port .*/Port 2222/' /etc/ssh/sshd_config
+sudo sshd -t                       # 先检查配置语法
+sudo systemctl restart ssh         # Debian/Ubuntu 服务名是 ssh；RHEL 是 sshd
+
+# 1. 先放行新端口（此时 22 仍然开着，安全网还在）
+sudo ufw allow 2222/tcp
+
+# 2. 另开一个终端，用新端口登录验证
+#    ssh -p 2222 user@服务器
+
+# 3. 确认新端口可用、没有其他问题后，再删掉 22
+sudo ufw delete allow 22/tcp
+```
+
+> ⚠️ 别一次性 `ufw reset` 再重建规则，也别在只有一条 SSH 连接的情况下直接 `ufw default deny incoming`——万一规则写错，你就只能去机房或控制台了。云服务器记得先确认"救援控制台"可用。
+
+### 35.13.4 UFW 与 Docker 的"著名冲突"
+
+装过 Docker 的机器上，`ufw deny 8080` 常常**不起作用**：Docker 会自己往 `DOCKER` 链里插规则，而它的链在 UFW 的规则之前被调用，端口照样对公网开放。
+
+```bash
+sudo iptables -L DOCKER -n --line-numbers   # 能看到 Docker 自己加的规则
+```
+
+常见解法（按推荐程度）：
+
+1. 让容器只监听本机：`-p 127.0.0.1:8080:80`，对外统一走反向代理；
+2. 在 `ufw` 之前禁用 Docker 的 iptables 管理（`/etc/docker/daemon.json` 里 `"iptables": false`），然后自己写转发规则；
+3. 用 `ufw-docker` 这类小工具把 Docker 规则接到 UFW 的框架里。
+
+关键点是：**装了 Docker 之后，不能只靠 UFW 判断端口是否对公网开放**，一定要在另一台机器上用 `nc -vz 服务器IP 端口` 实测一下。
 
 ---
 
@@ -397,15 +489,16 @@ sudo grep "DPT=22.*BLOCK" /var/log/ufw.log | awk '{print $11}' | sort | uniq -c 
 
 本章我们掌握了Ubuntu下UFW防火墙的配置：
 
-- **UFW简介**：Uncomplicated Firewall，iptables的简化壳
+- **UFW简介**：Uncomplicated Firewall，iptables 的前端（不是图形界面）
 - **ufw status**：查看防火墙状态，`verbose`显示详情，`numbered`显示编号
 - **ufw enable/disable**：启用/禁用防火墙，启用前先放行SSH！
 - **ufw allow**：开放端口，`allow 80/tcp`指定协议，`allow 'OpenSSH'`按服务名
 - **ufw deny**：禁止端口
-- **ufw delete**：删除规则，`delete allow 80`或`delete 2`按编号删
+- **ufw delete**：删除规则，推荐按内容删；按编号删时每次都要重新 `status numbered`
 - **ufw allow from**：按来源IP放行，支持网段`192.168.1.0/24`
-- **ufw limit**：速率限制，防暴力破解
+- **ufw limit**：同一 IP 30 秒内新建连接超过 6 次即拒绝；是"减速带"，不是 fail2ban 的替代品
 - **ufw default**：设置默认策略，生产环境用`default deny incoming`
-- **日志**：`/var/log/ufw.log`记录所有被允许和被拒绝的连接
+- **日志**：默认写到 `/var/log/ufw.log`；没有 rsyslog 时用 `journalctl -k | grep UFW`
+- **避坑**：删规则先演习、改 SSH 顺序不能错、装了 Docker 要实测端口
 
 UFW让Linux防火墙配置从"天书"变成"人话"。

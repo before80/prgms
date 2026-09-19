@@ -36,11 +36,13 @@ JVM 是用 C++ 实现的（大部分实现），但对我们 Java 程序员来�
 
 **JRE** 是**Java 运行时环境**。它包含：
 - JVM（用来跑字节码）
-- Java 核心类库（即 `rt.jar` / `java.*` 包，比如 `String`、`ArrayList` 这些基础类）
+- Java 核心类库（`java.*` 包，比如 `String`、`ArrayList` 这些基础类）
 
 简单来说，JRE = JVM + 核心类库。**如果你只想运行已经编译好的 Java 程序（比如别人给你的 `.jar` 文件），装 JRE 就够了。**
 
 > 还是租房比喻：JRE 就是拎包入住——家具（JVM）和锅碗瓢盆（类库）都给你配好了，你只管用。但你要是想装修（开发），那就不够看了。
+
+> ⚠️ **重要版本变化**：从 **JDK 9（2017 年）** 开始，Oracle 和 OpenJDK **不再单独发布 JRE**了。因为模块系统（JPMS）把 JDK 拆成了一个个模块，你可以用 `jlink` 按需裁剪出一个只有几十 MB 的运行时镜像，比过去打包一个完整 JRE 更灵活。所以今天你在网上下载 Java 时，看到的几乎都是 JDK；"装 JRE 就够"这句话只适用于 **JDK 8 及更早**的年代。另外，JDK 8 里的 `rt.jar` 也已从 JDK 9 起消失，核心类库改为存放在 `lib/modules` 这个模块化镜像文件里。
 
 ### 4.1.3 JDK（Java Development Kit）：开发工具包，包含 JRE + 编译器（javac）+ 工具
 
@@ -56,13 +58,15 @@ JVM 是用 C++ 实现的（大部分实现），但对我们 Java 程序员来�
 
 ### 4.1.4 图解：JDK > JRE > JVM 的包含关系
 
+把前面三节的内容画成一张图，包含关系就一目了然了：
+
 ```mermaid
 graph TD
     JDK["JDK（Java 开发工具包）"]
     JRE["JRE（Java 运行时环境）"]
     JVM["JVM（Java 虚拟机）"]
     Tools["开发工具（javac, jar, javadoc...）"]
-    Core["核心类库（rt.jar, java.* 包）"]
+    Core["核心类库（java.base 等模块）"]
     Bytecode["字节码执行引擎"]
 
     JDK --> JRE
@@ -76,7 +80,7 @@ graph TD
     style JVM fill:#fff3e0
 ```
 
-> **一句话总结**：JDK 包含 JRE，JRE 包含 JVM。JDK 是开发者的全套工具箱，JRE 是运行程序的必备套餐，JVM 是那个真正干活的虚拟机。
+> **一句话总结**：JDK 包含 JRE（JDK 9 之前它们还是两个独立下载包），JRE 包含 JVM。JDK 是开发者的全套工具箱，JRE 是运行程序的必备套餐，JVM 是那个真正干活的虚拟机。
 
 ---
 
@@ -94,10 +98,10 @@ JDK 不是只有 Oracle 一家能提供。实际上，Java 是开源的（2017 �
 
 Oracle JDK 是最"正统"的官方版本，由 Oracle 公司维护。
 
-**优点**：功能最全，最权威，更新最快。
-**缺点**：2021 年后，Oracle JDK 对商业用途开始收费（即使免费下载也要注意许可证）。个人学习/开发免费，生产环境商用可能要付费。
+**优点**：功能最全，最权威，遇到问题查文档最方便。
+**缺点**：许可条款历史上变过好几次，用之前要看清楚。JDK 8u211～JDK 16 期间 Oracle JDK 商用需要付费订阅；从 **JDK 17 起改为 NFTC（No-Fee Terms and Conditions）许可**，个人和商业生产环境都可以免费使用，但只对 **LTS 版本**（17、21、25…）提供长期免费更新，非 LTS 版本发布半年后就停止免费更新了。
 
-> 如果你不确定，就先别用 Oracle 的，用下面免费的。
+> 如果你不想研究许可证，直接用下面几个开源发行版最省心。
 
 #### 4.2.1.2 Eclipse Adoptium（Temurin）——免费开源，生产环境推荐
 
@@ -106,7 +110,7 @@ Oracle JDK 是最"正统"的官方版本，由 Oracle 公司维护。
 Eclipse Adoptium（项目前身为 AdoptOpenJDK）是由 Eclipse 基金会维护的免费开源 JDK。**目前最推荐用于生产环境的免费 JDK。**
 
 **优点**：
-- 完全免费，开源，MIT 许可证
+- 完全免费开源，代码以 GPLv2 + Classpath Exception 授权（和上游 OpenJDK 一致），用它构建的应用不受 GPL 传染
 - 提供 HotSpot JVM（和 Oracle JDK 一样的引擎）
 - 长期支持版（LTS）稳定可靠
 - Windows/macOS/Linux 全平台支持
@@ -138,7 +142,7 @@ Amazon Corretto 是亚马逊云服务提供的免费开源 JDK，基于 OpenJDK�
 
 **优点**：
 - 免费开源
-- 内置 Wisp 协程等阿里自研优化
+- 内置阿里自研优化（如 JDK 8/11 上的 Wisp 协程、JDK 11+ 的 JWarmup、ElasticHeap 等）
 - 国内下载快，镜像支持好
 
 > **选择建议**：初学者/学习用——Eclipse Adoptium（最省心）。生产环境——Eclipse Adoptium 或 Amazon Corretto 都行。中国特色场景——Dragonwell。
@@ -150,7 +154,7 @@ Amazon Corretto 是亚马逊云服务提供的免费开源 JDK，基于 OpenJDK�
 **第一步**：打开 https://adoptium.net/，点击 "Download"。
 
 **第二步**：选择版本和平台：
-- **Version**：LTS（长期支持版）推荐 **JDK 21** 或 **JDK 17**。LTS 版本更新慢但稳定，不建议追最新非 LTS 版本。
+- **Version**：选 **LTS（长期支持版）**。目前（2026 年）最新的 LTS 是 **JDK 25**（2025 年 9 月发布），上一个 LTS 是 **JDK 21**。日常学习用 25 或 21 都行；如果公司项目还在用 17，那装 17 也可以。**不建议**追非 LTS 版本（如 22、23、24），它们只维护半年。
 - **Operating System**：Windows
 - **Architecture**：x64（大多数电脑是这个）
 - **Package Type**：`.msi`（推荐，傻瓜安装）或 `.zip`（解压即用）
@@ -159,7 +163,7 @@ Amazon Corretto 是亚马逊云服务提供的免费开源 JDK，基于 OpenJDK�
 
 **第四步**：双击 `.msi` 文件，疯狂点击"下一步（Next）"——安装过程和装普通软件一样。
 
-**第五步**：记住安装路径！默认大概是 `C:\Program Files\Eclipse Adoptium\jdk-21.0.5.xxxxx\`。后面的环境变量配置要用到。
+**第五步**：记住安装路径！默认大概是 `C:\Program Files\Eclipse Adoptium\jdk-21.0.5.xxxxx\`（装 25 就是 `jdk-25.x.x`）。后面的环境变量配置要用到。
 
 ### 4.2.3 安装完成验证：java -version 和 javac -version
 
@@ -217,23 +221,33 @@ javac 21.0.5
 
 Windows 用户看完上一节可以休息了，现在轮到 Mac 和 Linux 用户登场。
 
-### 4.3.1 macOS 用 Homebrew：brew install openjdk@17
+### 4.3.1 macOS 用 Homebrew 安装 JDK
 
 macOS 上最方便的包管理工具是 **Homebrew**。如果你还没装，先去 https://brew.sh/ 安装。
 
 安装完 Homebrew 后，在终端里敲：
 
 ```bash
-brew install openjdk@17
+brew install openjdk@21
 ```
 
-> 这里用 `@17` 指定版本，也可以用 `@21` 装 JDK 21。
+> 这里用 `@21` 指定版本，也可以换成 `@25`、`@17`。想要更方便地在多个 JDK 之间切换，可以改用 **SDKMAN!**（`sdk install java 25-tem`、`sdk use java 21.0.5-tem`）。
 
-安装完成后，Homebrew 会提示你做一件事——把 Java 链接到系统路径：
+安装完成后还不能直接 `java -version`——因为 Homebrew 里的 `openjdk` 是 **keg-only** 的，意思是"装了但故意不放进 PATH"，避免和系统自带/其他 JDK 冲突。下面两种做法任选其一。
+
+**做法一：把它的 `bin` 加进 PATH**（最简单）
 
 ```bash
-# 把你刚装的 JDK 链接到 /usr/local/opt/openjdk
-brew link openjdk@17 --force
+# Apple 芯片的 Homebrew 前缀是 /opt/homebrew，Intel 芯片是 /usr/local
+echo 'export PATH="$(brew --prefix openjdk@21)/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+**做法二：注册成"系统 JDK"**（推荐，这样 IDEA、Maven 以及 `/usr/libexec/java_home` 都能自动找到它）
+
+```bash
+sudo ln -sfn "$(brew --prefix openjdk@21)/libexec/openjdk.jdk" \
+  /Library/Java/JavaVirtualMachines/openjdk-21.jdk
 ```
 
 然后验证一下：
@@ -241,9 +255,13 @@ brew link openjdk@17 --force
 ```bash
 java -version
 javac -version
+# 看看系统里有哪些已注册的 JDK
+/usr/libexec/java_home -V
 ```
 
 都能输出版本号，就大功告成了。
+
+> 💡 顺带一提：macOS 上如果同时装了多个 JDK，可以用 `export JAVA_HOME=$(/usr/libexec/java_home -v 21)` 把 `JAVA_HOME` 固定到指定版本，Maven、Gradle 就会乖乖用这一版。
 
 ### 4.3.2 Linux 用 apt 或 yum 安装
 
@@ -253,8 +271,8 @@ javac -version
 # 第一步：更新软件源
 sudo apt update
 
-# 第二步：安装 OpenJDK 17
-sudo apt install openjdk-17-jdk
+# 第二步：安装 OpenJDK 21 的完整开发包（带 javac）
+sudo apt install openjdk-21-jdk
 
 # 验证
 java -version
@@ -264,18 +282,22 @@ javac -version
 **CentOS / RHEL / Fedora（yum/dnf）：**
 
 ```bash
-# 安装 OpenJDK 17
-sudo yum install java-17-openjdk-devel
+# 安装 OpenJDK 21 的开发包（注意包名是 -devel，只装 java-21-openjdk 是没有 javac 的）
+sudo yum install java-21-openjdk-devel
 
 # 或者用 dnf
-sudo dnf install java-17-openjdk-devel
+sudo dnf install java-21-openjdk-devel
 
 # 验证
 java -version
 javac -version
 ```
 
+> 想装别的版本就把版本号换掉（比如 `openjdk-17-jdk`、`openjdk-25-jdk`）。Ubuntu 的软件源里不一定有最新的 JDK 25，需要新版本时可以用 Adoptium 的 apt 仓库，或者直接下载 `.tar.gz` 解压后自己配 `PATH`、`JAVA_HOME`。
+
 > Linux 上 `java` 包可能只装 JRE，如果需要编译器，要装 `java-*-jdk` 或 `java-*-devel` 包（名字因发行版不同略有差异）。
+
+> 如果系统里装了多个 JDK，Debian/Ubuntu 可以用 `sudo update-alternatives --config java` 切换默认版本；RHEL 系可以用 `sudo alternatives --config java`。
 
 ---
 
@@ -505,6 +527,8 @@ Hello, Java 世界!
 
 > **恭喜你！** 这是你亲手用命令行编译运行的第一个 Java 程序。整个过程没有任何 IDE 介入，纯粹、干净、原始。你现在理解了 Java 从源码到运行的完整链路：`HelloWorld.java` → (javac) → `HelloWorld.class` → (java) → 屏幕输出。
 
+> 💡 **偷懒小技巧**：从 **Java 11** 开始，如果只有一个源文件、也没有外部依赖，可以直接用 `java HelloWorld.java` 一步运行（JEP 330，单文件源码启动）。JDK 会在内存里帮你完成编译，不会再生成 `.class` 文件。它适合写临时小工具，正式项目还是老老实实 `javac` + `java`，或者交给 Maven/Gradle。
+
 ---
 
 ## 4.6 JShell：像 Python 一样交互式玩 Java
@@ -680,6 +704,7 @@ javac -version
 - JVM 是执行字节码的虚拟机，是 Java 跨平台的核心
 - JRE 是运行时环境 = JVM + 核心类库（只能运行，不能开发）
 - JDK 是开发工具包 = JRE + 编译器 + 开发工具（既能运行，也能开发）
+- 注意：JDK 9 之后官方不再单独发布 JRE，`rt.jar` 也已被模块化镜像取代
 
 **2. 安装了 JDK**
 - 推荐免费开源的 Eclipse Adoptium（Temurin）JDK

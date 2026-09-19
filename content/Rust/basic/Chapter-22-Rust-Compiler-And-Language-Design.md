@@ -93,6 +93,8 @@ MIR 是 Rust 编译过程中的"中转站"，我们后面会专门讲它。简�
 
 #### rustc 的命令行参数体系
 
+`rustc` 是编译器本体，`cargo` 只是它的调度器；直接调用 `rustc` 能看清每一步到底发生了什么。
+
 ```bash
 # 最简单的用法
 rustc main.rs
@@ -399,9 +401,13 @@ fn main() {
 **3. 向量化（SIMD）**
 
 ```rust
-// Rust 的 SIMD  intrinsics
+// Rust 的 SIMD intrinsics
+// ⚠️ 这些 intrinsic 只在 x86_64 上存在。在 Apple Silicon（aarch64）等平台上
+//    直接用会报「unresolved import std::arch::x86_64」，所以要用 cfg 门控。
+#[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::*;
 
+#[cfg(target_arch = "x86_64")]
 unsafe fn simd_add(a: &[f32; 4], b: &[f32; 4]) -> [f32; 4] {
     let a_vec = _mm_loadu_ps(a.as_ptr());
     let b_vec = _mm_loadu_ps(b.as_ptr());
@@ -412,10 +418,16 @@ unsafe fn simd_add(a: &[f32; 4], b: &[f32; 4]) -> [f32; 4] {
 }
 
 fn main() {
-    let a = [1.0, 2.0, 3.0, 4.0];
-    let b = [5.0, 6.0, 7.0, 8.0];
-    let result = unsafe { simd_add(&a, &b) };
-    println!("{:?}", result); // [6.0, 8.0, 10.0, 12.0]
+    #[cfg(target_arch = "x86_64")]
+    {
+        let a = [1.0, 2.0, 3.0, 4.0];
+        let b = [5.0, 6.0, 7.0, 8.0];
+        let result = unsafe { simd_add(&a, &b) };
+        println!("{:?}", result); // [6.0, 8.0, 10.0, 12.0]
+    }
+
+    #[cfg(not(target_arch = "x86_64"))]
+    println!("当前平台不是 x86_64，跳过 SIMD 示例");
 }
 ```
 
@@ -460,6 +472,8 @@ Rust 不是凭空产生的——它是一个由全球数千名贡献者共同雕
 **RFC** 的全称是 "Request for Comments"（请求评论）。这是 Rust 语言所有重大变更的起点——不管你是想加一个新语法、改一个标准库 API，还是调整编译器的行为，都必须走 RFC 流程。
 
 #### RFC 的生命周期
+
+一个语言特性从想法走到稳定，要经历 RFC 审核、实现、跟踪 issue 与最终稳定这几个阶段。
 
 ```mermaid
 flowchart TD
@@ -557,6 +571,8 @@ Forge 有一个专门的页面列出 **good first issues**（适合新手的第�
 > "别害怕从小的文档修改或测试用例开始。编译器贡献不一定非要懂 LLVM——有时候修一个拼写错误也能让你成为 Rust 贡献者！"
 
 #### 编译 rustc 并运行测试
+
+想参与编译器开发，先按官方说明克隆仓库，再用 `x.py` 完成构建与测试。
 
 ```bash
 # 克隆 rustc 编译器源码（如果你还没克隆的话）

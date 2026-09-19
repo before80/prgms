@@ -181,7 +181,7 @@ console.log("3");
 
 ## 14.2 任务队列
 
-### 宏任务（macrotask）：setTimeout / setInterval / UI Rendering / requestAnimationFrame
+### 宏任务（macrotask）：setTimeout / setInterval / I/O
 
 **宏任务**（MacroTask）代表要执行的整体任务，如 I/O 操作、解析 HTML、setTimeout 等。
 
@@ -193,8 +193,14 @@ console.log("3");
 | `setInterval` | 间隔任务 |
 | `setImmediate`（Node.js） | 立即执行任务 |
 | I/O 操作 | 网络请求、文件读写等 |
-| UI 渲染 | 浏览器重排、重绘 |
-| `requestAnimationFrame` | 动画帧 |
+| 用户交互 | 点击、滚动等事件的回调 |
+
+> ⚠️ **两个常见的错误归类别**：
+>
+> - **渲染（重排、重绘）不是宏任务**。它是「更新渲染」这个独立步骤，发生在当前任务和它的微任务都执行完之后、浏览器决定绘制时；不会因为没有渲染任务就把渲染跳过，也不会被 `setTimeout(fn, 0)` 插到前面。
+> - **`requestAnimationFrame` 也不是宏任务**。它的回调会在「更新渲染」这一步开始前统一执行（同一帧内只调用一次），和任务队列是两套机制。
+>
+> 另外还要注意，浏览器里并不是只有一个「宏任务队列」，而是按**任务源**分成多个队列（定时器、网络、用户交互等），浏览器可以在它们之间自行选择优先级，规范只保证「每个队列内部先进先出」。
 
 ---
 
@@ -212,8 +218,23 @@ console.log("3");
 | `process.nextTick`（Node.js） | Node.js 特有的微任务 |
 
 > 💡 **重要区别**：
-> - 宏任务：队列，每轮事件循环只执行一个
-> - 微任务：队列，每轮事件循环中**所有微任务都会执行完**才结束
+> - 宏任务：每轮事件循环只取**一个**执行
+> - 微任务：每轮事件循环中**所有微任务都会执行完**（包括执行过程中新产生的微任务）才结束
+>
+> 这个差别带来一个真实的坑：如果微任务里不断产生新的微任务，就会一直循环下去，宏任务和页面渲染都得不到执行，表现为页面卡死。
+
+```javascript
+// ❌ 无限微任务：页面会直接卡死（不要在控制台真跑这段）
+// function loop() {
+//   Promise.resolve().then(loop);
+// }
+// loop();
+
+// ✅ 需要「让出主线程」时用宏任务
+function loopByTask() {
+  setTimeout(loopByTask, 0);   // 每次都会给渲染和用户操作留出机会
+}
+```
 
 ---
 
@@ -409,7 +430,10 @@ Node.js 有两个特殊的任务调度 API：
 
 #### process.nextTick
 
-`process.nextTick` 的回调会在**当前操作完成后、下一个事件循环阶段开始前**执行，比 `setImmediate` 更早：
+`process.nextTick` 的回调会在**当前操作（当前这段同步代码或当前这个回调）完成后立即执行**，它不在事件循环的任何阶段里。要特别注意两点：
+
+1. 它是在**每个回调之后**就被清空，而不是「等一个阶段结束」才执行；
+2. 在 Node 中它的优先级高于 Promise 微任务，也就是 `nextTick` 队列会先于 `then` 回调被清空。
 
 ```javascript
 console.log("1（同步）");
@@ -430,11 +454,11 @@ console.log("5（同步）");
 // 4（setImmediate）← setImmediate 在 check 阶段
 ```
 
-> 💡 `process.nextTick` 不是事件循环的一部分，它是一个独立的微任务队列，会在每个阶段结束后立即执行所有 `nextTick` 回调。
+> 💡 **注意**：`3（setTimeout）` 与 `4（setImmediate）` 的先后顺序在**主模块里是不确定的**，取决于进程启动时定时器的到期情况，实测每次运行都可能不同。只有在 I/O 回调内部，`setImmediate` 才稳定地早于 `setTimeout`。
 
 #### setImmediate
 
-`setImmediate` 的回调在 **check 阶段**执行，理论上在 I/O 回调之后、timers 之前：
+`setImmediate` 的回调在 **check 阶段**执行。因为 poll 阶段结束后紧接着就是 check 阶段，所以在 I/O 回调里注册的 `setImmediate` 一定比 `setTimeout(fn, 0)` 更早执行：
 
 ```javascript
 const fs = require("fs");
@@ -449,16 +473,98 @@ fs.readFile(__filename, () => {
 });
 
 // 输出顺序：
-// 4（nextTick in I/O）
-// 1（I/O 回调）
-// 2（setTimeout in I/O）← 不一定，看具体情况
-// 3（setImmediate in I/O）
+// 1（I/O 回调）      ← 当前这个回调本身先执行完
+// 4（nextTick in I/O）← 回调一结束，nextTick 队列立即清空
+// 3（setImmediate in I/O）← 进入 check 阶段
+// 2（setTimeout in I/O）  ← 下一轮 timers 阶段
 ```
 
 > 💡 总结：
-> - `process.nextTick`：当前操作完成后立即执行，最快
-> - `setImmediate`：在 check 阶段执行，下一轮事件循环
-> - `setTimeout`：在 timers 阶段执行，下一轮事件循环
+> - `process.nextTick`：当前操作完成后立即执行，优先级最高
+> - `setImmediate`：在 check 阶段执行；在 I/O 回调里稳定早于 `setTimeout`
+> - `setTimeout(fn, 0)`：在 timers 阶段执行，最小延迟会被钳到 1ms 左右
+>
+> 实践建议：日常写异步逻辑优先用 Promise / `async` / `await`，只有确实需要「在当前调用栈结束后插队」时才用 `process.nextTick`——它一旦递归就会饿死 I/O，官方也建议尽量改用 `queueMicrotask` 或 `setImmediate`。
+
+## 14.4 常见误区与实战细节
+
+### setTimeout(fn, 0) 并不等于「马上执行」，也不精确
+
+- 它首先要排队，前面还有同步代码、微任务、其他宏任务；
+- 浏览器里嵌套层级超过 5 层后，最小延迟会被强制提升到 **4ms**（这是规范写明的节流，防止脚本用定时器占满 CPU）；
+- 如果前一任务耗时长，定时器回调只能等它结束，偏差可能是几百毫秒；
+- 用 `setInterval` 做动画或精确节拍更是不可靠：回调的执行时间会被算进间隔，误差还会累积。
+
+需要「下一帧再执行」用 `requestAnimationFrame`，需要「稳定节拍」用「递归 `setTimeout` + 记录误差补偿」，需要「尽快但让出主线程」用 `queueMicrotask` 或 `MessageChannel`。
+
+### await 让出的次数是有意义的
+
+`await` 的每一步都会产生一次微任务，所以「`await` 了几次」会直接体现在输出顺序里：
+
+```javascript
+async function f() {
+  console.log('3 async 开始');
+  await null;                 // 这里的 await 让出一次，后续代码进入微任务队列
+  console.log('5 await 之后');
+}
+
+console.log('1 同步');
+setTimeout(() => console.log('7 timer'), 0);
+f();
+Promise.resolve().then(() => console.log('6 promise.then'));
+console.log('2 同步');
+
+// 输出：
+// 1 同步
+// 3 async 开始      ← async 函数体在调用时同步执行到第一个 await
+// 2 同步
+// 5 await 之后      ← 微任务队列：先入队的先执行
+// 6 promise.then
+// 7 timer           ← 最后才是宏任务
+```
+
+这也解释了为什么「明明写了 `await`，某些状态却还没更新」——它只是把后续代码排进微任务，并不会等到渲染、也不会等到所有异步操作完成。
+
+### 长任务与页面卡顿
+
+页面卡顿几乎都源于「某一个宏任务执行太久」——事件循环被占住，渲染、用户输入、定时器全部排队等待。这类任务叫**长任务（Long Task）**，超过 50ms 就会被 Performance 面板标红。
+
+处理方式是把大任务切成小片，每隔一小段让出一次主线程：
+
+```javascript
+// ❌ 十万条数据一次渲染完，期间页面完全没响应
+// bigArray.forEach((item) => renderItem(item));
+
+// ✅ 分片处理：每片只做一小部分，中间让浏览器有机会渲染和响应点击
+async function renderInChunks(items, chunkSize = 200) {
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    chunk.forEach(renderItem);
+
+    // 让出主线程：用宏任务而不是 Promise.resolve()，
+    // 因为微任务不会给渲染留出时间
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+}
+
+// 更专业的做法：
+// - requestIdleCallback：只在浏览器空闲时执行（兼容性一般，可用 MessageChannel 兜底）
+// - scheduler.yield()：框架层提供的新 API，语义就是「让出主线程」
+// - Web Worker：把纯计算搬离主线程，这才是根治长任务的方案
+```
+
+### 一张表记住「谁先谁后」
+
+| 场景 | 顺序 |
+| --- | --- |
+| 同步代码 vs 任何异步回调 | 同步代码一定先执行完 |
+| 微任务 vs 宏任务 | 微任务先；且当前任务产生的所有微任务都会被清空 |
+| `Promise.then` vs `setTimeout(fn, 0)` | `then` 先 |
+| `queueMicrotask` vs `Promise.then` | 先入队的先执行，两者优先级相同 |
+| `process.nextTick` vs Promise 微任务 | Node 中 `nextTick` 优先 |
+| `setImmediate` vs `setTimeout(fn, 0)` | 在 I/O 回调里 `setImmediate` 先；在主模块里不确定 |
+| 渲染 vs 微任务 | 渲染在微任务清空之后 |
+| `requestAnimationFrame` vs `setTimeout(fn, 0)` | 同一帧内 `rAF` 在渲染前统一执行，`setTimeout` 服从任务队列 |
 
 ---
 
@@ -471,28 +577,12 @@ fs.readFile(__filename, () => {
 3. **调用栈**：跟踪函数调用，LIFO 结构
 4. **Web APIs**：浏览器提供的异步能力（setTimeout、fetch 等）
 5. **任务队列**：
-   - 宏任务：setTimeout、setInterval、I/O、渲染等
+   - 宏任务：setTimeout、setInterval、I/O、用户交互等（渲染和 `requestAnimationFrame` **不属于**宏任务）
    - 微任务：Promise.then、queueMicrotask、MutationObserver 等
-6. **事件循环执行顺序**：同步代码 → 微任务队列 → 渲染 → 宏任务队列
-7. **浏览器 vs Node.js**：Node.js 有更多阶段（timers、poll、check 等）和 `process.nextTick`、`setImmediate` 等特殊 API
-
-> 📊 图示：事件循环流程图
->
-> ```mermaid
-> flowchart TD
->     A[开始] --> B[执行同步代码]
->     B --> C{微任务队列<br/>是否为空？}
->     C -->|否| D[执行所有微任务]
->     D --> C
->     C -->|是| E[执行一个宏任务]
->     E --> F{需要渲染？}
->     F -->|是| G[渲染更新]
->     F -->|否| H[下一轮循环]
->     G --> H
->     H --> B
-> ```
+6. **事件循环执行顺序**：执行同步代码 → 清空微任务队列 →（可能）渲染更新 → 取出一个宏任务 → 回到第一步
+7. **浏览器 vs Node.js**：Node.js 有更多阶段（timers、pending callbacks、poll、check、close）和 `process.nextTick`、`setImmediate` 等特殊 API
+8. **常见误区**：`setTimeout(fn, 0)` 不精确、嵌套超过 5 层后最小延迟变成 4ms；`await` 只让出一个微任务；微任务无限递归会饿死渲染；长任务要切片处理或搬进 Web Worker
 
 ---
 
 **下章预告**：下一章我们将学习 **Promise**——处理异步操作的现代化解决方案！ 🚀
-

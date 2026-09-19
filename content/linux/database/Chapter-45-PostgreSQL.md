@@ -25,9 +25,11 @@ draft = false
 
 ### PostgreSQL的诞生史
 
-**1986年**，IBM研究员Edgar Codd提出了关系型数据库理论，已经过去了17年。
-
-这时候，加州大学伯克利分校的Michael Stonebraker教授（后来创办了Illustra公司）开始搞事情：
+**1970年**，IBM 的研究员 Edgar F. Codd 提出了关系模型（就是现在所有关系库的理论根基）。
+16 年后的 1986 年，加州大学伯克利分校的 Michael Stonebraker 教授开始搞事情——
+他给这个新项目起名叫 **POSTGRES**（"post-Ingres"，意为"在 Ingres 之后"，
+Ingres 是他更早做的另一个数据库）。Stonebraker 后来还创办了 Illustra 公司，
+并因为数据库领域的贡献获得了 2014 年的图灵奖。
 
 ```
 1986年：Postgres项目启动
@@ -44,8 +46,14 @@ draft = false
     ↓
 2023年：PostgreSQL 16 发布
     ↓
+2024/2025年：PostgreSQL 17、18 相继发布（每年秋天一个大版本）
+    ↓
 持续更新中...
 ```
+
+> 版本说明：PostgreSQL 每年发布一个**大版本**（如 17、18），每个大版本支持 5 年；
+> 小版本（如 17.2）只修 bug 不加功能，可以放心升级。写教程/做笔记时**不要写死"最新版是 16"**，
+> 按官方 [版本支持页面](https://www.postgresql.org/support/versioning/) 为准即可。
 
 **为什么叫PostgreSQL？**
 
@@ -162,9 +170,15 @@ CREATE EXTENSION hstore;
 # pg_trgm - 模糊匹配扩展
 CREATE EXTENSION pg_trgm;
 
-# UUID生成扩展（内置）
-CREATE EXTENSION "uuid-ossp";
+# UUID生成：PostgreSQL 13+ 内置 gen_random_uuid()，不需要装扩展
+SELECT gen_random_uuid();
+
+# 老牌扩展（PG 13 之前生成 UUID 要用它，现在只在需要 uuid_generate_v1/v4 等函数时才装）
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ```
+
+> 顺便说说 `CREATE EXTENSION` 的权限：它需要**超级用户**（或至少是数据库的所有者，且扩展被标记为 trusted）。
+> 所以"装 PostGIS"这类操作通常是由 DBA 在部署阶段做一次，而不是应用代码在运行时做。
 
 #### 3. 高级索引类型
 
@@ -336,6 +350,14 @@ docker ps
 docker exec -it postgres-server psql -U postgres
 ```
 
+> 小提示：
+> - 生产环境**别用 `postgres:latest`**，要写明确的大版本，比如 `postgres:17`，
+>   否则某天 `latest` 变成 18、数据目录不兼容，容器重启就会起不来；
+> - 官方镜像从 **PostgreSQL 18 开始把默认数据目录改成了 `/var/lib/postgresql`**
+>   （不再是 `/var/lib/postgresql/data`），升级镜像时要相应调整挂载路径；
+> - 用 `-e POSTGRES_PASSWORD=...` 传密码会出现在 `docker inspect` 里，
+>   更安全的做法是用 `--env-file` 或 Docker Secrets。
+
 ### CentOS/RHEL 安装
 
 **方式一：使用DNF/Yum安装**
@@ -383,9 +405,17 @@ brew install postgresql@16
 # 启动服务
 brew services start postgresql@16
 
-# 连接
-psql -U postgres
+# 连接：Homebrew 版默认**不会**创建 postgres 这个角色，
+# 超级用户就是你当前的 macOS 用户名，同时会建一个同名数据库
+psql postgres
+
+# 如果你想按 Linux 上的习惯使用 postgres 角色，可以自己建一个：
+#   createuser -s postgres && psql -U postgres postgres
 ```
+
+> 另外注意：**Linux 上默认的 `psql -U postgres` 在 macOS/Windows 上往往连不上**，
+> 因为认证方式（peer/ident vs 密码）和角色名都不一样。遇到 `role "postgres" does not exist`
+> 就是这个原因，不是你装错了。
 
 **方式二：使用Docker（跨平台）**
 
@@ -488,18 +518,29 @@ psql -d myapp
 # 修改配置文件
 sudo nano /etc/postgresql/16/main/postgresql.conf
 
-# 找到并修改
-listen_addresses = '*'  # 监听所有地址
+# 找到并修改（'*' 表示监听所有网卡！）
+listen_addresses = '*'   # ⚠️ 生产环境更推荐写内网IP，如 '10.0.0.5'
 
 # 修改访问权限
 sudo nano /etc/postgresql/16/main/pg_hba.conf
 
-# 添加允许连接的规则
-host    all     all     0.0.0.0/0     md5
+# 添加允许连接的规则（md5 已被淘汰，PG 14+ 请用 scram-sha-256）
+# ⚠️ 不要写 0.0.0.0/0（等于对全世界开放），应限制到具体网段
+host    all     all     192.168.1.0/24    scram-sha-256
 
 # 重启服务
 sudo systemctl restart postgresql
 ```
+
+> ⚠️ **安全提醒（和 MySQL 一样重要）**：
+> - `listen_addresses = '*'` + `pg_hba.conf` 里写 `0.0.0.0/0` + 密码不够强
+>   = **数据库直接暴露在公网**，会被扫描器瞬间盯上；
+> - 更稳妥的方案：保持只监听内网，外部访问走 **SSH 隧道**；
+>   或者用云数据库的"白名单 + 内网VPC"；
+> - `md5` 认证方式在 PostgreSQL 14 之后已**不推荐**（虽然还兼容），
+>   新库请统一用 `scram-sha-256`；`trust` 更是绝对不能出现在对外监听的配置里——
+>   它表示"任何人不用密码就能连"。
+> - 改完 `pg_hba.conf` 不用重启，执行 `SELECT pg_reload_conf();`（或 `systemctl reload postgresql`）即可生效。
 
 ### 一图总结安装流程
 
@@ -792,6 +833,22 @@ CREATE DATABASE myapp TEMPLATE template0;
 -- 4. 创建带所有者的数据库
 CREATE DATABASE myapp OWNER myapp_user;
 ```
+
+> ⚠️ 上面"创建带字符集的数据库"那条有个隐藏的坑：**只要 `LC_COLLATE`/`LC_CTYPE` 和模板库
+> （默认是 `template1`）不一样，就必须同时指定 `TEMPLATE template0`**，否则会报
+> `new collation (en_US.UTF-8) is incompatible with the collation of the template database`。
+> 正确的组合写法是：
+>
+> ```sql
+> CREATE DATABASE myapp
+>   WITH ENCODING = 'UTF8'
+>        LC_COLLATE = 'en_US.UTF-8'
+>        LC_CTYPE = 'en_US.UTF-8'
+>        TEMPLATE = template0;
+> ```
+>
+> 中文环境如果不需要特定的排序规则，也可以直接用 `LC_COLLATE='C.UTF-8'`：
+> 它不依赖系统 locale 数据、跨机器迁移最省心，代价是排序按字节序而不是按拼音。
 
 ### 查看数据库
 
@@ -1221,11 +1278,16 @@ sudo nano /etc/postgresql/16/main/postgresql.conf
 wal_level = replica          # 开启WAL日志
 max_wal_senders = 3         # 最大WAL发送进程数
 max_replication_slots = 3   # 最大复制槽数量
-wal_keep_size = 1GB         # 保留的WAL文件大小
+wal_keep_size = 1GB         # 保留的WAL文件大小（PG 13+；12 及以前是 wal_keep_segments）
 
 # 启用复制槽（推荐）
 hot_standby = on
 ```
+
+> 这里说的"保留 WAL"是为了防止从库掉线太久、主库把还没传过去的 WAL 删掉。
+> 更可靠的做法是用**复制槽（replication slot）**：
+> `SELECT pg_create_physical_replication_slot('replica1');`，
+> 它会让主库一直保留从库还没收到的 WAL（代价是磁盘可能被撑满，要配监控）。
 
 **步骤2：修改pg_hba.conf**
 
@@ -1234,11 +1296,16 @@ sudo nano /etc/postgresql/16/main/pg_hba.conf
 
 # 添加允许复制的用户连接规则
 # 允许从局域网IP复制
-host    replication     all             192.168.1.0/24            md5
+host    replication     all             192.168.1.0/24            scram-sha-256
 
-# 本地复制
+# 本地复制（trust 表示不用密码，只适合本机且已经用系统权限隔离的场景）
 local   replication     all                                     trust
 ```
+
+> ⚠️ 认证方式提醒：**PostgreSQL 14 起默认密码加密就是 `scram-sha-256`，`md5` 已不推荐**。
+> 老教程里的 `md5` 还能用，但新部署请统一用 `scram-sha-256`；
+> 把 `local replication all trust` 保留在配置里没问题，
+> 但**千万不要在 `host`/`hostssl` 这类对外监听的规则里写 `trust`**——那等于允许任何人无密码连接。
 
 **步骤3：创建复制用户**
 
@@ -1268,14 +1335,15 @@ sudo mv /var/lib/postgresql/16/main /var/lib/postgresql/16/main.bak
 
 # 3. 使用pg_basebackup创建从库
 su - postgres
-pg_basebackup -h 192.168.1.100 -U replicator -D /var/lib/postgresql/16/main -P -Xs -z
+# -R 是关键参数：它会自动帮你写好 primary_conninfo 和 standby.signal
+pg_basebackup -h 192.168.1.100 -U replicator -D /var/lib/postgresql/16/main -P -Xs -R
 
 # -h: 主库地址
 # -U: 复制用户
 # -D: 从库数据目录
 # -P: 显示进度
-# -Xs: 同步WAL日志
-# -z: 压缩
+# -Xs: 通过流式方式同时传输备份期间产生的WAL日志（推荐）
+# -R: 自动生成 standby.signal 和 primary_conninfo 配置（PG 12+ 必备思路）
 
 # 4. 配置从库为只读模式
 sudo nano /var/lib/postgresql/16/main/postgresql.conf
@@ -1283,15 +1351,24 @@ sudo nano /var/lib/postgresql/16/main/postgresql.conf
 # 添加
 hot_standby = on
 
-# 5. 创建恢复配置文件
-sudo nano /var/lib/postgresql/16/main/postgresql.auto.conf
-
-standby_mode = on
+# 5. 确认"备库标志"和"主库连接串"已经就位
+#    用 -R 参数时 pg_basebackup 已经自动写好这两样；如果没用 -R，请手动做：
+#    (1) 创建一个空文件，告诉 PG"我是备库"
+touch /var/lib/postgresql/16/main/standby.signal
+#    (2) 把主库连接信息写进 postgresql.auto.conf
+cat >> /var/lib/postgresql/16/main/postgresql.auto.conf <<'EOF'
 primary_conninfo = 'host=192.168.1.100 port=5432 user=replicator password=ReplPass2024!'
+EOF
 
 # 6. 启动从库
 sudo systemctl start postgresql
 ```
+
+> ⚠️ **这是老教程里最容易踩的一个坑**：网上大量写"在 `recovery.conf` 或
+> `postgresql.auto.conf` 里加 `standby_mode = on`"的文章，都停留在 **PostgreSQL 11 及以前**。
+> 从 **PostgreSQL 12 开始，`recovery.conf` 被彻底移除，`standby_mode` 参数也取消了**：
+> 现在判断"这是一个备库"的唯一标志是数据目录里存在一个名为 **`standby.signal`** 的文件。
+> 在 PG 12+ 上写 `standby_mode = on` 会直接被当成未知参数，**服务起不来**。
 
 #### 验证复制状态
 
@@ -1374,8 +1451,3 @@ sudo -u postgres psql -c "SELECT * FROM pg_stat_wal_receiver;"
 > 两个阵营的程序员见面，常常会为了"大象好还是海豚好"吵得不可开交。
 > 
 > 但其实，**适合的才是最好的！** 🐘 vs 🐬
-
-
-
-
-

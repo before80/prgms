@@ -283,19 +283,18 @@ public class ArbitraryInstanceMethodRef2 {
     public static void main(String[] args) {
         List<String> words = Arrays.asList("hello", "world", "java");
 
-        // 找出每个字符串的第三个字符（索引2）
-        // Lambda: s -> s.charAt(2)
+        // ✅ 找出每个字符串的第三个字符（索引 2）
         words.stream()
               .map(s -> s.charAt(2))
               .forEach(System.out::println);
 
-        // 方法引用: String::charAt
-        // 因为 charAt 需要一个 int 参数
-        // String::charAt 会被解读为 (String s, int index) -> s.charAt(index)
-        // 但在 map 中只需要传入 String，index 固定为 2
-        words.stream()
-              .map(String::charAt)
-              .forEach(c -> System.out.println((char) c));
+        // ❌ 不能写成 String::charAt
+        // String::charAt 的签名是 (String s, int index) -> char，需要两个参数；
+        // 而 map 只提供一个 String 参数，所以这行编译不过：
+        // words.stream().map(String::charAt);
+        //
+        // 结论：只有当"方法引用的形参个数和函数式接口要求的完全一致"时才能用方法引用，
+        // 参数对不上就老老实实写 Lambda，把缺的参数补成常量。
     }
 }
 ```
@@ -597,7 +596,7 @@ public class PrimitiveSpecializations {
 ```java
 public class ClosureExample {
     public static void main(String[] args) {
-        int outerVar = 10;  // 外部变量
+        int outerVar = 10;  // 外部变量（没有被再次赋值，即"有效 final"）
 
         // 下面这个 Lambda 就是"闭包"——它"捕获"了 outerVar
         Runnable r = () -> {
@@ -605,12 +604,15 @@ public class ClosureExample {
             System.out.println("outerVar = " + outerVar);
         };
 
-        outerVar = 20;  // 在调用 r.run() 之前修改 outerVar
+        // ❌ 如果取消下面这行的注释，编译会直接失败：
+        // outerVar = 20;   // 错误：从 Lambda 引用的局部变量必须是 final 或有效 final
 
-        r.run();  // 输出什么？outerVar 是多少？
+        r.run();  // 输出：outerVar = 10
     }
 }
 ```
+
+> 💡 **为什么不能改**：Lambda 捕获的是局部变量的"值"（相当于把它拷贝进闭包）。为了不让你产生"闭包里能看见后续修改"的错觉，Java 干脆要求被捕获的局部变量**必须是 final 或有效 final（effectively final）**——也就是声明之后不能再被赋值。如果确实需要在闭包内外共享可变状态，请改用**成员变量**或 `AtomicInteger` 这类可变容器。
 
 ### 24.4.2 Lambda 的闭包特性
 

@@ -790,11 +790,16 @@ console.log(arr2); // [1, 2, 3]
 // 方法3：手动遍历
 const arr3 = [];
 let result;
-while (!(result = arr.values().next()).done) {
+const it = arr.values();          // ⚠️ 必须先拿到「同一个」迭代器
+while (!(result = it.next()).done) {
     arr3.push(result.value);
 }
 
 console.log(arr3); // [1, 2, 3]
+
+```
+
+> ⚠️ **上面"方法 3"有个经典陷阱**：如果写成 `while (!(result = arr.values().next()).done)`，那么**每循环一次都会创建一个全新的迭代器**，`next()` 永远返回第一个元素，循环永远不结束（死循环）。所以必须先 `const it = arr.values();` 拿到迭代器，再反复调用 `it.next()`。
 
 ## 7.4 增删操作
 
@@ -1669,9 +1674,3 @@ console.log(nested.toString().split(",").map(Number)); // [1, 2, 3, 4, 5]
 数组是 JavaScript 最强大的数据结构之一。熟练掌握这些方法，你的代码会更简洁、更高效！
 
 下一章，我们将学习 JavaScript 的另一个核心概念——对象。准备好了吗？继续冲！
-```
-
-
-
-```
-

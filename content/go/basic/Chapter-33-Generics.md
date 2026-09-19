@@ -182,7 +182,7 @@ graph TD
 
 
 
-### 33.1.1.1 类型参数列表
+#### 33.1.1.1 类型参数列表
 
 **类型参数列表**——这是泛型定义的"参数表"，用方括号`[]`包裹，告诉你这个泛型可以接受哪些"类型参数"。
 
@@ -413,7 +413,7 @@ type Tree[K comparable, V any] struct {
 
 
 
-### 33.1.1.2 多类型参数
+#### 33.1.1.2 多类型参数
 
 **多类型参数**——当一个类型参数不够用时，泛型允许你定义多个类型参数，让代码更加灵活多变！
 
@@ -729,10 +729,14 @@ graph TD
 ```go
 package main
 
-import "fmt"
+import (
+    "cmp"
+    "fmt"
+)
 
-// 泛型函数
-func Max[T comparable](a, b T) T {
+// 注意：comparable 只保证可以用 == 和 !=，不允许用 > ！
+// 要比较大小，必须用 cmp.Ordered（Go 1.21 新增）或自己写 ~int | ~float64 | ~string 这样的约束。
+func Max[T cmp.Ordered](a, b T) T {
     if a > b {
         return a
     }
@@ -740,16 +744,16 @@ func Max[T comparable](a, b T) T {
 }
 
 func main() {
-    // 显式指定
+    // 显式指定类型实参
     m1 := Max[int](1, 2)
 
-    // 类型推断（Go从参数推断出T=int）
+    // 类型推断（Go 从参数推断出 T=int）
     m2 := Max(1, 2)
 
-    // 类型推断（Go从参数推断出T=string）
+    // 类型推断（Go 从参数推断出 T=string）
     m3 := Max("a", "b")
 
-    fmt.Println(m1, m2, m3)  // 2 2 b
+    fmt.Println(m1, m2, m3) // 2 2 b
 }
 ```
 
@@ -1437,7 +1441,7 @@ type MyComplexConstraint interface {
 
 Go标准库为泛型提供了几个"开箱即用"的预定义约束，让你的泛型代码更加简洁高效！
 
-### 33.2.2.1 any
+#### 33.2.2.1 any
 
 **any**——这是Go泛型中最"万能"的约束，意味着"可以是任意类型"。就像一张空白支票，你想填什么数字都行！
 
@@ -1483,6 +1487,10 @@ graph LR
 **any的"万能容器"示例**：
 
 ```go
+package main
+
+import "fmt"
+
 // 泛型栈，可以存储任意类型
 type Stack[T any] struct {
     items []T
@@ -1596,7 +1604,7 @@ var v any = 42
 
 
 
-### 33.2.2.2 comparable
+#### 33.2.2.2 comparable
 
 **comparable**——这是一个"较真"的约束，它要求类型必须能够用`==`和`!=`进行比较。就像是"只有能分出高下的选手才能参加比赛"！
 
@@ -1653,6 +1661,10 @@ graph LR
 **comparable的"去重函数"示例**：
 
 ```go
+package main
+
+import "fmt"
+
 // 泛型去重函数
 func Unique[T comparable](items []T) []T {
     seen := make(map[T]bool)
@@ -1679,6 +1691,10 @@ func main() {
 **comparable的"查找函数"示例**：
 
 ```go
+package main
+
+import "fmt"
+
 // 泛型查找函数
 func Contains[T comparable](items []T, target T) bool {
     for _, item := range items {
@@ -1711,6 +1727,10 @@ func main() {
 **comparable的"Set实现"示例**：
 
 ```go
+package main
+
+import "fmt"
+
 // 泛型Set
 type Set[T comparable] struct {
     items map[T]struct{}
@@ -1820,6 +1840,10 @@ func roughlyEqual(a, b float64) bool {
 **comparable与结构体**：
 
 ```go
+package main
+
+import "fmt"
+
 // 结构体也可以是comparable
 // 条件：所有字段都是可比较的
 
@@ -1876,7 +1900,7 @@ func main() {
 
 **类型集**——约束本质上定义了一个"类型集合"，只有属于这个集合的类型才能作为泛型的实参。联合类型(|)、近似元素(~)和类型枚举都是操作这个集合的工具。
 
-### 33.2.3.1 联合类型 |
+#### 33.2.3.1 联合类型 |
 
 **联合类型**——用`|`连接的多个类型，表示"这些类型中的任意一个都行"。就像"招聘要求：会Java或会Python或会Go"。
 
@@ -2079,7 +2103,7 @@ func main() {
 
 
 
-### 33.2.3.2 近似元素 ~
+#### 33.2.3.2 近似元素 ~
 
 **近似元素**——用`~`开头的类型表示"以这个类型为基础的所有类型"。就像是"所有以int为底层的自定义类型"都能接受，不管你叫它MyInt还是CustomInt，只要底层是int就行！
 
@@ -2207,49 +2231,61 @@ type Ordered interface {
 ```go
 package main
 
-import (
-    "fmt"
-)
+import "fmt"
 
 // 定义一个"可哈希"的约束
-// 所有以int或string为底层的类型都满足
+// 所有以 int 或 string 为底层的类型都满足
 type Hashable interface {
     ~int | ~string
 }
 
-// 泛型哈希函数
-func Hash[T Hashable](v T) int {
-    // 简单的哈希实现
-    switch any(v).(type) {
-    case int:
-        return int(v.(type int)) * 31
-    case string:
-        h := 0
-        for _, c := range v.(type string) {
-            h = h*31 + int(c)
-        }
-        return h
-    }
-    return 0
-}
-
-// 自定义ID类型
+// 自定义 ID 类型（底层都是 int / string）
 type UserID int
 type OrderID int
 type UserName string
+
+// 泛型哈希函数
+func Hash[T Hashable](v T) int {
+    // 注意：不能写 v.(int)，那是把"值"转成 int；
+    // 也不能写 v.(type int)，Go 没有这种语法。
+    // 正确姿势是先转成 any，再做类型开关：
+    switch x := any(v).(type) {
+    case int:
+        return x * 31
+    case string:
+        h := 0
+        for _, c := range x {
+            h = h*31 + int(c)
+        }
+        return h
+    case UserID:
+        return int(x) * 31
+    case OrderID:
+        return int(x) * 31
+    case UserName:
+        return Hash(string(x))
+    default:
+        return 0
+    }
+}
 
 func main() {
     uid := UserID(100)
     oid := OrderID(200)
     name := UserName("Alice")
 
-    fmt.Println(Hash(uid))   // works!
-    fmt.Println(Hash(oid))   // works!
-    fmt.Println(Hash(name))  // works!
-    fmt.Println(Hash(123))   // works!
-    fmt.Println(Hash("Bob")) // works!
+    fmt.Println(Hash(uid))  // 3100 —— 命中 case UserID
+    fmt.Println(Hash(oid))  // 6200 —— 命中 case OrderID
+    fmt.Println(Hash(name)) // 命中 case UserName
+    fmt.Println(Hash(123))  // 3813 —— 命中 case int
+    fmt.Println(Hash("Bob")) // 命中 case string
+
+    // 也可以先把具名类型转成底层类型，再交给通用分支处理
+    fmt.Println(Hash(int(uid))) // 3100
 }
 ```
+
+> ⚠️ 这里有个容易踩的坑：约束里的 `~int` 只影响**编译期允许哪些类型**，它不会让运行时类型开关匹配到 `int`。`any(uid).(type)` 得到的动态类型是 `main.UserID`，而不是 `int`，所以上面必须单独写 `case UserID`。
 
 **~的"注意事项"**：
 
@@ -2294,7 +2330,7 @@ type Bad2 ~string // 编译错误！
 
 
 
-### 33.2.3.3 类型枚举
+#### 33.2.3.3 类型枚举
 
 **类型枚举**——通过约束接口明确定义"这个泛型只接受这些具体的类型"，就像是一个"只接受特定名单上的人"的邀请函。
 
@@ -2340,6 +2376,10 @@ graph LR
 **类型枚举的"实际应用"**：
 
 ```go
+package main
+
+import "fmt"
+
 // 定义有限的类型集合
 type HTTPMethod interface {
     GET | POST | PUT | DELETE | PATCH
@@ -2376,6 +2416,10 @@ func main() {
 **类型枚举与方法的结合**：
 
 ```go
+package main
+
+import "fmt"
+
 // 类型枚举 + 方法约束
 type Operation interface {
     Add | Subtract | Multiply | Divide
@@ -2411,35 +2455,45 @@ func main() {
 **类型枚举的"状态机"应用**：
 
 ```go
-// 定义状态枚举
+package main
+
+import "fmt"
+
+// 用"类型集合约束"列出所有合法的状态类型。
+// ⚠️ 这种 interface{ A | B | ... } 只能当**约束**用，
+//    不能拿它当变量类型（`var s State` 是编译错误：interface contains type constraints）。
 type State interface {
     Idle | Running | Paused | Stopped
 }
 
-type StateHandler[S State] struct {
-    current S
-}
-
-func (h *StateHandler[S]) Transition(to S) {
-    h.current = to
-}
-
-func (h *StateHandler[S]) GetState() S {
-    return h.current
-}
-
-// 定义状态
 type Idle struct{}
 type Running struct{}
 type Paused struct{}
 type Stopped struct{}
 
-func main() {
-    handler := &StateHandler[Idle]{}
-    fmt.Printf("Current state: %T\n", handler.GetState()) // Idle
+// 约束负责"编译期只能传这几种类型"，运行时再用类型开关区分
+func Describe[S State](s S) string {
+    switch any(s).(type) {
+    case Idle:
+        return "空闲"
+    case Running:
+        return "运行中"
+    case Paused:
+        return "已暂停"
+    case Stopped:
+        return "已停止"
+    }
+    return "未知"
+}
 
-    handler.Transition(Running{})
-    fmt.Printf("Current state: %T\n", handler.GetState()) // Running
+func main() {
+    fmt.Printf("Current state: %s (%T)\n", Describe(Idle{}), Idle{})    // Current state: 空闲 (main.Idle)
+    fmt.Printf("Current state: %s (%T)\n", Describe(Running{}), Running{}) // Current state: 运行中 (main.Running)
+
+    // ❌ 下面这种写法是错的：StateHandler[Idle] 已经把 S 固定成 Idle，
+    //    Transition 只接受 Idle，传 Running{} 会直接编译失败。
+    // handler := &StateHandler[Idle]{}
+    // handler.Transition(Running{})
 }
 ```
 
@@ -2717,6 +2771,10 @@ type Response[T any] struct {
 **泛型结构体的"构造函数"**：
 
 ```go
+package main
+
+import "fmt"
+
 // 泛型构造函数
 type Config[T any] struct {
     value   T
@@ -2749,8 +2807,11 @@ func main() {
 // ⚠️ 泛型结构体不支持递归类型别名
 // type Bad[T any] = struct{ Value T }
 
-// ⚠️ 泛型结构体的方法不能有泛型接收器之外的额外类型参数
-// func (b Box[T]) Method[U any](x U) {}  // 编译错误！
+// ✅ 从 Go 1.27 起，方法可以有自己的类型参数
+// func (b Box[T]) Method[U any](x U) {}
+
+// ⚠️ 但接口方法仍然不能带类型参数（详见 33.9.3）
+// type Boxer interface { Method[U any](x U) }  // 编译错误！
 ```
 
 **泛型结构体的"最佳实践"**：
@@ -3250,6 +3311,10 @@ func main() {
 **泛型函数的"约束使用"**：
 
 ```go
+package main
+
+import "fmt"
+
 // 使用接口约束
 type Stringer interface {
     String() string
@@ -3553,7 +3618,8 @@ func main() {
         Take(2).
         ToSlice()
 
-    fmt.Println(names) // [Bob David]
+    // Age > 27 的有 Bob、Charlie、David 三人，最后 Take(2) 只取前两个
+    fmt.Println(names) // [Bob Charlie]
 }
 ```
 
@@ -3573,16 +3639,17 @@ graph LR
 **泛型方法的"注意事项"**：
 
 ```go
-// ⚠️ 方法不能有独立的类型参数（除了接收器已有的）
-// ❌ 错误写法：
-func (t *Tree[T]) BadMethod[U any](x U) {}  // 编译错误！
-
-// ✅ 正确写法：使用接收器的类型参数
-func (t *Tree[T]) GoodMethod[U any](f func(T) U) *Tree[U] {}
+// ✅ Go 1.27+：方法可以有自己的类型参数
+func (t *Tree[T]) Map[U any](f func(T) U) *Tree[U] {}
 
 // ⚠️ 泛型方法的类型推断有时需要显式指定
 // tree.Map[string](transformFn)
+
+// ❌ 接口方法依旧不能带类型参数（Go 1.27 发布说明明确这么说）
+// type TreeOps interface { Map[U any](f func(int) U) *Tree[U] }
 ```
+
+> **版本提醒**：方法级泛型是 **Go 1.27** 才加进语言特性的。若你的 `go.mod` 里写的是 `go 1.26` 或更早，同样的写法会报 `generic method requires go1.27 or later`，把 go 指令升到 1.27 即可。
 
 **泛型方法的"最佳实践"**：
 
@@ -3838,6 +3905,10 @@ Double(10)        // T=int
 **约束推断的"方法约束"**：
 
 ```go
+package main
+
+import "fmt"
+
 // 约束要求类型实现特定方法
 type Stringer interface {
     String() string
@@ -4055,9 +4126,11 @@ type Numeric interface {
     ~float32 | ~float64
 }
 
-// 可比较类型
+// 可排序类型：数值 + 字符串
+// ⚠️ 注意这里**不能**加 ~bool！bool 只有 true/false，
+// 既不能比大小，也不适合做"有序"约束。
 type Ordered interface {
-    Numeric | ~string | ~bool
+    Numeric | ~string
 }
 
 // 泛型函数使用组合约束
@@ -4076,12 +4149,14 @@ func Max[T Ordered](a, b T) T {
 }
 
 func main() {
-    fmt.Println(Min(1, 2))           // 1
-    fmt.Println(Max(1.5, 2.5))      // 2.5
+    fmt.Println(Min(1, 2))              // 1
+    fmt.Println(Max(1.5, 2.5))          // 2.5
     fmt.Println(Min("apple", "banana")) // apple
-    fmt.Println(Max(true, false))    // true
+    // fmt.Println(Max(true, false))     // ❌ 编译错误：bool 不在 Ordered 里，不支持 >
 }
 ```
+
+> 标准库里其实已经有现成的：`cmp.Ordered`（Go 1.21 起）就等价于上面这个 `Ordered`；而 `comparable` 是语言预声明的约束，只保证 `==` / `!=` 可用（`bool`、指针、数组等都可以）。**"可比较"（comparable）和"可排序"（ordered）是两回事**，别混用。
 
 **约束组合的"标准库示例"**：
 
@@ -4213,20 +4288,22 @@ package main
 
 import "fmt"
 
-// Go自动推导出T必须是可比较的
-func Contains[T any](slice []T, target T) bool {
+// Go **不会**根据函数体自动推导约束！
+// 下面这个函数体里用了 ==，所以 T 必须声明为 comparable，
+// 只写 any 会编译报错：invalid operation: item == target (incomparable types in type set)
+func Contains[T comparable](slice []T, target T) bool {
     for _, item := range slice {
-        if item == target {  // 使用了==操作
+        if item == target {
             return true
         }
     }
     return false
 }
 
-// Go自动推导出T必须可以用fmt.Println打印
+// fmt.Println 接受 any，所以这里的 any 约束够用
 func PrintAll[T any](items []T) {
     for _, item := range items {
-        fmt.Println(item)  // 需要T可以被打印
+        fmt.Println(item)
     }
 }
 
@@ -4236,6 +4313,8 @@ func main() {
     fmt.Println(Contains(nums, 10)) // false
 }
 ```
+
+> Go 的类型推断只发生在**调用处**（从实参推断类型实参），它**不会**去读函数体、看你用了哪些运算符，然后倒推出需要什么约束。所以该写 `comparable` 就得老老实实写。
 
 **约束推导的"方法调用推导"**：
 
@@ -4350,7 +4429,9 @@ type Ordered interface {
 }
 ```
 
-**使用标准库约束的"示例"**：
+**使用 x/exp 约束包的示例**：
+
+> ⚠️ 这个包**不在标准库里**，需要先 `go get golang.org/x/exp/constraints`；而且它从 Go 1.21 起已被官方标记为废弃，新代码请优先用标准库的 `cmp.Ordered` 或自定义 `~` 联合约束（见本节后面的版本提醒）。
 
 ```go
 package main
@@ -4424,9 +4505,16 @@ func main() {
 **标准库约束的"自定义扩展"**：
 
 ```go
-// 可以基于标准库约束创建自定义约束
+package main
+
+import "fmt"
+
+// MyNumeric 自己定义数值约束。
+// 它等价于旧版 golang.org/x/exp/constraints 里的 constraints.Integer | constraints.Float。
 type MyNumeric interface {
-    constraints.Integer | constraints.Float
+    ~int | ~int8 | ~int16 | ~int32 | ~int64 |
+        ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
+        ~float32 | ~float64
 }
 
 // 添加自定义类型
@@ -4437,11 +4525,13 @@ func Double[T MyNumeric](v T) T {
 }
 
 func main() {
-    fmt.Println(Double(42))        // 84
+    fmt.Println(Double(42))       // 84
     fmt.Println(Double(3.14))     // 6.28
     fmt.Println(Double(MyInt(5))) // 10
 }
 ```
+
+> **版本提醒**：`golang.org/x/exp/constraints`（`constraints.Integer`、`constraints.Float`、`constraints.Ordered`）是泛型刚落地时的"过渡包"，从 Go 1.21 起标准库已经有了 `cmp.Ordered`，而这个 x/exp 包**已被官方标记为废弃**。新代码建议直接用上面这种 `~` 联合类型，或者用 `cmp.Ordered`，不要再新引入 `x/exp/constraints`。
 
 **标准库约束的"位置"**：
 
@@ -4510,7 +4600,7 @@ type MyOrdered interface {
 
 **泛型数据结构**——用泛型实现的常用数据结构，如栈、队列、链表、树等，可以服务于任意数据类型。
 
-### 33.7.1.1 泛型栈
+#### 33.7.1.1 泛型栈
 
 **泛型栈**——后进先出（LIFO）的数据结构，用泛型实现可以存储任意类型的元素。
 
@@ -4522,47 +4612,46 @@ import "fmt"
 // 泛型栈
 type Stack[T any] struct {
     items []T
-    top   int
 }
 
 // 创建新栈
 func NewStack[T any]() *Stack[T] {
-    return &Stack[T]{items: make([]T, 0), top: -1}
+    return &Stack[T]{items: make([]T, 0)}
 }
 
 // 入栈
 func (s *Stack[T]) Push(item T) {
     s.items = append(s.items, item)
-    s.top++
 }
 
-// 出栈
+// 出栈：Go 不支持多返回值直接塞进 Println 的其它参数里
 func (s *Stack[T]) Pop() (T, bool) {
-    if s.top < 0 {
-        return *new(T), false
+    if len(s.items) == 0 {
+        var zero T
+        return zero, false
     }
-    item := s.items[s.top]
-    s.items = s.items[:s.top]
-    s.top--
+    item := s.items[len(s.items)-1]
+    s.items = s.items[:len(s.items)-1]
     return item, true
 }
 
 // 查看栈顶
 func (s *Stack[T]) Peek() (T, bool) {
-    if s.top < 0 {
-        return *new(T), false
+    if len(s.items) == 0 {
+        var zero T
+        return zero, false
     }
-    return s.items[s.top], true
+    return s.items[len(s.items)-1], true
 }
 
 // 栈是否为空
 func (s *Stack[T]) IsEmpty() bool {
-    return s.top < 0
+    return len(s.items) == 0
 }
 
 // 栈大小
 func (s *Stack[T]) Size() int {
-    return s.top + 1
+    return len(s.items)
 }
 
 func main() {
@@ -4573,20 +4662,30 @@ func main() {
     intStack.Push(3)
 
     fmt.Println("Int Stack:")
-    fmt.Println("Size:", intStack.Size())   // 3
-    fmt.Println("Peek:", intStack.Peek())   // 3
-    fmt.Println("Pop:", intStack.Pop())     // 3 true
-    fmt.Println("Pop:", intStack.Pop())     // 2 true
-    fmt.Println("Pop:", intStack.Pop())     // 1 true
-    fmt.Println("Pop:", intStack.Pop())     // 0 false
+    fmt.Println("Size:", intStack.Size()) // Size: 3
+
+    // ⚠️ fmt.Println("Peek:", intStack.Peek()) 是编译错误：
+    //    multiple-value intStack.Peek() in single-value context
+    // 多返回值必须拆开接收
+    top, ok := intStack.Peek()
+    fmt.Println("Peek:", top, ok) // Peek: 3 true
+
+    for {
+        v, ok := intStack.Pop()
+        fmt.Println("Pop:", v, ok) // 3 true / 2 true / 1 true / 0 false
+        if !ok {
+            break
+        }
+    }
 
     // 字符串栈
     strStack := NewStack[string]()
     strStack.Push("hello")
     strStack.Push("world")
 
-    fmt.Println("\nString Stack:")
-    fmt.Println("Pop:", strStack.Pop())     // world true
+    fmt.Println("String Stack:")
+    v, ok := strStack.Pop()
+    fmt.Println("Pop:", v, ok) // Pop: world true
 }
 ```
 
@@ -4604,7 +4703,7 @@ graph LR
 
 ---
 
-### 33.7.1.2 泛型队列
+#### 33.7.1.2 泛型队列
 
 **泛型队列**——先进先出（FIFO）的数据结构。
 
@@ -4674,7 +4773,7 @@ graph LR
 
 ---
 
-### 33.7.1.3 泛型链表
+#### 33.7.1.3 泛型链表
 
 **泛型链表**——一种基本的线性数据结构。
 
@@ -4754,11 +4853,15 @@ func (l *LinkedList[T]) Remove(index int) bool {
 
 ---
 
-### 33.7.1.4 泛型树
+#### 33.7.1.4 泛型树
 
 **泛型树**——泛型的树结构。
 
 ```go
+package main
+
+import "fmt"
+
 // 二叉树节点
 type TreeNode[T any] struct {
     value T
@@ -4852,7 +4955,7 @@ graph LR
 
 泛型算法是用泛型实现的通用算法，可以作用于各种数据类型。
 
-### 33.7.2.1 泛型排序
+#### 33.7.2.1 泛型排序
 
 **泛型排序**——用泛型实现的各种排序算法。
 
@@ -4934,11 +5037,15 @@ func main() {
 
 ---
 
-### 33.7.2.2 泛型查找
+#### 33.7.2.2 泛型查找
 
 **泛型查找**——二分查找等通用查找算法。
 
 ```go
+package main
+
+import "fmt"
+
 // 二分查找（需要有序切片）
 func BinarySearch[T any](arr []T, target T, compare func(a, b T) int) int {
     left, right := 0, len(arr)-1
@@ -4983,11 +5090,15 @@ func main() {
 
 ---
 
-### 33.7.2.3 泛型过滤
+#### 33.7.2.3 泛型过滤
 
 **泛型过滤**——按条件筛选元素。
 
 ```go
+package main
+
+import "fmt"
+
 // 泛型过滤
 func Filter[T any](arr []T, predicate func(T) bool) []T {
     result := []T{}
@@ -5029,11 +5140,15 @@ func main() {
 
 ---
 
-### 33.7.2.4 泛型映射
+#### 33.7.2.4 泛型映射
 
 **泛型映射**——对每个元素进行转换。
 
 ```go
+package main
+
+import "fmt"
+
 // 泛型Map
 func Map[T, U any](arr []T, transform func(T) U) []U {
     result := make([]U, len(arr))
@@ -5094,7 +5209,7 @@ func main() {
 
 函数式编程风格和泛型结合，让代码更加声明式和简洁。
 
-### 33.7.3.1 泛型 Map 函数
+#### 33.7.3.1 泛型 Map 函数
 
 **泛型 Map**——将一个切片的每个元素映射为另一个值。
 
@@ -5165,11 +5280,15 @@ func main() {
 
 ---
 
-### 33.7.3.2 泛型 Filter 函数
+#### 33.7.3.2 泛型 Filter 函数
 
 **泛型 Filter**——按条件过滤切片元素。
 
 ```go
+package main
+
+import "fmt"
+
 // Filter 过滤出满足条件的元素
 func Filter[T any](items []T, predicate func(T) bool) []T {
     result := []T{}
@@ -5248,11 +5367,15 @@ func main() {
 
 ---
 
-### 33.7.3.3 泛型 Reduce 函数
+#### 33.7.3.3 泛型 Reduce 函数
 
 **泛型 Reduce**——将切片元素归约为单个值。
 
 ```go
+package main
+
+import "fmt"
+
 // Reduce 将切片元素归约为一个值
 func Reduce[T, U any](items []T, reducer func(U, T) U, initial U) U {
     result := initial
@@ -5262,7 +5385,7 @@ func Reduce[T, U any](items []T, reducer func(U, T) U, initial U) U {
     return result
 }
 
-// ReduceIdx 带索引的Reduce
+// ReduceIdx 带索引的 Reduce
 func ReduceIdx[T, U any](items []T, reducer func(U, int, T) U, initial U) U {
     result := initial
     for i, item := range items {
@@ -5282,77 +5405,94 @@ func Count[T any](items []T, predicate func(T) bool) int {
     return count
 }
 
-// Sum 求和（需要泛型约束）
+// Sum 求和（用 getValue 把元素映射成 int，再累加）
 func Sum[T any](items []T, getValue func(T) int) int {
     return Reduce(items, func(sum int, item T) int {
         return sum + getValue(item)
     }, 0)
 }
 
+// User 是示例用的结构体
+type User struct {
+    Name string
+    Age  int
+}
+
 func main() {
     nums := []int{1, 2, 3, 4, 5}
 
-    // 求和
-    sum := Reduce(nums, func(acc, n int) int {
-        return acc + n
-    }, 0)
-    fmt.Println("Sum:", sum)
-    // Output: 15
+    sum := Reduce(nums, func(acc, n int) int { return acc + n }, 0)
+    fmt.Println("Sum:", sum) // Sum: 15
 
-    // 求积
-    product := Reduce(nums, func(acc, n int) int {
-        return acc * n
-    }, 1)
-    fmt.Println("Product:", product)
-    // Output: 120
+    product := Reduce(nums, func(acc, n int) int { return acc * n }, 1)
+    fmt.Println("Product:", product) // Product: 120
 
-    // 找最大值
     max := Reduce(nums, func(acc, n int) int {
         if n > acc {
             return n
         }
         return acc
     }, 0)
-    fmt.Println("Max:", max)
-    // Output: 5
+    fmt.Println("Max:", max) // Max: 5
 
-    // 连接字符串
     strs := []string{"Hello", " ", "World", "!"}
-    concat := Reduce(strs, func(acc, s string) string {
-        return acc + s
-    }, "")
-    fmt.Println("Concat:", concat)
-    // Output: Hello World!
+    concat := Reduce(strs, func(acc, s string) string { return acc + s }, "")
+    fmt.Println("Concat:", concat) // Concat: Hello World!
 
-    // 复杂类型求和
     users := []User{
-        {"Alice", 25},
-        {"Bob", 30},
-        {"Charlie", 35},
+        {Name: "Alice", Age: 25},
+        {Name: "Bob", Age: 30},
+        {Name: "Charlie", Age: 35},
     }
-    totalAge := Sum(users, func(u User) int {
-        return u.Age
-    })
-    fmt.Println("Total age:", totalAge)
-    // Output: 90
+    totalAge := Sum(users, func(u User) int { return u.Age })
+    fmt.Println("Total age:", totalAge) // Total age: 90
 
-    // 带索引的Reduce
-    indexedSum := ReduceIdx(nums, func(acc, i, n int) int {
-        return acc + i*n
-    }, 0)
-    fmt.Println("Indexed sum:", indexedSum)
-    // Output: 0*1 + 1*2 + 2*3 + 3*4 + 4*5 = 40
+    fmt.Println("Count(n > 2):", Count(nums, func(n int) bool { return n > 2 })) // Count(n > 2): 3
+
+    indexedSum := ReduceIdx(nums, func(acc, i, n int) int { return acc + i*n }, 0)
+    fmt.Println("Indexed sum:", indexedSum) // Indexed sum: 0*1+1*2+2*3+3*4+4*5 = 40
 }
 ```
 
 **函数式编程的"链式调用"**：
 
 ```go
+package main
+
+import "fmt"
+
+// 这些工具函数在前面的小节里已经定义过，这里为了示例完整再写一遍
+func Filter[T any](items []T, predicate func(T) bool) []T {
+    out := make([]T, 0, len(items))
+    for _, item := range items {
+        if predicate(item) {
+            out = append(out, item)
+        }
+    }
+    return out
+}
+
+func Map[T, U any](items []T, transform func(T) U) []U {
+    out := make([]U, 0, len(items))
+    for _, item := range items {
+        out = append(out, transform(item))
+    }
+    return out
+}
+
+func Reduce[T, U any](items []T, reducer func(U, T) U, initial U) U {
+    result := initial
+    for _, item := range items {
+        result = reducer(result, item)
+    }
+    return result
+}
+
 // 链式调用示例
 func main() {
     nums := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
-    // 链式：过滤偶数 -> 乘以2 -> 求和
+    // 链式：过滤偶数 -> 乘以 2 -> 求和
     result := Reduce(
         Map(
             Filter(nums, func(n int) bool { return n%2 == 0 }),
@@ -5361,8 +5501,7 @@ func main() {
         func(acc, n int) int { return acc + n },
         0,
     )
-    fmt.Println("Result:", result)
-    // Output: (2+4+6+8+10)*2 = 60
+    fmt.Println("Result:", result) // Result: (2+4+6+8+10)*2 = 60
 }
 ```
 
@@ -5507,7 +5646,10 @@ graph LR
 ```go
 package main
 
-import "testing"
+import (
+    "fmt"
+    "testing"
+)
 
 // 泛型方式
 func FindGeneric[T comparable](items []T, target T) int {
@@ -5519,13 +5661,15 @@ func FindGeneric[T comparable](items []T, target T) int {
     return -1
 }
 
-// 接口方式（反射）
-func FindInterface(items interface{}, target interface{}) int {
+// 接口方式（内部要用反射逐个比较，慢）
+func FindInterface(items any, target any) int {
     // 使用反射遍历...（省略具体实现）
     return -1
 }
 
-// Benchmarks
+// BenchmarkFindGeneric 是基准测试函数。
+// 基准测试必须放在 _test.go 文件里（例如 find_test.go），
+// 然后执行 go test -bench=. -benchmem 才会运行。
 func BenchmarkFindGeneric(b *testing.B) {
     nums := make([]int, 1000)
     for i := range nums {
@@ -5535,6 +5679,13 @@ func BenchmarkFindGeneric(b *testing.B) {
     for i := 0; i < b.N; i++ {
         FindGeneric(nums, 500)
     }
+}
+
+// main 只是让这个示例可以直接 go run 起来
+func main() {
+    nums := []int{1, 2, 3, 4, 5}
+    fmt.Println("FindGeneric:", FindGeneric(nums, 3)) // FindGeneric: 2
+    fmt.Println("把 BenchmarkFindGeneric 放进 _test.go 后，用 go test -bench=. 运行基准测试")
 }
 ```
 
@@ -5641,35 +5792,57 @@ func BadFunction[T any](v T) T {
 
 ---
 
-### 33.9.3 方法不支持泛型
+### 33.9.3 方法泛型与它的边界
 
-**方法不支持泛型**——Go的方法不能有自己的类型参数。
+**泛型方法**——从 **Go 1.27** 起，方法声明可以自带类型参数。在此之前的版本里，方法只能借用接收器上已有的类型参数，官方也长期把"方法级泛型"当作不打算实现的功能，所以老资料里"Go 方法不能有类型参数"的说法在 1.27 之后已经过时了。
+
+写法是把类型参数列表放在**方法名之后**：
 
 ```go
-// ❌ 错误：方法不能有独立的类型参数
 type Container[T any] struct {
     items []T
 }
 
-func (c *Container[T]) BadMethod[U any](x U) { }  // 编译错误！
-
-// ✅ 正确：使用接收器的类型参数
-func (c *Container[T]) GoodMethod(f func(T) T) {
+// ✅ Go 1.27+：方法自己的类型参数 U，独立于接收器的 T
+func (c *Container[T]) Map[U any](f func(T) U) []U {
+    result := make([]U, len(c.items))
     for i, item := range c.items {
-        c.items[i] = f(item)
+        result[i] = f(item)
     }
+    return result
 }
 ```
 
-**Go方法泛型的限制**：
+**边界：接口方法不能带类型参数**
+
+语言只放开了"具体类型的方法"，接口这一侧依旧是封死的：
 
 ```go
-// ⚠️ 方法不能这样定义：
-func (t *Tree[T]) Search[U any](target U) *T  // 编译错误
-
-// ✅ 方法应该使用接收器的类型参数
-func (t *Tree[T]) Search(predicate func(T) bool) *T
+// ❌ 编译错误：interface method must have no type parameters
+type Mapper interface {
+    Map[U any](f func(int) U) []U
+}
 ```
+
+Go 1.27 的发布说明写得很直白：*methods of interfaces may not declare type parameters, nor can interface methods be implemented by generic methods*——也就是说，**泛型方法没法用来满足某个接口约定**。需要放进接口的能力，只能继续用接收器上的类型参数：
+
+```go
+// ✅ 接口签名里不出现方法级类型参数
+type Sizer[T any] interface {
+    Len() int
+}
+
+// ✅ 泛型方法当然可以顺带实现它
+func (c *Container[T]) Len() int { return len(c.items) }
+```
+
+**版本提醒**：如果你在 `go.mod` 里声明的是 `go 1.26` 或更早，上面 `Map[U any]` 的写法会直接报错：
+
+```text
+./main.go:8:28: generic method requires go1.27 or later (-lang was set to go1.26; check go.mod)
+```
+
+先用 `go version` 确认编译器版本，再把 go 指令升到 `1.27`（或更高）即可。
 
 **下一个小节预告**：33.10 泛型实现原理——Go编译器是如何处理泛型的！
 
@@ -5911,19 +6084,18 @@ type Container[T any] struct {
 }
 
 func main() {
-    // 获取泛型类型的类型参数
+    // 对泛型类型取 reflect.Type，拿到的是"实例化之后"的类型
     containerType := reflect.TypeOf(Container[int]{})
-    
-    // 类型参数
-    tParam := containerType.TypeParams()
-    fmt.Println("Type parameters:", tParam)
-    // Output: [T any]
 
-    // 获取具体的类型实参
-    if tParam.Len() > 0 {
-        fmt.Println("T is:", tParam.At(0))
-        // Output: int
-    }
+    fmt.Println("类型字符串:", containerType.String()) // main.Container[int]
+    fmt.Println("Kind:", containerType.Kind())        // struct
+    fmt.Println("Name:", containerType.Name())        // 空字符串！实例化后的泛型类型没有名字
+
+    // ⚠️ 反射 API 里并没有 TypeParams() 这个方法（很多人以为有）。
+    // 类型参数只存在于编译期，运行时只剩下具体的类型实参。
+    // 如果只是想在编译期拿到某个类型的 reflect.Type，可以用 Go 1.22 新增的 TypeFor：
+    t := reflect.TypeFor[Container[int]]()
+    fmt.Println("TypeFor 结果:", t.String()) // main.Container[int]
 }
 ```
 
@@ -6214,36 +6386,3 @@ graph LR
 ```
 
 恭喜你完成了第33章的学习！泛型是Go 1.18引入的强大特性，掌握它能让你写出更加优雅、高效和类型安全的代码。
-
----
-
-*第33章 泛型 内容已完成*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -57,7 +57,7 @@ Python 就像一个操作系统的「租客」—— 操作系统本身只提供
 
 **系统 Python**（System Python）是操作系统自带的 Python。比如：
 
-- macOS 自带 Python 2.7（别问为什么，问就是历史遗留）
+- macOS 历史上有自带的 Python 2.7，从 macOS 12.3 起已被移除；现在 `/usr/bin/python3` 是 Xcode 命令行工具提供的那个，同样只适合当工具链的一部分，不该拿来装项目依赖
 - Ubuntu/Debian 通常自带一个 Python 3.x
 - Windows 商店里可能有一个 Python
 
@@ -229,6 +229,8 @@ pyenv --version
 
 #### 4.2.3.1 GitHub 克隆安装
 
+这条命令把 pyenv 的源码克隆到 `~/.pyenv`。为什么推荐这种装法？因为后面的升级只需要 `git pull`，而且不需要 root 权限——pyenv 的哲学就是"全部住在你的家目录里"。
+
 ```bash
 # 克隆 pyenv 到家目录
 git clone https://github.com/pyenv/pyenv.git ~/.pyenv
@@ -330,6 +332,8 @@ sudo apt install -y libffi-dev liblzma-dev libmpdec-dev
 好了，依赖装好了，现在开始安装 Python！
 
 #### 4.2.5.1 pyenv install --list（查看可安装版本）
+
+`pyenv install --list` 会把当前 pyenv 能装的版本全列出来：CPython 各子版本、PyPy、Anaconda/Miniconda 等等，一次能刷出几百行。配合 `grep` 过滤才是常规用法，比如 `pyenv install --list | grep " 3.12"`。
 
 ```bash
 pyenv install --list
@@ -559,6 +563,8 @@ pyenv 本身只管理 Python 版本，**不管理虚拟环境**。如果你想�
 
 #### 4.2.8.1 安装插件
 
+要装 pyenv-virtualenv，就把它克隆到 pyenv 的插件目录里——pyenv 会自动发现这个目录下的插件，不需要额外的注册步骤。
+
 ```bash
 # 克隆 pyenv-virtualenv 插件
 git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
@@ -579,6 +585,8 @@ source ~/.zshrc
 ```
 
 #### 4.2.8.3 创建虚拟环境
+
+`pyenv virtualenv 版本号 环境名` 会基于指定的 Python 版本新建一个虚拟环境，并且**把它注册成一个"版本"**：所以后续用 `pyenv activate 环境名`、`pyenv local 环境名` 就能像切换 Python 版本一样切换虚拟环境。
 
 ```bash
 # 创建一个基于 Python 3.10.14 的虚拟环境，名字叫 myproject
@@ -663,6 +671,8 @@ pyenv-win 的命令和 pyenv 几乎一样，但前面可能需要加 `pyenv` 或
 
 #### 4.3.2.1 pyenv install --list
 
+pyenv-win 的命令和 Unix 版 pyenv 基本对齐，`pyenv install --list` 同样是"先看有什么再决定装什么"。区别是 Windows 上装的是预编译包，不需要本地编译器，所以快得多。
+
 ```powershell
 pyenv install --list
 ```
@@ -671,6 +681,8 @@ pyenv install --list
 
 #### 4.3.2.2 pyenv install 3.12.3
 
+Windows 上安装指定版本，例如 `pyenv install 3.12.3`。它下载的是官方预编译的安装包，因此不会出现 Linux/macOS 上那种"缺 libssl 导致编译失败"的经典事故。
+
 ```powershell
 pyenv install 3.12.3
 ```
@@ -678,6 +690,8 @@ pyenv install 3.12.3
 安装指定版本。Windows 上 pyenv-win 通常下载的是预编译的安装包（.exe），比从源码编译快很多。
 
 #### 4.3.2.3 pyenv global 3.12.3
+
+`pyenv global 3.12.3` 设置的是这个用户默认使用的 Python 版本。注意它只是调整 pyenv 的 shim 指到哪个版本，并没有改动系统里其他 Python。
 
 ```powershell
 pyenv global 3.12.3
@@ -742,11 +756,13 @@ uv 不仅仅是一个包管理器，它是**全能选手**：
 
 #### 4.4.1.3 作者：astral-sh 团队
 
-uv 由 **Astral** 团队开发，这个团队还开发了著名的 ** ruff**（超快的 Python linter）和 **uv** 本身。Astral 致力于打造极致的 Python 开发工具。
+uv 由 **Astral** 团队开发，同一支团队还做了 **ruff**（用 Rust 重写的超快 linter/formatter）和 **ty**（类型检查器）。这个团队的路线很统一：把 Python 工具链里最慢的环节用 Rust 重写一遍——uv 负责包与环境，ruff 负责代码检查，ty 负责类型检查。
 
 ### 4.4.2 uv 安装
 
 #### 4.4.2.1 macOS/Linux 安装方式
+
+macOS/Linux 上最省事的是官方安装脚本 `curl -LsSf https://astral.sh/uv/install.sh | sh`，它会装到用户目录；用 Homebrew 的话就是 `brew install uv`。两种方式都不需要 root。
 
 ```bash
 # macOS / Linux 一键安装
@@ -775,6 +791,8 @@ pip install uv
 
 #### 4.4.2.3 验证：uv --version
 
+`uv --version` 打印版本号就说明装好了。uv 是单个静态二进制文件，没有 Python 依赖，所以"安装后不能用"这种问题基本不会出现。
+
 ```bash
 uv --version
 # 输出类似：uv 0.5.0 或更高版本
@@ -786,6 +804,8 @@ uv 自带 Python 版本管理功能，不需要额外安装 pyenv！
 
 #### 4.4.3.1 uv python install（最新稳定版）
 
+`uv python install` 不带参数时会装**最新的稳定版 CPython**。uv 会在自己管理的目录里下载官方构建好的独立 Python（python-build-standalone），不碰系统 Python。
+
 ```bash
 uv python install
 ```
@@ -793,6 +813,8 @@ uv python install
 这会安装**最新的稳定版 Python**（通常是 3.12.x 或 3.13.x）。
 
 #### 4.4.3.2 uv python install 3.12
+
+指定大版本号（如 `3.12`）时，uv 会自动挑该系列里最新的补丁版本，所以不必记具体的 `3.12.x` 是几。这一点比 pyenv 更省心：pyenv 要求你写出完整版本号。
 
 ```bash
 uv python install 3.12
@@ -808,6 +830,8 @@ uv python install 3.13.0
 ```
 
 #### 4.4.3.3 uv python list（列出已安装版本）
+
+`uv python list` 列出的是 uv 管理的所有 Python 版本——包括已安装的，以及可以下载的。加 `--only-installed` 只看已经装好的。
 
 ```bash
 uv python list
@@ -841,6 +865,8 @@ cat .python-version
 uv 创建虚拟环境既快又简单。
 
 #### 4.4.4.1 uv venv（创建 .venv）
+
+`uv venv` 默认在当前目录创建 `.venv`，速度极快（因为它直接复制/链接已缓存的解释器，不用重新安装）。创建完记得激活：`source .venv/bin/activate`。
 
 ```bash
 # 在当前目录创建 .venv 虚拟环境（使用默认 Python）
@@ -887,6 +913,8 @@ uv 的 pip 子命令可以替代 pip 使用。
 
 #### 4.4.5.1 uv pip install requests
 
+`uv pip install` 是 pip 的直接替代品，但默认**要求先有一个虚拟环境**（不会像 pip 那样默默装进系统 Python）。这个"更严格的默认行为"其实是好事，能避免绝大多数"包装错地方了"的事故。
+
 ```bash
 uv pip install requests
 # 输出：Installed 1 package in 125ms
@@ -896,6 +924,8 @@ uv pip install requests
 
 #### 4.4.5.2 uv pip install -r requirements.txt
 
+`uv pip install -r requirements.txt` 会并行下载、并行安装，所以在大依赖集上比 pip 快得多。输出的 "Installed N packages" 里同样能看到耗时。
+
 ```bash
 uv pip install -r requirements.txt
 ```
@@ -903,6 +933,8 @@ uv pip install -r requirements.txt
 批量安装依赖，秒完！
 
 #### 4.4.5.3 uv pip freeze 导出依赖
+
+`uv pip freeze` 输出和 pip 一样的 `包==版本` 列表，可以直接重定向成新的 `requirements.txt`。注意它反映的是**当前环境的实际状态**，包含传递依赖。
 
 ```bash
 uv pip freeze
@@ -925,7 +957,7 @@ uv pip freeze > requirements.txt
 |------|-----|--------|-----|
 | 安装速度 | 慢 | 慢 | ⚡ 极快 |
 | 依赖解析 | 一般 | 好 | 很好 |
-| 锁文件 | 无 | pyproject.toml | uv.lock |
+| 锁文件 | 无（`requirements.txt` 只是版本清单） | `poetry.lock` | `uv.lock` |
 | Python 版本管理 | 无 | 无 | ✅ |
 | 虚拟环境管理 | 无 | ✅ | ✅ |
 | 学习曲线 | 低 | 中 | 低 |
@@ -937,6 +969,8 @@ uv pip freeze > requirements.txt
 uv 最酷的功能之一：**可以直接运行脚本，无需手动创建环境**。
 
 #### 4.4.7.1 uv run --python 3.12 python script.py
+
+`uv run` 的定位是"不用管环境，直接跑"：它会在项目里准备一个环境，缺什么装什么，然后执行命令。带上 `--python 3.12` 还能顺便指定解释器版本，连下载都帮你做了。
 
 ```bash
 uv run --python 3.12 python script.py
@@ -950,6 +984,8 @@ uv 会：
 4. 清理临时环境（可选）
 
 #### 4.4.7.2 uv run pytest（自动创建临时环境）
+
+`uv run pytest` 会自动读取项目的依赖声明（`pyproject.toml` 或 `requirements.txt`），把环境准备好再执行命令。对"clone 下来就想跑测试"的场景，这一条命令能省掉整段 README 说明。
 
 ```bash
 uv run pytest
@@ -1029,6 +1065,8 @@ curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Mi
 ```
 
 #### 4.5.2.2 运行安装
+
+运行安装脚本时，conda 会问你两个问题：安装目录，以及是否运行 `conda init`。第二个问题建议选 `yes`（它会帮你写好 shell 配置），否则每次开终端都要手动 source 才能用 conda 命令。
 
 ```bash
 # 运行安装脚本
@@ -1227,6 +1265,8 @@ where py
 
 #### 4.6.2.1 py --list（列出所有已安装版本）
 
+`py --list` 列出 py.exe 认得的、**已经注册到系统**的 Python 版本。注意它和 pyenv-win 的列表来源不同：py.exe 只认通过正常安装程序安装过的 Python。
+
 ```powershell
 py --list
 ```
@@ -1243,6 +1283,8 @@ Installed Pythons:
 > 💡 **星号**表示默认版本。
 
 #### 4.6.2.2 py -3.12 script.py（运行指定版本）
+
+`py -3.12 script.py` 表示"用 3.12 跑这个脚本"，`py -3` 则会挑一个最新的 3.x。这在同时装着多个版本的 Windows 机器上非常实用，比反复修改 PATH 干净得多。
 
 ```powershell
 # 用 Python 3.12 运行脚本
@@ -1328,6 +1370,8 @@ asdf 一个就搞定！✅
 
 #### 4.7.2.1 macOS 安装方式
 
+macOS 上用 Homebrew 装 asdf 最省事：`brew install asdf`。装完还要把 asdf 的初始化脚本写进 shell 配置，否则 `asdf` 命令会找不到、插件也不会生效。
+
 ```bash
 # 用 Homebrew 安装
 brew install asdf
@@ -1348,6 +1392,8 @@ echo '. $(brew --prefix asdf)/libexec/asdf.sh' >> ~/.bashrc
 ```
 
 #### 4.7.2.2 Linux 安装方式
+
+Linux 上同样可以走包管理器或官方脚本，但**前置依赖**别漏：asdf 本身只是一层调度器，真正编译 Python 的还是底层的 python-build，所以 gcc、make、libssl-dev 这些编译依赖仍然要装。
 
 ```bash
 # 安装依赖
@@ -1379,6 +1425,8 @@ autoload -Uz compinit
 
 #### 4.7.3.1 asdf plugin add python
 
+`asdf plugin add python` 会把 Python 的插件仓库装到本地的 asdf 插件目录。装完可以用 `asdf plugin list all` 看看还有哪些语言可用。
+
 ```bash
 asdf plugin add python
 ```
@@ -1386,6 +1434,8 @@ asdf plugin add python
 这会添加 Python 插件，让 asdf 知道怎么管理 Python 版本。
 
 #### 4.7.3.2 asdf install python 3.12.3
+
+`asdf install python 3.12.3` 会调用插件里的 python-build 从源码编译安装——所以在 Linux 上依然要先备好编译依赖。想装"最新稳定版"可以先 `asdf list all python | tail` 看尾巴上的版本号。
 
 ```bash
 asdf install python 3.12.3

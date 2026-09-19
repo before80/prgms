@@ -73,3 +73,4 @@ fn double_positives<'a>(numbers: &'a Vec<i32>) -> impl Iterator<Item = i32> + 'a
         .filter(|x| x > &&0)
         .map(|x| x * 2)
 }
+```

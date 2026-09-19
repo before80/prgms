@@ -55,23 +55,29 @@ Java 中有一份官方的命名约定，称为 **Java Naming Conventions**（Ja
 | 包名 | 全小写 | `com.example.service` | 公司域名倒写 |
 
 ```java
-// 包名示例：域名倒着写
-package com.example.order.service;    // ✅ 正确
-package com_example_order_service;   // ❌ 像在吃火锅
+// 包名示例：域名倒着写（包名全小写，用点分隔）
+// package com.example.order.service;    // ✅ 正确
+// package com_example_order_service;   // ❌ 像在吃火锅
 
-// 类名和接口名
-public class OrderService {}          // ✅ 类：名词
-public interface PaymentGateway {}    // ✅ 接口：名词/形容词
-public class UserServiceImpl {}       // ✅ 实现类：接口名 + Impl
+public class NamingExample {
 
-// 方法名：动宾结构
-public void sendEmail() {}            // ✅ 发送邮件
-public boolean validateInput() {}     // ✅ 验证输入
-public List<Order> findOrdersByUserId(Long userId) {}  // ✅ 带查询条件
+    // 类名和接口名
+    public static class OrderService {}          // ✅ 类：名词，PascalCase
+    public interface PaymentGateway {}           // ✅ 接口：名词/形容词
+    public static class UserServiceImpl implements PaymentGateway {}  // ✅ 实现类：接口名 + Impl
 
-// 常量：不能改变的配置值
-public static final int MAX_PAGE_SIZE = 100;
-public static final String DEFAULT_CHARSET = "UTF-8";
+    // 方法名：动宾结构，camelCase
+    public void sendEmail() {}                        // ✅ 发送邮件
+    public boolean validateInput() { return true; }   // ✅ 验证输入
+    public java.util.List<Order> findOrdersByUserId(Long userId) { return null; }  // ✅ 带查询条件
+
+    // 常量：全大写 + 下划线
+    public static final int MAX_PAGE_SIZE = 100;
+    public static final String DEFAULT_CHARSET = "UTF-8";
+
+    // 变量名：camelCase
+    public static class Order {}
+}
 ```
 
 ### 42.1.3 常见命名反模式
@@ -255,23 +261,34 @@ public Order createOrder(Long userId, Long productId, Integer quantity, Shipping
 参数对象就像点外卖时的"备注栏"，把所有特殊要求集中在一起：
 
 ```java
-// 参数对象：把相关参数打包
-public class OrderCreateRequest {
-    private Long userId;
-    private Long productId;
-    private Integer quantity;
-    private ShippingAddress shippingAddress;
-    private String customerNote;
-    private PromoCode promoCode;
+// 参数对象：把相关参数打包（这里用 record 最省事）
+public record OrderCreateRequest(
+        Long userId,
+        Long productId,
+        Integer quantity,
+        ShippingAddress shippingAddress,
+        String customerNote,
+        PromoCode promoCode) {}
+
+class OrderService {
+    Order createOrder(OrderCreateRequest request) { return new Order(); }
 }
 
-// 调用时清晰明了
-OrderCreateRequest request = new OrderCreateRequest();
-request.setUserId(1L);
-request.setProductId(100L);
-request.setQuantity(2);
-request.setShippingAddress(address);
-orderService.createOrder(request);
+public class ParamObjectDemo {
+    public static void main(String[] args) {
+        // 调用时清晰明了，参数含义一目了然
+        OrderCreateRequest request = new OrderCreateRequest(
+                1L, 100L, 2, new ShippingAddress(), "尽快发货", null);
+
+        OrderService orderService = new OrderService();
+        Order order = orderService.createOrder(request);
+        System.out.println("下单成功: " + order);
+    }
+}
+
+class ShippingAddress {}
+class PromoCode {}
+class Order {}
 ```
 
 ### 42.2.5 返回值设计原则
@@ -391,36 +408,34 @@ public class DataExportService {
 - **组合关系（Composition）**：A 由 B 组成，且 B 不能独立于 A 存在
 - **继承关系（Inheritance）**：A 是 B 的一种
 
+> 📌 下面为了把五种关系放在一起对比，把多个类写在了一个代码块里，并且省略了 `OrderCreateRequest`、`UserRepository` 等类的定义。实际项目中它们都是**各自独立的文件**，一个 `public` 类一个文件。
+
 ```java
-// 依赖关系：方法参数中使用
+// 依赖关系：只是"用到"，通常出现在方法参数、返回值或局部变量里
 public class OrderService {
     public void createOrder(OrderCreateRequest request) {
         // OrderService 依赖 OrderCreateRequest
     }
 }
 
-// 关联关系：持有引用
+// 关联关系：长期持有对方的引用（知道对方的存在）
 public class UserService {
     private UserRepository userRepository;  // 关联关系
-    private EmailService emailService;       // 关联关系
+    private EmailService emailService;      // 关联关系
 }
 
-// 聚合关系：订单聚合了订单项，订单项可以独立存在
+// 聚合 vs 组合：两种"整体-部分"关系的区别在于"部分"能否独立存在
 public class Order {
-    private List<OrderItem> items;  // 聚合关系
+    private List<OrderItem> items;            // 聚合：OrderItem 可以独立存在
+    private ShippingAddress shippingAddress;  // 组合：地址属于订单，订单没了它也就没意义
 }
 
-// 组合关系：订单组合了收货地址，收货地址属于订单
-public class Order {
-    private ShippingAddress shippingAddress;  // 组合关系
-}
-
-// 继承关系
+// 继承关系：Dog is-an Animal
 public class Animal {
     public void eat() { }
 }
 
-public class Dog extends Animal {  // Dog is-an Animal
+public class Dog extends Animal {
     public void bark() { }
 }
 ```
@@ -592,11 +607,17 @@ public final class OrderStatus {
     public String toString() {
         return code + ":" + description;
     }
-}
 
-// 使用
-OrderStatus status = OrderStatus.PENDING;
-OrderStatus newStatus = OrderStatus.SHIPPED;  // status 不变，返回新实例
+    public static void main(String[] args) {
+        // 使用：常量式访问，省去了每次 new 的开销
+        OrderStatus status = OrderStatus.PENDING;
+        OrderStatus newStatus = OrderStatus.SHIPPED;
+
+        System.out.println(status);      // PENDING:待处理
+        System.out.println(newStatus);   // SHIPPED:已发货
+        System.out.println(status.getCode().equals("PENDING"));  // true
+    }
+}
 ```
 
 ---
@@ -758,9 +779,9 @@ jobs:
 
 **PlantUML** 让你用代码画架构图，再也不用手动拖拽了：
 
-```java
-// PlantUML 类图示例
-// 用文本描述类之间的关系
+PlantUML 用一段纯文本就能描述类与类之间的关系，源码长这样（注意它的代码块语言标记是 `plantuml`，不是 `java`）：
+
+```plantuml
 @startuml
 class User {
     -Long id
@@ -788,34 +809,38 @@ OrderItem --> Product : references
 @enduml
 ```
 
-生成的效果图：
+它描述出来的结构，等价于下面这张类图（站内用 Mermaid 渲染，效果更稳定）：
 
+```mermaid
+classDiagram
+    class User {
+        -Long id
+        -String name
+        -String email
+        +createUser()
+        +updateUser()
+    }
+    class Order {
+        -Long id
+        -BigDecimal totalAmount
+        +createOrder()
+        +cancel()
+    }
+    class OrderItem {
+        -Integer quantity
+        -BigDecimal price
+    }
+    class Product {
+        -Long id
+        -String name
+        -BigDecimal price
+    }
+    User "1" --> "*" Order : places
+    Order "1" --> "*" OrderItem : contains
+    OrderItem --> Product : references
 ```
-┌─────────────┐         ┌─────────────┐
-│    User     │         │   Product   │
-├─────────────┤         ├─────────────┤
-│ -id         │         │ -id         │
-│ -name       │         │ -name       │
-│ -email      │         │ -price      │
-├─────────────┤         └──────┬──────┘
-│ +createUser │                │
-│ +updateUser │                │
-└──────┬──────┘                │
-       │ places                │
-       │ 1      *               │
-┌──────▼──────┐         ┌──────▼──────┐
-│    Order    │         │  OrderItem  │
-├─────────────┤         ├─────────────┤
-│ -id         │         │ -quantity   │
-│ -totalAmount│         │ -price      │
-├─────────────┤         └──────┬──────┘
-│ +createOrder│                │
-│ +cancel()   │                │
-└─────────────┘                │
-                                │
-          *────────────────────┘
-          (references)
-```
+
+> 📌 **提示**：PlantUML 需要额外的渲染服务（本地 `plantuml.jar`、或 IDEA 插件），Mermaid 则被 GitHub、多数静态站点原生支持。两者表达力接近；如果只是画流程图、时序图、类图，优先用 Mermaid 更省事。
 
 ---
 

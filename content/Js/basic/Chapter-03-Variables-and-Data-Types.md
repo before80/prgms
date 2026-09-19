@@ -95,9 +95,11 @@ var count = count + 10; // count 变成 10
 console.log(count); // 10
 ```
 
-### let：块级作用域，不提升，存在暂时性死区
+### let：块级作用域，存在暂时性死区（声明会提升，但不能提前访问）
 
 `let` 是 ES6 引入的，是更现代、更安全的变量声明方式。
+
+> ⚠️ 先纠正一个流传很广的说法：「`let` 不会提升」是不准确的。**`let` 一样会提升**，只是提升后不会像 `var` 那样被初始化为 `undefined`，而是停留在「未初始化」状态——这就是下面要说的暂时性死区。效果上确实「不能提前用」，但机制和 `var` 不同。
 
 ```javascript
 let score = 100;
@@ -254,7 +256,8 @@ for (let i = 0; i < 5; i++) {
 }
 
 // 4. 需要函数级别作用域时... 还是用 let 吧，别用 var
-// var 已经过时了，现代 JavaScript 中没有用 var 的理由
+// var 的设计缺陷多于优点，新代码里基本没有使用它的理由；
+// 「提升」「函数作用域」这些特性只在极少数老代码兼容场景才会被刻意利用
 ```
 
 ```javascript
@@ -295,7 +298,7 @@ console.log(a); // 1
 ```
 
 ```javascript
-// 示例 2：函数声明提升（提升到 var 之后）
+// 示例 2：函数声明会连同函数体一起被提升，所以可以先调用后定义
 console.log(myFunc()); // "hello"
 function myFunc() {
     return "hello";
@@ -363,15 +366,20 @@ let deadZone = "我来了";
 
 ```javascript
 // 暂时性死区的典型场景
-function test(value) {
-    // 在这个函数体内，value 已经是参数值了
-    // 但下面的代码如果也声明了 value，就会产生 TDZ
+// 情况一：形参与函数体内的 let 同名 —— 这是【语法错误】，不是 TDZ
+// function bad(value) {
+//     let value = 1;   // SyntaxError: Identifier 'value' has already been declared
+// }
 
-    // console.log(value); // 如果参数名和内部 let 同名，这里会报错！
+// 情况二：函数体内声明了与外层同名的变量，函数体开头到声明之间就是 TDZ
+let count = 10;
 
-    // 实际项目中，这种写法很少见，但一旦出现很难调试
+function scope() {
+    // console.log(count); // ReferenceError：这里的 count 是下面那个 let 的 TDZ
+    let count = 20;
+    return count;
 }
-test(42);
+console.log(scope());   // 20
 ```
 
 ```javascript
@@ -471,6 +479,12 @@ class User {
 // ES6 新增：class, const, let, static
 // ES6 严格模式保留字：implements, interface, package, private, protected, public
 
+// 补充说明：
+// - enum 是「始终保留」的关键字，任何模式下都不能当变量名
+// - null / true / false 是字面量（literal），不是保留字，但当然也不能拿来命名
+// - arguments 和 eval 在严格模式下有额外限制，别用它们做变量名
+// - await 在模块和 async 函数里是保留字，yield 在生成器里是保留字
+
 ```
 
 ## 3.2 数据类型
@@ -518,7 +532,9 @@ JavaScript 共有 **7 种原始类型**和 **1 种引用类型**：
 | null（空值） | `"object"` | `null` |
 | BigInt（大整数） | `"bigint"` | `9007199254740991n` |
 | Symbol（符号） | `"symbol"` | `Symbol("id")` |
-| Object（对象） | `"object"` | `{name: "对象"}`, `[1,2]`, `function(){}` |
+| Object（对象） | `"object"` | `{name: "对象"}`、`[1,2]`、`new Date()` |
+
+> ⚠️ 表格里故意没把函数放进 Object 那一行：`typeof` 对函数返回的是 `"function"`，虽然函数在本质上也是对象（`typeof` 是唯一会这么特判的类型）。
 
 ### typeof 操作符：返回数据类型的字符串表示
 
@@ -597,6 +613,16 @@ console.log(getTypeName([1, 2])); // "Array"
 console.log(getTypeName({}));     // "Object"
 console.log(getTypeName(null));   // "Null"
 ```
+
+> ⚠️ `Object.prototype.toString` 也并非绝对可靠：对象可以通过 `Symbol.toStringTag` 伪造结果（第 33 章讲过）。
+>
+> ```javascript
+> const fake = { get [Symbol.toStringTag]() { return "Array"; } };
+> console.log(Object.prototype.toString.call(fake)); // "[object Array]"
+> console.log(Array.isArray(fake));                   // false（这才是可靠的判断）
+> ```
+>
+> 所以实际开发中按需求选：判断数组用 `Array.isArray`，判断内置类型用 `instanceof` 或 `Object.prototype.toString`，判断原始类型用 `typeof`，判断 `null` 直接 `=== null`。
 
 ### 基本类型：String / Number / Boolean
 
@@ -971,12 +997,16 @@ console.log(copy);
 //   name: "张三",
 //   date: "2026-03-24T12:00:00.000Z",（变成字符串）
 //   reg: {},（正则变成空对象）
-//   fn: undefined,（函数丢失）
-//   und: undefined,
-//   symbol: undefined,
 //   nan: null,
 //   infinity: null
 // }
+
+// ⚠️ 注意：fn / und / symbol 这三个键不是「变成 undefined」，
+// 而是从结果对象里【彻底消失】——JSON.stringify 会直接跳过它们。
+console.log("fn" in copy);      // false
+console.log("und" in copy);     // false
+console.log("symbol" in copy);  // false
+console.log(Object.keys(copy)); // ["name", "date", "reg", "nan", "infinity"]
 ```
 
 ```javascript
@@ -994,13 +1024,14 @@ function deepClone(obj) {
         return new RegExp(obj.source, obj.flags);
     }
 
-    if (obj instanceof Array) {
+    if (Array.isArray(obj)) {
         return obj.map(item => deepClone(item));
     }
 
     const clone = {};
     for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
+        // 用 Object.hasOwn，避免对象没有原型（Object.create(null)）或属性被覆盖
+        if (Object.hasOwn(obj, key)) {
             clone[key] = deepClone(obj[key]);
         }
     }
@@ -1012,6 +1043,28 @@ const original = { name: "张三", info: { age: 25 } };
 const cloned = deepClone(original);
 cloned.info.age = 30;
 console.log(original.info.age); // 25（完美独立！）
+```
+
+上面这个手写版本在理解原理时很有价值，但它仍有明显短板：
+
+| 问题 | 表现 |
+| --- | --- |
+| 循环引用 | `obj.self = obj` 会无限递归，最终栈溢出 |
+| Symbol 键 | `for...in` 拿不到，Symbol 属性会丢失 |
+| Map / Set / Date 之外的类 | `Map`、`Set`、`ArrayBuffer` 等会被当成普通对象处理 |
+| 原型 | 克隆结果永远丢掉了原来的类与原型链 |
+
+所以实际项目里的优先级应该是：
+
+```javascript
+// 1. 首选：structuredClone（现代浏览器与 Node 17+）
+const clone = structuredClone(original);   // 支持 Date、Map、Set、循环引用
+// 但它不能克隆函数、Symbol、DOM 节点，也不能保留类原型
+
+// 2. 只含 JSON 安全数据时：JSON 往返
+const clone2 = JSON.parse(JSON.stringify(original));
+
+// 3. 需要保留类实例、函数等：用成熟的库（如 lodash 的 cloneDeep）
 ```
 
 
@@ -1292,12 +1345,22 @@ console.log(Number.MIN_VALUE / 2); // 0（比最小还小的变成 0）
 ```javascript
 // BigInt 的创建
 const bigInt1 = 9007199254740993n; // 在数字后面加 n
-const bigInt2 = BigInt(9007199254740993); // 用 BigInt() 函数
+const bigInt2 = BigInt(9007199254740993); // ⚠️ 这样写是错的！
 
 console.log(bigInt1); // 9007199254740993n
-console.log(bigInt2); // 9007199254740993n
+console.log(bigInt2); // 9007199254740992n（参数先被当成 Number 求值，精度已经丢了）
 console.log(typeof bigInt1); // "bigint"
 ```
+
+> ⚠️ 这是 BigInt 最经典的坑：**`BigInt(x)` 无法挽救已经被 `Number` 丢掉的精度**。因为 `9007199254740993` 这个字面量在传给 `BigInt()` 之前就已经被求值为 `9007199254740992` 了。
+>
+> 正确做法是走字符串，或者直接写字面量：
+>
+> ```javascript
+> console.log(BigInt("9007199254740993")); // 9007199254740993n ✅
+> console.log(9007199254740993n);          // 9007199254740993n ✅
+> console.log(BigInt(Number.MAX_SAFE_INTEGER) + 1n); // 9007199254740992n ✅（先转 BigInt 再运算）
+> ```
 
 ```javascript
 // BigInt 可以精确表示任意大小的整数
@@ -1309,8 +1372,12 @@ const unsafe = BigInt(Number.MAX_SAFE_INTEGER) + 1n;
 console.log(unsafe); // 9007199254740992n（精确！）
 
 // Number 就做不到
-console.log(Number.MAX_SAFE_INTEGER + 1); // 9007199254740992（精度丢失！）
-console.log(Number.MAX_SAFE_INTEGER + 2); // 9007199254740992（和上面一样！）
+console.log(Number.MAX_SAFE_INTEGER + 1); // 9007199254740992（这个值本身是精确的）
+console.log(Number.MAX_SAFE_INTEGER + 2); // 9007199254740992（和上面一模一样！）
+// 真正的问题就在这一行：2^53 + 1 无法被表示，所以它会舍入到 2^53，
+// 于是 2^53 + 1 和 2^53 + 2 的结果都是 9007199254740992——
+// 超过 MAX_SAFE_INTEGER 后，相邻的整数开始「撞车」
+console.log(Number.isSafeInteger(9007199254740992)); // false
 ```
 
 ```javascript
@@ -1346,9 +1413,18 @@ console.log(10n < 11);   // true
 // 1. 不能用于 Math 对象的方法
 // Math.sqrt(16n); // TypeError!
 
-// 2. 不能用于 JSON.stringify（会自动转成字符串）
+// 2. 不能直接用于 JSON.stringify：它会直接抛 TypeError
 const obj = { value: 123n };
-console.log(JSON.stringify(obj)); // {"value":"123"}（变成字符串了）
+try {
+    JSON.stringify(obj);
+} catch (error) {
+    console.log(error.message); // "Do not know how to serialize a BigInt"
+}
+
+// 想在 JSON 里传递大整数，必须自己转换（并注意在接收方还原）
+console.log(JSON.stringify(obj, (key, value) =>
+    typeof value === "bigint" ? value.toString() : value
+)); // {"value":"123"}
 
 // 3. 某些场景需要手动处理
 function isBigInt(value) {
@@ -1588,7 +1664,7 @@ console.log("A".length); // 1
 console.log("中".length); // 1
 console.log("你".length); // 1
 
-// Emoji 和罕见字（占 4 字节，需要两个代理对）
+// Emoji 和罕见字（占 4 字节，由一个「代理对」表示，也就是两个 UTF-16 码元）
 console.log("😀".length); // 2（JavaScript 把代理对当两个字符）
 console.log("𝒜".length); // 2（数学符号）
 
@@ -1627,6 +1703,20 @@ console.log(isEmoji("中")); // false
 console.log(isEmoji("😀")); // true
 console.log(isEmoji("🚀")); // true
 ```
+
+> ⚠️ 这个 `isEmoji` 只是「看起来能用」的简化版：`codePointAt(0) > 0x1F000` 会把大量非表情符号（例如某些汉字扩展区字符）误判为 Emoji，也会漏掉带修饰符或组合序列的表情。
+>
+> 更可靠的做法是用 Unicode 属性转义正则（第 34 章介绍过 `\p{...}`）：
+>
+> ```javascript
+> const emojiPattern = /\p{Extended_Pictographic}/u;
+> console.log(emojiPattern.test("😀")); // true
+> console.log(emojiPattern.test("中")); // false
+>
+> // 想统计一个字符串里有几个「视觉上完整」的字符，用 Intl.Segmenter
+> const segmenter = new Intl.Segmenter("zh", { granularity: "grapheme" });
+> console.log([...segmenter.segment("a👋b")].length); // 3
+> ```
 
 
 ## 3.5 类型转换
@@ -1803,19 +1893,33 @@ const pi = 3.14159;
 console.log(pi.toFixed(2));        // "3.14"
 console.log(pi.toFixed(4));        // "3.1416"（四舍五入）
 console.log((1.5).toFixed(0));    // "2"
-console.log((1.005).toFixed(2));   // "1.01"（有问题！）
+console.log((1.005).toFixed(2));   // "1.00"（看起来应该进位，但并没有！）
 
 // toFixed 的精度问题
-// (1.005).toFixed(2) 应该是 "1.01"，但由于浮点数精度问题...
-// 实际输出可能是 "1.00"（取决于 JS 引擎）
-console.log((2.55).toFixed(1));   // "2.6"（但某些引擎可能输出 "2.5"）
+// 原因：1.005 存进内存后实际是 1.0049999999999998934...
+// toFixed 是对这个「真实存储值」做舍入，所以得到 "1.00"
+console.log((1.005).toPrecision(20)); // "1.0049999999999998934"
+console.log((2.55).toFixed(1));       // "2.5"（2.55 实际存储为 2.54999999999999982...）
+
+// 注意：这不是「某些引擎的差异」，而是 IEEE 754 下确定的结果
+// 不同引擎都会得到同样的输出
 
 // 解决方案：使用 Math.round 配合乘法
+// ❌ 直接乘法并不解决 1.005 的问题：1.005 * 100 = 100.49999999999999
+console.log(Math.round(1.005 * 100) / 100);        // 1（不是 1.01）
+
+// ✅ 加上一个极小量再舍入，能覆盖大多数日常场景
 function preciseToFixed(num, decimals) {
-    return (Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals)).toFixed(decimals);
+    const factor = 10 ** decimals;
+    const shifted = (num + Number.EPSILON) * factor;
+    return (Math.round(shifted) / factor).toFixed(decimals);
 }
 console.log(preciseToFixed(1.005, 2)); // "1.01"
 console.log(preciseToFixed(2.55, 1));  // "2.6"
+
+// ⚠️ 但涉及金额时仍然不要用这套「加极小量」的技巧：
+// 它的正确性依赖于具体数值，最稳妥的做法是以「分」为单位的整数运算，
+// 或者使用 decimal.js / big.js 这类十进制库
 ```
 
 ```javascript
@@ -1865,24 +1969,31 @@ console.log(!!0 === Boolean(0)); // true
 
 ### 假值（falsy values）
 
-JavaScript 中只有 **6 个假值**，其他都是真值。
+JavaScript 中只有这几个假值，其他都是真值。
 
 ```javascript
-// JavaScript 的 6 个假值（Falsy Values）
+// JavaScript 的假值（Falsy Values）
 // 1. false
-// 2. 0
-// 3. ""（空字符串）
-// 4. null
-// 5. undefined
-// 6. NaN
+// 2. 0（-0 也算，它是同一个值类别）
+// 3. 0n（BigInt 的零）
+// 4. ""（空字符串）
+// 5. null
+// 6. undefined
+// 7. NaN
 
 // 全部假值
 if (!false) console.log("false 是假值");
 if (!0) console.log("0 是假值");
+if (!0n) console.log("0n 是假值");        // 容易忘的一个
 if (!"") console.log("空字符串是假值");
 if (!null) console.log("null 是假值");
 if (!undefined) console.log("undefined 是假值");
 if (!NaN) console.log("NaN 是假值");
+
+// 常见误区：只背「6 个假值」会漏掉 0n；
+// 另外 " "（只含空格的字符串）、"0"、"false" 都是真值
+if (" ") console.log("' ' 是真值");      // 会打印
+if ("0") console.log("'0' 是真值");      // 会打印
 
 // 注意：空数组 [] 和空对象 {} 是真值！
 if ([]) console.log("空数组 [] 是真值！"); // 真值！
@@ -2053,12 +2164,12 @@ console.log([] == false); // true！
 console.log([] == "");    // true！
 
 // 为什么会这样？
-// 1. false 转数字 -> 0
-// 2. [] 调用 valueOf() -> []，还不是原始值
-// 3. [] 调用 toString() -> ""
-// 4. "" 转数字 -> 0
-// 5. [] == 0，[] 转字符串 -> ""，"" 转数字 -> 0
-// 6. 0 == 0 -> true
+// 1. 两边类型不同，其中一边是布尔值：false 先转成数字 0，于是变成 [] == 0
+// 2. 一边是对象、一边是数字：把 [] 转成原始值
+//    - 先试 valueOf()，返回的还是数组本身（不是原始值）
+//    - 再试 toString()，得到 ""
+// 3. 于是变成 "" == 0；两边类型不同且一边是数字，把 "" 转成数字 0
+// 4. 0 == 0 -> true
 
 // {} == false 也是陷阱
 console.log({} == false); // false！
@@ -2143,23 +2254,18 @@ console.log(Object.is(obj, obj2));      // true（同一个引用）
 
 本章我们深入学习了 JavaScript 的变量与数据类型：
 
-1. **变量声明**：`var`（函数作用域、会提升）→ `let`（块级作用域、TDZ）→ `const`（块级作用域、不可重新赋值）。推荐：能用 `const` 就用 `const`，不行用 `let`，别用 `var`。
+1. **变量声明**：`var`（函数作用域、提升后初始化为 `undefined`）→ `let`（块级作用域、声明同样会提升但有 TDZ）→ `const`（块级作用域、不可重新赋值）。推荐：能用 `const` 就用 `const`，不行用 `let`，别用 `var`。
 
 2. **数据类型**：7 种原始类型（String、Number、Boolean、undefined、null、BigInt、Symbol）+ 1 种引用类型（Object）。原始类型存值，引用类型存地址。
 
 3. **基本类型 vs 引用类型**：赋值和比较的行为完全不同。基本类型赋值是值复制，引用类型赋值是地址复制。比较时，基本类型比较值，引用类型比较地址。
 
-4. **数字类型**：有精度问题（0.1 + 0.2 !== 0.3），有特殊值（NaN、Infinity、-Infinity），大整数用 BigInt。
+4. **数字类型**：有精度问题（0.1 + 0.2 !== 0.3），有特殊值（NaN、Infinity、-Infinity），大整数用 BigInt（注意 `BigInt(字面量)` 无法挽救已丢失的精度，要用字符串或 `n` 字面量；`0n` 属于假值）。
 
 5. **字符串**：不可变，三种引号都能用，模板字符串是神器，支持 Unicode。
 
-6. **类型转换**：`==` 会自动转换类型（坑多），`===` 不转换（推荐用）。`Number.isNaN()` 比 `isNaN()` 更准确。`Object.is()` 比 `===` 更精确。
+6. **类型转换**：`==` 会自动转换类型（坑多），`===` 不转换（推荐用，唯一的例外是 `value == null` 这一种固定写法）。`Number.isNaN()` 比 `isNaN()` 更准确。`Object.is()` 能区分 `NaN` 和 `+0/-0`。
 
-7. **浅拷贝 vs 深拷贝**：浅拷贝只拷贝第一层，深拷贝拷贝所有层级。`JSON.parse(JSON.stringify())` 是简单的深拷贝方案，但有局限性。
+7. **浅拷贝 vs 深拷贝**：浅拷贝只拷贝第一层，深拷贝拷贝所有层级。`JSON.parse(JSON.stringify())` 会丢类型、丢键，现在优先用 `structuredClone`；需要保留类与函数时用成熟库。
 
 下一章，我们将学习 JavaScript 的运算符与表达式。准备好了吗？继续冲！
-
-
-
-
-

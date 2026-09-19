@@ -23,7 +23,9 @@ Queue（队列）和 Deque（双端队列）是 Java 中极其重要的数据结
 
 `Queue` 是 Java 集合框架中用于表示队列的接口，继承自 `Collection` 接口。队列是一种**受限的线性数据结构**，它只允许在队尾（rear）添加元素，在队首（front）删除元素。这种限制造就了"FIFO"的特性——最早进入的元素最先离开。
 
-```java
+下面列出 `Queue` 接口的方法声明（节选）。注意：这是 JDK 标准库源码的一部分，**单独复制出来无法编译**，这里只看它对外提供了哪些方法：
+
+```java,ignore
 // Queue 接口的核心方法声明
 public interface Queue<E> extends Collection<E> {
     // 添加元素到队尾，如果队列满则抛出 IllegalStateException（在有容量限制的队列中）
@@ -186,7 +188,9 @@ public class BankQueueSimulation {
 
 `Deque`（全称 **Double Ended Queue**，即"双端队列"）是 Queue 的子接口，它最大的特点是**两端都可以进行插入和删除操作**。你可以把 Deque 想象成一个"双向隧道"，元素可以从任意一端进入，也可以从任意一端离开。
 
-```java
+`Deque` 把「两端都能进出」的能力做成了方法。下面是它的方法声明（节选，同样属于 JDK 标准库源码，不能单独编译）：
+
+```java,ignore
 // Deque 接口的核心方法
 public interface Deque<E> extends Queue<E> {
     // ======== 队首操作 ========
@@ -511,8 +515,10 @@ class Task {
 
 public class PriorityQueueComparatorDemo {
     public static void main(String[] args) {
-        // 使用 Comparator.reverseOrder() 实现大顶堆（优先级高的先出）
-        Queue<Task> pq = new PriorityQueue<>(Comparator.comparingInt(t -> t.priority).reversed());
+        // 用 Comparator 定制优先级：数字越大越先出（大顶堆效果）
+        // 注意 lambda 的参数要写明类型 Task，否则编译器可能推断成 Object
+        Queue<Task> pq = new PriorityQueue<>(
+            Comparator.comparingInt((Task t) -> t.priority).reversed());
 
         pq.offer(new Task("紧急修复", 10));
         pq.offer(new Task("日常巡检", 1));
@@ -544,6 +550,8 @@ public class PriorityQueueComparatorDemo {
 ```java
 import java.util.PriorityQueue;
 import java.util.Arrays;
+import java.util.Queue;
+import java.util.Comparator;
 
 public class PriorityQueueTips {
     public static void main(String[] args) {
@@ -669,6 +677,7 @@ public class ArrayBlockingQueueDemo {
 ```java
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class LinkedBlockingQueueDemo {
     public static void main(String[] args) throws InterruptedException {

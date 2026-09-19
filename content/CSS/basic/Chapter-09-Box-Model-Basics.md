@@ -26,7 +26,7 @@ draft = false
   width: 300px;       /* 内容区宽度 */
   height: 200px;      /* 内容区高度 */
 
-  background-color: #f0f0f0;  /* 背景色会填满 content 和 padding 区域 */
+  background-color: #f0f0f0;  /* 背景默认从内容一路铺到边框外沿（background-clip: border-box） */
 }
 ```
 
@@ -40,7 +40,7 @@ draft = false
 
 ### 9.1.2 padding（内边距）——内容区与边框之间，透明，会影响元素总尺寸
 
-**padding（内边距）** 是 content 和 border 之间的"缓冲地带"。它是透明的，不会遮挡背景色。
+**padding（内边距）** 是 content 和 border 之间的"缓冲地带"。它本身是透明的，但**元素的背景色会一直铺到 padding 区域**（默认 `background-clip: border-box`），所以看起来像是"内容区变大了"。
 
 ```css
 /* padding 会把 content 往里推 */
@@ -95,7 +95,7 @@ graph TD
 
 ### 9.1.4 margin（外边距）——元素与外部的间距，透明，不影响背景色
 
-**margin（外边距）** 是元素与外部（其他元素）之间的"隔离带"。它是透明的，不会显示背景色。
+**margin（外边距）** 是元素与外部（其他元素）之间的"隔离带"。它在边框之外，**元素自己的背景色不会画到 margin 里**——那一块露出来的是父元素的背景。
 
 ```css
 /* margin 是元素外部的间距 */
@@ -129,9 +129,9 @@ graph TD
 
 ---
 
-## 本章小结
+### 9.1.5 四个部分速记
 
-恭喜你完成了第九章的学习！让我们来回顾一下盒模型的四个部分：
+把四个部分摆在一起看一遍：
 
 ```
 ┌─────────────────────────────────────┐
@@ -148,20 +148,45 @@ graph TD
 └─────────────────────────────────────┘
 
 - content：width 和 height 作用的区域
-- padding：内容与边框之间的透明区域，影响尺寸
+- padding：内容与边框之间的透明区域，会被元素背景填满
 - border：可见的边框线条
-- margin：元素外部的透明间距
+- margin：元素外部的透明间距，永远不显示元素自身背景
 ```
 
-### 下章预告
+---
 
-下一章我们将学习外边距折叠（Margin Collapsing），这是盒模型中最容易让人困惑的现象之一。准备好被"外边距折叠"搞晕了吗？
+### 9.1.6 一个反直觉的细节：width: auto 和 width: 100% 不是一回事
+
+块级元素不写 `width` 时，它的宽度是 `auto`——意思是"撑满父容器的可用空间，但要先扣掉自己的 padding、border 和 margin"。正因为有"扣掉"这一步，`auto` 永远不会溢出父容器：
+
+```css
+/* 父容器内容区 300px 宽 */
+.auto {
+  width: auto;        /* 实际内容区 = 300 - 20 - 20 - 5 - 5 = 250px，总宽度仍是 300px */
+  padding: 0 20px;
+  border: 5px solid #333;
+}
+
+.full {
+  width: 100%;        /* 内容区 = 300px，再加上 padding 和 border，总宽度 = 350px，溢出了！ */
+  padding: 0 20px;
+  border: 5px solid #333;
+}
+```
+
+> 记忆口诀：**`auto` 是"先占位再扣减"，`100%` 是"按父容器内容区算，padding 和 border 另算"**。所以在 `content-box` 下，想把元素撑满父容器又不溢出，用 `width: auto` 比 `width: 100%` 更安全；实在要用 `100%`，就配合 `box-sizing: border-box`（见第 10 章）。
 
 ---
 
 ## 9.2 外边距折叠（Margin Collapsing）
 
 外边距折叠是 CSS 中最"反直觉"的现象之一。想象一下：你给两个元素各设置了 20px 的下边距，以为它们之间会有 40px 的间距，结果只有 20px——这不是 bug，这是 CSS 的"特异功能"。
+
+先记住折叠的**适用前提**，不满足前提的盒子之间根本不会折叠：
+
+- 只发生在**普通流中的块级盒子**（block-level，且不是 BFC 根）之间
+- **行内块（inline-block）、浮动元素、绝对/固定定位元素、flex 项目和 grid 项目**都不参与外边距折叠
+- **水平方向（左右 margin）永远不会折叠**，只有上下方向会
 
 ### 9.2.1 两个块级元素相邻——上下 margin 取较大值合并，不是相加
 
@@ -246,6 +271,8 @@ graph TD
 }
 ```
 
+> 别死记这五条，抓住本质就行：**只要父元素和子元素之间隔着一层"东西"（padding、border、BFC 边界），或者父元素不再是普通流里的块级盒子，折叠就断了**。`overflow: hidden/auto` 生效是因为它让父元素变成了 BFC 根。
+
 ---
 
 ## 9.3 手动计算尺寸
@@ -259,8 +286,8 @@ graph TD
   width: 200px;
   padding-left: 20px;
   padding-right: 20px;
-  border-left: 5px;
-  border-right: 5px;
+  border-left: 5px solid #333;
+  border-right: 5px solid #333;
   margin-left: 10px;
   margin-right: 10px;
 }
@@ -269,6 +296,8 @@ graph TD
 /* 元素实际占用的总宽度 = 200(content) + 20 + 20(padding) + 5 + 5(border) + 10 + 10(margin) = 270px */
 ```
 
+> ⚠️ 这里必须写 `5px solid` 而不能只写 `5px`。**只给宽度、不给样式时，`border-style` 默认是 `none`，浏览器会把边框宽度按 0 处理**——这是新手最常踩的坑之一，也是"明明写了 border 却不显示"的头号原因。
+
 ### 9.3.2 border-box 总宽度 = width（已包含 padding 和 border）+ margin-left + margin-right
 
 ```css
@@ -276,8 +305,8 @@ graph TD
   width: 200px;
   padding-left: 20px;
   padding-right: 20px;
-  border-left: 5px;
-  border-right: 5px;
+  border-left: 5px solid #333;
+  border-right: 5px solid #333;
   margin-left: 10px;
   margin-right: 10px;
 }
@@ -286,4 +315,68 @@ graph TD
 /* 元素实际占用的总宽度 = 200(width，含 padding+border) + 10 + 10(margin) = 220px */
 ```
 
+> 理解这两种算法后你就能明白：**同一段 CSS，`.box` 在 `content-box` 下占地 270px，在 `border-box` 下只占 220px**。这也是为什么现代项目几乎都会全局设置 `box-sizing: border-box`——写 `width: 200px` 时得到一个真的 200px 宽的盒子，比每次都心算 padding 加 border 靠谱得多。第 10 章会专门讲这件事。
 
+---
+
+## 9.4 几个高频踩坑点
+
+### 9.4.1 百分比 padding / margin 一律按"宽度"算
+
+这是规范里最反直觉的规定之一：**`padding-top`、`padding-bottom`、`margin-top`、`margin-bottom` 写成百分比时，参照的都是包含块的"宽度"，而不是高度**。
+
+```css
+.banner {
+  width: 100%;
+  padding-top: 56.25%;   /* 高度 = 宽度 × 56.25% = 16:9 的经典写法 */
+  background: #333;
+  color: #fff;
+}
+```
+
+> 这个"怪规定"的好处是：只要容器宽度定了，横向和纵向的百分比就有统一基准，不会因为父元素高度为 `auto` 而无法计算。所以用 `padding-top: 56.25%` 做 16:9 占位盒，至今仍是兼容性最好的做法（新项目也可以直接用 `aspect-ratio: 16 / 9`）。
+
+### 9.4.2 行内元素（inline）的上下 padding 不撑开行高
+
+```css
+span {
+  background: yellow;
+  padding: 20px 0;   /* 左右有效，上下会"画"出来但不会把行撑高 */
+}
+```
+
+行内元素的 `padding-top` / `padding-bottom` 会绘制背景，但**不会改变行盒的高度**，结果就是背景糊到上下相邻的文字上。要让上下 padding 真正参与布局，把元素变成 `inline-block` 或 `block`。
+
+### 9.4.3 margin 可以为负
+
+`margin` 是盒模型里唯一允许负值的部分（`padding` 和 `border` 必须非负）：
+
+```css
+.overlap {
+  margin-top: -10px;   /* 元素向上移动 10px，可能与上一个元素重叠 */
+}
+```
+
+负 margin 常用于让两个盒子重叠、让元素突破父容器限制（比如"贴边"效果），但也会让布局变得难以维护，慎用。
+
+### 9.4.4 该用哪个盒子，先想清楚"width 指的是谁"
+
+写尺寸之前先问自己一句：**我写的 `width: 300px`，是想要内容区 300px，还是想要整个盒子 300px？**
+
+- 想要"内容区 300px"——保持 `content-box`（默认），但要记得加上 padding 和 border
+- 想要"盒子整体 300px"——用 `border-box`，这是绝大多数 UI 场景的真实需求
+
+---
+
+## 9.5 本章小结
+
+这一章我们围绕着"盒子"建立了 CSS 布局最基础的心智模型：
+
+1. **四个组成部分**：content（内容区）、padding（内边距）、border（边框）、margin（外边距），由内到外层层包裹
+2. **谁能被背景填满**：背景默认铺到**边框外沿**（`background-clip: border-box`），所以 padding 会被元素自己的背景染色，margin 不会
+3. **`width: auto` vs `width: 100%`**：`auto` 先占位再扣减 padding/border，`100%` 按父容器内容区算、padding 和 border 另算，后者更容易溢出
+4. **外边距折叠**：普通流中相邻块级盒子的上下 margin 取较大值合并（父子之间、空元素自身也会折叠），行内块、浮动、定位、flex/grid 项目不参与折叠
+5. **百分比基准**：上下方向的百分比 padding/margin 也按包含块的**宽度**计算
+6. **尺寸计算**：`content-box` 总宽 = width + padding + border + margin；`border-box` 总宽 = width（已含 padding 与 border）+ margin
+
+> 下一章：`box-sizing` 到底改了什么？它为什么能让尺寸计算变简单？以及 `border-box` 有哪些容易忽略的边界情况——第 10 章见。

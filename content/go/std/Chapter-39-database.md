@@ -77,11 +77,11 @@ os.WriteFile("data.txt", []byte("Alice\nBob\n"), 0644)
 
 ```mermaid
 graph TD
-    A[import _ "github.com/go-sql-driver/mysql"] --> B[驱动包 init 函数执行]
-    B --> C[调用 sql.Register 注册自己]
-    C --> D[存入全局 map[string]Driver]
-    E[sql.Open] --> F[根据驱动名查找驱动]
-    F --> G[创建连接]
+    A["import _ 'github.com/go-sql-driver/mysql'"] --> B["驱动包的 init() 函数执行"]
+    B --> C["调用 sql.Register 把自己注册进去"]
+    C --> D["存入全局 map[string]Driver"]
+    E["sql.Open('mysql', dsn)"] --> F["根据驱动名查 map"]
+    F --> G["取出 Driver，创建连接"]
 ```
 
 **专业词汇解释：**

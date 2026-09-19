@@ -27,16 +27,43 @@ JavaScript 有一个内置的数学宝库——`Math` 对象。它不是一个�
 console.log(Math.round(1.4));   // 1
 console.log(Math.round(1.5));   // 2
 console.log(Math.round(-1.4));  // -1
-console.log(Math.round(-1.5));  // -1（注意：负数的五舍六入）
+console.log(Math.round(-1.5));  // -1（注意：负数 .5 是「向上」而不是「远离零」）
 console.log(Math.round(-1.6));  // -2
 ```
 
-等等，`-1.5` 四舍五入变成 `-1`？没错！在 JavaScript（以及其他很多语言）中，`round` 对负数的处理是"五舍六入"，也就是：
+等等，`-1.5` 四舍五入变成 `-1`？没错！`Math.round` 并不是课本上那个「四舍五入」，它在 `.5` 处的行为是这样的：
 - `-1.4` → `-1`
 - `-1.5` → `-1`
 - `-1.6` → `-2`
 
-这是因为 round 采用的是"round half away from zero"（远离零取整）策略，而不是"round half to even"（银行家取整）。
+这个现象的原因不在「远离零」，而在 JavaScript 的规范定义：`Math.round(x)` 等价于 `Math.floor(x + 0.5)`，也就是说遇到 `.5` 一律**朝正无穷方向**取整。所以 `2.5` 得到 `3`（往大走），`-2.5` 得到 `-2`（也是往大走），而不是数学课上常说的「四舍五入」。
+
+```javascript
+console.log(Math.round(2.5));   // 3
+console.log(Math.round(-2.5));  // -2（不是 -3！）
+console.log(Math.round(-0.5));  // -0（注意是负零）
+console.log(Object.is(Math.round(-0.5), -0)); // true
+
+// 验证规范定义：floor(x + 0.5) 的结果和 round 完全一致
+console.log(Math.floor(-2.5 + 0.5)); // -2
+
+// 如果你要的是「远离零的四舍五入」（-2.5 → -3），得自己写
+function roundHalfAwayFromZero(x) {
+  return x < 0 ? -Math.round(-x) : Math.round(x);
+}
+console.log(roundHalfAwayFromZero(-2.5)); // -3
+console.log(roundHalfAwayFromZero(2.5));  // 3
+
+// 如果你要的是「银行家取整」（.5 取最近的偶数，金融计算常用）
+function roundHalfToEven(x) {
+  const floor = Math.floor(x);
+  const diff = x - floor;
+  if (diff > 0.5) return floor + 1;
+  if (diff < 0.5) return floor;
+  return floor % 2 === 0 ? floor : floor + 1;
+}
+console.log(roundHalfToEven(2.5), roundHalfToEven(3.5)); // 2 4
+```
 
 #### Math.floor — 向下取整（地板）
 
@@ -301,6 +328,27 @@ console.log(Math.exp(-1));     // 0.36787944117144233（1/e）
 
 ---
 
+### Math 常量：PI / E / SQRT2 ...
+
+`Math` 上还挂着几个常用常量，写几何、概率、信号处理时能派上用场：
+
+```javascript
+console.log(Math.PI);        // 3.141592653589793
+console.log(Math.E);         // 2.718281828459045
+console.log(Math.SQRT2);     // 1.4142135623730951（√2）
+console.log(Math.SQRT1_2);   // 0.7071067811865476（1/√2，也等于 cos45°）
+console.log(Math.LN2);       // 0.6931471805599453（ln2）
+console.log(Math.LN10);      // 2.302585092994046（ln10）
+console.log(Math.LOG2E);     // 1.4426950408889634（log2(e)）
+console.log(Math.LOG10E);    // 0.4342944819032518（log10(e)）
+
+// 这些常量都是只读的，改不动
+Math.PI = 3;
+console.log(Math.PI); // 3.141592653589793（依旧）
+```
+
+---
+
 ### 三角函数：sin / cos / tan
 
 JavaScript 提供了完整的三角函数家族，不过记住，它们的参数是**弧度**而不是角度！
@@ -338,6 +386,7 @@ console.log(Math.atan2(1, 1)); // π/4（45度）
 > }
 >
 > console.log(angleBetweenPoints(0, 0, 1, 1)); // π/4（45度）
+> ```
 
 ---
 
@@ -368,6 +417,25 @@ console.log(parseFloat(discountedPrice.toFixed(2))); // 15.92（转回数字）
 ```
 
 > 💡 小技巧：如果你需要精确的浮点数计算，可以使用一些库如 `decimal.js` 或 `big.js`，因为 JavaScript 的原生浮点数运算有时候会有精度问题！
+
+```javascript
+// toFixed 最大的坑：它是对「二进制里真实存储的那个数」取整，而不是对你写的小数
+console.log((1.005).toFixed(2)); // "1.00"（不是 "1.01"！）
+console.log((1.045).toFixed(2)); // "1.04"（不是 "1.05"）
+console.log((2.55).toFixed(1));  // "2.5"（不是 "2.6"）
+// 原因：1.005 在二进制浮点里其实是 1.00499999999999989...，于是被舍掉了
+
+// 做金额计算时的常见补救办法：先放大成整数运算，最后再格式化
+function roundMoney(value) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+console.log(roundMoney(1.005));            // 1.01
+console.log(roundMoney(1.005).toFixed(2)); // "1.01"
+
+// 更稳妥的做法：所有金额以「分」为单位用整数存储，展示时再除以 100
+const priceInCents = 1005; // 10.05 元
+console.log((priceInCents / 100).toFixed(2)); // "10.05"
+```
 
 ---
 
@@ -425,7 +493,25 @@ console.log((0.000123).toExponential(2)); // "1.23e-4"
 
 ```javascript
 const huge = 602000000000000000000000n; // 阿伏伽德罗常数（近似）
-console.log(huge.toExponential(2));     // "6.02e+23"
+console.log(huge.toExponential(2));     // TypeError：BigInt 没有 toExponential 方法！
+```
+
+```javascript
+// BigInt 只有 toString / toLocaleString / valueOf 这少数几个方法，
+// 想用 toExponential 得先转成 Number —— 代价是超出安全整数范围后可能丢精度
+const hugeBigInt = 602000000000000000000000n;
+console.log(Number(hugeBigInt).toExponential(2)); // "6.02e+23"
+console.log(hugeBigInt.toString());               // "602000000000000000000000"（想要精确就用它）
+
+// 普通 Number 就没有这个问题
+console.log((602000000000000000000000).toExponential(2)); // "6.02e+23"
+
+// 格式化一个数字的多种姿势
+const n = 1234.5678;
+console.log(n.toFixed(2));        // "1234.57"  固定小数位
+console.log(n.toPrecision(6));    // "1234.57"  有效数字
+console.log(n.toExponential(3));  // "1.235e+3" 科学计数法
+console.log(n.toString(2));       // "10011010010.100100010101101101…"（二进制的小数部分可能没完没了）
 ```
 
 ---
@@ -611,19 +697,133 @@ console.log(isNumeric("123.45")); // true
 console.log(isNumeric("123abc")); // false
 ```
 
+```javascript
+// 补充几个容易忽略的转换结果
+console.log(Number(null));        // 0（null 转数字是 0，很反直觉）
+console.log(Number(undefined));   // NaN
+console.log(Number([]));          // 0（空数组 → "" → 0）
+console.log(Number([5]));         // 5（单元素数组 → "5" → 5）
+console.log(Number([1, 2]));      // NaN（多元素数组 → "1,2" → NaN）
+console.log(Number(Symbol()));    // TypeError：Symbol 不能转数字
+console.log(parseInt(""));        // NaN（和 Number("") 的 0 不同！）
+console.log(parseInt("  0x10  ")); // 16（parseInt 认十六进制前缀）
+console.log(parseInt("08"));      // 8（现代引擎按十进制，但老代码别赌这个）
+
+// 建议：parseInt 永远显式传进制，避免歧义
+console.log(parseInt("08", 10));  // 8
+console.log(parseInt("0x10", 16)); // 16（显式传了 16 进制，0x 前缀会被识别并跳过）
+console.log(parseInt("0x10"));     // 16（不传进制时，0x 前缀也会被自动识别）
+console.log(parseInt("1_000"));    // 1（数字分隔符不是 parseInt 的语法，遇到下划线就停）
+console.log(Number("1_000"));      // NaN（Number 也不接受分隔符，字面量 1_000 才行）
+```
+
+---
+
+## 10.3 浮点精度与 Number 静态属性
+
+### 为什么 0.1 + 0.2 !== 0.3
+
+JavaScript 的数字是 64 位双精度浮点数（IEEE 754），小数部分只能存 2 的负幂次组合，`0.1` 这种十进制小数在二进制里是无限循环的，只能近似存储：
+
+```javascript
+console.log(0.1 + 0.2);                    // 0.30000000000000004
+console.log(0.1 + 0.2 === 0.3);            // false
+console.log((0.1 + 0.2).toFixed(1));       // "0.3"（显示层面看不出问题）
+
+// 更让人意外的例子
+console.log(0.3 - 0.1);                    // 0.19999999999999998
+console.log(1 - 0.9);                      // 0.09999999999999998
+console.log((0.1 + 0.2).toFixed(20));      // "0.30000000000000004441"
+```
+
+```javascript
+// 正确比较浮点数的三种方式
+const a = 0.1 + 0.2;
+const b = 0.3;
+
+// 1. 用误差容忍度（推荐）
+const EPS = 1e-10;
+console.log(Math.abs(a - b) < EPS);        // true
+
+// 2. 用 Number.EPSILON（它表示 1 附近的最小间隔，即 2^-52）
+console.log(Number.EPSILON);               // 2.220446049250313e-16
+console.log(Math.abs(a - b));              // 5.551115123125783e-17（比 EPSILON 小，所以这次能判等）
+console.log(Math.abs(a - b) < Number.EPSILON); // true
+// 但要注意 EPSILON 是「1 附近」的绝对误差，数值一大就不够用
+console.log(1e16 + 1 === 1e16); // true —— 1e16 已超出安全整数范围，加的 1 直接被吞掉
+// 大数之间比较更适合用「相对误差」
+const almostEqual = (x, y) => Math.abs(x - y) <= Number.EPSILON * Math.max(1, Math.abs(x), Math.abs(y));
+console.log(almostEqual(0.1 + 0.2, 0.3));   // true
+console.log(almostEqual(1e15, 1e15 + 0.5)); // false（相差 0.5，超出容忍范围）
+
+// 3. 只比较到指定小数位
+console.log(a.toFixed(10) === b.toFixed(10)); // true
+```
+
+### 安全整数范围
+
+双精度能精确表示的最高整数是 `2^53 - 1`，超过这个范围，相邻整数之间就会出现「空洞」：
+
+```javascript
+console.log(Number.MAX_SAFE_INTEGER); // 9007199254740991
+console.log(Number.MIN_SAFE_INTEGER); // -9007199254740991
+
+// 超出范围后，相邻的整数会「粘」在一起
+console.log(9007199254740993);                                  // 9007199254740992（写进去就被改了！）
+console.log(9007199254740993 === 9007199254740992);             // true —— 它们成了同一个数
+console.log(Number.isSafeInteger(9007199254740993));            // false
+
+// 需要精确处理大整数（订单号、雪花 ID、金钱）时用 BigInt
+console.log(9007199254740993n);                   // 9007199254740993n
+console.log(BigInt("9007199254740993").toString()); // "9007199254740993"
+```
+
+### Number 上其他常用属性与方法
+
+```javascript
+// 极值常量
+console.log(Number.MAX_VALUE);  // 1.7976931348623157e+308（能表示的最大正数）
+console.log(Number.MIN_VALUE);  // 5e-324（能表示的最小正数，注意不是最小负数）
+console.log(Number.POSITIVE_INFINITY); // Infinity
+console.log(Number.NaN);        // NaN
+
+// 整数判断
+console.log(Number.isInteger(5));     // true
+console.log(Number.isInteger(5.0));   // true（5.0 就是 5）
+console.log(Number.isInteger(5.1));   // false
+console.log(Number.isInteger("5"));   // false（不做类型转换）
+console.log(Number.isSafeInteger(2 ** 53));     // false
+console.log(Number.isSafeInteger(2 ** 53 - 1)); // true
+
+// 静态方法与全局函数不是一回事
+console.log(Number.parseInt("42px"));   // 42，等价于全局 parseInt
+console.log(Number.parseFloat("3.14")); // 3.14，等价于全局 parseFloat
+console.log(Number.isNaN("a"));         // false（不做类型转换）
+console.log(Number.isFinite("1"));      // false（不做类型转换）
+
+// 想把数字格式化成人类可读的样式，用 toLocaleString / Intl.NumberFormat
+console.log((1234567.891).toLocaleString("zh-CN")); // "1,234,567.891"
+console.log(new Intl.NumberFormat("zh-CN", { style: "currency", currency: "CNY" }).format(1234.5));
+// "¥1,234.50"
+```
+
 ---
 
 ## 本章小结
 
 本章我们探索了 JavaScript 的数学工具箱：
 
-1. **Math 对象**：这个工具箱提供了大量数学函数，包括取整（`round`/`floor`/`ceil`/`trunc`）、随机数（`random`）、极值（`max`/`min`/`abs`）、指数对数（`pow`/`sqrt`/`log`）、三角函数（`sin`/`cos`/`tan`）等。
+1. **Math 对象**：取整四件套（`round`/`floor`/`ceil`/`trunc`）各有脾气，其中 `Math.round(x)` 等价于 `Math.floor(x + 0.5)`，遇到 `.5` 一律朝正无穷取整（所以 `-2.5` 得 `-2`）；还有随机数 `random`、极值 `max`/`min`/`abs`、指数对数 `pow`/`sqrt`/`log`/`exp`、常量和三角函数（参数是弧度）。
 
-2. **数值处理**：`toFixed` 保留小数位，`toPrecision` 按有效数字格式化，`toExponential` 科学计数法，`toString(radix)` 进制转换。
+2. **随机数**：`Math.random()` 是伪随机，密码、令牌这类安全场景要用 `crypto.getRandomValues()`。
 
-3. **全局函数 vs Number 方法**：`isFinite` vs `Number.isFinite`、`isNaN` vs `Number.isNaN`——关键区别在于是否做类型转换。**推荐始终使用 Number 静态方法版本**。
+3. **数值格式化**：`toFixed` 保留小数位（注意它按照二进制里真实的数取整，`(1.005).toFixed(2)` 得到 `"1.00"`），`toPrecision` 按有效数字，`toExponential` 科学计数法，`toString(radix)` 进制转换，`toLocaleString` / `Intl.NumberFormat` 做本地化展示。这些方法大多返回字符串，且 BigInt 不支持 `toFixed` / `toExponential`。
 
-4. **类型转换函数**：`Number()`、`parseInt()`、`parseFloat()` 三兄弟各有特点：`Number()` 最严格，`parseInt()` 适合带单位的整数，`parseFloat()` 适合带单位的小数。
+4. **全局函数 vs Number 方法**：`isFinite` vs `Number.isFinite`、`isNaN` vs `Number.isNaN`，`parseInt` vs `Number.parseInt`——区别在于是否做类型转换。**推荐始终使用 Number 静态方法版本**。
+
+5. **类型转换函数**：`Number()` 最严格（空字符串得 0，`null` 得 0），`parseInt()` 从头解析、遇到非法字符停下（适合 `"42px"`），`parseFloat()` 保留第一个小数点。`parseInt` 请显式传进制。
+
+6. **浮点与安全整数**：`0.1 + 0.2 !== 0.3` 是 IEEE 754 双精度的必然结果，比较浮点要用误差容忍度；能精确表示的最大整数是 `Number.MAX_SAFE_INTEGER`（2^53 - 1），超出范围用 `BigInt`；`Number.isInteger` / `Number.isSafeInteger` 不做类型转换，判定更可靠。
 
 > 📊 图示：Math 对象方法分类
 >
@@ -659,6 +859,8 @@ console.log(isNumeric("123abc")); // false
 >     F --> F2[E 自然常数]
 >     F --> F3[SQRT2 √2]
 >     F --> F4[LN2 ln2]
+> ```
+
 ---
 
 **下章预告**：下一章我们将进入**函数**的世界——函数声明、函数表达式、箭头函数、参数传递、返回值...准备好了吗？ 🔥

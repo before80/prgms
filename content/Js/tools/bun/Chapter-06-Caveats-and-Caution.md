@@ -278,22 +278,20 @@ bun --inspect run server.ts
 
 然后用 Chrome DevTools（或任何支持 Node.js 调试协议的 IDE）连接即可调试。
 
-### bun doctor - 自检工具
+### 环境自检：官方没有 `bun doctor`
 
-`bun doctor` 是你的好帮手，能快速排查常见的环境问题：
+> ⚠️ **纠错**：网上流传的 `bun doctor`（以及它那套 "Checking Bun version… ✓" 输出）**并不存在**。截至 Bun 1.4.2，官方文档里没有这条命令，敲下去只会得到"未知命令"。排查环境问题请用下面这些真实存在的命令：
 
 ```bash
-bun doctor
-
-# 输出示例：
-# Checking Bun version...        ✓ v1.x.x
-# Checking node_modules...       ✓ installed
-# Checking registry...          ✓ https://registry.npmjs.org
-# Checking cache dir...         ✓ ~/.bun/install/cache
-# Checking platform...          ✓ Windows 10 (1809+)
+bun --version            # 我装的是哪个版本
+bun --revision           # 版本详情（含 commit）
+bun upgrade              # 升级到最新版
+bun pm cache             # 查看包缓存目录
+bun install --verbose    # 安装失败时打开详细日志
+which bun; which node    # 确认 PATH 里谁在前（Windows 用 where）
 ```
 
-如果你的环境有问题，`bun doctor` 通常能告诉你问题出在哪一行。
+如果你的环境有问题，这几条命令的输出通常就够定位：版本不对就升级，缓存坏了就清缓存，PATH 顺序不对就调整优先级。
 
 ---
 
@@ -301,7 +299,7 @@ bun doctor
 
 本章介绍了 Bun 使用过程中需要注意的几个关键问题。
 
-**Node.js 兼容性**：Bun 的目标是接近 100% 兼容，当前大部分 API 和 npm 包兼容良好。**Native Addons**：Bun 实现了 Node-API，大多数 `.node` 模块可以直接 `require()`；只有依赖 V8 私有 API、特殊构建流程或尚未实现行为的模块需要重点测试。**npm 包兼容性**：大部分正常，少数依赖 Node.js 内部实现的包可能有问题。**生产环境成熟度**：Bun 已经足够成熟，部分公司已有生产使用案例（具体以官方披露为准），但如果是核心业务建议先试点。**Windows 平台**：v1.x 相对稳定，最低要求 Windows 10 版本 1809，注意路径和行尾符差异。**调试**：VS Code + Bun 扩展、`bun --inspect`、`bun doctor` 是主要调试工具。
+**Node.js 兼容性**：Bun 的目标是接近 100% 兼容，当前大部分 API 和 npm 包兼容良好。**Native Addons**：Bun 实现了 Node-API，大多数 `.node` 模块可以直接 `require()`；只有依赖 V8 私有 API、特殊构建流程或尚未实现行为的模块需要重点测试。**npm 包兼容性**：大部分正常，少数依赖 Node.js 内部实现的包可能有问题。**生产环境成熟度**：Bun 已经足够成熟，部分公司已有生产使用案例（具体以官方披露为准），但如果是核心业务建议先试点。**Windows 平台**：v1.x 相对稳定，最低要求 Windows 10 版本 1809，注意路径和行尾符差异。**调试**：VS Code + Bun 扩展、`bun --inspect`、`bun --revision` / `bun install --verbose` 是主要排查手段（官方**没有** `bun doctor` 命令）。
 
 总的来说，Bun 对 Node-API 原生模块的支持已经比早期版本好很多，实际迁移时仍应重点验证 **Native Addons 与依赖 Node.js 内部实现的包**。了解这些局限，能帮助你在迁移项目时做出更明智的决策。
 

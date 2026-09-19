@@ -52,6 +52,8 @@ classDiagram
 
 ## 13.1 类的定义
 
+> 📌 **本章代码的组织方式**：讲解访问修饰符、封装、继承时，例子往往需要"父类 + 子类 + 测试类"配合。因此本章有些代码块会引用前面代码块里定义过的类，请把它们看作**同一个目录下的一组 `.java` 文件**，一起编译运行。
+
 ### 什么是类？
 
 **类**是对一类事物的抽象描述，是一个模板。它定义了这类事物共有的**属性**（特征）和**方法**（行为）。
@@ -60,11 +62,11 @@ classDiagram
 
 ### 类的声明语法
 
-在 Java 中，类的声明语法如下：
+在 Java 中，类的声明语法如下（方括号表示可选部分）：
 
-```java
+```text
 [访问修饰符] class 类名 {
-    // 属性
+    // 属性（字段）
     // 方法
 }
 ```
@@ -151,11 +153,15 @@ class Teacher {  // 非 public 类，同一个文件里可以有多个
 
 ### 属性的声明
 
-```java
+属性的声明就是"数据类型 + 名字"，可选地给个初始值：
+
+```text
 [访问修饰符] 数据类型 属性名 [= 初始值];
 ```
 
 ### 属性示例
+
+下面用一个 `Dog` 类把属性、方法揉在一起，先感受一下"一个类"长什么样：
 
 ```java
 public class Dog {
@@ -208,6 +214,8 @@ public class DefaultValueDemo {
 
 ### 实例属性 vs 静态属性
 
+加了 `static` 的属性属于"类"，不加的属于"对象"。下面这个计数器里，`instanceCount` 每个对象各算各的，`staticCount` 则是所有对象共用一个：
+
 ```java
 public class Counter {
     int instanceCount = 0;           // 实例属性：每个对象独立一份
@@ -256,7 +264,9 @@ public class Counter {
 
 ### 方法的声明语法
 
-```java
+方法的声明由"返回类型 + 方法名 + 参数列表"组成：
+
+```text
 [访问修饰符] 返回类型 方法名(参数列表) {
     // 方法体
     return 结果;  // 如果返回类型不是 void
@@ -264,6 +274,8 @@ public class Counter {
 ```
 
 ### 方法示例
+
+下面这个 `Calculator` 类里放了一组小方法，每个方法只干一件事：
 
 ```java
 public class Calculator {
@@ -561,6 +573,8 @@ public class BadDesignDemo {
 
 ### 正确的封装方式
 
+把字段改成 `private`，再通过 `getter`/`setter` 访问，就完成了最基本的封装：
+
 ```java
 // ✅ 封装后的 Student 类
 public class Student {
@@ -682,6 +696,8 @@ public class EncapsulationDemo {
 
 ### 无参构造方法
 
+不写任何参数列表的构造方法叫"无参构造"。如果你一个构造方法都没写，编译器会自动送你一个默认无参构造；一旦你自己写了带参构造，这个默认版本就消失了：
+
 ```java
 public class Person {
     private String name;
@@ -706,6 +722,8 @@ public class Person {
 ```
 
 ### 带参构造方法
+
+带参构造可以在创建对象的同时把初始值传进去，省去"先 new 再赋值"两步：
 
 ```java
 public class Person {
@@ -747,6 +765,8 @@ public class Person {
 ```
 
 ### this() 调用其他构造方法
+
+在构造方法里用 `this(...)` 可以调用本类的另一个构造方法，从而避免重复的初始化代码。**注意它必须写在构造方法的第一行**：
 
 ```java
 public class User {
@@ -845,6 +865,8 @@ public class Rectangle {
 
 ### 用途一：区分成员变量和局部变量
 
+当参数名和字段名"撞车"时，`this.xxx` 明确指向字段，光写 `xxx` 会指向参数：
+
 ```java
 public class ThisDemo1 {
     private String name;   // 成员变量（实例变量）
@@ -873,6 +895,8 @@ public class ThisDemo1 {
 > **图解**：`this` 就像一面镜子，"照"出当前对象自己。
 
 ### 用途二：在构造方法中调用其他构造方法
+
+`this(...)` 除了省代码，还能让"默认值"集中在一个构造方法里维护：
 
 ```java
 public class Phone {
@@ -915,6 +939,8 @@ public class Phone {
 ```
 
 ### 用途三：将当前对象作为参数传递
+
+`this` 还可以代表"当前这个对象"，把它当作参数传给别的对象或方法：
 
 ```java
 public class Dog {
@@ -960,6 +986,8 @@ public class Dog {
 4. **同步代码块**（`synchronized {}`，多线程相关）
 
 ### 普通代码块
+
+除了静态代码块，方法里也可以写"普通代码块"（用一对大括号包起来），它主要用来限制变量的作用域：
 
 ```java
 public class NormalBlock {

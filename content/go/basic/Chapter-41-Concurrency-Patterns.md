@@ -44,6 +44,7 @@ var wg sync.WaitGroup
 
 #### 示例：旅游团集合
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 屏障模式：旅游团集合 ===\n")
@@ -86,7 +87,7 @@ func main() {
 
 运行结果（每次可能不同）：
 
-```
+```text
 === 屏障模式：旅游团集合 ===
 
 [游客1] 前往故宫游览，预计352毫秒...
@@ -107,6 +108,8 @@ func main() {
 ### 屏障模式的高级用法
 
 #### 示例：并行计算屏障
+
+屏障（Barrier）的含义是“所有参与者都到齐了才继续”。在 Go 里最直接的实现就是 `sync.WaitGroup`：`Add` 登记人数，每个 goroutine 干完 `Done`，主 goroutine `Wait` 等全部到齐：
 
 ```go
 // 并行计算矩阵乘法的例子
@@ -137,6 +140,13 @@ func parallelMatrixMultiply(A, B [][]int, result [][]int, rowCount, colCount, mi
 ```
 
 ```go
+package main
+
+import (
+    "fmt"
+    "sync"
+)
+
 func main() {
     fmt.Println("=== 屏障模式：并行计算 ===\n")
 
@@ -184,7 +194,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 屏障模式：并行计算 ===
 
 计算1到100的和，分成10组并行计算...
@@ -216,6 +226,7 @@ func main() {
 ```
 
 ### 屏障模式的 UML 图
+下图展示了多个 goroutine 在屏障处汇合、再统一放行的时序：
 
 ```mermaid
 sequenceDiagram
@@ -399,6 +410,7 @@ func AsyncCall(fn func() interface{}) *Future {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 // ========== 第四步：使用示例 ==========
 
@@ -483,7 +495,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === Future/Promise 模式 ===
 
 --- 场景1: 基本用法 ---
@@ -509,6 +521,7 @@ func main() {
 ```
 
 ### Future/Promise 的 UML 图
+下图展示了调用方、Future 与后台任务之间的交互时序：
 
 ```mermaid
 sequenceDiagram
@@ -535,6 +548,14 @@ sequenceDiagram
 实际上，Go的 `context.Context` 经常和goroutine配合使用，实现类似Future的功能：
 
 ```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "time"
+)
+
 func main() {
     // 创建一个可以取消的context
     ctx, cancel := context.WithCancel(context.Background())
@@ -596,6 +617,8 @@ Future/Promise 就像是**点外卖的订单追踪**：
 **管道模式**的核心思想是：**把一个复杂的任务分解成多个简单的步骤，每个步骤由独立的goroutine处理，步骤之间通过channel传递数据**。
 
 ### Go语言实现管道模式
+
+管道模式把处理流程拆成若干阶段，每个阶段是一个 goroutine，阶段之间用 channel 连接。这个模式是 Go 并发的地道写法：
 
 ```go
 // ========== 第一步：定义管道的各个阶段 ==========
@@ -667,6 +690,7 @@ func FilterStage(in <-chan int) <-chan int {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 管道模式：流水线处理 ===\n")
@@ -698,7 +722,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 管道模式：流水线处理 ===
 
 步骤1: 生成数据 1, 2, 3, 4, 5
@@ -730,6 +754,8 @@ func main() {
 等一下，这个结果不太对...让我检查一下逻辑。按照管道：`(1,2,3,4,5) * 2 = (2,4,6,8,10)`，`(2,4,6,8,10) + 3 = (5,7,9,11,13)`，全部是奇数，所以都被过滤掉了。这是正确的！
 
 ### 管道模式的流式处理
+
+把管道用在日志处理上，可以看到它的真正价值：**内存占用与数据量无关**——数据一边流过来一边被处理掉，不会先把整个文件读进内存：
 
 ```go
 // ========== 实战：处理日志流 ==========
@@ -807,6 +833,7 @@ func FormatOutputStage(in <-chan *LogLine) <-chan string {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 管道模式：日志处理流水线 ===\n")
@@ -850,7 +877,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 管道模式：日志处理流水线 ===
 
 原始日志:
@@ -871,6 +898,7 @@ func main() {
 ```
 
 ### 管道模式的 UML 图
+下图展示了数据在各个处理阶段之间流动的过程：
 
 ```mermaid
 flowchart LR
@@ -925,6 +953,8 @@ flowchart LR
 ### Go语言实现扇出扇入
 
 #### 示例：并行下载网页
+
+限制并发数的“扇出 + 扇入”是管道模式最常见的变体：既要并发提速，又不能无限开 goroutine 把目标站点打挂：
 
 ```go
 // URLs 是要下载的URL列表
@@ -992,6 +1022,7 @@ func FanOutFetch(urls []string, concurrency int) []FetchResult {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 扇出扇入模式：并行下载 ===\n")
@@ -1028,7 +1059,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 扇出扇入模式：并行下载 ===
 
 需要下载 8 个URL，使用3个Worker并行下载
@@ -1114,6 +1145,7 @@ func ReduceStage(maps <-chan map[string]int) map[string]int {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 扇出扇入模式：MapReduce 词频统计 ===\n")
@@ -1147,7 +1179,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 扇出扇入模式：MapReduce 词频统计 ===
 
 原始文本:
@@ -1167,6 +1199,7 @@ world: 4
 ```
 
 ### 扇出扇入模式的 UML 图
+下图展示了任务如何分发给多个 worker，再汇总结果：
 
 ```mermaid
 flowchart TB
@@ -1258,6 +1291,8 @@ flowchart LR
 ```
 
 ### Go语言实现发布订阅模式
+
+发布订阅比简单的扇出多了一个“话题”维度：发布者不知道有谁在听，订阅者按话题订阅。实现的关键是**用读写锁保护订阅者表**，并在通知时避免持锁调用回调：
 
 ```go
 // ========== 第一步：定义消息和订阅者 ==========
@@ -1427,6 +1462,7 @@ func (s *PushSubscriber) OnMessage(msg *Message) {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 发布订阅模式：消息系统 ===\n")
@@ -1490,7 +1526,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 发布订阅模式：消息系统 ===
 
 [Broker] 新订阅: topic=news, 当前订阅者数量=1
@@ -1528,6 +1564,7 @@ func main() {
 - **promo** 消息被投递到了 pushSub
 
 ### 发布订阅模式的 UML 图
+下图展示了发布者与订阅者通过中间层解耦的结构：
 
 ```mermaid
 flowchart TB
@@ -1582,6 +1619,8 @@ flowchart TB
 **工作者池模式（Worker Pool Pattern）** 的核心思想是：**预先创建一组固定数量的worker，所有任务都提交到池子里，由worker从池子里取任务执行**。
 
 ### Go语言实现工作者池
+
+工作者池用固定数量的 goroutine 从队列里取任务，既能限制并发度，又能摊平任务创建的开销。它是“生产者–消费者”的直接应用：
 
 ```go
 // ========== 第一步：定义任务和结果 ==========
@@ -1702,6 +1741,7 @@ func (wp *WorkerPool) GetResultQueue() <-chan *TaskResult {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 工作者池模式 ===\n")
@@ -1744,7 +1784,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 工作者池模式 ===
 
 [WorkerPool] 启动 3 个工作者
@@ -1791,6 +1831,7 @@ func main() {
 ```
 
 ### 工作者池的 UML 图
+下图展示了任务队列与固定数量 worker 的协作结构：
 
 ```mermaid
 flowchart TB
@@ -2082,6 +2123,7 @@ func SimulateClient(reactor *Reactor, clientID int, messageCount int) {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 反应器模式 Reactor ===\n")
@@ -2115,7 +2157,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 反应器模式 Reactor ===
 
 [Reactor] 反应器启动，开始事件循环...
@@ -2379,6 +2421,7 @@ func (h *MetricsHandler) HandleCompletion(result *AsyncResult) {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 前摄器模式 Proactor ===\n")
@@ -2425,7 +2468,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 前摄器模式 Proactor ===
 
 [Proactor] 前摄器启动，开始处理完成通知...
@@ -2486,6 +2529,8 @@ func main() {
 
 ### 模式结构
 
+半同步半异步（Half-Sync/Half-Async）把系统分成两层：异步层负责高并发的 I/O，同步层负责真正干活的业务逻辑，中间用一个队列解耦。
+
 ```mermaid
 flowchart TB
     subgraph AsyncLayer["异步层（处理IO）"]
@@ -2509,6 +2554,8 @@ flowchart TB
 ```
 
 ### Go语言实现半同步半异步
+
+下面用“异步接收 + 队列 + 固定数量工作协程”来实现经典的两层结构：
 
 ```go
 // ========== 第一步：定义任务和队列 ==========
@@ -2667,6 +2714,7 @@ func (al *AsyncLayer) Stop() {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 半同步半异步模式 ===\n")
@@ -2713,7 +2761,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 半同步半异步模式 ===
 
 [Worker-1] 启动（同步层）
@@ -2785,6 +2833,8 @@ func main() {
 | 适用场景 | 低并发 | 高并发 |
 
 ### Go语言实现领导者追随者模式
+
+领导者追随者（Leader/Followers）让一组 worker 轮流当“leader”等待事件，谁被选中谁就去处理，其余继续等待。它的好处是没有单独的事件分发线程：
 
 ```go
 // ========== 第一步：定义线程和事件 ==========
@@ -2943,6 +2993,7 @@ func (p *LeaderFollowerPool) Stop() {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 领导者追随者模式 ===\n")
@@ -2984,7 +3035,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 领导者追随者模式 ===
 
 [Pool] Thread-1 当选为领导者
@@ -3013,6 +3064,7 @@ func main() {
 ```
 
 ### 领导者追随者模式的 UML 图
+下图展示了 leader 与 follower 在任务处理上的分工：
 
 ```mermaid
 flowchart TB
@@ -3075,6 +3127,8 @@ import "runtime"
 ### Go语言实现线程特定存储
 
 #### 方法一：使用sync.Map模拟TLS
+
+Go 没有官方支持的线程/协程局部存储（TLS）。如果确实需要“每个 goroutine 一份数据”，一条路是用 `sync.Map` 按 goroutine 标识分桶——但要注意获取 goroutine ID 属于非官方做法，性能也不理想：
 
 ```go
 // ========== TLS 使用 sync.Map + goroutine ID 模拟 ==========
@@ -3139,6 +3193,7 @@ func (t *TLS) Delete() {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 线程特定存储 TLS ===\n")
@@ -3178,6 +3233,8 @@ func main() {
 ```
 
 #### 方法二：使用context实现请求级别的存储
+
+更地道的做法是**不要用 TLS**：把请求级别的数据挂在 `context.Context` 上，沿着调用链显式传递。下面演示这套写法，并说明它的取舍：
 
 ```go
 // ========== 使用 context 实现请求级别的存储 ==========
@@ -3237,6 +3294,7 @@ func processInBackground(ctx context.Context) {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== Context 实现请求级别存储 ===\n")
@@ -3254,7 +3312,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === Context 实现请求级别存储 ===
 
 [Request-1] 记录日志: requestID=1, userID=1001
@@ -3394,4 +3452,3 @@ Go 的并发哲学可以总结为一句话：
 ---
 
 **第41章 并发模式 · 完结** 🎉
-

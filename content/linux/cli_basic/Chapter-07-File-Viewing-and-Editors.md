@@ -11,7 +11,7 @@ draft = false
 # 第七章：文件查看与编辑器
 ## 7.1 cat 查看整个文件内容
 
-`cat` = **C**oncate**t**ate，拼接/连接文件。不过它最常用的功能是**查看文件内容**。
+`cat` 来自英文单词 **concatenate**（连接、串接），它的本职工作是把多个文件首尾相连地输出。不过日常用得最多的场景，还是**查看文件内容**。
 
 ### 7.1.1 cat 文件名：显示文件
 
@@ -49,7 +49,7 @@ cat -b file.txt
 #      1	Hello, this is a test file.
 #
 #      2	Line 2 of the file.
-# （中间的的空行没有行号）
+# （中间的空行照旧打印，但不占用行号）
 ```
 
 ### 7.1.4 cat -s：多行合并
@@ -127,7 +127,7 @@ graph TD
     E --> F["按 q 退出"]
 ```
 
-> 历史趣闻：`more` 是 "more than one screen" 的缩写（或者说是"还有更多内容"的意思）。它诞生于 Unix 早期，那时候内存金贵得很，不可能一次性把所有内容加载到屏幕。
+> 历史趣闻：`more` 会在一屏内容显示完后，在屏幕底部提示 `--More--`，名字就来自这个提示语——"还有更多"。它诞生于 Unix 早期，那时候内存金贵得很，不可能一次性把所有内容加载到屏幕。
 
 ---
 
@@ -179,7 +179,7 @@ less file.txt
 # 按 N 跳到上一个匹配
 ```
 
-> less 的搜索功能比 more 强太多了！`more` 根本不支持搜索！
+> 搜索是 `less` 的核心优势之一。**注意别被误传误导**：`more` 其实也能用 `/` 搜索（GNU 版支持），只是功能弱、体验差；而在 `less` 里搜索、反向搜索、高亮都更顺手。真正让 `less` 完胜的是**能往回翻页**。
 
 ### 7.3.5 g/G：跳到开头/结尾
 
@@ -245,11 +245,6 @@ head -c 100 file.txt
 ### 7.4.3 head 的实际应用
 
 ```bash
-# 查看系统日志最新的几条（日志通常是最新的在最后）
-# 但 /var/log/syslog 是最新的在最下面
-# 用 head 只能看最早的
-
-# 更好的方式是：
 # 查看 CSV 文件的表头
 head -1 data.csv
 # 输出：name,age,city,email
@@ -258,7 +253,9 @@ head -1 data.csv
 head -5 /var/log/nginx/access.log
 ```
 
-> 小技巧：想看前几行，但不需要行号？`head file.txt` 就够了，默认前10行！
+> 注意日志的方向性：多数日志文件**越往下越新**（新内容追加在末尾）。所以想看"最新几条"要用 `tail`，`head` 看到的是"最老的几条"——这正是下一节的主角。
+
+> 小技巧：`head -20 file.txt` 和 `head -n 20 file.txt` 在你机器上大概率都能跑，但**只有 `-n 20` 是 POSIX 标准写法**。脚本里请一律写 `-n`，因为少数老版本（比如 Solaris 的 head）不认 `-20` 这种省略写法。
 
 ---
 
@@ -379,11 +376,21 @@ wc -w file.txt
 ### 7.6.3 wc -c：字符数
 
 ```bash
-# 统计字符数（字节数）
+# 统计字节数
 wc -c file.txt
 
 # 输出：
 # 1024 file.txt
+```
+
+这里有个特别容易混的点：`-c` 数的是**字节**，不是"字符个数"。一个汉字在 UTF-8 下占 3 个字节，所以 `wc -c` 的结果通常比"字数"大得多。想按字符数统计要用 `-m`：
+
+```bash
+# -m：按字符统计（依据当前 locale 的编码解释字节序列）
+wc -m file.txt
+
+# 只数文件里有多少个汉字
+grep -oP '[\x{4e00}-\x{9fa5}]' file.txt | wc -l
 ```
 
 ### 7.6.4 wc 不带选项：全部统计
@@ -405,6 +412,8 @@ wc file.txt
 > # 统计有多少用户
 > cat /etc/passwd | wc -l
 > ```
+
+> 补一句：`cat /etc/passwd | wc -l` 虽然能出结果，但白起了一个进程，是典型的"无用 cat"（UUOC）。既然 `wc` 本来就能接文件名，直接写 `wc -l /etc/passwd` 更干脆。另外 `ls | wc -l` 统计的是 `ls` 的输出行数，文件名里如果含有换行符会算错——正经做法是 `find . -maxdepth 1 -type f | wc -l`。
 
 ---
 
@@ -458,18 +467,19 @@ sudo nano file.txt
 nano 打开后，底部有一排快捷键提示：
 
 ```
-GNU nano 6.2                file.txt                       
-                                                   
-  这是文件内容...                                    
-                                                   
-                                                   
+GNU nano 8.0                file.txt                          Modified
+
+  这是文件内容...
+
+
+
                               [ New File ]
 
-^G Get Help    ^O WriteOut    ^R Read File   ^Y Prev Page   
-^K Cut Text     ^C Cur Pos     ^X Quit        ^M Insert File
+^G Help      ^O Write Out  ^W Where Is   ^K Cut        ^T Execute
+^X Exit      ^R Read File  ^\ Replace    ^U Paste      ^J Justify
 ```
 
-> 注意：^ 代表 Ctrl 键！^G 就是 Ctrl+G。
+> 注意：`^` 代表 Ctrl 键，所以 `^G` 就是 Ctrl+G；`M-` 开头的（比如 `M-U`）代表 Alt 键。你机器上显示的版本号和帮助项会随 nano 版本、窗口宽度略有不同，但按键含义是一致的。
 
 ### 7.8.3 Ctrl + O：保存
 
@@ -504,7 +514,8 @@ GNU nano 6.2                file.txt
 # Ctrl+U：粘贴（uncut）
 # Ctrl+C：显示光标位置
 # Ctrl+J：对齐当前段落
-# Ctrl+W + Ctrl+W：查找并替换（先按 Ctrl+\）
+# Ctrl+W：查找（Alt+W 跳到下一个匹配）
+# Ctrl+\：查找并替换
 
 # 常用选项：
 nano -m    # 启用鼠标支持（可以用鼠标移动光标）
@@ -714,18 +725,20 @@ vimtutor
 
 ---
 
-## 7.10 gedit 图形化文本编辑器
+## 7.10 图形化编辑器：gedit 与 GNOME Text Editor
 
-如果你不习惯纯命令行的编辑器，**gedit** 是 GNOME 桌面环境自带的图形化文本编辑器，和 Windows 记事本体验类似。
+如果你不习惯纯命令行的编辑器，图形化编辑器是最平滑的过渡。GNOME 桌面环境里有两代产品：老牌的 **gedit** 和它的继任者 **GNOME Text Editor**（`gnome-text-editor`）。
+
+> **一个容易踩空的知识点**：gedit 从 Ubuntu 22.04 起**不再是默认编辑器**了，取而代之的是 GNOME Text Editor。所以下面这条安装命令在你的新系统上可能真的需要执行，而不是"通常已预装"。
 
 ```bash
-# 启动 gedit
+# 启动 gedit（& 让它转到后台，否则终端会被占住）
 gedit file.txt &
 
-# 后台运行（加 &，不然会卡住终端）
-gedit file.txt &
+# 新版 Ubuntu 默认装的是这个
+gnome-text-editor file.txt &
 
-# Ubuntu 安装（通常已预装）
+# 如果提示 command not found，再手动安装
 sudo apt install gedit
 ```
 
@@ -736,6 +749,8 @@ sudo apt install gedit
 > - 支持插件扩展
 >
 > 适合人群：刚从 Windows 转过来的新手，不想折腾 vim 的人。
+
+> ⚠️ **服务器上别指望它**：图形化编辑器需要 X/Wayland 显示环境。你 SSH 登录一台纯命令行的服务器时，`gedit` 是打不开的——这时候请回到 `nano` 或 `vim`。
 
 ---
 
@@ -775,5 +790,11 @@ wc -l *.txt | sort -n
 # 快速查看配置文件开头
 head -20 /etc/nginx/nginx.conf
 ```
+
+> **`tail -f | grep` 不刷新？** 这是新手最常踩的坑：`grep` 发现输出不是终端，就会**攒够一大块才吐出来**（块缓冲），结果你盯着屏幕半天没动静。解决办法是让 grep 逐行输出：
+> ```bash
+> tail -f /var/log/syslog | grep --line-buffered error
+> ```
+> 或者用 `tail -f` 自带的过滤思路：先用 `grep` 过滤再 `tail`（历史日志），实时监控则首选 `--line-buffered`。另外 `tail -F`（大写）在日志被轮转（切割）后还能继续跟，生产环境监控日志请用 `-F`。
 
 下一章我们将学习**文件查找与文本搜索**，掌握 `find`、`grep` 等强大的搜索工具！敬请期待！

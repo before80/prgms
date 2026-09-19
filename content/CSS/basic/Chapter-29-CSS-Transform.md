@@ -322,12 +322,20 @@ Z轴就是"前后"方向，`translateZ()` 让元素"靠近你"或"远离你"。
 
 ### 29.4.3 卡片翻转
 
+只写 `rotateY(180deg)` 是翻不出卡片的——真正的翻转需要"两张脸叠在一起 + 背面藏起来"。
+完整的可运行版本长这样：
+
 ```css
 .flip-card {
   perspective: 1000px;
+  width: 200px;
+  height: 260px;
 }
 
 .flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
   transition: transform 0.6s;
   transform-style: preserve-3d;
 }
@@ -335,7 +343,66 @@ Z轴就是"前后"方向，`translateZ()` 让元素"靠近你"或"远离你"。
 .flip-card:hover .flip-card-inner {
   transform: rotateY(180deg);
 }
+
+/* 正反两面都绝对定位叠在同一位置，并关掉背面可见性 */
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  inset: 0;                        /* = top/right/bottom/left 都为 0 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;     /* 关键：面朝屏幕背面时就藏起来 */
+  border-radius: 8px;
+  color: #fff;
+}
+
+.flip-card-front {
+  background: #3498db;
+}
+
+.flip-card-back {
+  background: #e74c3c;
+  transform: rotateY(180deg);      /* 背面预先翻 180°，翻转后才正着朝你 */
+}
 ```
+
+配套的 HTML：
+
+```html
+<div class="flip-card">
+  <div class="flip-card-inner">
+    <div class="flip-card-front">正面</div>
+    <div class="flip-card-back">背面</div>
+  </div>
+</div>
+```
+
+## 29.5 四个必须知道的坑
+
+```css
+/* ① transform 不改变布局位置——元素在文档流里还占着原来的地盘，
+      只是"画"到别处去了。所以放大/位移后很可能和邻居重叠。 */
+.a:hover { transform: scale(1.5); }   /* 会盖住旁边的元素，而不是把邻居挤开 */
+
+/* ② 百分比基准是元素自身的尺寸，不是父元素。
+      这正是 translate(-50%, -50%) 能配合 top/left: 50% 实现居中的原因：
+      先把左上角挪到父元素中心，再往回退自身宽高的一半。 */
+.b { left: 50%; top: 50%; transform: translate(-50%, -50%); }
+
+/* ③ 一旦元素有 transform，它就成了后代定位元素的"包含块"。
+      于是里面原本 position: fixed 的元素会表现得像 absolute——
+      这是"我的固定导航栏怎么跟着滚走了"的常见原因。 */
+
+/* ④ 多个变换函数的顺序不能随便写：从左往右依次作用于坐标系，
+      换个顺序结果完全不同。 */
+.c { transform: translateX(100px) rotate(45deg); }  /* 先平移，再绕新原点转 */
+.d { transform: rotate(45deg) translateX(100px); }  /* 先转坐标系，再沿斜着的 X 轴平移 */
+```
+
+> ⚠️ **还有一个隐形限制：** 父元素一旦有 `overflow: hidden`、`filter`、`opacity` 小于 1
+> 或 `clip-path` 这类"分组"属性，`transform-style: preserve-3d` 就会**失效**，
+> 子元素被强行压平（flatten），3D 效果瞬间变 2D。做 3D 场景时，记得沿着祖先链检查一圈。
 
 ---
 
@@ -346,4 +413,3 @@ transform 是CSS的魔法棒！常用函数：translate、rotate、scale、skew�
 ### 下章预告
 
 下一章我们将学习动画！
-

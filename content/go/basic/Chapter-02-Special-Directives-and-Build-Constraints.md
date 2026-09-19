@@ -61,7 +61,7 @@ func GetWindowsInfo() string {
 
 ### 2.1.2 约束的作用范围
 
-构建约束只作用于它所在的文件。也就是说，你可以创建两个同名文件，只要它们的构建约束不同，Go 编译器就会根据当前平台选择合适的文件。
+构建约束只作用于它所在的文件。也就是说，只要在**文件名或注释**上给出不同的约束，就可以为同一个功能准备多份实现，编译时只有**唯一**满足当前条件的那一份会参与编译（注意：Go 里并没有「谁更具体谁优先」这种规则）。
 
 **文件命名约定：**
 
@@ -122,84 +122,76 @@ func main() {
 
 ```
 
-### 2.1.3 约束的优先级
+### 2.1.3 一个包里同名符号只能出现一次
 
-当多个文件满足构建条件时，Go 编译器会选择最"具体"的那个。这就像是你说"我要买手机"和"我要买 iPhone 15 Pro 256GB 蓝色"，后者更具体，所以优先级更高。
+这里有一个很多初学者都会踩的坑：**Go 不会在多个满足条件的文件之间「挑最具体的那个」。**
+
+同一时刻，包里所有通过筛选的文件会被一起编译。如果其中两个文件定义了同名的函数、变量或类型，编译器会直接报 `redeclared in this block`（重复声明）错误。
+
+所以正确的做法是：让不同约束的文件覆盖**互斥**的场景，并为没有被任何条件覆盖的平台准备一份兜底实现。
+
+下面两个文件是一对互补的实现——一个只在 Linux 上编译，一个在除 Linux 之外的平台编译，二者永不重叠：
 
 
 ```go
-// 文件：util.go（无约束，所有平台都编译）
-//go:build
+// 文件：util_linux.go
+//go:build linux
 
 package utils
 
 func GetMessage() string {
-    return "通用消息"
+    return "Linux 上的消息"
 }
 
 ```
 
 
 ```go
-// 文件：util_windows.go（Windows 专用）
-//go:build windows
+// 文件：util_other.go
+//go:build !linux
 
 package utils
 
 func GetMessage() string {
-    return "Windows 专属消息"
+    return "其他平台上的消息"
 }
 
 ```
 
+> **反例**：如果再加一个没有任何约束的 `util.go`，里面同样定义 `GetMessage`，那么在 Linux 上 `util.go` 和 `util_linux.go` 就会同时被编译，直接报重复声明。所以在有平台专用文件的包里，通用的 `util.go` 只能放真正与平台无关的代码。
 
-```go
-// 文件：util_linux_amd64.go（Linux AMD64 专用）
-//go:build linux && amd64
-
-package utils
-
-func GetMessage() string {
-    return "Linux AMD64 专属消息"
-}
-
-```
-
-> **优先级规则**：更具体的约束 > 更通用的约束。当有一个无约束的 `util.go` 和一个 `util_windows.go` 时，在 Windows 上会选择 `util_windows.go`，在其他平台上会选择 `util.go`。
-
-**📊 构建约束优先级可视化：**
+**📊 一个文件要经历哪些筛选：**
 
 
 ```mermaid
 flowchart TB
-    A[平台检测] --> B{是 Windows?}
-    B -->|是| C{是 AMD64?}
-    B -->|否| D{是 Linux?}
-    
-    C -->|是| E[util_linux_amd64.go 或对应文件]
-    C -->|否| F[util_windows.go]
-    D -->|是| G{是 AMD64?}
-    
-    G -->|是| H[更具体的文件]
-    G -->|否| I[util_linux.go]
-    
-    E --> J[最具体优先]
-    F --> J
-    H --> J
-    I --> J
+    A[包目录下的所有 .go 文件] --> B{文件名后缀匹配<br/>当前 GOOS/GOARCH?}
+    B -->|不匹配| X[排除，不参与编译]
+    B -->|匹配| C{//go:build 表达式成立?}
+    C -->|不成立| X
+    C -->|成立| D[参与编译]
+    D --> E{与同包其他文件符号冲突?}
+    E -->|是| F[❌ 编译错误：重复声明]
+    E -->|否| G[✅ 编译通过]
+
+    style X fill:#FFA500
+    style F fill:#FF6B6B
+    style G fill:#90EE90
 ```
 
 
 
-### 2.2 基于注释的构建约束
+## 2.2 基于注释的构建约束
 
 > 基于注释的构建约束是最常用的构建约束方式。它们看起来像是普通的注释，但实际上会被编译器识别并处理。这就像是电影里的"彩蛋"——表面上看起来是普通场景，但触发特定条件后会展现出隐藏内容。
 
-#### 2.2.1 //go:build 指令
+### 2.2.1 //go:build 指令
 
 `//go:build` 是 Go 1.17 引入的新语法，比旧的 `// +build` 语法更清晰和一致。
 
-##### 2.2.1.1 基本语法
+#### 2.2.1.1 基本语法
+
+`//go:build` 后面跟的是一个**布尔表达式**，只能由标识符、`&&`、`||`、`!` 和括号组成，不能用 `==`、`>` 这类比较运算符。下面先把「表达式」单独拎出来看：
 
 
 ```go
@@ -234,7 +226,7 @@ func GetOSInfo() string {
 
 ```
 
-##### 2.2.1.2 逻辑运算符（&& || !）
+#### 2.2.1.2 逻辑运算符（&& || !）
 
 你可以在构建约束中使用逻辑运算符来组合多个条件：
 
@@ -277,7 +269,7 @@ func NotLinuxInfo() string {
 
 ```
 
-##### 2.2.1.3 多个约束组合
+#### 2.2.1.3 多个约束组合
 
 你可以在一行上写多个约束，它们默认是 AND 关系：
 
@@ -309,11 +301,13 @@ func SpecificPlatforms() string {
 
 ```
 
-#### 2.2.2 // +build 旧语法
+### 2.2.2 // +build 旧语法
 
 `// +build` 是旧的构建约束语法，在 Go 1.17 之前是唯一的选择。虽然现在推荐使用 `//go:build`，但你仍然会看到很多旧代码使用这种语法。
 
-##### 2.2.2.1 基本用法
+#### 2.2.2.1 基本用法
+
+旧语法写在文件顶部的注释里，一条 `// +build` 表示一组条件。要注意它和 `//go:build` 一样，必须在 `package` 声明之前，且和 `package` 之间留一个空行。
 
 
 ```go
@@ -343,7 +337,7 @@ func PlatformInfo() string {
 
 > **注意**：`// +build` 语法中，逗号表示 AND，空格表示 OR。而 `//go:build` 则使用 `&&` 和 `||` 运算符。
 
-##### 2.2.2.2 与 go:build 的区别
+#### 2.2.2.2 与 go:build 的区别
 
 | 特性 | `//go:build` | `// +build` |
 |------|--------------|-------------|
@@ -373,9 +367,11 @@ package mypackage
 - `linux arm64` 表示 Linux AND ARM64
 - 两行组合起来表示 OR 关系
 
-#### 2.2.3 约束条件详解
+### 2.2.3 约束条件详解
 
-##### 2.2.3.1 操作系统约束（linux, windows, darwin）
+#### 2.2.3.1 操作系统约束（linux, windows, darwin）
+
+`runtime.GOOS` 能取到的那些名字，几乎都可以直接当构建标签用。下面每个文件里定义同名函数，同一时刻只会有一个文件参与编译，所以不会冲突。
 
 
 ```go
@@ -432,7 +428,9 @@ func GetOS() string {
 | OpenBSD | `openbsd` | OpenBSD 系统 |
 | NetBSD | `netbsd` | NetBSD 系统 |
 
-##### 2.2.3.2 架构约束（amd64, arm64, 386）
+#### 2.2.3.2 架构约束（amd64, arm64, 386）
+
+架构标签对应 `runtime.GOARCH` 的取值。同一个包里同一功能在不同架构上的实现，就是用这种方式分开的（标准库里的 `math`、`crypto` 大量使用这一招）。
 
 
 ```go
@@ -487,7 +485,9 @@ func GetArch() string {
 | 386 | `386` | 32位 x86 |
 | ARM | `arm` | 32位 ARM |
 
-##### 2.2.3.3 编译器约束（gc, gccgo）
+#### 2.2.3.3 编译器约束（gc, gccgo）
+
+Go 有两个主流实现：官方的 `gc` 和 GCC 前端的 `gccgo`。它们的差异主要体现在编译产物和某些内置行为上，需要分别处理时就用这两个标签。
 
 
 ```go
@@ -511,7 +511,9 @@ func GetCompiler() string {
 
 ```
 
-##### 2.2.3.4 版本约束（go1.18, go1.20+）
+#### 2.2.3.4 版本约束（go1.18, go1.20+）
+
+`go1.18` 这类标签的含义是「**Go 1.18 及以上**」，而不是「恰好 1.18」。比如用 Go 1.27 编译时，`go1.18`、`go1.20` 都成立，所以这类约束常用来做新老版本的功能降级。
 
 
 ```go
@@ -536,7 +538,9 @@ func NewFeature() string {
 
 ```
 
-##### 2.2.3.5 自定义标签（debug, prod, test）
+#### 2.2.3.5 自定义标签（debug, prod, test）
+
+除了系统内置标签，你还可以自己造标签。它们默认都不成立，必须用 `-tags` 显式打开——这正是「调试版 / 生产版」这类开关的常用做法。
 
 
 ```go
@@ -594,11 +598,11 @@ go build -tags "test,integration"
 
 
 
-### 2.3 基于文件名的构建约束
+## 2.3 基于文件名的构建约束
 
 > 除了注释之外，Go 还支持通过文件名来指定构建约束。这种方式更加"隐形"——你只需要把文件命名成特定格式，编译器就会自动识别。想象一下，你给文件贴了个隐形标签，只有编译器能看见。
 
-#### 2.3.1 文件名后缀约束
+### 2.3.1 文件名后缀约束
 
 Go 通过文件名后缀来识别构建约束。文件名的一般格式是：
 
@@ -609,7 +613,9 @@ name_ARCH.go
 name_OS_ARCH.go
 ```
 
-##### 2.3.1.1 _linux.go, _windows.go
+#### 2.3.1.1 _linux.go, _windows.go
+
+文件名后缀是最省事的约束方式：整个文件直接从编译里被排除，连注释都不用写。下面两个文件提供同名函数，编译器只会挑一个。
 
 
 ```bash
@@ -657,7 +663,9 @@ func GetOSVersion() string {
 
 ```
 
-##### 2.3.1.2 _amd64.go, _arm64.go
+#### 2.3.1.2 _amd64.go, _arm64.go
+
+架构后缀同理。注意文件名约束和注释约束的区别：文件名约束写在文件名里，对读者更直观；注释约束更灵活，可以表达 `&&`、`||` 这种组合。
 
 
 ```bash
@@ -705,7 +713,7 @@ func ExampleSpecialFeature() {
 
 ```
 
-##### 2.3.1.3 组合后缀 _linux_amd64.go
+#### 2.3.1.3 组合后缀 _linux_amd64.go
 
 你可以组合多个后缀来指定更具体的平台：
 
@@ -755,7 +763,7 @@ func RunBenchmark() {
 
 ```
 
-#### 2.3.2 平台特定文件命名
+### 2.3.2 平台特定文件命名
 
 Go 支持的操作系统和架构都有对应的文件名模式：
 
@@ -781,7 +789,7 @@ Go 支持的操作系统和架构都有对应的文件名模式：
 | 386 | `_386` | `util_386.go` |
 | ARM | `_arm` | `util_arm.go` |
 
-#### 2.3.3 文件名与注释约束的优先级
+### 2.3.3 文件名与注释约束的优先级
 
 当一个文件同时有文件名约束和注释约束时，两个约束必须同时满足才能编译该文件。
 
@@ -833,17 +841,19 @@ flowchart TB
 
 
 
-### 2.4 其他特殊指令
+## 2.4 其他特殊指令
 
 > 除了构建约束之外，Go 语言还有一些"魔法指令"，它们不是用来控制代码是否编译的，而是用来改变编译器的行为。这些指令就像是给编译器的"小纸条"，告诉编译器"请用这种方式处理我"或者"帮我做这些特殊的事"。大多数这些指令都涉及到 Go 的底层实现或者特殊功能，一般程序员可能用不到，但了解它们对于理解 Go 的内部机制非常有帮助。
 
-#### 2.4.1 //go:generate
+### 2.4.1 //go:generate
 
 `//go:generate` 是一个用于代码生成的指令。当你在代码中写入这个指令后，运行 `go generate` 命令，Go 工具链就会执行这个指令指定的命令。这个指令在 Go 社区中被广泛使用，特别是用于自动生成重复性的代码。
 
 **历史背景**：代码生成在 Go 中是一种常见的实践，特别是在 Go 1.4 之后，`go generate` 被引入作为官方支持的代码生成机制。它允许你在编译前自动运行一些工具来生成代码，大大减少了手动编写重复代码的工作量。
 
-##### 2.4.1.1 代码生成指令
+#### 2.4.1.1 代码生成指令
+
+`//go:generate` 这一行本身就是一条普通注释，`go build` 完全不理它，只有 `go generate` 会读它。指令后面跟的是一条可以交给 shell 执行的命令（不含管道和重定向）。
 
 
 ```go
@@ -852,7 +862,9 @@ flowchart TB
 
 上面这个指令的意思是："运行 `stringer -type=Weekday` 命令来生成代码。"
 
-##### 2.4.1.2 执行命令
+#### 2.4.1.2 执行命令
+
+`go generate` 需要你手动运行，`go build` 不会自动触发它——这是很多人第一次用的时候最容易踩的坑。
 
 
 ```bash
@@ -863,7 +875,7 @@ go generate ./...
 cd mypackage && go generate
 ```
 
-##### 2.4.1.3 常用工具（stringer, mockgen）
+#### 2.4.1.3 常用工具（stringer, mockgen）
 
 **stringer - 自动生成 String() 方法**
 
@@ -892,28 +904,52 @@ const (
 
 
 ```go
-// Code generated by stringer -type=Weekday -linecomment; DO NOT EDIT.
+// Code generated by "stringer -type=Weekday"; DO NOT EDIT.
 
-package time
+package main
 
 import "strconv"
 
+type Weekday int
+
+const (
+    Sunday Weekday = iota
+    Monday
+    Tuesday
+    Wednesday
+    Thursday
+    Friday
+    Saturday
+)
+
 func _() {
-    // An invalid auxiliary input for Weekday.
-    _ = p[September:Uint8]
+    // 如果常量的值被人改动过，这里的数组下标就会越界，
+    // 编译器会报错提醒你重新运行 stringer。
+    var x [1]struct{}
+    _ = x[Sunday-0]
+    _ = x[Monday-1]
+    _ = x[Tuesday-2]
+    _ = x[Wednesday-3]
+    _ = x[Thursday-4]
+    _ = x[Friday-5]
+    _ = x[Saturday-6]
 }
 
-const Weekday_name = "SundayMondayTuesdayWednesdayThursdayFridaySaturday"
+const _Weekday_name = "SundayMondayTuesdayWednesdayThursdayFridaySaturday"
 
-var Weekday_index = [...]uint8{0, 6, 12, 19, 28, 36, 41, 48}
+var _Weekday_index = [...]uint8{0, 6, 12, 19, 28, 36, 41, 48}
 
 func (i Weekday) String() string {
-    i -= Sunday
-    return Weekday_name[Weekday_index[i]:Weekday_index[i+1]]
+    if i < 0 || i >= Weekday(len(_Weekday_index)-1) {
+        return "Weekday(" + strconv.FormatInt(int64(i), 10) + ")"
+    }
+    return _Weekday_name[_Weekday_index[i]:_Weekday_index[i+1]]
+}
+
+func main() {
+    println(Wednesday.String()) // Wednesday
 }
 ```
-
-**mockgen - 生成 Mock 对象**
 
 mockgen 是 `gomock` 工具的一部分，用于生成接口的 mock 实现，这在单元测试中非常有用。
 
@@ -938,7 +974,7 @@ type Calculator interface {
 - ` sqlc`：根据 SQL 语句生成 Go 数据库代码
 - `gormgen`：GORM 的代码生成工具
 
-#### 2.4.2 //go:linkname
+### 2.4.2 //go:linkname
 
 `//go:linkname` 是一个非常危险的指令，它告诉编译器"这个 Go 符号实际上对应那个链接符号"。这在访问 runtime 包的内部实现时很有用，但滥用它会导致不可移植的代码。
 
@@ -946,35 +982,64 @@ type Calculator interface {
 
 **警告**：这个指令是"unsafe"级别的操作。它绕过了 Go 的类型系统和包边界保护。使用它意味着你的代码依赖于编译器和 runtime 的内部实现，这些可能在不同版本之间变化。**除非你非常清楚自己在做什么，否则不要使用它！**
 
-##### 2.4.2.1 链接器指令
+#### 2.4.2.1 链接器指令
+
+`//go:linkname` 的基本形式是 `//go:linkname 本地名 目标包.符号名`。它必须在 `import _ "unsafe"` 的文件里才生效，否则编译器会直接报错。
 
 
-```go
-//go:linkname runtime.memclr0 runtime.memclr0
+```text
+//go:linkname 本地名 目标包.符号名
 ```
 
-上面这行代码的意思是："在当前包中，有一个 `runtime.memclr0`，它的实际链接符号就是 `runtime.memclr0`。"
+它有两个硬性要求：
 
-##### 2.4.2.2 使用场景与风险
-
+1. 必须出现在 `import _ "unsafe"` 的文件里，否则编译器直接报错；
+2. 第一个名字必须是**本包里真实存在、且只有签名没有函数体**的声明，否则会报 `//go:linkname must refer to declared function or variable`。
 
 ```go
-package myruntime
+package main
 
-import _ "unsafe"
+import (
+    "fmt"
+    _ "unsafe" // 这一行不是“没用”，它是启用 //go:linkname 的开关
+)
 
-//go:linkname time_now time.now
+// 只有签名、没有函数体——真正的实现由链接器接到 runtime.nanotime 上
+//
+//go:linkname nanotime runtime.nanotime
+func nanotime() int64
 
-// 这是合法的使用场景：访问 runtime 包的内部函数
+func main() {
+    fmt.Println("运行时的单调时钟纳秒数:", nanotime())
+}
 ```
 
-#### 2.4.3 //go:nosplit
+在这段代码里：
+
+- `nanotime` 是本包的**本地名**；
+- `runtime.nanotime` 是要链接到的**目标符号**——必须写成完整的包路径加符号名，写成 `time.now` 这种不存在的路径编译器会直接拒绝。
+
+#### 2.4.2.2 使用场景与风险
+
+> ⚠️ **Go 1.23 起的重要变化**：出于安全考虑，工具链现在只允许链接到**目标包自己用 `//go:linkname` 标记过**的符号。以前那种“随便链到 runtime 内部函数”的玩法（例如 `runtime.time_now`）已经失效，编译时会报：
+>
+> ```text
+> main.main: relocation target runtime.time_now not defined
+> ```
+>
+> 所以能用 `//go:linkname` 的场景已经大幅收窄，绝大多数问题都应该用公开 API 解决。
+
+即使链接得通，也要记住：这是**内部 API**，它绕过了类型系统和包边界，跨 Go 版本随时可能消失，还会让 `go vet`、竞态检测、内联优化等工具失去部分效力。除非你在维护标准库或运行时，否则不要使用它。
+
+### 2.4.3 //go:nosplit
 
 `//go:nosplit` 指令告诉编译器"不要在这个函数插入栈增长检查的代码"。这用于非常底层的、必须保持很小栈帧的函数。
 
 **历史背景**：Go 的运行时会在函数 prologue（中）插入栈增长检查代码。如果函数使用太多栈空间但没有这个检查，可能会导致栈溢出。但是对于一些底层的、性能关键的函数，这个检查的开销是不可接受的。
 
-##### 2.4.3.1 栈增长控制
+#### 2.4.3.1 栈增长控制
+
+被标记的函数在进入时不会做栈扩张检查，因此它的栈帧必须足够小、不能调用可能触发栈增长的函数。下面的写法只出现在 runtime 或汇编配套的代码里。
 
 
 ```go
@@ -986,7 +1051,9 @@ func FastMemmove(dst, src unsafe.Pointer, n uintptr) {
 }
 ```
 
-##### 2.4.3.2 运行时函数使用
+#### 2.4.3.2 运行时函数使用
+
+`morestack`、`gogo` 这类调度函数就是典型用例：它们跑在切换栈的关键路径上，必须保证不会因为栈增长而递归调用自己。
 
 
 ```go
@@ -1001,45 +1068,45 @@ func gogo(gp *g) {
 
 > **小贴士**：除非你在写 runtime 或者 JIT 编译器，否则你不太可能需要使用 `//go:nosplit`。使用它时要非常小心，因为如果你的函数实际上需要增长栈，可能会导致灾难性的后果。
 
-#### 2.4.4 //go:noescape
+### 2.4.4 //go:noescape
 
 `//go:noescape` 指令告诉编译器"这个函数的参数不会逃逸到堆上"。这用于性能关键的函数，可以避免不必要的堆分配。
 
 **历史背景**：Go 有垃圾回收机制，堆上的对象需要被回收。函数参数默认可能会"逃逸"到堆上（如果被返回或者被通道发送等）。但是对于一些性能关键的函数，我们知道参数不会逃逸，可以让编译器优化避免堆分配。
 
-##### 2.4.4.1 逃逸分析控制
+#### 2.4.4.1 逃逸分析控制
 
-
-```go
-//go:noescape
-
-func Memcpy(dst, src unsafe.Pointer, n uintptr) {
-    // 编译器会假设参数不会逃逸
-    // 从而避免在堆上分配内存
-}
-```
-
-##### 2.4.4.2 性能优化场景
-
+`//go:noescape` 只用于**没有函数体的函数**（通常由汇编实现）。它相当于给编译器一个承诺：传入的指针不会逃逸，编译器据此省掉堆分配和写屏障。
 
 ```go
 //go:noescape
-
-func SimdMemcpy(dst, src unsafe.Pointer, n uintptr) {
-    // SIMD 内存拷贝，零拷贝开销
-    // 使用汇编实现的高性能内存拷贝
-}
+func Memcpy(dst, src unsafe.Pointer, n uintptr)
 ```
+
+注意这里只有**函数声明**，没有函数体——`//go:noescape` 只能加在这种没有函数体的函数上（它通常由汇编文件实现）。
+
+#### 2.4.4.2 性能优化场景
+
+这类用法几乎只出现在标准库和汇编实现的底层模块里，例如 `internal/bytealg`、`runtime` 中的内存拷贝函数。
+
+```go
+//go:noescape
+func SimdMemcpy(dst, src unsafe.Pointer, n uintptr)
+```
+
+标准库中这一类函数几乎都有配套的 `.s` 汇编文件，例如 `internal/bytealg` 里的内存拷贝实现。
 
 > **警告**：如果你错误地使用了 `//go:noescape`，而函数实际上导致了参数逃逸，程序可能会出现内存问题或崩溃。编译器有时候会用硬件断点来检测这种错误。
 
-#### 2.4.5 //go:noinline
+### 2.4.5 //go:noinline
 
 `//go:noinline` 指令告诉编译器"不要内联这个函数"。这在调试、性能分析和某些需要栈帧可见性的场景下很有用。
 
 **历史背景**：内联是编译器优化的重要手段，它会把小函数"展开"到调用者的代码中，消除函数调用开销。但是在某些场景下，我们需要函数保持独立的栈帧，比如调试时需要看到函数调用栈，或者使用 `defer` 时需要正确的栈帧。
 
-##### 2.4.5.1 内联控制
+#### 2.4.5.1 内联控制
+
+`//go:noinline` 强制编译器不要把这个函数内联进调用方。注意它只能用来**禁止**内联，Go 里没有 `//go:inline` 这种反向指令。
 
 
 ```go
@@ -1056,7 +1123,9 @@ func ComplexCalculation(x int) int {
 }
 ```
 
-##### 2.4.5.2 调试与优化
+#### 2.4.5.2 调试与优化
+
+当你用 `pprof` 采样时，如果一个函数被内联了，调用栈上就看不到它的名字。给关键函数加上 `//go:noinline`，火焰图里才能单独看到它。
 
 
 ```go
@@ -1070,13 +1139,15 @@ func DebugPrintStack() {
 
 > **小贴士**：Go 的内联策略很智能，通常不会内联包含循环、递归或复杂控制流的函数。`//go:noinline` 主要用于那些确实需要栈帧可见性的场景，而不是为了"优化"。
 
-#### 2.4.6 //go:systemstack
+### 2.4.6 //go:systemstack
 
 `//go:systemstack` 指令表明这个函数必须在系统栈上执行，而不能在普通的 goroutine 栈上执行。
 
 **历史背景**：Go 有两种栈——goroutine 栈（用户栈）和系统栈（g0栈）。系统栈用于运行时的一些关键操作，比如调度和 GC。某些函数必须在系统栈上执行，因为它们可能被正在栈增长的 goroutine 调用。
 
-##### 2.4.6.1 系统栈标记
+#### 2.4.6.1 系统栈标记
+
+被标记的函数会切到 g0 栈上运行，因此它里面不能做任何可能导致栈增长的操作。下面的例子是 runtime 中的典型写法。
 
 
 ```go
@@ -1088,7 +1159,9 @@ func writeBarrier() {
 }
 ```
 
-##### 2.4.6.2 运行时使用
+#### 2.4.6.2 运行时使用
+
+GC、调度器和信号处理中的一些函数必须在系统栈上执行，否则可能在被抢占的 goroutine 栈上触发二次栈增长，导致死循环。
 
 
 ```go
@@ -1100,13 +1173,15 @@ func morestack() {
 }
 ```
 
-#### 2.4.7 //go:nowritebarrier
+### 2.4.7 //go:nowritebarrier
 
 `//go:nowritebarrier` 指令告诉编译器"在这个函数中禁用写屏障"。如果代码在有写屏障的情况下运行，会产生编译错误。
 
 **历史背景**：写屏障是 GC 过程中的一个关键机制，它记录了堆上对象的修改。但是写屏障本身有性能开销。在某些性能关键的代码路径中，我们可能需要禁用写屏障。
 
-##### 2.4.7.1 GC 写屏障控制
+#### 2.4.7.1 GC 写屏障控制
+
+`//go:nowritebarrier` 表示这个函数体内不允许出现写屏障。如果编译器发现你在这里写了指针，它会直接报错，而不是偷偷加上屏障。
 
 
 ```go
@@ -1118,17 +1193,19 @@ func SimpleAssign(dst, src unsafe.Pointer, size uintptr) {
 }
 ```
 
-##### 2.4.7.2 底层代码使用
+#### 2.4.7.2 底层代码使用
 
 > **注意**：这个指令通常只在 runtime 和编译器内部使用。普通用户代码不应该需要它。
 
-#### 2.4.8 //go:yeswritebarrierrec
+### 2.4.8 //go:yeswritebarrierrec
 
 `//go:yeswritebarrierrec` 是 `//go:nowritebarrier` 的补充，标记一个函数在递归调用时允许写屏障。
 
 **历史背景**：有时候一个函数被标记为 `nowritebarrier`，但它的递归调用需要写屏障。这个指令用于处理这种嵌套情况。
 
-##### 2.4.8.1 写屏障恢复
+#### 2.4.8.1 写屏障恢复
+
+有些函数虽然是 `nowritebarrier` 的调用链的一部分，但它自己需要写指针，这时就用 `//go:yeswritebarrierrec` 明确允许屏障。
 
 
 ```go
@@ -1139,17 +1216,19 @@ func WriteBarrierRecursive(ptr unsafe.Pointer, val interface{}) {
 }
 ```
 
-##### 2.4.8.2 递归函数标记
+#### 2.4.8.2 递归函数标记
 
 > 这个指令主要用于 runtime 的 GC 相关代码，用于处理那些调用链中包含 `//go:nowritebarrier` 函数的递归函数。
 
-#### 2.4.9 //go:cgo_import_dynamic
+### 2.4.9 //go:cgo_import_dynamic
 
 `//go:cgo_import_dynamic` 是用于 CGO 的指令，告诉链接器如何处理动态库的符号导入。
 
 **历史背景**：CGO 是 Go 调用 C 代码的机制。在早期版本的 Go 中，需要使用这些底层指令来控制符号的导入。随着 CGO 的发展，很多这些指令已经被更高级的语法取代。
 
-##### 2.4.9.1 CGO 动态导入
+#### 2.4.9.1 CGO 动态导入
+
+动态导入告诉链接器：这个符号要到外部动态库里去找。下面把 C 头文件和 Go 侧的声明放在一起看。
 
 
 ```c
@@ -1173,7 +1252,9 @@ import (
 //go:cgo_import_dynamic add add "mylib.dll"
 ```
 
-##### 2.4.9.2 链接器指令
+#### 2.4.9.2 链接器指令
+
+这行是 `//go:cgo_import_dynamic 本地符号名 外部符号名 "库名"`。它由 cgo 工具自动生成，人工手写几乎没有意义。
 
 
 ```go
@@ -1182,36 +1263,44 @@ import (
 
 > **警告**：这些指令通常由 SWIG 或其他自动工具生成，而不是手写。
 
-#### 2.4.10 //go:cgo_import_static
+### 2.4.10 //go:cgo_import_static
 
 `//go:cgo_import_static` 与动态导入相对，用于静态链接的场景。
 
-##### 2.4.10.1 CGO 静态导入
+#### 2.4.10.1 CGO 静态导入
+
+静态导入用于把符号绑定到本地静态库里。和动态导入一样，它属于 cgo 工具链的内部细节。
 
 
 ```go
 //go:cgo_import_static clib add
 ```
 
-##### 2.4.10.2 使用场景
+#### 2.4.10.2 使用场景
+
+当外部库以静态库形式提供、且需要在最终二进制里保留其符号时，cgo 会生成这样的指令。
 
 
 ```go
 //go:cgo_import_static mypkg_add
 ```
 
-#### 2.4.11 //go:cgo_ldflag
+### 2.4.11 //go:cgo_ldflag
 
 `//go:cgo_ldflag` 用于向链接器传递标志，这在链接外部库时很有用。
 
-##### 2.4.11.1 CGO 链接器标志
+#### 2.4.11.1 CGO 链接器标志
+
+这条指令等价于给链接器追加一个参数，一行一个标志。它等价于在 cgo 注释里写 `#cgo LDFLAGS: -lpthread`，只是更底层。
 
 
 ```go
 //go:cgo_ldflag -lpthread
 ```
 
-##### 2.4.11.2 编译选项传递
+#### 2.4.11.2 编译选项传递
+
+多条 `//go:cgo_ldflag` 会按顺序累积。日常开发中请优先使用 `#cgo LDFLAGS:` 写法，可读性更好。
 
 
 ```go
@@ -1219,18 +1308,22 @@ import (
 //go:cgo_ldflag -lm
 ```
 
-#### 2.4.12 //go:cgo_export_static
+### 2.4.12 //go:cgo_export_static
 
 `//go:cgo_export_static` 用于从 Go 导出函数给 C 使用（静态链接场景）。
 
-##### 2.4.12.1 静态导出
+#### 2.4.12.1 静态导出
+
+导出指令的作用是把 Go 函数暴露给 C 侧调用。静态版本会把符号写死在本体二进制里。
 
 
 ```go
 //go:cgo_export_static GoAdd
 ```
 
-##### 2.4.12.2 C 函数导出
+#### 2.4.12.2 C 函数导出
+
+`//export` 和 `//go:cgo_export_static` 通常成对出现：前者声明要给 C 用，后者告诉链接器以静态符号导出。
 
 
 ```go
@@ -1242,18 +1335,22 @@ func GoAdd(a, b int32) int32 {
 //go:cgo_export_static GoAdd
 ```
 
-#### 2.4.13 //go:cgo_export_dynamic
+### 2.4.13 //go:cgo_export_dynamic
 
 `//go:cgo_export_dynamic` 用于从 Go 导出函数给 C 使用（动态链接场景）。
 
-##### 2.4.13.1 动态导出
+#### 2.4.13.1 动态导出
+
+动态导出的符号会进入动态符号表，从而可以被 `dlopen` 之类的机制在运行时找到——这是编译 `-buildmode=c-shared` 共享库时的关键。
 
 
 ```go
 //go:cgo_export_dynamic GoMultiply
 ```
 
-##### 2.4.13.2 共享库导出
+#### 2.4.13.2 共享库导出
+
+和静态导出的写法完全对称，只差最后一行指令。选择哪种，取决于产物是静态库还是共享库。
 
 
 ```go
@@ -1265,13 +1362,15 @@ func GoMultiply(a, b int32) int32 {
 //go:cgo_export_dynamic GoMultiply
 ```
 
-#### 2.4.14 //go:embed
+### 2.4.14 //go:embed
 
 `//go:embed` 是 Go 1.16 引入的指令，用于将文件或目录的内容嵌入到编译后的二进制文件中。
 
 **历史背景**：在 Go 1.16 之前，如果你想把静态文件打包进二进制，通常需要使用外部工具如 `go-bindata`。Go 1.16 引入了 `//go:embed` 指令，让这件事变得简单多了。这是 Go 语言" Batteries Included"哲学的又一次体现。
 
-##### 2.4.14.1 文件嵌入（Go 1.16+）
+#### 2.4.14.1 文件嵌入（Go 1.16+）
+
+`//go:embed` 只能用在**包级变量**上，而且变量类型必须是 `string`、`[]byte` 或 `embed.FS`。另外记得显式 `import "embed"`（哪怕只是 `_ "embed"`）。
 
 
 ```go
@@ -1286,22 +1385,18 @@ func main() {
     println(greeting)
 }
 ```
+假设 `hello.txt` 的内容是：
 
 
 ```text
-
 Hello, World!
-
 ```
 
-运行结果：
+那么编译运行后，程序同样会输出 `Hello, World!`。
 
+#### 2.4.14.2 嵌入目录
 
-```go
-// Hello, World!
-```
-
-##### 2.4.14.2 嵌入目录
+嵌入目录时变量类型必须是 `embed.FS`，然后用 `ReadFile`、`ReadDir` 等方法来访问。目录里以下划线或点开头的文件默认不会被嵌入。
 
 
 ```go
@@ -1318,7 +1413,9 @@ func main() {
 }
 ```
 
-##### 2.4.14.3 嵌入模式
+#### 2.4.14.3 嵌入模式
+
+`//go:embed` 支持 glob 通配符，也可以一次嵌入多个模式。下面把几种写法集中展示在同一段代码里。
 
 
 ```go
@@ -1341,11 +1438,15 @@ var textContent string
 //go:embed image.png
 var imageData []byte
 
-    fmt.Println("文本内容:", textContent) // 文本内容: // Hello, World!
-    fmt.Println("文本内容:", textContent) // 文本内容: // Hello, World!
+func main() {
+    entries, _ := sourceFiles.ReadDir(".")
+    fmt.Println("嵌入的 Go 文件数:", len(entries)) // 嵌入的 Go 文件数: 1（取决于目录里有几个 .go 文件）
+    fmt.Println("文本内容:", textContent)          // 文本内容: Hello, World!
     fmt.Printf("图片大小: %d bytes\n", len(imageData)) // 图片大小: <file_size> bytes
 }
 ```
+
+> **注意**：`//go:embed` 的模式必须真的能匹配到文件。如果目录里没有 `textfile.txt` 或 `image.png`，编译会直接失败并提示 `pattern textfile.txt: no matching files found`——这是新手最常遇到的报错之一。
 
 > **`//go:embed` 指令后面可以跟**：
 > - 单个文件名：`//go:embed hello.txt`
@@ -1353,79 +1454,107 @@ var imageData []byte
 > - 目录：`//go:embed templates`
 > - 路径模式：`//go:embed "data/*.json"`
 
-#### 2.4.15 //go:mod
+### 2.4.15 常见误区：并不存在的 `//go:mod` 与 `//go:sum`
 
-`//go:mod` 指令用于指定模块的 module 指令（从 Go 1.17 开始）。
+网上有些资料会列出 `//go:mod`、`//go:sum` 这两个"指令"，但**它们并不存在**。Go 的模块信息不走源码指令这条路线：
 
-##### 2.4.15.1 模块指令
+- 模块路径、Go 版本、依赖版本写在 **`go.mod`** 文件里；
+- 依赖的校验和写在 **`go.sum`** 文件里。
+
+这两个文件由 `go mod tidy`、`go get` 等命令自动维护，你几乎不需要手工编辑，更不会在 `.go` 源码里看到对应的注释指令。
+
+#### 2.4.15.1 go.mod 里长什么样
+
+模块的路径、Go 版本和依赖都在这个文件里声明：
+
+
+```toml
+module github.com/my/project
+
+go 1.24
+
+require (
+    github.com/pkg/errors v0.9.1
+)
+```
+
+#### 2.4.15.2 go.sum 里长什么样
+
+每条依赖两行：一行是模块 zip 的哈希，一行是它 `go.mod` 的哈希：
+
+
+```text
+github.com/pkg/errors v0.9.1 h1:LWQ1pSpb5y95X0N6y8eRM...
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+```
+
+> **小贴士**：如果你在某个教程里看到 `//go:mod` 或 `//go:sum`，可以直接判定那是编造的——编译器遇到它们只会当成普通注释。
+
+### 2.4.16 //go:debug
+
+`//go:debug` 是 **Go 1.21** 引入的指令，它用来给程序设置一个 **GODEBUG 默认值**——也就是说，不用在运行时设置环境变量，二进制的默认行为就已经带上了这个开关。
+
+**使用限制**：只能写在 `main` 包里，格式是 `//go:debug 名称=值`，同一个名称只允许出现一次。
+
+#### 2.4.16.1 设置 GODEBUG 默认值
+
+下面这个程序一旦编译出来，它的 `panic(nil)` 行为就已经被固定成「会真的 panic」：
 
 
 ```go
-//go:mod github.com/my/project v1.2.3
+//go:debug panicnil=1
+
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("这个程序的 panic(nil) 会真的 panic") // 这个程序的 panic(nil) 会真的 panic
+}
 ```
 
-##### 2.4.15.2 版本约束
+这等价于每次运行时都设置了环境变量 `GODEBUG=panicnil=1`。常见的例子还有 `//go:debug x509sha1=1`、`//go:debug http2client=0` 等。
 
-> 这个指令通常不需要手动使用，它是由 `go mod` 工具自动管理的。
+#### 2.4.16.2 和调试器的关系
 
-#### 2.4.16 //go:sum
+> 注意不要把它和"保留调试信息"混为一谈：想保留 DWARF 调试信息，应该用编译参数 `-gcflags="all=-N -l"`，而不是 `//go:debug`。
 
-`//go:sum` 指令用于指定 go.sum 文件的内容（从 Go 1.17 开始）。
+### 2.4.17 //go:fix
 
-##### 2.4.16.1 校验和指令
+`//go:fix` 是 **Go 1.24** 引入的指令，配合重写后的 `go fix` 命令使用。目前唯一的用法是加在函数上，写成 `//go:fix inline`，表示"提示 `go fix` 把这个函数的所有调用点替换成函数体"。
+
+#### 2.4.17.1 标记一个函数可以被内联替换
+
+给旧函数加上 `//go:fix inline`，再运行 `go fix`，所有调用点就会被自动改写成新写法：
 
 
 ```go
-//go:sum github.com/pkg/errors v0.9.1 h1: LWQ1pSpb5y95X0N6y8eRM...
+//go:fix inline
+func LegacyMax(a, b int) int {
+    return maxOf(a, b)
+}
+
+func maxOf(a, b int) int {
+    if a > b {
+        return a
+    }
+    return b
+}
 ```
 
-##### 2.4.16.2 安全验证
+#### 2.4.17.2 怎么用
 
-> 这个指令主要用于 Go 工具链内部，确保依赖的完整性和安全性。
+在模块根目录执行一条命令即可：
 
-#### 2.4.17 //go:debug
-
-`//go:debug` 是 Go 1.21 引入的指令，用于在编译时保留调试信息。
-
-**历史背景**：Go 1.21 引入了这个指令，允许在特定情况下保留更详细的调试信息，这对于调试某些类型的问题很有帮助。
-
-##### 2.4.17.1 调试指令（Go 1.21+）
-
-
-```go
-//go:debug local
+```bash
+# 让 go fix 按 //go:fix 指令重写代码
+go fix ./...
 ```
 
-这个指令告诉编译器在二进制文件中保留本地变量的调试信息。
-
-##### 2.4.17.2 运行时调试
-
-> 这个指令主要用于 Go 工具链和调试器的开发。
-
-#### 2.4.18 //go:fix
-
-`//go:fix` 指令标记了一个文件需要被 `go fix` 工具处理。
-
-**历史背景**：`go fix` 是 Go 早期版本中的一个工具，用于帮助开发者迁移旧代码到新版本。随着 Go 语言的发展，这个工具已经很少使用了。
-
-##### 2.4.18.1 自动修复标记
-
-
-```go
-//go:fix uuid
-```
-
-##### 2.4.18.2 代码迁移
-
-> 这个指令在 Go 语言内部使用，用于帮助开发者迁移旧代码到新版本。
-
-
-
-### 2.5 条件编译最佳实践
-
+> `go fix` 在 Go 1.24 之前只负责 Go 1 发布前的 API 迁移（那一套规则早已冻结）；1.24 之后它才真正可用来做自定义的代码重写，`//go:fix inline` 就是官方提供的第一个"指令"。
 > 条件编译是 Go 语言中一个强大的特性，但正如所有强大的特性一样，用得好是神器，用不好就是灾难。这一节我们来聊聊如何"优雅"地使用条件编译，避免把自己和同事坑哭。
 
-#### 2.5.1 何时使用构建约束
+### 2.5.1 何时使用构建约束
 
 **应该使用构建约束的场景：**
 
@@ -1470,7 +1599,7 @@ func main() {
 }
 ```
 
-#### 2.5.2 平台代码分离策略
+### 2.5.2 平台代码分离策略
 
 **策略一：文件名后缀法**
 
@@ -1510,7 +1639,9 @@ platform/
 package platform
 ```
 
-#### 2.5.3 测试代码的条件编译
+### 2.5.3 测试代码的条件编译
+
+集成测试往往依赖数据库、网络等外部环境，平时不想跑。给它加一个 `integration` 标签，默认 `go test` 就会跳过它。
 
 
 ```go
@@ -1535,7 +1666,9 @@ go test ./...
 go test -tags integration ./...
 ```
 
-#### 2.5.4 与 CI/CD 的结合
+### 2.5.4 与 CI/CD 的结合
+
+CI 里最省事的做法是用矩阵一次性交叉编译出所有目标平台。下面这份 GitHub Actions 配置演示了这个思路。
 
 
 ```yaml
@@ -1561,19 +1694,20 @@ jobs:
           go build -o myapp-${{ matrix.goos }}-${{ matrix.goarch }}
 ```
 
-#### 2.5.5 常见陷阱与规避
+### 2.5.5 常见陷阱与规避
 
 **陷阱一：文件名和注释约束冲突**
 
-
 ```go
 // file: foo_linux.go
-//go:build darwin  // ❌ 错误！文件名说是 Linux，注释说是 Darwin
+//go:build darwin
 
 package foo
 ```
 
-> 永远不要让文件名和注释冲突！它们应该一致。
+这里文件名要求 Linux，注释却要求 Darwin。这两个条件是**同时生效（AND）**的，所以这个文件在任何平台都不会被编译——在 macOS 上被文件名挡住，在 Linux 上被注释挡住，而且**不会有任何报错**，只是默默消失。
+
+> 永远不要让文件名和注释冲突！它们应该表达同一个意思，并且保持一致。
 
 **陷阱二：忘记默认文件**
 
@@ -1628,11 +1762,13 @@ flowchart TB
     style OK fill:#90EE90
 ```
 
-### 2.6 工具支持
+## 2.6 工具支持
 
 > Go 语言有一整套工具链来支持构建约束的使用。这一节我们来认识一下这些工具，让你在处理条件编译时更加得心应手。
 
-#### 2.6.1 go build 标签处理
+### 2.6.1 go build 标签处理
+
+`go build -tags` 可以一次指定多个标签（用逗号分隔）。注意 `-tags` 只是打开标签，并不会关闭文件名后缀约束。
 
 
 ```bash
@@ -1659,7 +1795,9 @@ func main() {
 }
 ```
 
-#### 2.6.2 go list -f 查看约束
+### 2.6.2 go list -f 查看约束
+
+搞不清某个文件为什么没被编译时，`go list -f` 是最快的排查手段——它会直接告诉你当前平台下到底选了哪些文件。
 
 
 ```bash
@@ -1682,7 +1820,7 @@ go list -f '{{.Constraints}}' ./...
 go list -json -f '{{.Constraints}}' mypackage
 ```
 
-#### 2.6.3 IDE 支持（VS Code, GoLand）
+### 2.6.3 IDE 支持（VS Code, GoLand）
 
 **VS Code (Go 扩展)：**
 
@@ -1706,7 +1844,7 @@ go list -json -f '{{.Constraints}}' mypackage
 - Preferences → Go → Build Tags
 - 支持自动补全 `//go:build` 约束
 
-#### 2.6.4 静态分析工具支持
+### 2.6.4 静态分析工具支持
 
 **go vet 和静态分析：**
 
@@ -1753,4 +1891,3 @@ run:
 ---
 
 > 到这里，第二章"特殊指令与构建约束"就全部结束了！你现在应该对 Go 语言的构建约束和特殊指令有了全面的了解。下一章我们将探讨 Go 语言的"类型系统"，这可是核心中的核心！准备好了吗？让我们继续 Go 的旅程！
-

@@ -21,37 +21,45 @@ Containerd是CNCF（云原生计算基金会）的毕业项目，它是从Docker
 
 ```mermaid
 flowchart TB
-    subgraph "Docker（以前）"
-        D[Docker Daemon]
-        D --> C[containerd]
-        C --> R[runc]
-        R --> Cont[容器]
+    subgraph "用 Docker 的场景"
+        DC[docker CLI] --> DD[dockerd]
+        DD --> C1[containerd]
+        C1 --> R1[runc]
+        R1 --> Cont1[容器]
     end
     
-    subgraph "Docker（现在）"
-        D2[Docker Daemon]
-        D2 --> C2[containerd]
+    subgraph "用 Kubernetes 的场景"
+        K[kubelet] --> C2[containerd<br/>的 CRI 插件]
         C2 --> R2[runc]
         R2 --> Cont2[容器]
     end
     
-    style C fill:#ff9999
+    style C1 fill:#ff9999
     style C2 fill:#ff9999
 ```
+
+可以看出：不管上层的工具是 Docker 还是 Kubernetes，**真正干活的那一层都是 containerd + runc**。
+Docker 多出来的部分是镜像构建（buildkit）、CLI、Compose 等"周边服务"，而 Kubernetes 只需要
+containerd 暴露的 CRI 接口就够了。
 
 ### Containerd的历史
 
 ```
-2013年：Docker诞生，containerd是Docker的一部分
+2016年：containerd从Docker中拆分出来、独立开源；
+        Docker 1.11 也开始用containerd管理容器的生命周期
     ↓
-2015年：Docker将containerd贡献给CNCF
+2017年：Docker把containerd捐给CNCF托管（社区中立治理）
     ↓
-2017年：Docker 1.11开始使用containerd
+2019年：containerd从CNCF毕业，成为顶级项目
     ↓
-2019年：containerd成为CNCF毕业项目
+2022年：Kubernetes 1.24移除dockershim，
+        containerd（或CRI-O）成为K8s的默认运行时
     ↓
-2022年：containerd 1.6发布，成为Kubernetes默认运行时
+2024年：containerd 2.0发布，配置与1.x基本兼容
 ```
+
+> 提醒一句：网上常见"2015年捐赠""2017年 Docker 1.11"这类时间线是把几件事记串了。
+> 记住三个关键年份就够了——**2016 年独立开源、2017 年捐给 CNCF、2019 年从 CNCF 毕业**。
 
 ### Containerd vs Docker
 
@@ -155,21 +163,26 @@ sudo systemctl restart containerd
 
 # 6. 验证安装
 containerd --version
-# containerd version 1.6.24
+# containerd github.com/containerd/containerd/v2 v2.0.5 ...
+# （1.6、1.7 等旧版现在仍在很多系统里使用，命令输出格式略有差别）
 
 # 7. 设置开机自启
-sudo systemctl enable containerd
+sudo systemctl enable --now containerd
 ```
+
+> 版本提醒：Ubuntu 官方仓库里的 `containerd` 往往比 Docker 仓库的 `containerd.io` 旧，
+> Kubernetes 新版本一般要求 containerd ≥ 1.6，所以生产上更推荐用 Docker 仓库的 `containerd.io`
+> 或者 containerd 官方 release 的二进制包。
 
 ### 在CentOS上安装
 
 ```bash
-# 1. 添加Docker仓库
-sudo yum install -y yum-utils
-sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+# 1. 添加Docker仓库（CentOS Stream 9 / Rocky 9 / AlmaLinux 9 用 dnf）
+sudo dnf install -y dnf-plugins-core
+sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
 # 2. 安装containerd
-sudo yum install -y containerd.io
+sudo dnf install -y containerd.io
 
 # 3. 生成配置
 sudo mkdir -p /etc/containerd
@@ -179,9 +192,12 @@ containerd config default | sudo tee /etc/containerd/config.toml
 sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
 
 # 5. 重启服务
-sudo systemctl restart containerd
-sudo systemctl enable containerd
+sudo systemctl enable --now containerd
 ```
+
+> ⚠️ CentOS Linux 7 已于 2024-06-30 停止维护，CentOS Linux 8 更早在 2021-12-31 就 EOL 了。
+> 新环境请用 Rocky Linux 9 / AlmaLinux 9 / CentOS Stream 9，命令统一用 `dnf`。
+> 如果不想引入 Docker 的仓库，也可以直接 `sudo dnf install -y containerd`（发行版自带版本通常略旧）。
 
 ### 配置文件说明
 
@@ -213,8 +229,8 @@ cat /etc/containerd/config.toml
 Containerd需要runc作为OCI运行时：
 
 ```bash
-# 下载runc
-curl -LO https://github.com/opencontainers/runc/releases/download/v1.1.10/runc.amd64
+# 下载runc（版本号请到 opencontainers/runc 的 release 页取最新）
+curl -LO https://github.com/opencontainers/runc/releases/download/v1.2.5/runc.amd64
 
 # 安装runc
 sudo mv runc.amd64 /usr/local/bin/runc
@@ -222,18 +238,21 @@ sudo chmod +x /usr/local/bin/runc
 
 # 验证
 runc --version
-# runc version 1.1.10
+# runc version 1.2.5
 ```
+
+> 注意：如果已经装了 `containerd.io` 包，runc 通常已经作为依赖装好了，
+> 这时再手动覆盖 `/usr/local/bin/runc` 属于"抢优先级"的做法，升级前先确认版本关系。
 
 ### 安装CNI网络插件
 
 ```bash
-# 下载CNI插件
-curl -LO https://github.com/containernetworking/plugins/releases/download/v1.3.0/cni-plugins-linux-amd64-v1.3.0.tgz
+# 下载CNI插件（版本号请取 release 页最新，架构按 uname -m 选 amd64/arm64）
+curl -LO https://github.com/containernetworking/plugins/releases/download/v1.6.2/cni-plugins-linux-amd64-v1.6.2.tgz
 
 # 解压到指定目录
 sudo mkdir -p /opt/cni/bin
-sudo tar -C /opt/cni/bin -xzf cni-plugins-linux-amd64-v1.3.0.tgz
+sudo tar -C /opt/cni/bin -xzf cni-plugins-linux-amd64-v1.6.2.tgz
 
 # 验证
 ls /opt/cni/bin/
@@ -245,16 +264,28 @@ ls /opt/cni/bin/
 如果要将Containerd配置为Kubelet的运行时：
 
 ```bash
-# 1. 编辑kubelet配置
-sudo nano /var/lib/kubelet/config.yaml
+# 方式一：kubeadm 集群，在 kubeadm 配置里指定 CRI socket（推荐）
+# ClusterConfiguration 之外的 kubeletExtraArgs 或 InitConfiguration 里写：
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: InitConfiguration
+nodeRegistration:
+  criSocket: unix:///run/containerd/containerd.sock
 
-# 2. 添加/修改runtime配置
-runtimeEndpoint: unix:///run/containerd/containerd.sock
+# 方式二：编辑 kubelet 自己的配置 /var/lib/kubelet/config.yaml
+# 注意字段名是 containerRuntimeEndpoint，不是 runtimeEndpoint
+containerRuntimeEndpoint: unix:///run/containerd/containerd.sock
 imagePullProgressDeadline: 10m
 
-# 3. 重启kubelet
+# 改完重启 kubelet
 sudo systemctl restart kubelet
+
+# 检查是否连上了容器运行时
+kubectl get nodes -o wide    # 节点状态应为 Ready
 ```
+
+> 小坑提醒：旧教程里写的 `runtimeEndpoint:` 并不是 KubeletConfiguration 的合法字段，
+> kubelet 解析配置时会直接报未知字段的错误。老版本 kubelet 用的是命令行参数
+> `--container-runtime-endpoint=unix:///run/containerd/containerd.sock`，这个参数在新版本里也已移除。
 
 ### 一图总结安装流程
 
@@ -295,16 +326,20 @@ flowchart LR
 ### 安装nerdctl
 
 ```bash
-# 下载nerdctl
-curl -LO https://github.com/containerd/nerdctl/releases/download/v1.5.1/nerdctl-1.5.1-linux-amd64.tar.gz
+# 下载nerdctl（版本号请到 release 页取最新，这里以 2.x 为例）
+curl -LO https://github.com/containerd/nerdctl/releases/download/v2.0.3/nerdctl-2.0.3-linux-amd64.tar.gz
 
 # 解压
-sudo tar -C /usr/local/bin -xzf nerdctl-1.5.1-linux-amd64.tar.gz
+sudo tar -C /usr/local/bin -xzf nerdctl-2.0.3-linux-amd64.tar.gz
 
 # 验证
 nerdctl --version
-# nerdctl version 1.5.1
+# nerdctl version 2.0.3
 ```
+
+> 小贴士：如果只是想在单机上用 Docker 一样的体验，直接装 `nerdctl-full` 包最省事——
+> 它把 containerd、runc、CNI 插件、buildkit 全打包在一起，省得自己一个个装。
+> 跑 Kubernetes 集群时真正被用的是 containerd 的 CRI 接口，nerdctl 只是给人用的 CLI。
 
 ### nerdctl vs docker 命令对比
 
@@ -448,6 +483,13 @@ flowchart LR
 | **兼容性** | 兼容Docker | - |
 | **开发公司** | Red Hat | Docker Inc. |
 
+> 两点补充，避免被"绝对化"的说法带偏：
+> 1. **Docker 现在也有 rootless 模式**（`dockerd-rootless-setuptool.sh`），并非只能 root 运行；
+>    只是默认安装方式仍然以 root 守护进程为主。
+> 2. **Podman 说"无守护进程"是指没有常驻的中央守护进程**，它仍然会为每个容器启动一个
+>    `conmon` 监控进程，底层同样依赖 `runc`/`crun`。在 macOS/Windows 上，Podman 还需要
+>    先 `podman machine init && podman machine start` 起一台 Linux 虚拟机才能跑容器。
+
 ### Podman的优势
 
 **1. 无守护进程**
@@ -471,13 +513,13 @@ flowchart LR
 
 **Pod（容器组）：**
 ```
-┌─────────────────────────────────┐
-│           Pod                    │
-│  ┌───────────┐  ┌───────────┐   │
-│  │ Container1│  │ Container2│   │
-│  └───────────┘  └───────────┘   │
+┌───────────────────────────────────┐
+│           Pod                     │
+│  ┌───────────┐  ┌───────────┐     │
+│  │ Container1│  │ Container2│     │
+│  └───────────┘  └───────────┘     │
 │         共享网络和存储            │
-└─────────────────────────────────┘
+└───────────────────────────────────┘
 ```
 
 ### Podman的适用场景
@@ -729,16 +771,23 @@ podman login docker.io
 # 3. 推送镜像
 podman push myapp:v1 docker.io/myuser/myapp:v1
 
-# 4. Docker Compose（需要安装podman-compose）
-pip install podman-compose
+# 4. Docker Compose 兼容层
+#    Podman 4.1+ 自带 podman compose 子命令（内部会调用 docker-compose 或 podman-compose）
+podman compose up -d
+
+#    也可以单独安装 podman-compose（Python 实现，功能没那么全）
+#    注意：不建议再用 pip 装到系统 Python 里，优先用发行版的包
+sudo apt install podman-compose      # Debian/Ubuntu
+sudo dnf install podman-compose      # Fedora/RHEL 系
 podman-compose up -d
 ```
 
 ### Podman生成Kubernetes YAML
 
 ```bash
-# 从Pod生成K8s YAML
-podman generate kube mypod > mypod.yaml
+# 从Pod生成K8s YAML（Podman 4.9+ 的新写法）
+podman kube generate mypod > mypod.yaml
+# 旧写法（已废弃，但很多老教程还在用）：podman generate kube mypod > mypod.yaml
 
 # 创建Pod from K8s YAML
 podman play kube mypod.yaml
@@ -809,5 +858,3 @@ Podman使用要点：
 > Docker在旁边默默喝着咖啡，心想："你们都是我生的..." 😏
 >
 > 记住：**没有最好的工具，只有最适合你场景的工具！** 🛠️
-
-

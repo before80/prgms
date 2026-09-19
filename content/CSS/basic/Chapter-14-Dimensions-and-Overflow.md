@@ -46,7 +46,24 @@ draft = false
 
 **`auto` 的表现因元素类型而异：**
 
-块级元素（div、p、h1 等）的 `width` 默认是 `100%`，会撑满父元素的整个宽度。而行内元素（span、a、strong 等）的 `width` 和 `height` 基本上都是 `auto`，由内容决定。
+块级元素（div、p、h1 等）的 `width` 默认是 **`auto`**，在常规文档流里它会"占满父元素的可用宽度"——看起来像 `100%`，但其实**不等于 `100%`**，这个区别很重要：
+
+```css
+/* 看起来一样，实际算法不同 */
+.a {
+  width: auto;      /* 浏览器先算 父宽 - margin - border - padding，剩下的给内容 */
+  padding: 0 20px;
+  /* 结果：盒子总宽正好等于父容器宽度，不溢出 */
+}
+
+.b {
+  width: 100%;      /* 内容区宽度 = 父容器的 100% */
+  padding: 0 20px;  /* 再加上左右 padding，盒子总宽超出父容器！ */
+  /* 结果：横向出现滚动条（除非设了 box-sizing: border-box） */
+}
+```
+
+所以"块级元素默认宽度是 100%"是一种简化的说法，严格讲默认值是 `auto`；只有当父元素有明确宽度、且你写 `width: 100%` 时才会出现上面 `.b` 那种溢出问题。至于行内元素（span、a、strong 等），它们的 `width` 和 `height` **直接设置是无效的**（会被忽略），必须先用 `display: inline-block`、`block` 或 `flex` 改变显示方式。
 
 ```css
 /* 块级元素的表现 */
@@ -113,7 +130,8 @@ draft = false
 
 ```css
 /* 像素（px）——最常用的固定单位 */
-/* 像素是屏幕上的最小发光点，绝对单位，写多少就是多少 */
+/* CSS 像素是"与设备无关"的绝对单位，按定义 1px = 1/96 英寸 */
+/* 它不等于屏幕上的物理像素：高清屏上 1 个 CSS 像素由多个物理像素绘制 */
 
 .fixed-box {
   width: 300px;   /* 精确的300像素 */
@@ -234,14 +252,14 @@ draft = false
 
 /* min-content——由内容最小需求决定（CSS3）*/
 .min-content {
-  width: min-content;  /* 宽度由最宽内容决定 */
+  width: min-content;  /* 收缩到不能再窄：中文按单字、英文按最长单词 */
   background-color: #e74c3c;
   padding: 10px;
 }
 
 /* max-content——由内容自然宽度决定（CSS3）*/
 .max-content {
-  width: max-content;  /* 宽度由内容自然排列决定 */
+  width: max-content;  /* 内容完全不换行时的自然宽度 */
   background-color: #9b59b6;
   padding: 10px;
 }
@@ -419,7 +437,7 @@ draft = false
 }
 
 .child-in-percent-height {
-  height: 50%;  /* = auto？浏览器可能显示为0或忽略 ⚠️ */
+  height: 50%;  /* 父元素高度是 auto → 百分比无处可依，按规范解析为 auto */
 }
 
 /* 常见陷阱：body和html */
@@ -450,7 +468,15 @@ html, body {
 </div>
 ```
 
-> 💡 **小技巧**：宽度的百分比计算是"无条件"的，但高度的百分比计算需要父元素有明确的 height 值。如果你想让子元素占满父元素的高度，记得先给父元素设定高度，或者使用 `height: 100vh`（视口高度）。
+> 💡 **小技巧**：宽度的百分比计算是"无条件"的（包含块宽度总是可确定的），但高度的百分比只有在父元素高度**确定**（definite，比如写了具体 `px`、`vh`，或父元素是 flex/grid 容器分配的确定高度）时才生效；父元素是 `height: auto` 时，子元素的 `height: 50%` 会退化成"由内容决定"。
+>
+> 另外记住：`height: 100%` 想一路生效，需要**每一层祖先都设了高度**（这就是常见的 `html, body { height: 100% }` 组合）。现代写法更简单：
+>
+> ```css
+> .full { min-height: 100dvh; }  /* 直接相对视口高度，不必层层设 100% */
+> ```
+>
+> `dvh`/`svh`/`lvh` 是 vh 的三个现代变体，用来应对移动端地址栏收放导致的视口高度变化（详见第 4 章与第 25 章）。
 
 ### 14.2.2 包含块有 padding 时，百分比相对于包含块的 width（不包括 padding）
 
@@ -550,34 +576,49 @@ html, body {
 **box-sizing 对百分比计算的影响：**
 
 ```css
-/* content-box（默认）——百分比相对于内容区 */
+/* content-box（默认）——width 只算内容区，padding/border 额外叠加 */
 .content-box-parent {
-  width: 400px;
-  padding: 50px;
-  box-sizing: content-box;  /* 默认值 */
+  width: 400px;              /* 内容区宽 400px */
+  padding: 50px;             /* 左右各 50px */
+  box-sizing: content-box;   /* 默认值 */
+  /* 盒子在页面上实际占据的宽度 = 400 + 50 + 50 = 500px */
 }
 
 .content-box-child {
-  width: 50%;  /* = 400px × 50% = 200px */
-  /* padding额外叠加，不包含在50%内 */
+  width: 50%;                /* 子元素的包含块 = 父元素内容区 = 400px */
+  /* = 400px × 50% = 200px */
+  /* padding 会在这 200px 之外额外叠加 */
 }
 
-/* border-box——百分比相对于整个元素 */
+/* border-box——width 包含 padding 和 border，内容区被"挤小" */
 .border-box-parent {
-  width: 400px;
-  padding: 50px;
-  box-sizing: border-box;  /* 推荐写法 */
+  width: 400px;              /* 盒子总宽 400px（含 padding） */
+  padding: 50px;             /* 左右各 50px */
+  box-sizing: border-box;    /* 推荐写法 */
+  /* 内容区宽 = 400 - 50 - 50 = 300px */
 }
 
 .border-box-child {
-  width: 50%;  /* = 400px × 50% = 200px */
-  /* padding已经包含在50%内 */
+  width: 50%;                /* 包含块仍然是"父元素的内容区"，即 300px */
+  /* = 300px × 50% = 150px ← 注意不是 200px！ */
   padding: 20px;
-  /* 实际内容区 = 200px - 40px = 160px */
+  box-sizing: border-box;
+  /* 子元素自己的盒子总宽 = 150px，其中内容区 = 150 - 40 = 110px */
 }
 ```
 
-> 💡 **小技巧**：现代开发中，建议全局使用 `box-sizing: border-box`，这样 width 的百分比计算会更符合直觉——百分比始终是相对于元素的实际宽度，包括 padding。
+> ⚠️ **一个高频误解**：`box-sizing` **只影响元素"自己的" width 计算方式，并不改变它的子元素百分比相对谁计算**——子元素的百分比永远相对于**父元素的内容区（content box）**。所以父元素从 `content-box` 切到 `border-box` 后，内容区从 400px 变成了 300px，子元素的 `width: 50%` 也就从 200px 变成了 150px。
+>
+> 💡 **小技巧**：现代开发中建议全局使用 `box-sizing: border-box`，好处是"你写的 width 就是元素在页面上占的宽度"（padding、border 向内挤），布局不容易算错：
+>
+> ```css
+> /* 推荐放在样式表最前面 */
+> *,
+> *::before,
+> *::after {
+>   box-sizing: border-box;
+> }
+> ```
 
 ## 14.3 max-width / min-width
 
@@ -813,7 +854,7 @@ html, body {
   max-width: 600px;     /* 最多600px */
   margin: 0 auto;
   padding: 20px;
-  background-color: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #667eea, #764ba2);  /* 渐变要用 background，不能用 background-color */
   color: white;
   border-radius: 10px;
 }
@@ -1024,7 +1065,7 @@ html, body {
 /* 现代方法：使用动态视口高度dvh */
 .modern-full {
   min-height: 100vh;
-  min-height: 100dvh;  /* iOS Safari 15+ 支持 */
+  min-height: 100dvh;  /* Safari 15.4+ / Chrome 108+ / Firefox 101+ 支持 */
 }
 
 /* 组合方案：同时提供fallback */
@@ -1136,26 +1177,39 @@ html, body {
 **`max-height` 和 `height: auto` 的配合：**
 
 ```css
-/* 常见陷阱：height: auto + max-height 组合问题 */
+/* 常见陷阱 */
 
-/* 这种情况max-height可能不生效 */
-.problematic {
-  height: auto;     /* auto会无视max-height的限制吗？ */
+/* 陷阱 1：max-height 其实能正常限制 height: auto——两者并不冲突 */
+.works-fine {
+  height: auto;       /* 内容撑高，但会被下面的上限截住 */
   max-height: 200px;
+  overflow: hidden;   /* 记得配合 overflow，否则内容会溢出显示 */
+}
+
+/* 陷阱 2：在 flex/grid 子项上，max-height 可能"看起来没生效" */
+.flex-item {
+  max-height: 200px;
+  /* flex 子项默认 min-height: auto（不小于内容高度），
+     当内容很高时，这个"自动最小高度"会顶开 max-height。
+     解决办法是显式把最小高度放开： */
+  min-height: 0;
   overflow: hidden;
 }
 
-/* 正确做法：直接用max-height，不设置明确的高度 */
-.correct {
-  max-height: 200px;  /* 只设置max-height */
-  overflow: hidden;    /* 超出隐藏 */
+/* 陷阱 3：max-height 用百分比时，父元素高度必须确定 */
+.percent-max-height {
+  max-height: 50%;    /* 父元素 height: auto → 这条不生效 */
 }
 
-/* 或者用min-height保底 */
-.with-min {
-  min-height: 100px;  /* 至少100px */
-  max-height: 200px;    /* 最多200px */
+/* 陷阱 4：想要过渡动画，max-height 必须是具体数值 */
+.collapsible {
+  max-height: 0;              /* 收起 */
   overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.collapsible.open {
+  max-height: 500px;          /* 展开：写一个"足够大"的具体值才能过渡 */
+  /* 写 max-height: none 是过渡不了的 */
 }
 ```
 
@@ -1244,9 +1298,12 @@ html, body {
   aspect-ratio: 1.778;  /* 约等于16:9 */
 }
 
-/* 简写形式（斜杠可省略） */
-.ratio-shorthand {
-  aspect-ratio: 16 9;  /* 斜杠可以省略，用空格 */
+/* ⚠️ 斜杠不能省略、也不能换成空格 */
+.ratio-wrong {
+  aspect-ratio: 16 9;   /* ❌ 无效声明，会被整条丢弃 */
+}
+.ratio-right {
+  aspect-ratio: 16 / 9; /* ✅ 必须是 数字 / 数字 的形式 */
 }
 
 /* auto 关键字 —— 保持元素默认的比例计算方式 */
@@ -1254,6 +1311,8 @@ html, body {
   aspect-ratio: auto;  /* 默认值，让浏览器决定 */
 }
 ```
+
+> 💡 `aspect-ratio` 的值只能有两种形态：**一个数字**（`aspect-ratio: 1.778`）或**两个数字用斜杠分隔**（`aspect-ratio: 16 / 9`）。想表达 16:9 也可以直接写 `aspect-ratio: 16/9`（斜杠两侧的空格是可选的），但**不能写成 `16 9`**——那会被解析成一个无效值。另外 `<ratio>` 里的数字必须是正数，`aspect-ratio: 0` 或负数无效。
 
 **常见比例的参考值：**
 
@@ -1291,21 +1350,22 @@ html, body {
 ```css
 /* 现代方法：使用 aspect-ratio */
 
+/* 直接作用在 <img> 上 */
 .responsive-image {
   width: 100%;
-  height: auto;             /* 高度由内容决定？不 */
-  aspect-ratio: 16 / 9;     /* 保持16:9比例 */
-  object-fit: cover;         /* 图片填充容器，裁剪多余部分 */
+  height: auto;             /* 高度交给比例去算 */
+  aspect-ratio: 16 / 9;     /* 保持 16:9 */
+  object-fit: cover;        /* 图片按比例铺满，多余部分裁掉 */
   display: block;
 }
 
 /* 正方形头像 */
 .avatar {
   width: 150px;
-  height: auto;        /* 高度由比例决定 */
-  aspect-ratio: 1;   /* 1:1 = 正方形 */
-  object-fit: cover;  /* 图片填充，裁剪成正圆 */
-  border-radius: 50%; /* 结合使用变成圆形 */
+  height: auto;             /* 只给宽，高自动 = 150px */
+  aspect-ratio: 1;          /* 1:1 = 正方形 */
+  object-fit: cover;        /* 图片裁切成正方形 */
+  border-radius: 50%;       /* 再变成圆形 */
 }
 
 /* 3:2 比例的照片卡片 */
@@ -1323,16 +1383,27 @@ html, body {
 ```
 
 ```html
-<!-- 响应式图片：容器保持16:9，图片自动裁剪填充 -->
-<div class="responsive-image">
-  <img src="landscape-photo.jpg" alt="风景照">
-</div>
-
-<!-- 圆形头像 -->
-<div class="avatar">
-  <img src="portrait-photo.jpg" alt="头像">
-</div>
+<!-- 图片本身就是上面那两个类的作用对象 -->
+<img class="responsive-image" src="landscape-photo.jpg" alt="风景照">
+<img class="avatar" src="portrait-photo.jpg" alt="头像">
 ```
+
+> 💡 如果想让**容器**保持比例、图片再填满容器，就把 `aspect-ratio` 写在容器上、`object-fit` 写在图片上：
+>
+> ```css
+> .ratio-box {
+>   width: 100%;
+>   aspect-ratio: 16 / 9;   /* 容器的比例 */
+>   overflow: hidden;
+> }
+> .ratio-box img {
+>   width: 100%;
+>   height: 100%;
+>   object-fit: cover;      /* 图片的比例在这里管 */
+> }
+> ```
+>
+> 注意 `object-fit` **只对替换元素（`img`、`video` 等）生效**，写在普通 `div` 上是没有效果的——这也是把容器和图片分开写时最容易搞混的一点。
 
 **视频容器：**
 
@@ -1421,16 +1492,22 @@ html, body {
   /* 高度300px → 宽度 = 300 * (16/9) ≈ 533px */
 }
 
-/* 场景3：同时设置宽高，aspect-ratio作为最大比例限制 */
+/* 场景3：同时设置宽高 —— aspect-ratio 会被忽略！ */
 .both-set {
   width: 600px;
   height: 400px;
-  aspect-ratio: 16 / 9;
-  /* 实际计算：min(600, 400 * 16/9) = min(600, 711) = 600 */
-  /* 宽度600px，高度保持400px（不强制比例）*/
-  /* aspect-ratio 作为"建议比例"而非"强制比例" */
+  aspect-ratio: 16 / 9;   /* 无效：宽高都是确定值，比例没有"用武之地" */
+  /* 最终就是 600 × 400，比例为 3:2，而不是 16:9 */
 }
 ```
+
+> 📌 **一句话记住 `aspect-ratio` 的生效条件**：它只用来**推算那个 `auto` 的尺寸**。所以：
+>
+> - 宽度确定、高度 `auto` → 用比例算高度 ✅
+> - 高度确定、宽度 `auto` → 用比例算宽度 ✅
+> - 宽高都确定 → 比例被忽略 ❌
+>
+> 这也是"为什么我写了 `aspect-ratio` 却没效果"的头号原因——通常是把 `width` 和 `height` 都写死了。
 
 **`aspect-ratio` 与 `box-sizing` 的关系：**
 
@@ -1605,11 +1682,44 @@ html, body {
   overflow: hidden;  /* 这会让元素形成独立的格式化上下文 */
 }
 
-/* 2. overflow: visible 和 overflow: hidden 不同时设置会产生意想不到的效果 */
+/* 2. x 和 y 里只要有一个不是 visible，另一个 visible 会被自动改成 auto */
 .cross-visibility {
   overflow-x: hidden;  /* 水平溢出隐藏 */
-  overflow-y: visible;  /* 垂直溢出显示 */
-  /* 这会让垂直溢出内容显示在元素外面 */
+  overflow-y: visible; /* ⚠️ 浏览器会把它计算成 auto，而不是 visible！ */
+  /* 结果：垂直方向变成了滚动容器，内容和预期完全不一样 */
+}
+```
+
+> ⚠️ **这是 `overflow` 最容易被忽视的规则**：`visible` 和"可滚动值"**不能共存**。
+>
+> ```css
+> /* 用 hidden/scroll/auto 时：另一个方向的 visible 会被自动计算成 auto */
+> .a { overflow-x: hidden; overflow-y: visible; }  /* 实际等价于 hidden auto */
+>
+> /* 用 clip 时：另一个方向的 clip 会被自动计算成 hidden */
+> .c { overflow-x: scroll; overflow-y: clip; }     /* 实际等价于 scroll hidden */
+> ```
+>
+> 但 **`visible` 和 `clip` 是老搭档**，它们可以合法共存——这正是 `clip` 存在的意义之一：
+>
+> ```css
+> /* ✅ 横向裁掉，纵向照常溢出显示（这才是"只裁一个方向"的正确写法） */
+> .d {
+>   overflow-x: clip;
+>   overflow-y: visible;
+> }
+> ```
+>
+> 记住这个口诀：**能滚动的那一侧说了算**，另一侧的 `visible` 变 `auto`、`clip` 变 `hidden`；而 `visible` + `clip` 两个"不滚动"的值可以和平相处。
+
+**还有一个新值值得认识——`clip`：**
+
+```css
+/* overflow: clip —— 裁切但不产生滚动容器 */
+.clipped {
+  overflow: clip;            /* 像 hidden 一样裁掉溢出，但不会出现滚动条 */
+  overflow-clip-margin: 20px; /* 还能让裁切边界向外扩 20px（"出血"效果） */
+  /* 重要区别：clip 不会把元素变成滚动容器，也不会创建 BFC */
 }
 ```
 
@@ -1667,7 +1777,15 @@ html, body {
 }
 ```
 
-> 💡 **小技巧**：`overflow: hidden` 是最常用的溢出处理方式，但要注意它会创建新的块格式化上下文（BFC），这可能会影响元素的布局行为。如果你不希望创建 BFC，可以考虑使用 `clip: rect(0, 0, 0, 0)` 或 CSS 的 `clip-path` 属性。
+> 💡 **小技巧**：`overflow: hidden` 是最常用的溢出处理方式，但要注意它会创建新的块格式化上下文（BFC，能包住浮动、阻止外边距合并），也会把元素变成滚动容器，这可能影响布局行为。如果你只想"裁掉"而不想引入这些副作用，现代做法是用 **`overflow: clip`**：
+>
+> ```css
+> .no-bfc-clip {
+>   overflow: clip;   /* 裁切内容，但不创建 BFC、不产生滚动容器 */
+> }
+> ```
+>
+> 老代码里偶尔能看到 `clip: rect(0, 0, 0, 0)`，那是早期（且已废弃的）`clip` **属性**，只对绝对定位元素生效，不要再用了，会被 `overflow: clip` 取代。
 
 ## 14.7 overflow-x / overflow-y
 
@@ -1732,7 +1850,7 @@ html, body {
   overflow-y: hidden;      /* 垂直不溢出 */
   padding: 16px;
   background-color: #f5f5f5;
-  -webkit-overflow-scrolling: touch;  /* iOS惯性滚动 */
+  -webkit-overflow-scrolling: touch;  /* 老 iOS 的惯性滚动开关；现代 iOS 已默认支持，写了也无害 */
 }
 
 /* 隐藏滚动条但保留功能 */
@@ -1841,8 +1959,8 @@ overflow-y: scroll;
 .container {
   overflow: hidden;          /* 先设置缩写：两个方向都是hidden */
   overflow-x: auto;           /* 然后单独设置x方向为auto */
-  overflow-y: visible;        /* 单独设置y方向为visible */
-  /* 最终结果：x方向auto，y方向visible */
+  overflow-y: visible;        /* 想设 y 为 visible，但…… */
+  /* 最终结果：x 方向 auto，y 方向也被算成 auto（visible 不能和可滚动值共存） */
 }
 ```
 
@@ -1858,27 +1976,50 @@ overflow-y: scroll;
   /* 浏览器表面上接受了你的 visible，但背地里改成了 auto 😏 */
 }
 
-/* 如果想让两个方向都可见，必须使用 visible 但需要用其他方式实现 */
+/* 想真正"两个方向都不裁切、都照常溢出"——其实什么都不用写 */
 .visible-both-ways {
-  max-height: none;   /* 不限制高度 */
-  /* 或者使用 clip 属性 */
+  /* overflow 的初始值就是 visible，两个方向都不裁切 */
 }
 
-/* ⚠️ 另一个陷阱：overflow 默认值是 visible，但大多数元素会形成结界（BFC），
-   让 visible 的溢出行为和想象中不太一样 */
-.bfc-gotcha {
-  overflow: visible;  /* 默认值 */
-  /* 但如果父元素也有 overflow: hidden/scroll/auto，visible 就失效了 */
+/* 想"裁一个方向、另一个方向照常溢出"——用 clip + visible */
+.clip-one-axis {
+  overflow-x: clip;      /* 横向裁掉（而且不产生滚动条） */
+  overflow-y: visible;   /* 纵向照常溢出显示：这组合是合法的 */
+}
+
+/* ⚠️ 一个常见误解：overflow: visible 不等于"内容一定能显示出来" */
+.child-with-visible {
+  overflow: visible;     /* 自己不裁切 */
+  /* 但如果它的祖先元素设了 overflow: hidden/auto/scroll，
+     超出祖先边界的那部分内容依然会被祖先裁掉——
+     因为"裁切"发生在祖先那一层，和这个元素自己的 visible 无关。 */
 }
 ```
 
-> 💡 **小技巧**：`overflow-x` 和 `overflow-y` 在移动端开发中特别有用，比如横向滚动的图片轮播、表格的横向滚动等。记得在 iOS 上添加 `-webkit-overflow-scrolling: touch` 来获得惯性滚动的体验。
+> 💡 **顺便纠正一个常见的错误说法**：并不是"块级元素都形成 BFC"。常规文档流里的普通块盒子**不**形成独立的格式化上下文；会形成 BFC 的典型情况是：根元素、浮动元素、绝对/固定定位元素、`inline-block`、`table-cell`、`flow-root`，以及 **`overflow` 不是 `visible`/`clip` 的块盒子**。所以 `overflow: hidden` 之所以常被用来"包住浮动"，正是因为它新建了一个 BFC；而 `overflow: visible` 不会。
+
+> 💡 **小技巧**：`overflow-x` 和 `overflow-y` 在移动端开发中特别有用，比如横向滚动的图片轮播、表格的横向滚动等。老教程里会写 `-webkit-overflow-scrolling: touch` 来开启 iOS 惯性滚动，**现代 iOS 已经默认支持惯性滚动**，这个属性现在写了也不会有额外效果（可以保留作为老系统的兜底）。
+>
+> 另外几个移动端常用组合：
+>
+> ```css
+> /* 只允许横向滑动，且禁止纵向弹性滚动（常见于卡片轮播） */
+> .carousel {
+>   overflow-x: auto;
+>   overflow-y: hidden;
+>   -webkit-overflow-scrolling: touch;
+>   overscroll-behavior-x: contain;  /* 滑动到头时不要带动整页 */
+>   scroll-snap-type: x mandatory;   /* 滑动后自动对齐到卡片 */
+> }
+> ```
 
 ## 14.8 resize 调整尺寸
 
 ### 14.8.1 none（默认）、both（水平和垂直）、horizontal（只有水平）、vertical（只有垂直）
 
 `resize` 属性是一个"小众但实用"的 CSS 属性。它允许用户通过拖动来调整元素的尺寸。这个属性通常和 `overflow` 属性配合使用——没有溢出处理，`resize` 基本没什么意义。
+
+**生效条件**：元素的 `overflow` **不能是 `visible`**（也就是必须是一个滚动容器，`auto`/`scroll`/`hidden`/`clip` 都行）；另外它只对**块级、非替换**元素生效，行内元素上写是无效的。还要注意一个现实：**移动端 Safari 识别 `resize` 但实际上不生效**，所以别把"让用户拖拽调整"做成移动端的主要交互手段。
 
 **什么是 `resize`？**
 
@@ -2056,9 +2197,9 @@ textarea:focus {
 /* ⚠️ resize 的一些限制 */
 
 /* 1. resize 不能用于所有元素 */
-/* 有效的元素必须满足以下条件之一： */
-/*    - 设置了 overflow 不是 visible */
-/*    - 设置了 display 不是 inline */
+/* 有效的元素要同时满足两个条件： */
+/*    - overflow 不是 visible（必须是滚动容器） */
+/*    - display 不是 inline（块级、inline-block、flex item 等都行） */
 
 .inline-span {
   resize: both;           /* ❌ 无效！行内元素 */
@@ -2176,6 +2317,11 @@ textarea:focus {
 | overflow-x / overflow-y | 分别控制水平和垂直方向的溢出 |
 | resize | 允许用户调整元素尺寸 |
 
+> ⚠️ 使用 `overflow` 时最容易踩的两个坑：
+>
+> 1. **`visible` 不能和可滚动值共存**：`overflow-x: hidden; overflow-y: visible` 里的 `visible` 会被自动算成 `auto`（`clip` 则会被算成 `hidden`）。想"裁一个方向、另一个方向照常溢出"，要写成 `overflow-x: clip; overflow-y: visible`。
+> 2. **`overflow: hidden` 不只是"隐藏"**：它还会创建 BFC、把元素变成滚动容器，进而影响外边距合并、浮动包含和定位行为。只想裁切、不想引入这些副作用时，用 `overflow: clip`。
+
 ### 尺寸单位的对比
 
 ```mermaid
@@ -2184,7 +2330,7 @@ graph TD
     A --> C["相对单位"]
 
     B --> B1["px —— 像素，最精确"]
-    B1 --> B2["1px = 屏幕上的1个点"]
+    B1 --> B2["1px = 1/96 英寸（CSS 像素，与设备无关）"]
 
     C --> C1["% —— 相对于父元素"]
     C --> C2["vh/vw —— 相对于视口"]
@@ -2199,6 +2345,7 @@ graph TD
 |-----|------|--------|
 | visible | 显示溢出内容（默认） | 无 |
 | hidden | 隐藏溢出内容 | 无 |
+| clip | 裁切溢出内容（不创建 BFC、不产生滚动容器） | 无 |
 | scroll | 始终显示滚动条 | 始终显示 |
 | auto | 溢出时显示滚动条 | 按需显示 |
 
@@ -2212,12 +2359,3 @@ graph TD
 ### 下章预告
 
 下一章我们将学习表格属性，看看如何用 CSS 来美化那些枯燥的表格数据！
-
-
-
-
-
-
-
-
-

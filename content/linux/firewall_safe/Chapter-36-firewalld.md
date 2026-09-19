@@ -21,9 +21,24 @@ firewalld的核心概念是"区域"（Zone）——每个网络接口可以属�
 
 firewalld（Dynamic Firewall Manager）是红帽Linux的默认防火墙管理系统，从RHEL 7开始取代了iptables的静态配置方式。
 
-### 36.1.1 基于 iptables
+### 36.1.1 底层是什么
 
-和UFW一样，firewalld底层也是iptables/netfilter。它通过D-Bus接口与iptables交互，提供了更灵活的配置方式。
+这里必须先纠正一个流传很广的说法：**firewalld 的底层不一定是 iptables**。
+
+| 系统 / firewalld 版本 | 默认后端 |
+|----------------------|---------|
+| RHEL 7、CentOS 7（firewalld 0.4 前后） | iptables |
+| RHEL 8+、RHEL 9、CentOS Stream、Fedora（firewalld 0.6 以后） | **nftables** |
+
+无论用哪个后端，都是同一套 Linux 内核的包过滤框架，规则最终下发给内核执行。想确认当前用的是哪个：
+
+```bash
+firewall-cmd --version
+sudo nft list ruleset | head -30      # 有输出说明就是 nftables 后端
+sudo iptables -L -n | head            # 老系统看这个
+```
+
+`firewall-cmd` 与 `firewalld` 守护进程之间通过 **D-Bus** 通信，所以普通用户不能直接改防火墙——必须通过 `sudo` 调 `firewall-cmd`，由守护进程去写后端规则。
 
 ```mermaid
 graph TB
@@ -47,20 +62,19 @@ firewalld引入了"区域"（Zone）的概念。Zone是一组预定义的规则�
 
 ```mermaid
 graph TB
-    A["firewalld Zone"] --> B["drop"]
+    A["firewalld 内置 Zone<br>按信任度从低到高"] --> B["drop：丢弃<br>所有入站一律丢弃<br>不回任何响应"]
     A --> C["block"]
     A --> D["public"]
     A --> E["external"]
     A --> F["internal"]
     A --> G["trusted"]
-    
-    B["drop：最低信任<br/>丢弃所有入站连接<br/>出站可以"]
-    C["block：拒绝<br/>拒绝所有入站连接<br/>返回ICMP错误"]
-    D["public：公共<br/>不信任任何主机<br/>只允许选定的入站连接"]
-    E["external：外部<br/>用于NAT/路由<br/>只有SSH和指定服务"]
-    F["internal：内部<br/>内部网络<br/>允许大部分入站"]
-    G["trusted：完全信任<br/>允许所有连接<br/>最危险也最方便"]
-    
+
+    C["block：拒绝<br>所有入站一律拒绝<br>但会回一个 ICMP 拒绝消息"]
+    D["public：公共（默认）<br>不信任任何主机<br>只放行明确选定的服务"]
+    E["external：外部<br>开了 NAT 伪装<br>用于路由器/跳板机"]
+    F["internal：内部<br>信任内网<br>放行 mdns、samba-client 等"]
+    G["trusted：完全信任<br>放行一切入站<br>等于不开防火墙，慎用"]
+
     style B fill:#ff6666
     style C fill:#ff9999
     style D fill:#ffe0cc
@@ -68,6 +82,25 @@ graph TB
     style F fill:#ccffcc
     style G fill:#99ff99
 ```
+
+完整的 9 个内置 Zone（还有 `dmz`、`work`、`home`）和它们的详细说明，可以直接问 firewalld：
+
+```bash
+firewall-cmd --get-zones                      # 列出所有 zone 名
+firewall-cmd --get-default-zone               # 当前默认 zone
+firewall-cmd --zone=dmz --list-all            # 看某个 zone 的详细配置
+firewall-cmd --get-active-zones               # 看哪些 zone 正挂在网卡上
+```
+
+除了教程里详细展开的 drop、block、public、external、internal、trusted，另外三个：
+
+| Zone | 定位 |
+|------|------|
+| `dmz` | 隔离区：对外提供服务但严格受限，只放行必要端口 |
+| `work` | 办公网络：信任同事的机器，放行 ssh、mdns、dhcpv6-client 等 |
+| `home` | 家庭网络：比 work 更宽松一点，额外放行 samba-client |
+
+> 实际运维里，**90% 的情况只要一个 `public`** 就够了：默认拒绝，然后按需 `--add-service` / `--add-port`。Zone 的价值在于"同一台机器有多块网卡、连接不同网络"时能套用不同规则。
 
 ## 36.2 firewall-cmd 命令
 
@@ -85,9 +118,22 @@ firewall-cmd --state
 running
 ```
 
-> **重要区别**：firewalld区分"运行时配置"（Runtime）和"永久配置"（Permanent）。运行时配置立即生效但重启后丢失，永久配置需要reload才生效。**生产环境务必使用`--permanent`参数**。
-> 
-> ⚠️ **血泪教训**：很多新手配置完防火墙，重启服务器后发现规则没了，SSH连不上——就是因为没加`--permanent`！配置完记得测试：`sudo firewall-cmd --reload`。
+> **重要区别**：firewalld 有两套并行的配置，这是它和 UFW 最大的不同：
+>
+> | | 运行时配置（Runtime） | 永久配置（Permanent） |
+> |---|---|---|
+> | 存哪里 | 内存 | `/etc/firewalld/zones/*.xml` |
+> | 立即生效 | 是 | **否，要 `--reload`（或重启 firewalld）才生效** |
+> | 重启后 | 丢失 | 保留 |
+> | 怎么改 | `firewall-cmd --add-port=...` | `firewall-cmd --permanent --add-port=...` |
+>
+> ⚠️ **血泪教训**：只写了 `--permanent` 而忘了 `--reload`，规则不会立刻生效，你以为没加上；反过来，只写了运行时规则没加 `--permanent`，重启后规则就没了。**"改完永久配置必须 reload"是本章最该记住的一句话。**
+>
+> 如果已经在运行时调试好了，也可以"就地转正"，不用把命令再敲一遍：
+>
+> ```bash
+> sudo firewall-cmd --runtime-to-permanent   # 把当前运行时配置整体写入永久配置
+> ```
 
 ## 36.3 zone 概念
 
@@ -307,7 +353,15 @@ sudo firewall-cmd --list-ports
 80/tcp
 ```
 
-> **生产环境必用`--permanent`**：临时配置重启就丢，永久配置才靠谱。
+> ⚠️ 上面这些命令**没有写 `--zone`，默认操作的是"当前默认 zone"**（通常是 `public`）。如果机器改过默认 zone，或者有多个 zone 挂在不同网卡上，命令就会落到你不期望的地方。**养成显式写 zone 的习惯**：
+>
+> ```bash
+> sudo firewall-cmd --zone=public --permanent --add-port=3306/tcp
+> sudo firewall-cmd --reload
+> sudo firewall-cmd --zone=public --list-ports     # 验证
+> ```
+>
+> 另外注意：`--list-ports` 看的是**运行时**规则。只加了 `--permanent` 还没 reload 时，它显示不出你刚加的东西——别急着怀疑自己输错了。
 
 ## 36.6 firewall-cmd --remove-port：关闭端口
 
@@ -342,15 +396,22 @@ sudo firewall-cmd --permanent --add-service=http
 # 永久放行HTTPS服务
 sudo firewall-cmd --permanent --add-service=https
 
-# 同时放行多个服务
+# 一次放行多个服务（大括号由 Shell 展开成两条命令）
 sudo firewall-cmd --permanent --add-service={http,https}
-
-# 放行Nginx Full（包含http和https）
-sudo firewall-cmd --permanent --add-service=nginx-full
 
 # 关闭服务
 sudo firewall-cmd --permanent --remove-service=http
 ```
+
+> ⚠️ firewalld 的"服务"清单和 UFW 的应用配置**不是一回事**。比如 UFW 里有 `Nginx Full`，但 firewalld 默认**没有 `nginx`、`nginx-full` 这样的服务**，`--add-service=nginx-full` 会直接报 `INVALID_SERVICE`。这种情况按端口放行即可：
+>
+> ```bash
+> sudo firewall-cmd --permanent --add-port=80/tcp
+> sudo firewall-cmd --permanent --add-port=443/tcp
+> sudo firewall-cmd --reload
+> ```
+>
+> 想自己定义一个名为 `nginx` 的服务？在 `/etc/firewalld/services/` 下写一个 XML 即可（把 `/usr/lib/firewalld/services/` 里的现成文件复制过来改端口最省事），然后 `firewall-cmd --reload`。
 
 ```bash
 # 查看已放行的服务
@@ -386,12 +447,21 @@ sudo firewall-cmd --reload
 # 重新加载配置
 sudo firewall-cmd --reload
 
-# 查看当前运行时配置（不是永久配置）
+# 查看当前【运行时】生效的规则
 sudo firewall-cmd --list-all
 
-# 查看运行时配置的完整信息
+# 把当前的运行时配置整体写进永久配置（在运行时调试好后"就地转正"）
 sudo firewall-cmd --runtime-to-permanent
 ```
+
+注意 `--list-all` 和 `--permanent --list-all` 看的是两套数据，别混淆：
+
+```bash
+sudo firewall-cmd --list-all                      # 运行时
+sudo firewall-cmd --permanent --list-all          # 永久（可能需要 reload 才会一致）
+```
+
+另外，`--reload` 会**丢弃所有只在运行时做的改动**。所以"运行时调试 → 满意后 --runtime-to-permanent → reload 验证"这条路径，比"边改边 reload"稳得多。
 
 ```bash
 # 典型配置流程
@@ -451,20 +521,89 @@ port=2222:proto=tcp:toport=22:toaddr=192.168.1.200
 
 > **应用场景**：内网服务器没有公网IP，通过有公网IP的跳板机做端口转发访问内网服务。
 
+> ⚠️ **端口转发必须有 `masquerade`（NAT 伪装）配合**，否则转出去的包回不来。转发到另一台机器时，要在做转发的这台机器上开启：
+>
+> ```bash
+> sudo firewall-cmd --permanent --add-masquerade
+> sudo firewall-cmd --reload
+> ```
+>
+> 同时内核转发也得打开：
+>
+> ```bash
+> echo 'net.ipv4.ip_forward=1' | sudo tee /etc/sysctl.d/99-forward.conf
+> sudo sysctl --system
+> ```
+>
+> 还有一点容易漏：**请求得先能被"接收"才谈得上转发**。如果 `public` zone 的默认策略是拒绝，那么 2222 端口本身也要放行（`--add-port=2222/tcp`），否则包在进 zone 的那一步就被丢了。
+
+---
+
+## 36.11 常用运维操作与避坑
+
+### 36.11.1 每台机器都该会的几条
+
+```bash
+# 看当前默认 zone，以及哪些 zone/网卡是活跃的
+sudo firewall-cmd --get-default-zone
+sudo firewall-cmd --get-active-zones
+
+# 改默认 zone（比如把默认的 public 换成更严格的 drop）
+sudo firewall-cmd --set-default-zone=public
+
+# 把某块网卡挪到别的 zone（立即生效，但不改永久配置）
+sudo firewall-cmd --zone=internal --change-interface=eth1
+sudo firewall-cmd --permanent --zone=internal --change-interface=eth1
+
+# 按来源网段匹配（不依赖网卡，适合"只允许内网访问"）
+sudo firewall-cmd --permanent --zone=trusted --add-source=192.168.1.0/24
+
+# 应急开关：所有流量一律拒绝（服务器被入侵时先拔网线用）
+sudo firewall-cmd --panic-on
+sudo firewall-cmd --panic-off
+
+# 重启、停用服务
+sudo systemctl restart firewalld
+sudo systemctl status firewalld
+```
+
+### 36.11.2 规则存在哪
+
+```bash
+sudo ls /etc/firewalld/zones/        # 永久配置：每个 zone 一个 XML 文件
+sudo cat /etc/firewalld/zones/public.xml
+
+sudo cat /usr/lib/firewalld/services/http.xml   # 预定义服务的定义（端口在这里）
+sudo ls /etc/firewalld/services/                # 你自己定义的服务放这里
+```
+
+临时想手工改 XML 也可以，但改完必须 `firewall-cmd --reload`，并且**文件格式写错会导致 firewalld 起不来**——不如老老实实用 `firewall-cmd` 生成。
+
+### 36.11.3 避坑清单
+
+1. **只写 `--permanent` 不写 `--reload`**：规则没生效，以为加错了。改永久配置后一律 `--reload`。
+2. **不写 `--zone`**：落在默认 zone 上。多网卡、多 zone 的机器一定要显式指定。
+3. **`--list-all` 和 `--permanent --list-all` 混着看**：前者是运行时，后者是文件里存的。两者不一致时，先想清楚要不要 `--runtime-to-permanent`。
+4. **改 SSH 端口时先删旧规则**：正确顺序是"改 sshd 配置 → 放行新端口 → 另开会话验证 → 再删旧端口"，和 35.13.3 里的流程一样。
+5. **`--direct` 直写规则**：这是老 API，容易被 firewalld 的 reload 冲掉。除非确定需要，否则一律用 rich-rule 或 zone 配置。
+6. **和 Docker 混用**：Docker 会直接往 nftables/iptables 里插自己的链，绕过 firewalld。容器端口想只对本机开放就写成 `-p 127.0.0.1:8080:80`，再从外部用 `nc -vz` 验证。
+7. **别把 `trusted` 当作"方便"**：给网卡加 `trusted` 等于那块网卡上的流量全部放行。
+
 ---
 
 ## 本章小结
 
 本章我们掌握了CentOS/RHEL下firewalld防火墙的配置：
 
-- **firewalld简介**：红帽系Linux的动态防火墙，核心概念是Zone（区域）
-- **Zone类型**：drop（丢弃）、block（拒绝）、public（公共）、external（外部/NAT）、internal（内部）、trusted（信任）
+- **firewalld简介**：红帽系 Linux 的动态防火墙；RHEL 8/9 及以后的默认后端是 **nftables**，不是 iptables
+- **Zone类型**：共 9 个内置 zone，常用的有 drop（丢弃）、block（拒绝）、public（公共，默认）、external（外部/NAT）、internal（内部）、trusted（信任）
+- **运行时 vs 永久**：`--permanent` 改的是文件，必须 `firewall-cmd --reload` 才生效；`--runtime-to-permanent` 可以把调好的运行时配置转正
 - **firewall-cmd**：firewalld的命令行管理工具
-- **--list-all**：查看所有规则
+- **--list-all**：查看运行时规则；加 `--permanent` 才是看文件里的配置
 - **--add-port / --remove-port**：开放/关闭端口
-- **--add-service / --remove-service**：按服务名放行/关闭
-- **--permanent**：使配置永久生效（生产环境必备）
-- **--reload**：重新加载配置使永久规则生效
-- **rich-rule**：高级规则，支持按IP放行、端口转发等复杂场景
+- **--add-service / --remove-service**：按服务名放行/关闭（firewalld 没有 `nginx-full` 这种服务，按端口放行）
+- **rich-rule**：高级规则，支持按 IP 放行、端口转发等复杂场景
+- **端口转发**：记得同时开 `masquerade` 和 `net.ipv4.ip_forward`
+- **应急**：`--panic-on` 一键切断所有流量
 
 firewalld的Zone+Service+Rich Rule三层配置，足够应付绝大多数生产环境需求。

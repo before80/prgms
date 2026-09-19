@@ -517,6 +517,8 @@ fmt.Println(s2)  // [1 2 3]   — s2 还在用旧的底层数组！
 
 #### 13.3.4.1 copy 语义
 
+`copy(dst, src)` 复制的元素个数是**两者长度的较小值**，返回值就是实际复制的个数。注意两个参数顺序是“先目标、后源”，写反了不会报错，只会默默复制错方向：
+
 ```go
 dst := []int{0, 0, 0, 0, 0}
 src := []int{1, 2, 3}
@@ -563,6 +565,8 @@ fmt.Println(s)  // [1 2 2 3 4] — s[1:4]=[2,3,4]，复制到 s[2:5]
 ### 13.3.5 切片遍历
 
 #### 13.3.5.1 索引遍历
+
+用下标遍历时拿到的是**元素的值**（一份拷贝），要改元素必须通过 `s[i]` 赋值：
 
 ```go
 s := []int{10, 20, 30}
@@ -745,15 +749,20 @@ foo(s)
 当两个切片指向同一个底层数组时，它们共享那片数据：
 
 ```go
+package main
+
+import "fmt"
+
 func modify(s []int) {
-    s[0] = 999  // 修改的是底层数组的元素
+    s[0] = 999 // 修改的是底层数组的元素
 }
 
 func main() {
     original := []int{1, 2, 3}
     modify(original)
-    fmt.Println(original[0])  // 999 — 外部切片也被改了！
+    fmt.Println(original[0]) // 999 — 外部切片也被改了！
 }
+
 ```
 
 函数外的 `original` 和函数内的 `s` 拥有相同的指针，都指向同一个底层数组，所以修改对两边都可见。
@@ -763,15 +772,19 @@ func main() {
 这是最让新手崩溃的情况。在函数内对切片执行 append 操作时：
 
 ```go
+package main
+
+import "fmt"
+
 func addOne(s []int) {
-    s = append(s, 4)  // 扩容了，s 指向了新的底层数组
+    s = append(s, 4) // 扩容了，s 指向了新的底层数组
     // 但这里是函数内的局部变量 s，新底层数组跟原切片没关系了
 }
 
 func main() {
     s := []int{1, 2, 3}
     addOne(s)
-    fmt.Println(s)  // [1 2 3] — 没有任何变化！
+    fmt.Println(s) // [1 2 3] — 没有任何变化！
 }
 ```
 
@@ -780,28 +793,36 @@ func main() {
 **解决方案：使用返回值**
 
 ```go
+package main
+
+import "fmt"
+
 func addOne(s []int) []int {
-    return append(s, 4)  // 返回新的切片
+    return append(s, 4) // 返回新的切片
 }
 
 func main() {
     s := []int{1, 2, 3}
-    s = addOne(s)        // 用返回值覆盖
-    fmt.Println(s)      // [1 2 3 4] — 终于成功了！
+    s = addOne(s)      // 用返回值覆盖
+    fmt.Println(s)     // [1 2 3 4] — 终于成功了！
 }
 ```
 
 或者用**指针**来打破这个局面：
 
 ```go
+package main
+
+import "fmt"
+
 func addOne(s *[]int) {
-    *s = append(*s, 4)   // 解引用后 append，结果写回了原变量
+    *s = append(*s, 4) // 解引用后 append，结果写回了原变量
 }
 
 func main() {
     s := []int{1, 2, 3}
-    addOne(&s)           // 传切片指针
-    fmt.Println(s)      // [1 2 3 4]
+    addOne(&s)     // 传切片指针
+    fmt.Println(s) // [1 2 3 4]
 }
 ```
 
@@ -886,6 +907,8 @@ fmt.Println(s)  // [1 2 3 4 5]
 
 #### 13.6.2.1 头部删除（切片截取）
 
+删除头部元素只需重新切片。注意这样**不会释放**被删掉那部分元素占用的底层数组——如果元素是指针或大对象，长期持有会阻碍 GC：
+
 ```go
 s := []int{1, 2, 3, 4, 5}
 s = s[1:]  // 删除第一个元素
@@ -893,6 +916,8 @@ fmt.Println(s)  // [2 3 4 5]
 ```
 
 #### 13.6.2.2 尾部删除（截断）
+
+删除尾部元素同样只是改变长度，底层数组不变：
 
 ```go
 s := []int{1, 2, 3, 4, 5}
@@ -1514,6 +1539,8 @@ configKeys := []string{}
 
 ### 13.10.1 转换原理
 
+`string` 和 `[]byte` 之间互转会**各复制一份数据**。这在解析大文件、处理网络协议时可能成为热点：
+
 ```go
 str := "hello"
 b := []byte(str)  // string -> []byte，复制一份数据
@@ -1557,7 +1584,7 @@ fmt.Println(b)  // [104 101 108 108 111]
 
 > 零拷贝只在你确定不会修改数据、且对性能要求极高时使用。正常业务代码，老老实实用普通的转换函数，别玩这种骚操作。
 
-更安全的做法是用 `unsafe.Slice`（Go 1.20+）：
+更安全的做法是用 `unsafe.Slice` 配合 `unsafe.StringData`（两者都是 **Go 1.20** 新增的）：
 
 ```go
 import (
@@ -1566,9 +1593,20 @@ import (
 )
 
 str := "hello"
-sh := (*reflect.StringHeader)(unsafe.Pointer(&str))
-b := unsafe.Slice(sh.Data, sh.Len)
+b := unsafe.Slice(unsafe.StringData(str), len(str))
 fmt.Println(b)  // [104 101 108 108 111]
+```
+
+> ⚠️ 老教程里常见的 `(*reflect.StringHeader)(unsafe.Pointer(&str))` 写法现在**已经过时**：`reflect.StringHeader` 自 Go 1.21 起被标记为废弃（官方注释直接写着 "Deprecated: Use unsafe.String or unsafe.StringData instead"），而且把它的 `Data`（`uintptr`）直接喂给 `unsafe.Slice` 也**编译不过**——`unsafe.Slice` 的第一个参数要求是指针，会报 `invalid argument: sh.Data (variable of type uintptr) is not a pointer`。
+
+反过来，如果你手上是 `[]byte`，想要一个只读的 `string` 视图，可以用 `unsafe.String`：
+
+```go
+import "unsafe"
+
+bs := []byte("hello")
+s := unsafe.String(unsafe.SliceData(bs), len(bs))
+_ = s  // 注意：一旦 bs 被修改或被 GC 回收，这个 string 的内容就不可依赖了
 ```
 
 ### 13.10.3 不可变性保证
@@ -1688,4 +1726,3 @@ sizes := []int{16, 32, 64, 128, 256, 512, 1024, 2048, 4096}
 10. **实现原理**：切片在运行时就是 `Slice { array, len, cap }` 三个字段。扩容算法由 `growslice` 函数实现，受 TCMalloc size class 影响。
 
 切片是 Go 程序员每天都要打交道的"好朋友"。理解它的底层原理，才能在踩坑时知道根因，在性能调优时知道方向。
-

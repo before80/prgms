@@ -77,10 +77,10 @@ Bun 官网有一个对比表，列出了 Bun 内置的、而 Node.js 需要额�
 
 Bun **内置**了以下数据库驱动，不需要 npm install：
 
-- **SQLite**：通过 `bun:sqlite`，高性能，比 better-sqlite3 快 3-6 倍
+- **SQLite**：通过 `bun:sqlite`，高性能（官方基准里对 better-sqlite3 有明显优势，具体倍数随查询类型变化）
 - **PostgreSQL / MySQL**：通过统一的 `sql` 标签模板 API（v1.3+），从 `bun` 导入
 
-> ⚠️ 注意：MariaDB 暂时还不是 Bun 内置的，建议使用传统 `mysql2` 包。
+> ⚠️ 注意：MariaDB 从 Bun 1.3 起已被内置的 `Bun.SQL` 覆盖（和 MySQL 走同一套 API），不需要 `mysql2`。真正需要第三方驱动的，是 Bun 尚未内置协议的其他数据库。
 
 ```typescript
 // SQLite - 直接导入，无需安装
@@ -120,7 +120,7 @@ const url = fileRef.presign({ expiresIn: 60 * 60 * 24 });
 
 ### WebSocket 服务器
 
-Bun 内置了 WebSocket 服务器，基于 **uWebSockets** 实现，性能比 Node.js + `ws` 库**快 7 倍**！
+Bun 内置了 WebSocket 服务器，基于 **uWebSockets** 实现。官方基准（Linux x64、简单聊天室场景）显示：每秒能处理的消息数约为 Node.js + `ws` 的 **7 倍**（Bun 约 70 万条/秒，`ws` 约 10 万条/秒）。这个数字来自 2023 年的 Bun v0.2.1 / Node v18 测试，实际项目请以自己压测为准。
 
 ```typescript
 Bun.serve({
@@ -511,7 +511,7 @@ bun run --loader .myext:myLoader ./file.myext
 
 **设计目标**上：Bun 追求速度、TypeScript 开箱即用、ESM/CommonJS 兼容、Web 标准 API 原生实现、Node.js 高度兼容。
 
-**内置核心能力**上：Bun 内置了 SQLite（`bun:sqlite`）、PostgreSQL/MySQL（`sql` 统一 API，v1.3+）、S3（`s3.file` + `write`）、Redis（`redis` 全局单例，v1.3+）、WebSocket、单文件打包等重量级功能，全部不需要 npm install。MariaDB 暂时还没内置，老老实实用 `mysql2` 包吧。
+**内置核心能力**上：Bun 内置了 SQLite（`bun:sqlite`）、PostgreSQL / MySQL / **MariaDB**（v1.3 起由 `Bun.SQL` 统一成一个 API）、S3（`Bun.s3`）、Redis / Valkey（`Bun.redis`，v1.3+）、WebSocket、单文件打包等重量级功能，全部不需要 npm install。数据库协议覆盖不到的类型（例如某些专用数据库），仍然需要第三方驱动。
 
 **运行时**方面：Bun 可以直接运行 TS/JS 文件，内置 Transpiler、.env 加载、HTTP 服务器、WebSocket、Shell、FFI、文件操作等丰富能力。
 

@@ -72,8 +72,18 @@ const scores = new Map([
 
 console.log('数学成绩:', scores.get('数学'));           // 数学成绩: 95
 console.log('不存在的键:', scores.get('化学'));          // 不存在的键: undefined
-console.log('大小写敏感:', scores.get('数学'));          // 大小写敏感: 95
-console.log('中文全角:', scores.get('数学'));           // 中文全角: 95
+
+// Map 的键比较用的是 SameValueZero：区分大小写、区分类型，但 NaN 等于 NaN
+scores.set('Math', 99);
+console.log('大小写敏感:', scores.get('Math'), scores.get('math')); // 99 undefined
+console.log('字符串 1 和数字 1 不是同一个键:',
+  new Map([[1, '数字键']]).get('1')); // undefined
+
+// NaN 作为键是能取回来的（这是 Map 相对 === 的一个便利之处）
+const nanMap = new Map();
+nanMap.set(NaN, 'NaN 也能当键');
+console.log(nanMap.get(NaN)); // NaN 也能当键
+console.log(NaN === NaN, Object.is(NaN, NaN)); // false true（Map 用的是后者那一套）
 ```
 
 ```javascript
@@ -117,7 +127,7 @@ console.log('清空前:', tempMap.size);  // 清空前: 3
 tempMap.clear();
 console.log('清空后:', tempMap.size);  // 清空后: 0
 ```
-size：获取键值对数量（属性，不是方法！）
+**size：获取键值对数量（属性，不是方法！）**
 
 ```javascript
 const m = new Map([
@@ -288,8 +298,7 @@ console.log('Map 键数:', map.size);  // Map 键数: 5
 **有序性对比**
 
 ```javascript
-// ES2015+ 规定 Object.keys() 按照插入顺序返回（大多数浏览器）
-// 但 Map 是严格按照插入顺序排列的
+// Map 严格按插入顺序遍历，规则只有一条，非常好记
 
 const orderedMap = new Map();
 orderedMap.set('z', 1);
@@ -301,6 +310,27 @@ for (const [k, v] of orderedMap) {
   console.log(`  ${k}: ${v}`);
 }
 // z: 1, a: 2, m: 3（严格按插入顺序）
+```
+
+```javascript
+// Object 的键顺序有两套规则，比 Map 复杂得多：
+// 1. 「整数样」的键（如 "1"、"2"）先按数值升序排在前面
+// 2. 其余字符串键按插入顺序排在后面
+// 3. Symbol 键排在最后（且不被 Object.keys 返回）
+const obj = {};
+obj.b = 1;         // 字符串键
+obj[2] = 2;        // 整数样键
+obj.a = 3;         // 字符串键
+obj[1] = 4;        // 整数样键
+
+console.log(Object.keys(obj)); // [ '1', '2', 'b', 'a' ] —— 注意不是插入顺序！
+
+const m = new Map();
+m.set('b', 1);
+m.set('2', 2);
+m.set('a', 3);
+m.set('1', 4);
+console.log([...m.keys()]); // [ 'b', '2', 'a', '1' ] —— 完全按插入顺序
 ```
 
 **大小获取对比**
@@ -324,7 +354,8 @@ const mapWithProto = new Map();
 const objWithProto = {};
 
 console.log('Map 有原型属性吗?', mapWithProto.has('toString'));  // Map 有原型属性吗? false
-console.log('Object 有 toString?', objWithProto.hasOwnProperty('toString'));  // Object 有 toString? true
+console.log('Object 自有 toString?', objWithProto.hasOwnProperty('toString'));  // false —— toString 在原型上，不是自有属性
+console.log('Object 能访问 toString?', typeof objWithProto.toString === 'function'); // true —— 但那来自原型链
 
 // Object 有原型链，可能导致键名冲突
 objWithProto['constructor'] = '冲突了！';
@@ -332,14 +363,20 @@ console.log('Object.constructor:', objWithProto['constructor']);  // 冲突了�
 
 // Map 不会有这个问题
 mapWithProto.set('constructor', '不会冲突');
-console.log('Map.constructor:', mapWithProto.get('constructor'));  // 不会冲突
+console.log('Map.constructor:', mapWithProto.get('constructor'));   // 不会冲突
+console.log('Map 的 has 只看自己存的键:', mapWithProto.has('toString')); // false
+
+// 所以用 Object 当字典时，判断键要用 Object.hasOwn / Object.create(null)
+console.log('constructor' in objWithProto);        // true —— in 会查原型链
+console.log(Object.hasOwn(objWithProto, 'constructor')); // true（这个是我们自己写的）
+console.log(Object.hasOwn({}, 'toString'));        // false（空对象没有自有 toString）
 ```
 
-**性能对比**
+**性能对比（经验之谈，别当硬指标）**
 
-Map 在频繁增删键值对的场景下性能更好
-
-Object 在频繁访问属性的场景下有内部优化（V8 引擎的快速属性访问）
+- 键是「事先已知的固定字段」、以属性访问为主时，Object 上的隐藏类优化通常很快。
+- 键是动态的、会频繁增删、或者键不是字符串时，Map 通常更合适，也不会踩「原型链污染」的坑。
+- 具体快慢跟数据规模、引擎版本都有关，真实项目请以自己场景的基准测试为准，不要凭感觉优化。
 
 
 
@@ -384,7 +421,7 @@ graph TD
 
 ### 创建与基本操作：add / delete / has / clear / size
 
-如果说 Map 是"字典"，那 **Set** 就是"集合"。Set 就像是一个只装 ключи（键）不装值的 Map，或者说是只有值没有键的 Map。
+如果说 Map 是"字典"，那 **Set** 就是"集合"。可以把它理解成一个「只有值、没有键」的 Map——每个元素只能出现一次。
 
 **Set 的核心特点：只存储唯一值，不允许重复。**
 
@@ -406,7 +443,7 @@ console.log('set3 大小（去重后）:', set3.size);  // set3 大小（去重�
 console.log('set3 内容:', [...set3]);  // set3 内容: [ 1, 2, 3, 4 ]
 ```
 
-add：添加元素
+**add：添加元素**
 
 ```javascript
 const fruits = new Set();
@@ -465,7 +502,7 @@ const s = new Set([10, 20, 30, 40]);
 console.log('Set 大小:', s.size);  // Set 大小: 4
 ```
 
-Set 对"相等"的判断：与 === 类似，但 NaN 等于 NaN
+**Set 对「相等」的判断：与 `===` 类似，但 `NaN` 等于 `NaN`**
 
 ```javascript
 const specialSet = new Set();
@@ -483,7 +520,7 @@ console.log('特殊 Set 大小:', specialSet.size);  // 特殊 Set 大小: 3
 console.log('内容:', [...specialSet]);  // 内容: [ NaN, 0, 'hello' ]
 ```
 
-对象作为元素时，不相等（因为是引用比较）
+**对象作为元素时，不相等（因为是引用比较）**
 
 ```javascript
 const objSet = new Set();
@@ -591,13 +628,15 @@ console.log('去重前:', mixedArray.length);  // 去重前: 12
 console.log('去重后:', unique);  // 去重后: [ 1, 2, 3, 'a', true, false ]
 ```
 
-字符串去重（常见应用）
+**字符串去重（常见应用）**
 
 ```javascript
 const str = 'Hello, World!';
 const uniqueChars = [...new Set(str)].join('');
 console.log('原字符串:', str);  // 原字符串: Hello, World!
-console.log('去重后:', uniqueChars);  // 去重后: Helo, World!
+console.log('去重后:', uniqueChars);  // 去重后: Helo, Wrd!
+// 因为 'o'、'l' 在 Hello 里已经出现过，后面的 World 里就把它们丢掉了
+// 可见「字符串去重」是按字符（准确说是按 UTF-16 编码单元）处理的，不是按单词
 ```
 
 对象数组去重（需要自定义逻辑）
@@ -616,7 +655,7 @@ console.log('去重后用户:', uniqueUsers.length);  // 去重后用户: 3
 console.log('去重后:', uniqueUsers.map(u => u.name));  // 去重后: [ '张三', '李四', '王五' ]
 ```
 
-字符串去重并保持顺序
+**字符串去重并保持顺序**
 
 ```javascript
 const removeDuplicates = (str) => [...new Set(str)].join('');
@@ -631,7 +670,7 @@ console.log(removeDuplicates('多多关照'));  // 多关照
 
 Set 最常见的应用就是数组去重，比传统的 `filter` + `indexOf` 或 `includes` 更简洁高效。
 
-方法1：Set 去重（最简洁）
+**方法1：Set 去重（最简洁）**
 
 ```javascript
 const arr1 = [1, 2, 3, 3, 4, 4, 5];
@@ -639,7 +678,7 @@ const unique1 = [...new Set(arr1)];
 console.log('Set去重:', unique1);  // Set去重: [ 1, 2, 3, 4, 5 ]
 ```
 
-方法2：filter + indexOf（传统方法，不推荐）
+**方法2：filter + indexOf（传统方法，不推荐）**
 
 ```javascript
 const arr2 = [1, 2, 3, 3, 4, 4, 5];
@@ -648,7 +687,7 @@ console.log('filter去重:', unique2);  // filter去重: [ 1, 2, 3, 4, 5 ]
 // 问题：indexOf 每次都要遍历数组，时间复杂度 O(n²)
 ```
 
-方法3：reduce + includes（中等）
+**方法3：reduce + includes（中等）**
 
 ```javascript
 const arr3 = [1, 2, 3, 3, 4, 4, 5];
@@ -657,7 +696,7 @@ const unique3 = arr3.reduce((acc, curr) =>
 console.log('reduce去重:', unique3);  // reduce去重: [ 1, 2, 3, 4, 5 ]
 ```
 
-性能对比
+**性能对比**
 
 ```javascript
 console.log('=== 性能对比 ===');
@@ -665,15 +704,16 @@ const largeArr = Array.from({ length: 10000 }, (_, i) => i % 100);
 
 console.time('Set去重');
 [...new Set(largeArr)].length;
-console.timeEnd('Set去重');  // Set去重: ~1ms
+console.timeEnd('Set去重');  // Set去重: 大约 1ms 上下
 
 console.time('filter去重');
 largeArr.filter((item, index) => largeArr.indexOf(item) === index).length;
-console.timeEnd('filter去重');  // filter去重: ~50ms
-// Set 去重快 50 倍左右！
+console.timeEnd('filter去重');  // filter去重: 几十毫秒量级
+// 差距的根源是复杂度：Set 是 O(n)，filter + indexOf 是 O(n²)
+// 具体倍数取决于元素个数和机器，这里只是演示「量级不同」
 ```
 
-进阶：多条件去重
+**进阶：多条件去重**
 
 ```javascript
 const products = [
@@ -735,7 +775,7 @@ JavaScript 引擎会自动回收不再使用的内存。想象你创建了一个
 
 但问题是：如果这个对象被放在一个 Map 里，Map 会"死死抓住"它，导致它永远不会被回收！
 
-内存泄漏的经典案例
+**内存泄漏的经典案例**
 
 ```javascript
 let obj = { name: '重要数据', hugeData: new Array(1000000) };
@@ -855,10 +895,9 @@ const buttons = document.querySelectorAll('button');
 
 buttons.forEach(btn => {
   elementData.set(btn, { clickCount: 0 });
-});
-
-btn.addEventListener('click', () => {
-  elementData.get(btn).clickCount++;
+  btn.addEventListener('click', () => {
+    elementData.get(btn).clickCount++;
+  });
 });
 
 // 问题：如果按钮被从 DOM 中移除，但还在 Map 里，就会内存泄漏
@@ -1093,7 +1132,9 @@ graph TD
 
 ```javascript
 function canReachTarget(graph, start, target) {
-  const visited = new WeakSet();
+  // 这里的节点是字符串（原始值），不能用 WeakSet！
+  // WeakSet/WeakMap 只接受对象，存字符串会抛 TypeError: Invalid value used in weak set
+  const visited = new Set();
 
   function dfs(node) {
     if (node === target) return true;
@@ -1167,7 +1208,7 @@ console.log('第一批结果:', batch1);
 
 JavaScript 的 `Number` 类型使用 IEEE 754 双精度浮点数，这意味着它只能安全地表示 `-2^53 + 1` 到 `2^53 - 1` 之间的整数。超过这个范围，就会出现精度丢失的问题。
 
-Number 的精度问题
+**Number 的精度问题**
 
 ```javascript
 const largeNumber = 9007199254740992;  // 2^53
@@ -1193,15 +1234,20 @@ const bigInt2 = 1000000000000000000000000n;  // 10^24
 
 // 方式2：使用 BigInt() 构造函数
 const bigInt3 = BigInt('9007199254740993');
-const bigInt4 = BigInt(9007199254740993);
+const bigInt4 = BigInt(9007199254740993); // 注意！这个数是「先被当成 Number」再传进来的
 
 console.log('bigInt1:', bigInt1);  // bigInt1: 9007199254740993n
 console.log('bigInt2:', bigInt2);  // bigInt2: 1000000000000000000000000n
 console.log('bigInt3:', bigInt3);  // bigInt3: 9007199254740993n
-console.log('bigInt4:', bigInt4);  // bigInt4: 9007199254740993n
+console.log('bigInt4:', bigInt4);  // bigInt4: 9007199254740992n —— 精度已经丢了！
+
+// 原因：9007199254740993 这个「字面量」超过 2^53，解析成 Number 时就已经变成 ...992 了，
+// BigInt() 拿到的只是个已经失真的 Number。要精确，请传字符串或写 n 后缀：
+console.log(BigInt('9007199254740993'));  // 9007199254740993n
+console.log(9007199254740993n);           // 9007199254740993n
 ```
 
-BigInt 与 Number 的转换
+**BigInt 与 Number 的转换**
 
 ```javascript
 const num = 123;
@@ -1224,7 +1270,7 @@ const backToStr = bigFromStr.toString();
 console.log('转回字符串:', backToStr);  // 转回字符串: 123456789012345678901234567890
 ```
 
-BigInt 支持所有数学运算符（除了无符号右移 >>>）
+**BigInt 支持所有数学运算符（除了无符号右移 `>>>`）**
 
 ```javascript
 const a = 100n;
@@ -1234,8 +1280,12 @@ const b = 30n;
 console.log('a + b:', a + b);  // a + b: 130n
 console.log('a - b:', a - b);  // a - b: 70n
 console.log('a * b:', a * b);  // a * b: 3000n
-console.log('a / b:', a / b);  // a / b: 3n —— 整除，向下取整
+console.log('a / b:', a / b);  // a / b: 3n —— 整除，向零截断
 console.log('a % b:', a % b);  // a % b: 10n
+
+// 注意是「向零截断」而不是「向下取整」，负数上两者不同
+console.log(-100n / 30n);  // -3n（不是 -4n）
+console.log(-100n % 30n);  // -10n（符号跟被除数走，和 Number 的 % 一致）
 
 // 幂运算
 const power = 2n ** 10n;  // 2^10
@@ -1246,7 +1296,7 @@ const negative = -5n;
 console.log('负数:', negative);  // 负数: -5n
 ```
 
-BigInt 的比较
+**BigInt 的比较**
 
 ```javascript
 const big1 = 100n;
@@ -1261,7 +1311,7 @@ console.log('100n == 100:', big1 == num);   // 100n == 100: true —— 宽松�
 console.log('100n > 99:', big1 > 99);  // 100n > 99: true
 ```
 
-BigInt 不支持与 Number 混合运算
+**BigInt 不支持与 Number 混合运算**
 
 ```javascript
 const b = 100n;
@@ -1272,7 +1322,7 @@ console.log(b + BigInt(n));  // 150n
 console.log(Number(b) + n);   // 150
 ```
 
-BigInt 在 JSON 中的处理
+**BigInt 在 JSON 中的处理**
 
 ```javascript
 const obj = {
@@ -1296,7 +1346,7 @@ const serialized = {
 console.log('序列化后:', JSON.stringify(serialized));
 ```
 
-BigInt 的实用场景
+**BigInt 的实用场景**
 
 ```javascript
 // 1. 大整数计算（金融、科学计算）
@@ -1327,7 +1377,7 @@ console.log('大素数:', p);
 
 在 JavaScript 中处理二进制数据曾经是一件很痛苦的事情。**ArrayBuffer** 和 **TypedArray** 的出现，让二进制数据处理变得简单高效。
 
-ArrayBuffer：固定长度的二进制数据缓冲区,它本身不能直接读写，需要通过 TypedArray 或 DataView 来操作
+**ArrayBuffer**：固定长度的二进制数据缓冲区。它本身不能直接读写，需要通过 TypedArray 或 DataView 来操作。
 
 ```javascript
 // 创建 ArrayBuffer（参数是字节数）
@@ -1337,7 +1387,7 @@ console.log('缓冲区大小:', buffer.byteLength);  // 缓冲区大小: 16
 console.log('缓冲区类型:', buffer.constructor.name);  // 缓冲区类型: ArrayBuffer
 ```
 
-TypedArray：类型化数组，提供多种视图, 类型包括：Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array,Int32Array, Uint32Array, Float32Array, Float64Array
+**TypedArray**：类型化数组，提供多种视图，包括 `Int8Array`、`Uint8Array`、`Uint8ClampedArray`、`Int16Array`、`Uint16Array`、`Int32Array`、`Uint32Array`、`Float32Array`、`Float64Array`，以及后加的 `BigInt64Array` / `BigUint64Array`。
 
 ```javascript
 // 创建 Uint8Array 视图（无符号8位整数，0-255）
@@ -1400,7 +1450,7 @@ const bytes = new Uint8Array(buffer);
 console.log('字节:', bytes);  // 在小端机器上: [1, 0, 0, 1]
 ```
 
-Uint8ClampedArray：截断而非环绕
+**Uint8ClampedArray**：截断而非环绕
 
 ```javascript
 const clamped = new Uint8ClampedArray(5);
@@ -1414,7 +1464,7 @@ console.log('Uint8ClampedArray:', clamped);
 // [ 100, 255, 0, 201, 0 ]
 ```
 
- 实际应用：处理图片像素
+**实际应用：处理图片像素**
 
 ```javascript
 // 假设有一个 2x2 的 RGBA 图像（每个像素4字节）
@@ -1440,7 +1490,7 @@ rgba[7] = 255;
 console.log('像素数据:', rgba);  // Uint8ClampedArray(16)
 ```
 
-DataView：更灵活地读写不同数据类型
+**DataView**：更灵活地读写不同数据类型
 
 ```javascript
 const dataView = new DataView(new ArrayBuffer(16));
@@ -1458,11 +1508,11 @@ console.log('Int8:', dataView.getInt8(0));      // Int8: 127
 console.log('Uint8:', dataView.getUint8(1));     // Uint8: 255
 console.log('Int16:', dataView.getInt16(2, true));    // Int16: 32767
 console.log('Uint16:', dataView.getUint16(4, false)); // Uint16: 65535
-console.log('Float32:', dataView.getFloat32(6, true));  // Float32: 3.1415899999999999
+console.log('Float32:', dataView.getFloat32(6, true));  // Float32: 3.141590118408203（32 位精度就这么点）
 console.log('Float64:', dataView.getFloat64(8, true));  // Float64: 2.718281828
 ```
 
-ArrayBuffer 与字符串的转换
+**ArrayBuffer 与字符串的转换**
 
 ```javascript
 function stringToArrayBuffer(str) {
@@ -1538,7 +1588,7 @@ graph TD
 ### 2. Set
 - 集合数据结构，只存储唯一值
 - 自动去重，使用 SameValueZero 算法
-- 比数组去重性能高 50 倍以上
+- 去重代码更简洁：`[...new Set(arr)]`；与手写循环相比，去重的复杂度同样是 O(n)，实际优势主要在代码简洁与免去手写哈希表，而不是压倒性的倍数差距
 
 ### 3. WeakMap 与 WeakSet
 - 弱引用版本，当对象失去其他引用时会被垃圾回收
@@ -1546,8 +1596,8 @@ graph TD
 - 不能遍历，没有 `.size`，适合存储私有数据或临时映射
 
 ### 4. 其他数据结构
-- **BigInt**：任意大小整数，解决精度丢失问题
-- **ArrayBuffer/TypedArray**：二进制数据处理，适合图像、音频、网络协议等场景
+- **BigInt**：任意大小整数，解决精度丢失问题；注意它只能与 BigInt 混算（`1n + 1` 会抛 TypeError），并且 `Math` 方法一概不支持
+- **ArrayBuffer/TypedArray**：二进制数据处理，适合图像、音频、网络协议等场景；TypedArray 长度固定、类型固定，没有 `push`/`pop`，超出范围的值会被按位截断而不是报错
 
 ### 记忆口诀
 ```

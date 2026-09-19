@@ -33,6 +33,8 @@ draft = false
 
 ### 实战代码
 
+光说不练假把式。下面这个程序把五个算术运算符挨个跑一遍，顺便演示整数除法和浮点数除法的区别：
+
 ```java
 public class ArithmeticDemo {
     public static void main(String[] args) {
@@ -161,9 +163,28 @@ public class IncrementDemo {
 
 ### 为什么要用扩展赋值运算符？
 
-1. **更简洁**：少写一个变量名
-2. **更高效**：在某些情况下性能更好（比如 `String` 的 `+=` 连接）
-3. **更安全**：减少了重复求值带来的潜在问题
+1. **更简洁**：少写一个变量名，读起来也更顺
+2. **左值只求值一次**：`a[i] += 1` 里的下标 `i` 只会被计算一次，而 `a[i] = a[i] + 1` 会算两次。当左边是一个有副作用或开销大的表达式时，这一点很关键
+3. **自动做窄化转换**：这是最容易忽略的一条。`byte b = 1; b = b + 1;` 会**编译报错**（`int` 不能直接赋给 `byte`），而 `b += 1;` 却能通过——因为复合赋值运算符会自动补上强制类型转换，等价于 `b = (byte)(b + 1)`
+
+> ⚠️ **别误会**：扩展赋值运算符**不是**性能优化手段。`String s = "a"; s += "b";` 并不会比 `s = s + "b"` 更快，两者编译后都要创建新的字符串对象（详见 8.8 节 `StringBuilder` 的用法）。
+
+```java
+public class CompoundAssignmentPitfall {
+    public static void main(String[] args) {
+        byte b = 1;
+
+        // b = b + 1;   // ❌ 编译错误：incompatible types: possible lossy conversion from int to byte
+        b += 1;         // ✅ 等价于 b = (byte)(b + 1)
+        System.out.println("b = " + b);  // 2
+
+        int[] arr = {10, 20, 30};
+        int i = 0;
+        arr[i++] += 5;  // i 只自增一次，操作的是 arr[0]
+        System.out.println("arr[0] = " + arr[0] + ", i = " + i);  // arr[0] = 15, i = 1
+    }
+}
+```
 
 ```java
 public class AssignmentDemo {
@@ -280,7 +301,7 @@ public class ComparisonDemo {
 
 ### 短路与非短路的区别
 
-这可是性能优化的关键知识点！
+短路不只是"算得快"的问题，它直接关系到**程序的正确性**。最常见的场景是空值判断：`if (list != null && list.size() > 0)`——如果 `list` 是 `null`，右边根本不会被求值，从而避免 `NullPointerException`。下面用自增运算来直观演示"右边到底执行了没有"：
 
 ```java
 public class LogicalDemo {
@@ -316,7 +337,7 @@ public class LogicalDemo {
 }
 ```
 
-> **实战建议：** 绝大多数情况下用 `&&` 和 `||`（短路版本），它们更高效。只有在你确实需要两边都执行的时候（比如两边有副作用的函数调用），才用 `&` 和 `|`。
+> **实战建议：** 绝大多数情况下用 `&&` 和 `||`（短路版本），既安全又快。`&` 和 `|` 出现在布尔表达式里时几乎总是笔误，只有在你**确实需要两边都执行**时才故意使用（例如两边都是带副作用的调用）。此外要留意：`&&` 的优先级比 `||` 高，`a || b && c` 会被解析成 `a || (b && c)`，混用时建议直接加括号。
 
 ---
 
@@ -345,6 +366,8 @@ public class LogicalDemo {
 
 ### 图解位运算
 
+先用 4 位二进制把三种基本位运算画出来，比死记规则直观得多：
+
 ```
 按位与 (&)      按位或 (|)      按位异或 (^)
   0101 (5)       0101 (5)       0101 (5)
@@ -363,7 +386,8 @@ public class BitwiseDemo {
         System.out.println("a & b = " + (a & b) + "  (5&3=1)");  // 1
         System.out.println("a | b = " + (a | b) + "  (5|3=7)");  // 7
         System.out.println("a ^ b = " + (a ^ b) + "  (5^3=6)");  // 6
-        System.out.println("~a = " + (~a));  // -6（补码反码）
+        System.out.println("~a = " + (~a));  // -6：按位取反后最高位变 1，
+                                             // 而 Java 用二进制补码表示负数，所以读出来是 -6
 
         System.out.println("\n--- 移位运算 ---");
         // 左移：相当于乘以 2^n
@@ -385,10 +409,14 @@ public class BitwiseDemo {
 
 ### 位运算的经典应用
 
+位运算在实际开发中最常见的用途是读写"标志位"（flags）。下面三个小例子分别展示判断奇偶、不用临时变量交换两个数、以及检查某一位是否为 1：
+
 ```java
 public class BitwiseApplications {
     public static void main(String[] args) {
-        // 应用1：判断奇偶（比 %2 更快！）
+        // 应用1：判断奇偶
+        // （写成 (num & 1) == 1 只是另一种写法，现代 JVM 会把 n % 2 优化成同样的机器指令，
+        //   所以不要为了"性能"而故意用它，按可读性选即可）
         int num = 7;
         boolean isOdd = (num & 1) == 1;  // 奇数的最低位一定是 1
         System.out.println(num + " 是奇数吗？" + isOdd);
@@ -402,9 +430,12 @@ public class BitwiseApplications {
         System.out.println("交换后: x=" + x + ", y=" + y);
 
         // 应用3：判断某一位是否为 1
-        int flags = 0b10100;  // 二进制标志位，第3位和第5位是1
-        boolean bit3IsSet = (flags & (1 << 3)) != 0;  // 检查第3位
-        System.out.println("第3位是1吗？" + bit3IsSet);  // true
+        // 位的编号从右往左、从 0 开始（这是 Java 惯例），左移 1<<n 就得到"第 n 位为 1"的掩码
+        int flags = 0b10100;  // 二进制 10100，编号为 2 和 4 的位是 1（即值 4 + 16 = 20）
+        boolean bit2IsSet = (flags & (1 << 2)) != 0;  // 1<<2 = 0b100，与 flags 相与非 0
+        boolean bit3IsSet = (flags & (1 << 3)) != 0;  // 1<<3 = 0b1000，flags 里这一位是 0
+        System.out.println("第2位是1吗？" + bit2IsSet);  // true
+        System.out.println("第3位是1吗？" + bit3IsSet);  // false
     }
 }
 ```
@@ -417,6 +448,8 @@ public class BitwiseApplications {
 
 ### 语法
 
+三元运算符只有一行语法，长这样：
+
 ```java
 条件 ? 值1 : 值2
 ```
@@ -424,6 +457,8 @@ public class BitwiseApplications {
 执行逻辑：如果**条件**为 `true`，整个表达式的结果就是**值1**；如果**条件**为 `false`，结果就是**值2**。
 
 ### 等价代码
+
+同一件事用三元运算符和用 `if-else` 都能做，把两种写法摆在一起就能看出三元运算符"省行"在哪里：
 
 ```java
 // 三元运算符
@@ -439,6 +474,8 @@ if (score >= 60) {
 ```
 
 ### 实战代码
+
+下面用"成绩转等级"这个例子，演示三元运算符的基础用法和嵌套用法：
 
 ```java
 public class TernaryDemo {
@@ -482,6 +519,8 @@ public class TernaryDemo {
 在 Java 中，`+` 运算符还有一个重要功能——**字符串连接**。当 `+` 的两边有一边是字符串时，它就会变成"粘合剂"，把两边的东西拼在一起。
 
 ### 字符串连接基础
+
+看几个例子就明白了。注意最后两行的对比——`+` 到底是"做加法"还是"做拼接"，取决于两边是不是字符串：
 
 ```java
 public class StringConcatenation {
@@ -553,13 +592,13 @@ public class StringBuilderDemo {
 
 | 优先级 | 运算符                                  | 结合性     |
 |--------|-----------------------------------------|------------|
-| 1      | `()`（括号）                            | -          |
+| 1      | `()`（括号）、`[]`（数组下标）、`.`（成员访问） | 从左到右   |
 | 2      | `++` `--` `+`（正） `-`（负） `~` `!`  | 从右到左   |
 | 3      | `*` `/` `%`                             | 从左到右   |
 | 4      | `+` `-`                                 | 从左到右   |
 | 5      | `<<` `>>` `>>>`                         | 从左到右   |
-| 6      | `<` `<=` `>` `>=` `instanceof`          | -          |
-| 7      | `==` `!=`                               | -          |
+| 6      | `<` `<=` `>` `>=` `instanceof`          | 从左到右   |
+| 7      | `==` `!=`                               | 从左到右   |
 | 8      | `&`                                     | 从左到右   |
 | 9      | `^`                                     | 从左到右   |
 | 10     | `\|`                                    | 从左到右   |
@@ -569,6 +608,8 @@ public class StringBuilderDemo {
 | 14     | `=` `+=` `-=` `*=` `/=` `%=` `&=` `^=` `\|=` `<<=` `>>=` `>>>=` | 从右到左 |
 
 ### Mermaid 图示
+
+把上面这张表画成金字塔，越靠上优先级越高：
 
 ```mermaid
 graph TD
@@ -599,6 +640,8 @@ graph TD
 > 单目 → 算术 → 移位 → 比较 → 相等 → 位与 → 位异或 → 位或 → 逻辑与 → 逻辑或 → 三元 → 赋值
 
 ### 实际例子分析
+
+理论讲完了，来看几个真实表达式是怎么一步步算出来的：
 
 ```java
 public class PriorityDemo {

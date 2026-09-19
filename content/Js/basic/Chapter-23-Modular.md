@@ -95,21 +95,30 @@ graph LR
 ```
 
 ```javascript
-// IIFE 的变体：增强版
+// IIFE 的变体：把依赖"注入"进去（这也是"依赖注入"最早的雏形）
 (function(global, $) {
-  // global 是 window，$ 是 jQuery（如果有）
+  // 形参 global 对应 window，$ 对应 jQuery
   global.MyModule = {
     greet: function() {
       console.log('你好！');
+    },
+    // 内部用 $ 时不用担心全局变量被改名
+    highlight: function(selector) {
+      $(selector).addClass('active');
     }
   };
 })(window, jQuery);
 
 // 外部可以通过 MyModule 访问
 // MyModule.greet();
+
+// ⚠️ 这里传的是 jQuery / window，所以这两个必须已经存在，
+// 否则会抛 ReferenceError（jQuery 没引入时报的就是这个错）。
+// 稳妥的写法是在末尾加一层兜底：window.jQuery || {},
+// 或者干脆别依赖全局变量，把需要的值当成参数传进去。
 ```
 
-IIFE 的缺点：没有真正的依赖管理，只是"自欺欺人"式的隔离。
+IIFE 的缺点：没有真正的依赖管理——模块之间谁依赖谁全靠人工约定和书写顺序，加载顺序错了就报错，也没有去重和缓存，只是"自欺欺人"式的隔离。
 
 #### 2. CommonJS（CJS）
 
@@ -176,18 +185,24 @@ define(function(require, exports, module) {
 ES6+ 标准化的模块系统，`import`/`export` 语法，终结了江湖混战！
 
 ```javascript
-// math.js
-export const add = (a, b) => a + b;
+// math.js —— 命名导出 + 默认导出可以共存
 export const multiply = (a, b) => a * b;
-export default function(a, b) { return a + b; }
+export default function add(a, b) { return a + b; }
+
+// 也可以把默认导出写成独立语句，效果一样：
+// export default add;
 ```
 
 ```javascript
-// main.js
+// main.js —— 默认导出在前（名字随便起），命名导出用 {} 包住
 import add, { multiply } from './math.js';
 
-console.log(add(1, 2));      // 3
-console.log(multiply(3, 4)); // 12
+console.log(add(1, 2));      // 3（默认导出）
+console.log(multiply(3, 4)); // 12（命名导出）
+
+// 只想用命名导出时，可以一行都不写默认导出：
+import { multiply as mul } from './math.js';
+console.log(mul(2, 5));  // 10
 ```
 
 > 💡 **本章小结（第23章第1节）**
@@ -241,18 +256,28 @@ exports.greet = function() {
 ```
 
 ```javascript
-// 两种导出方式的区别
-// 方式1：module.exports = {...}  —— 替换整个导出对象
-const obj1 = { a: 1 };
-module.exports = obj1;
+// 两种导出方式的区别（下面两段请当成两个"不同文件"来看）
+//
+// 文件 A：module.exports = {...} —— 替换整个导出对象
+// module.exports = { a: 1, b: 2 };
+//
+// 文件 B：exports.xxx = xxx —— 往默认导出对象上挂属性
+// exports.a = 1;
+// exports.b = 2;
+//
+// 两者的结果是等价的：require() 拿到的都是 { a: 1, b: 2 }。
 
-// 方式2：exports.xxx = xxx —— 向导出对象添加属性
+// 最容易犯的错误：先挂属性，再整体替换
 exports.a = 1;
 exports.b = 2;
 
-// 如果同时使用，以 module.exports 为准
-module.exports = { c: 3 };
-exports.a = 100;  // 会被 module.exports 覆盖！
+module.exports = { c: 3 };   // 前面挂的 a、b 全部白干了
+// 此时 require() 只能拿到 { c: 3 }
+
+// 为什么？因为 exports 一直指向"最初那个默认对象"，
+// 而 module.exports 已经换成了另一个新对象，
+// 后面再写 exports.a = 100 只是改了一个没人引用的旧对象。
+exports.a = 100;             // 没有任何效果，也不可能"覆盖" module.exports
 ```
 
 ```javascript
@@ -278,9 +303,14 @@ const myModule = require('./myModule.js');
 console.log(myModule.name);
 console.log(myModule.greet());
 
-// 解构导入（CommonJS 不支持，但可以用变量接收后解构）
+// 直接解构也一样可以——require() 返回的就是个普通值，
+// 拿到之后想怎么解构都行：
 const { name, greet } = require('./myModule.js');
 console.log(name, greet());
+
+// ⚠️ 但要注意"解构 = 立刻取值"这一点：
+// 解构会在这一刻把属性值复制出来，之后原模块再改 count，这里的 count 不会跟着变。
+// 想拿到最新值，就保留整个对象、用的时候再取：myModule.count
 ```
 
 ```javascript
@@ -310,7 +340,7 @@ const mongoAdapter = loadAdapter('mongodb');
 
 ### 循环引用问题与模块缓存机制
 
-CommonJS 有循环引用的问题，但 Node.js 有模块缓存机制来缓解。
+CommonJS 遇到互相 require 时会拿到"半成品"，这是它最经典的坑。但 Node.js 的模块缓存让程序不会死循环，而是安静地给你一个 `undefined`。
 
 ```javascript
 // 循环引用示例
@@ -338,30 +368,48 @@ a.js 加载完成，b = [Function: b]
 ```
 
 ```javascript
+// 为什么不会无限递归？——模块缓存（require.cache）
+//
+// Node 在"开始执行"一个模块之前，就先把它的空壳 exports 对象放进缓存，
+// 所以第二次 require 同一个文件时不会重新执行，而是直接返回缓存里的对象。
+// 循环引用正是因此变成"拿到不完整的对象"，而不是栈溢出。
+
 // 解决循环引用的方法
-// 方法1：在需要用到的地方才 require（延迟加载）
+
+// 方法1（最推荐）：把 module.exports 提前，让导出先就位
 // a.js
-console.log('a.js 开始加载');
 function a() { return 'a'; }
-module.exports = { a };
+module.exports = { a };          // 先导出，再去 require
 
-setTimeout(() => {
-  const { b } = require('./b.js');
-  console.log('a 中访问 b:', b());
-}, 0);
+const { b } = require('./b.js');
+console.log('a 中访问 b:', b());
 
-// 方法2：只导出需要的部分
+// 方法2（最常用）：延迟 require —— 把 require 挪进函数体，用时才加载
 // a.js
-function getB() {
-  return require('./b.js');
-}
-module.exports = { getB };
+module.exports = {
+  a() { return 'a'; },
+  getB() {
+    return require('./b.js');    // 调用时才 require，那时对方已经初始化完了
+  }
+};
+
+// 方法3：只导出函数/类，不要导出"运行时才确定的值"
+// 导出的函数体在调用时才读取依赖，天然避开了加载顺序问题
+
+// 方法4（治本）：重新设计依赖方向
+// 循环引用通常说明职责划分有问题。
+// 把双方共用的部分抽到第三个模块 c.js，让 a、b 都依赖 c，循环就消失了。
 ```
 
 ```javascript
-// 模块缓存机制
-// 同一个模块多次 require，只会执行一次
-// console.log(require.cache);  // 查看缓存
+// 模块缓存相关的实用 API
+console.log(Object.keys(require.cache));         // 看已加载的模块
+delete require.cache[require.resolve('./x.js')]; // 删缓存：下次 require 会重新执行
+
+// 注意：缓存的 key 是"解析后的绝对路径"，所以 './a.js' 和 '../dir/a.js'
+// 只要指向同一个文件，就共享同一份缓存。
+// 另外 CJS 里不支持用查询串区分模块（require('./a.js?v=1') 会找不到文件）；
+// 而在 ESM 里 './a.mjs?v=1' 会被当成另一个模块实例，这点两者正好相反。
 ```
 
 > 💡 **本章小结（第23章第2节）**
@@ -548,9 +596,14 @@ import { add, multiply, greet, format } from './utils/index.js';
 ```
 
 ```javascript
-// 重新导出所有（不包括默认导出）
+// 重新导出所有命名导出（⭐ 不包括 default！）
 export * from './module1.js';
 export * from './module2.js';
+
+// ⭐ 另一个细节：如果 module1 和 module2 都导出了同名成员，
+// 这个"有歧义"的名字会从汇总结果里被排除掉，
+// 之后谁想 import 它就会直接报 SyntaxError（而不是拿到 undefined）。
+// 遇到这种情况必须显式指定来源，例如：export { x } from './module1.js'
 ```
 
 ```javascript
@@ -706,24 +759,48 @@ console.log('加载完成');
 ```
 
 ```javascript
-// ES Modules：编译时解析
-// import 在编译时就被处理
+// ES Modules：先"链接"再执行
+// 引擎会先把整个模块的 import/export 关系梳理好（依赖图、链接绑定），
+// 这一步发生在任何一行业务代码执行之前。
 console.log('开始');
-import { add } from './math.js';  // 编译时就处理了
-console.log('这里其实是编译后的代码');
+import { add } from './math.js';  // 写在这里也行，但会被提到所有代码之前处理
+console.log('add 已经可用了:', typeof add);  // 'function'
 
-// 注意：ES Modules 的 import 被 hoisting 到模块顶部
+// ⭐ 关键点：import 声明会被提升（hoisted）到模块顶部。
+// 也就是说，即使你把它写在 console.log 下面，
+// 上面那行 '开始' 打印之前，math.js 其实已经被加载并求值完了。
+//
+// 另外：模块体只会在"被依赖时"执行一次，可以把它想象成一个
+// "先建立引用关系，再自上而下执行"的过程，而不是逐个 require 往下走。
+
+// 有人会问：那 ES Modules 到底算不算"编译时"？
+// 更准确的说法是：依赖关系是"静态可分析"的（写死在源码里），
+// 所以打包工具可以提前画出依赖图，但模块代码本身仍是运行时执行的，
+// 只是执行顺序被提前安排好了。
 ```
 
 ```javascript
 // 这个区别的影响
-// CommonJS 可以：
-if (true) {
-  const module = require('./module.js');
+// CommonJS 可以随心所欲：
+if (process.env.NODE_ENV === 'production') {
+  const logger = require('./logger.prod.js');
 }
 
-// ES Modules 不行，必须：
-import { module } from './module.js';  // 必须在顶层
+// ES Modules 的静态 import 不行，只能写在模块顶层：
+// import logger from './logger.prod.js';   // 不能包在 if 里
+
+// 真要按条件加载，用动态 import()（它返回 Promise，可以写在任何地方）：
+async function getLogger(isProd) {
+  if (isProd) {
+    return (await import('./logger.prod.js')).default;
+  }
+  return (await import('./logger.dev.js')).default;
+}
+
+// 顺便说一句：import 的路径必须是"静态字符串"，
+// 所以下面的写法是语法错误，想拼路径只能用 import()：
+// const name = 'math';
+// import { add } from './' + name + '.js';
 ```
 
 ---
@@ -731,17 +808,24 @@ import { module } from './module.js';  // 必须在顶层
 ### 拷贝 vs 引用
 
 ```javascript
-// CommonJS：值的拷贝
+// CommonJS：导出的是"值的一次快照"
 // module.js
 let count = 0;
 function increment() { count++; }
 module.exports = { count, increment };
+// 注意这里 { count } 是简写，等价于 { count: count }，
+// 也就是把当前值 0 复制了一份放进去。
 
 // main.js
-const { count, increment } = require('./module.js');
-console.log(count);  // 0
-increment();
-console.log(count);  // 仍然是 0！拷贝的值不会变
+const mod = require('./module.js');
+console.log(mod.count);  // 0
+mod.increment();
+console.log(mod.count);  // 仍然是 0！模块内部的 count 变了，导出对象里那份没变
+
+// ⭐ 注意：这里哪怕不解构，结果也一样。问题不在解构，
+// 而在 module.exports 那一刻就把值复制走了。
+// 想让外部看到变化，必须导出"能取到值的东西"，比如函数：
+// module.exports = { getCount: () => count, increment };
 ```
 
 ```javascript
@@ -773,18 +857,28 @@ console.log(count);  // 变成 2 了
 ### 只读 vs 可修改
 
 ```javascript
-// CommonJS：拷贝的值可以随便改
-const { count } = require('./module.js');
-count = 100;  // 可以，但这只是本地变量的修改，不影响原模块
+// CommonJS：拿到的是一个普通变量，随便改都行（改的是本地副本）
+// let 而非 const，否则会得到 TypeError: Assignment to constant variable
+let { count } = require('./module.js');
+count = 100;   // 合法，但只是改本地变量，原模块不受影响
 
-// ES Modules：导入的绑定是只读的
+// ES Modules：导入的绑定是只读的（和用 let / const 声明无关）
 import { count } from './module.mjs';
-// count = 100;  // TypeError!
+// count = 100;   // TypeError: Assignment to constant variable.
+// count++;       // 同样报错
 
-// 但可以修改导出的对象属性（如果对象是引用类型）
-const obj = { count: 0 };
-export { obj };
-obj.count = 100;  // 可以，因为 obj 本身是引用
+// ⭐ 但"只读"只保护这个绑定本身，管不到它指向的对象内容。
+// 导出的是对象时，你仍然可以改它的属性：
+// module.mjs
+export const state = { count: 0 };
+
+// main.mjs
+import { state } from './module.mjs';
+state.count = 100;   // ✅ 合法：改的是对象内部
+// state = {};       // ❌ TypeError：不能给绑定重新赋值
+
+// 所以"导出对象"并不能防止别人改你的数据。
+// 真想让外部改不了，用 Object.freeze()，或者干脆只导出函数。
 ```
 
 ```mermaid
@@ -834,12 +928,15 @@ graph TD
 ```
 
 ```javascript
-// 模块脚本的特点
-// 1. 默认延迟执行（defer）
-// 2. 跨域请求需要 CORS
-// 3. 始终以严格模式运行
-// 4. 不会挂在 window 上
+// 模块脚本的五大特点（和普通 <script> 的差别）
+// 1. 默认 defer —— 等 HTML 解析完、按出现顺序执行，不用再手动加 defer
+// 2. 自动严格模式 —— 无需写 'use strict'，普通脚本里的"意外全局变量"会直接报错
+// 3. 顶层变量不会挂到 window —— var 声明也只在本模块内可见
+// 4. 请求受 CORS 限制 —— 跨域加载模块必须返回正确的 CORS 头
+// 5. 每个模块只执行一次 —— 被多个脚本 import 的模块不会重复求值
 ```
+
+> ⚠️ **本地直接双击打开 HTML 会失败**：浏览器对 `type="module"` 的脚本强制走 CORS，而 `file://` 协议下所有请求都算跨域且没有 CORS 头，控制台会报 "CORS policy" 或 "Failed to fetch dynamically imported module"。开发和调试时必须起一个本地服务器（`npx serve`、`python3 -m http.server` 等），这一点是初学 ESM 最常见的拦路虎。
 
 ```javascript
 // 浏览器中动态导入
@@ -847,6 +944,10 @@ button.addEventListener('click', async () => {
   const { renderChart } = await import('./chart.js');
   renderChart(data);
 });
+
+// 动态导入的路径规则和静态 import 一样：
+// 相对路径要写 './' 开头（裸写 'chart.js' 会被当成包名去解析，直接报错）
+// 浏览器里 import 的路径必须带扩展名，不像 Node 可以省略 .js
 ```
 
 ```html
@@ -879,20 +980,31 @@ import { add } from './utils.js';
 ```
 
 ```javascript
-// 如果想混用，可以：
-// 1. 使用 .mjs 扩展名强制 ES Modules
-// 2. 使用 .cjs 扩展名强制 CommonJS
+// 一个项目里两种规范可以共存，靠扩展名来区分：
+//   .mjs  → 强制 ES Modules
+//   .cjs  → 强制 CommonJS
+//   .js   → 看最近的 package.json 里 type 字段（默认 "commonjs"）
 
-// utils.cjs - 强制 CommonJS
+// utils.cjs —— 强制 CommonJS
 const add = (a, b) => a + b;
 module.exports = { add };
 
-// index.js (type: "module")
-const { add } = require('./utils.cjs');  // 可以 require .cjs 文件
+// index.js（package.json 里 type: "module"）—— 这是 ESM 文件
+// ⚠️ ESM 里没有 require / module.exports / __dirname，直接用会 ReferenceError。
+// 想用 CJS 模块，正确的姿势是 import（Node 能自动识别 CJS 的具名导出）：
+import { add } from './utils.cjs';
+console.log(add(1, 2));  // 3
+
+// 如果确实需要完整的 CommonJS 能力（比如调用 require.cache），
+// 用工具函数把它"请"回来：
+// import { createRequire } from 'node:module';
+// const require = createRequire(import.meta.url);
+// const legacy = require('./legacy.cjs');
 ```
 
-```javascript
-// package.json 配置示例
+package.json 配置示例：
+
+```json
 {
   "name": "my-app",
   "type": "module",
@@ -907,9 +1019,14 @@ const { add } = require('./utils.cjs');  // 可以 require .cjs 文件
 }
 ```
 
+> 📌 **exports / imports 字段小科普**：
+> - `exports` 决定"别人能从这个包里导入什么"，一旦设置，包内其他文件就对使用者"关门"了；
+> - `imports` 用于包**内部**的路径别名，必须以 `#` 开头，只能在包内使用；
+> - 两者都能做"条件导出"（`"import"` / `"require"` / `"browser"` 等分支），实现同一包名在 ESM 与 CJS 下指向不同文件。
+
 > 💡 **本章小结（第23章第4-5节）**
 > 
-> CommonJS 和 ES Modules 有四大区别：**静态 vs 动态**（import 不能拼接路径，require 可以）、**编译时 vs 运行时**（import 在编译时处理）、**拷贝 vs 引用**（CJS 是拷贝值，ESM 是共享引用）、**只读 vs 可修改**（ESM 的导入绑定只读）。浏览器中使用 ES Modules 需要 `type="module"`，Node.js 中通过 `package.json` 的 `type: "module"` 配置。现在 Node.js 也原生支持 ES Modules，两种规范会长期共存。
+> CommonJS 和 ES Modules 有四大区别：**静态 vs 动态**（import 路径必须写死，require 可以拼接、可以放在 if 里）、**先链接 vs 运行时加载**（ESM 会先理清依赖图再执行，所以能 Tree Shaking）、**快照 vs 实时绑定**（CJS 导出的是值的一份拷贝，ESM 共享同一个变量，对方改了你能看到）、**只读 vs 可修改**（ESM 的导入绑定不能重新赋值，但仍能改对象内部属性）。浏览器中使用 ES Modules 需要 `type="module"` 且必须走 HTTP 服务（`file://` 会因 CORS 失败），Node.js 中通过 `package.json` 的 `type: "module"` 配置。现在 Node.js 也原生支持 ES Modules，但 ESM 文件里**没有** `require`/`module.exports`/`__dirname`，需要时得用 `createRequire` 或 `import.meta.url` 转换，两种规范会长期共存。
 
 ---
 
@@ -922,14 +1039,17 @@ const { add } = require('./utils.cjs');  // 可以 require .cjs 文件
 ### 2. CommonJS（Node.js 标准）
 - 导出：`module.exports` 或 `exports.xxx`
 - 导入：`require()`
-- 有循环引用问题，但有模块缓存机制
-- 动态的、运行时的、值的拷贝
+- `exports` 只是 `module.exports` 的初始引用，一旦整体替换就与它脱钩
+- 有循环引用问题，靠模块缓存（拿到"半成品"而非死循环）缓解
+- 动态的、运行时加载的、导出的是"值的快照"
 
 ### 3. ES Modules（浏览器 + Node.js 标准）
 - 导出：`export` / `export default`
 - 导入：`import`
-- 静态的、编译时的、值的引用
-- 导入绑定只读
+- 导入路径必须写死（静态可分析），先链接依赖图再执行
+- 导出的是"实时绑定"（live binding），对方改了你能看到
+- 导入绑定只读，但可以改它所指向对象的内部属性
+- `export *` 不导出 `default`，同名冲突会被排除
 - 支持动态 `import()` 实现代码分割
 
 ### 4. 两种规范对比
@@ -939,15 +1059,17 @@ const { add } = require('./utils.cjs');  // 可以 require .cjs 文件
 - **只读 vs 可修改**：ESM 导入绑定只读
 
 ### 5. 浏览器环境
-- `<script type="module">` 启用 ES Modules
-- `type="module"` 让 .js 文件使用 ES Modules
+- `<script type="module">` 启用 ES Modules：默认 defer、严格模式、不挂 window、受 CORS 限制
+- 本地必须用 HTTP 服务器打开，`file://` 直接双击会因 CORS 报错
+- Node 里 `package.json` 的 `"type": "module"` 让 `.js` 文件使用 ES Modules
 - `.mjs` 强制 ES Modules，`.cjs` 强制 CommonJS
+- ESM 里没有 `require` / `module.exports` / `__dirname`，需要时用 `createRequire` / `import.meta.url`
 
 ### 记忆口诀
 ```
 模块化让代码不打架，
 CommonJS 用 require 和 module.exports，
 ES Modules 用 import 和 export，
-静态编译能 Tree Shaking，
-动态导入代码分割真牛逼！
+静态分析能 Tree Shaking，
+动态导入做代码分割。
 ```

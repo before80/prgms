@@ -348,7 +348,7 @@ article p:first-child {
 
 ```html
 <ul>
-  <li>← :first-child 会选中这个 ← :first-child 会选中这个</li>  <!-- 第一个 -->
+  <li>← :first-child 会选中这个</li>  <!-- 第一个 -->
   <li>第二个</li>
   <li>第三个</li>
 </ul>
@@ -368,6 +368,14 @@ li:last-child {
 .menu a:last-child {
   color: #e74c3c;  /* 最后一项标红 */
 }
+
+/* ⚠️ 这里选中的是"作为父元素最后一个子元素的那个 a"，
+   而不是".menu 里排在最后的那一个 a"。
+   如果 HTML 是 <ul class="menu"><li><a>…</a></li>…</ul>，
+   每个 a 都是它所在 li 的最后一个（也是唯一一个）子元素，
+   上面这条规则会把所有链接都标红。
+   想只改最后一项，应该把结构写成：
+   .menu li:last-child a { color: #e74c3c; } */
 
 /* 选中 article 里面最后一个 p */
 article p:last-child {
@@ -432,7 +440,7 @@ h2:last-of-type {
   min-height: 200px;
 }
 
-/* 选中 .avatar-list 中唯一的后代 */
+/* 选中"自己是父元素唯一子元素"的 .avatar-list */
 .avatar-list:only-child {
   margin: 0;
 }
@@ -440,7 +448,7 @@ h2:last-of-type {
 
 ```html
 <div class="card">
-  <p>← :only-child 会选中这个 ← :only-child 会选中这个</p>
+  <p>← :only-child 会选中这个</p>
   <!-- 只有一个子元素 -->
 </div>
 
@@ -669,6 +677,18 @@ td:empty {
 <!-- :empty 不会选中 -->
 ```
 
+> ⚠️ **`:empty` 有一个非常容易踩的坑：空白文本也算内容。**
+>
+> ```html
+> <div class="a"></div>        <!-- ✅ :empty 命中 -->
+> <div class="b">
+> </div>                       <!-- ❌ 不命中：里面有一个换行/缩进形成的空白文本节点 -->
+> <div class="c"><!-- 注释 --></div>  <!-- ✅ 命中：注释节点不计入 -->
+> <div class="d"></div>        <!-- 用 CSS 的 content 加内容也不影响 :empty -->
+> ```
+>
+> 也就是说，把 HTML 写得"好看"（标签换行缩进）就会破坏 `:empty`。如果必须依赖它，要么把空元素写成一行 `<div></div>`，要么改用 `:has()` 或 JS 判断。另外注意：`::before`/`::after` 用 `content` 生成的内容**不会**让元素变成非空。
+
 ---
 
 ## 7.3 链接与交互伪类
@@ -740,6 +760,19 @@ a:link {
 */
 ```
 
+为什么顺序这么重要？因为 `a:link`、`a:hover`、`a:visited`、`a:active` 的**特异性完全相同**（都是一个元素 + 一个伪类），当特异性打平时，就看**谁写在后面**。上面那段代码里 `a:link` 写在最后，于是它会盖掉 `a:hover`，用户永远看不到悬停变红的效果。
+
+按 **L**o**V**e **HA**te 的顺序写（`:link` → `:visited` → `:hover` → `:active`），越"临时"的状态越靠后，正好符合"越晚出现越容易赢"的规律：
+
+```css
+a:link    { color: #3498db; }
+a:visited { color: #9b59b6; }
+a:hover   { color: #2980b9; }   /* 悬停时盖过前两个 */
+a:active  { color: #e74c3c; }   /* 按下时盖过所有 */
+```
+
+另外补一个细节：**`:visited` 能改的属性极少**，浏览器出于隐私考虑只允许它修改颜色相关的少数属性（`color`、`background-color`、`border-color` 等），你写的 `font-size`、`display` 之类会被忽略；而且用 JS 也读不到访问历史。
+
 **链接样式的现代写法：**
 
 ```css
@@ -775,6 +808,16 @@ textarea:focus {
   border-color: #3498db;
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
   outline: none;  /* 去掉浏览器默认的蓝色轮廓 */
+}
+
+/* ⚠️ 上面这种 outline: none 是常见的无障碍问题：
+   键盘用户靠这个轮廓判断"焦点在哪"，直接去掉会让 Tab 导航"看不见光标"。
+   如果确实觉得默认轮廓丑，请像下面这样提供一个替代的可见焦点样式
+   （用 box-shadow 或 border 变化都可以），而不是彻底删掉。 */
+.field:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.35);  /* 用这个代替轮廓 */
 }
 
 /* 按钮获得焦点时的样式 */
@@ -883,10 +926,12 @@ graph TD
   display: block;  /* 被锚点指向时显示 */
 }
 
-.section:target + .section {
-  display: none;  /* 隐藏其他 */
+.section:target ~ .section {
+  display: none;  /* 隐藏它后面的其它区块 */
 }
 ```
+
+> ⚠️ 这段"纯 CSS 选项卡"的示例只能算是**演示**：所有 `.section` 默认是 `display: none`，只有被 `:target` 命中的那个显示；但兄弟选择器只能往后找，所以它没法"隐藏前面已经展示过的区块"。页面刚打开、URL 里还没有锚点时，**所有区块都是隐藏的**，用户会看到一片空白。生产环境中做选项卡请用 `:checked` + `label`、`<details>`、或者干脆用一点 JavaScript。
 
 ```html
 <!-- 导航 -->
@@ -948,17 +993,44 @@ input[type="checkbox"]:checked {
 input[type="radio"]:checked {
   border-color: #3498db;
 }
-
-input[type="radio"]:checked::after {
-  content: "";
-  display: block;
-  width: 10px;
-  height: 10px;
-  background: #3498db;
-  border-radius: 50%;
-  margin: 3px;
-}
 ```
+
+> ⚠️ **`input` 上不能使用 `::before` / `::after`！**
+>
+> 表单控件（`input`、`img`、`br` 等）属于**替换元素**，它们没有可供伪元素插入的"内容区域"。所以像下面这样写是**完全无效**的：
+>
+> ```css
+> /* ❌ 无效：不会生成任何内容 */
+> input[type="radio"]:checked::after {
+>   content: "";
+>   display: block;
+>   width: 10px;
+>   height: 10px;
+>   background: #3498db;
+>   border-radius: 50%;
+> }
+> ```
+>
+> 想画出自定义的选中圆点，正确做法是先把原生外观关掉，再用背景/阴影绘制：
+>
+> ```css
+> /* ✅ 用 appearance: none 接管绘制 */
+> input[type="radio"] {
+>   appearance: none;          /* 关掉系统默认外观（需要时加 -webkit- 前缀） */
+>   width: 20px;
+>   height: 20px;
+>   border: 2px solid #ccc;
+>   border-radius: 50%;
+>   transition: background 0.2s, border-color 0.2s;
+> }
+>
+> input[type="radio"]:checked {
+>   border-color: #3498db;
+>   background: radial-gradient(circle, #3498db 0 5px, transparent 5px);
+> }
+> ```
+>
+> 另一种常见的自定义方式是"隐藏原生控件 + 用相邻兄弟 `+` 选中一个真正的元素来画"，也就是上面复选框示例里的思路——**关键点是用一个真实存在的元素承载样式，而不是伪元素**。
 
 ### 7.4.2 :valid——通过验证的表单字段
 
@@ -994,13 +1066,31 @@ input:invalid:not(:placeholder-shown) {
   border-color: #e74c3c;
 }
 
-/* 错误提示 */
-input:invalid:not(:placeholder-shown)::after {
-  content: "请输入有效的内容";
-  color: #e74c3c;
-  font-size: 12px;
+/* 错误提示：注意不能在 input 上用 ::after（见 7.4.1 的说明），
+   正确做法是让提示文字放在一个真实元素里，再用兄弟选择器控制它的显示 */
+.field input:invalid:not(:placeholder-shown) + .error-tip {
+  display: block;
 }
 ```
+
+```html
+<!-- 配套 HTML：错误提示紧跟输入框，默认隐藏 -->
+<div class="field">
+  <input type="email" required placeholder=" " />
+  <span class="error-tip">请输入有效的内容</span>
+</div>
+```
+
+```css
+.error-tip {
+  display: none;       /* 默认不显示 */
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 4px;
+}
+```
+
+> 💡 `:valid` / `:invalid` 依赖 HTML 的**原生校验规则**：`type="email"`、`required`、`minlength`、`pattern`、`min`/`max` 等。也就是说，用它们做样式之前要先想清楚"这个字段的校验规则到底是什么"——没有加任何约束的普通文本框**永远是 `:valid`**。另外 `:invalid` 有个著名的体验问题：用户刚打开页面什么都没填时，必填项就已经被判为 `:invalid`，边框全红了。所以实践里常配合 `:not(:placeholder-shown)`，或者用 `:user-invalid`（较新，只在该字段被用户"动过"之后才生效）。
 
 ### 7.4.4 :required——必填的表单字段
 
@@ -1051,6 +1141,11 @@ select:disabled {
 }
 ```
 
+> 💡 两个细节：
+>
+> - `:disabled` 只对**支持 disabled 的控件**有效（`input`、`button`、`select`、`textarea`、`fieldset`、`optgroup`、`option`）。给 `<div disabled>` 写样式是无效的。
+> - 把 `<fieldset disabled>` 加在整组表单上，组内所有控件都会被浏览器判定为 `:disabled`，并**自动获得"不可交互"的行为**，比逐个禁用省事得多——需要禁用整块表单时首选这个办法。
+
 ### 7.4.7 :enabled——启用的表单字段（默认）
 
 ```css
@@ -1072,6 +1167,14 @@ input:disabled {
 ```
 
 ### 7.4.8 :placeholder-shown——占位符文字显示时的输入框
+
+**前提：元素必须有 `placeholder` 属性。** 没有 `placeholder` 时，`:placeholder-shown` 永远不匹配。这在做"浮动标签"时特别关键——很多人想用 `:not(:placeholder-shown)` 表示"已经输入了内容"，但输入框上根本没写 `placeholder`，于是完全失效。社区里通行的做法是给它加一个**空格占位符**：
+
+```html
+<!-- 关键技巧：placeholder 写一个空格，
+     这样 :placeholder-shown 才有意义，又不会真的显示提示文字 -->
+<input type="text" placeholder=" " />
+```
 
 ```css
 /* 占位符显示时隐藏输入框边框 */
@@ -1180,12 +1283,17 @@ input[type="range"]:out-of-range {
   background-color: rgba(231, 76, 60, 0.1);
 }
 
-/* 超出范围时显示警告 */
-input:out-of-range::after {
-  content: "请输入 1-10 之间的数字";
-  color: #e74c3c;
-  font-size: 12px;
+/* 超出范围时显示警告（同样不能在 input 上用伪元素，改为控制兄弟元素） */
+.range-field input:out-of-range + .range-tip {
+  display: block;
 }
+```
+
+```html
+<div class="range-field">
+  <input type="number" min="1" max="10" value="15" />
+  <span class="range-tip">请输入 1-10 之间的数字</span>
+</div>
 ```
 
 **表单伪类实战示例：**
@@ -1334,10 +1442,24 @@ h3 { font-size: 24px; color: #333; }
   color: red;  /* 权重 = 0 + 元素(1) = 1 */
 }
 
-/* 实际应用：第三方样式覆盖 */
-.third-party-button:where(.btn) {
-  /* 可以用 :where() 来降低选择器优先级 */
-  /* 更容易被覆盖 */
+/* 实际应用：给"基础样式"降权，让别人更容易覆盖你 */
+
+/* 方案 A：用 :is()，特异性 = 类选择器的 10 分 */
+:is(.card, .panel) h2 {
+  margin: 0;
+}
+
+/* 方案 B：用 :where()，特异性 = 只算 h2 的 1 分 */
+:where(.card, .panel) h2 {
+  margin: 0;
+}
+/* 后者只要写 .my-article h2 { margin: 1em 0 } 就能轻松覆盖，
+   因为它有 2 分（类 + 类 + 元素），而方案 B 只有 1 分。 */
+
+/* 实际应用：给第三方组件的样式"套壳"，方便业务层覆盖 */
+/* 下面这条只有 .my-app 的 10 分，不会因为库里的复杂选择器而失控 */
+.my-app :where(.third-party-widget) .title {
+  color: #333;
 }
 ```
 
@@ -1446,6 +1568,14 @@ div:has(> *:first-child:last-child) {
   background: #3498db;
 }
 ```
+
+**`:has()` 的三个使用须知：**
+
+1. **特异性按 `:is()` 计算**——取括号里**最高**的那个选择器。上面 `.nav-item:has(a.current)` 的特异性是"两个类"（`.nav-item` + `a.current` 里的 `.current`），所以很容易压过其他规则，写的时候留个心。
+2. **不能嵌套使用**——`:has()` 里面不能再写 `:has()`，这是规范明确禁止的（会带来性能问题）。递进关系可以用兄弟/后代选择器拆开表达。
+3. **支持情况**：`:has()` 现在已进入所有主流浏览器的稳定版（Chrome 105+、Safari 15.4+、Firefox 121+），可以放心用；但在更老的浏览器上整条规则会被忽略，所以**用它做纯装饰可以，别把关键功能（比如"展开/折叠"）只押在它身上**。
+
+> 💡 顺便说清"父选择器"的边界：`:has()` 能选中"包含某个后代的元素"，也能用 `:has(+ ...)` 让**前一个元素**根据紧跟在它后面的元素被选中（例如 `h2:has(+ p)` 表示"后面紧跟着段落的标题"），但它本身无法"跳到前面去选中兄弟"——`+` 和 `~` 永远只向后看。更要紧的是，用 `:has()` 做**布局方向**的依赖（比如"根据后面的元素改变前面的宽度"）很脆弱，这类需求用 JS 更稳。
 
 ---
 
@@ -1559,7 +1689,7 @@ h2::before {
 
 /* 在卡片前加引号 */
 blockquote::before {
-  content: """;
+  content: "\"";   /* 或写成单引号的 content: '"'; */
   font-size: 48px;
   color: #3498db;
   font-family: Georgia, serif;
@@ -1568,6 +1698,15 @@ blockquote::before {
   margin-bottom: 10px;
 }
 ```
+
+> ⚠️ 上面那行 `content` 是最常见的 CSS 语法错误之一：**引号（字符串）内部不能直接出现同类型的未转义引号**。写 `content: """;` 会让浏览器把字符串提前结束，整条声明（甚至后续规则）都被丢弃。正确写法只有两种：
+>
+> ```css
+> .a { content: "\""; }   /* ✅ 用反斜杠转义双引号 */
+> .b { content: '"'; }    /* ✅ 外层用单引号包裹 */
+> ```
+>
+> 顺便记一下 `content` 的常用值：`""`（空，用于画装饰）、`"文字"`、`attr(data-x)`（读取属性）、`counter(name)`（计数器）、`url(...)`、`open-quote`/`close-quote`（配合 `quotes` 使用）。
 
 ### 7.7.2 ::after——元素内容后插入虚拟元素，需配合 content 属性
 
@@ -1652,13 +1791,30 @@ p::first-letter {
   font-family: Georgia, serif;
 }
 
-/* 图标风格的第一个字符 */
-.icon-label::first-letter {
-  content: "🔍";
-  font-size: 1.5em;
-  margin-right: 5px;
+/* 首字下沉时的一个实用技巧：让标点不参与"首字母" */
+p::first-letter {
+  /* 如果段落以中文引号开头，浏览器会把引号和第一个汉字一起算作 ::first-letter */
+  font-size: 3em;
+  color: #3498db;
 }
 ```
+
+> ⚠️ **`content` 不能用在 `::first-letter` 上。** 只有 `::before`、`::after`、`::marker` 这几个伪元素支持用 `content` 生成内容。像下面这样想在首个字符位置插一个图标是无效的：
+>
+> ```css
+> /* ❌ 无效：::first-letter 不会渲染 content */
+> .icon-label::first-letter {
+>   content: "🔍";
+> }
+>
+> /* ✅ 想加图标请用 ::before */
+> .icon-label::before {
+>   content: "🔍";
+>   margin-right: 5px;
+> }
+> ```
+>
+> **`::first-line` / `::first-letter` 的另一个限制**：它们只能用一部分属性。`::first-line` 只能用字体、颜色、背景等少数属性（不能改 `margin`、`padding`、`width` 这类影响布局的属性），`::first-letter` 支持的属性稍多一些（可以 `float`、设置 `margin`/`padding`/`border`），但同样不能用来改 `display`。
 
 ### 7.7.5 ::selection——自定义选中文字样式，可设 color 和 background
 
@@ -1708,24 +1864,34 @@ input:focus::placeholder {
   opacity: 0.8;
 }
 
-/* 不同浏览器的兼容写法 */
+/* 现代浏览器统一支持不带前缀的 ::placeholder，正常只写这一条就够了 */
 input::placeholder {
   color: #999;
 }
 
+/* 兼容很老的浏览器时，前缀版本要单独写规则，
+   不要和上面那条放进同一个选择器列表 ——
+   有一个选择器无效，整组规则都会被丢弃 */
 ::-webkit-input-placeholder {
   color: #999;
 }
-
-::-moz-placeholder {
-  color: #999;
-  opacity: 1;
-}
-
-:-ms-input-placeholder {
-  color: #999;
-}
 ```
+
+> 💡 常见误区：**`::placeholder` 不能和别的选择器合并成一组**。下面这样写是错的：
+>
+> ```css
+> /* ❌ 只要浏览器不认识其中任何一个选择器，整组规则都会被忽略 */
+> input::placeholder,
+> input::-webkit-input-placeholder {
+>   color: #999;
+> }
+>
+> /* ✅ 拆成两条独立规则 */
+> input::placeholder { color: #999; }
+> input::-webkit-input-placeholder { color: #999; }
+> ```
+>
+> 另外 `::placeholder` 支持的属性也有限（颜色、字体、`text-decoration` 等），像 `padding`、`border` 这类是无效的——它只是占位符文字，不是元素。
 
 ### 7.7.7 ::marker——自定义列表标记的样式，如 li::marker { color: red; }
 
@@ -1743,8 +1909,8 @@ li::marker {
   content: "✓ ";
 }
 
-/* 有序列表的数字样式 */
-ol::marker {
+/* 有序列表的数字样式（注意：要写在 li 上，ol 本身没有 marker） */
+ol > li::marker {
   color: #e74c3c;
   font-weight: bold;
 }
@@ -1755,6 +1921,10 @@ ol::marker {
   color: #3498db;
 }
 ```
+
+> ⚠️ **`::marker` 属于列表项，不属于列表容器。** 只有 `display: list-item` 的元素才有标记，所以 `ol::marker`、`ul::marker` 都是无效的（`ol`/`ul` 本身不生成标记），必须写成 `li::marker` 或 `ol > li::marker`。
+>
+> **`::marker` 能改的属性很有限**：只有 `color`、`font` 系列（`font-size`、`font-weight`、`font-family` 等）、`content`、`animation`/`transition`、`text-combine-upright`、`white-space` 这一类。写 `li::marker { background: red }` 或 `margin-top: 4px` 是**没有效果**的——想完全自由地控制标记样式（比如做成自定义图标并精确调位置），更常见的做法是把 `list-style: none` 关掉原生标记，再用 `li::before` 自己画。
 
 ### 7.7.8 ::cue——自定义媒体字幕的样式
 
@@ -1767,15 +1937,23 @@ video::cue {
   color: white;
   font-family: "Microsoft YaHei", sans-serif;
   font-size: 18px;
-  padding: 5px 10px;
-  border-radius: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-/* 字幕中的时间码样式 */
-video::cue(timestamp) {
+/* 只给某个"声音"（WebVTT 里的 <v Bob> 标签）的字幕换色 */
+video::cue(v[voice="Bob"]) {
+  color: #ffd700;
+}
+
+/* 只给带某个 class 的字幕（WebVTT 里的 <c.yellow> 标签）换色 */
+video::cue(.yellow) {
   color: #ffd700;
 }
 ```
+
+> ⚠️ `::cue` **能改的属性也很少**，主要是颜色、背景、字体、`text-decoration`、`text-shadow`、`opacity` 等，`padding`、`border-radius`、`margin` 这类属性写了不生效——想给字幕加圆角底框，得靠 `background` 配合 `text-shadow`，或者干脆自己用 JS 叠加一层自定义字幕。
+>
+> 另外，`::cue(xxx)` 里的参数是匹配**WebVTT 提示文本内部标签**的选择器（`v`、`c`、`i`、`b`、`u`、`lang` 等），不是任意 CSS 选择器。
 
 ### 7.7.9 ::file-selector-button——文件选择按钮的样式
 
@@ -1815,18 +1993,36 @@ img:fullscreen::backdrop {
 }
 ```
 
+> 💡 `::backdrop` 最常用的场景其实不是全屏，而是 **`<dialog>` 弹窗**：
+>
+> ```css
+> /* 原生 <dialog> 打开时背后的遮罩层 */
+> dialog::backdrop {
+>   background: rgba(0, 0, 0, 0.5);
+>   backdrop-filter: blur(4px);   /* 还能做毛玻璃效果 */
+> }
+> ```
+>
+> `dialog::backdrop` 只在 `dialog.showModal()` 打开时出现，是"模态遮罩"最省事的实现方式。注意 `::backdrop` 本身不是普通元素，它**不继承任何样式**，也不会被 `body` 上的样式影响，需要的话用 `:root` 里的自定义属性传值进去。
+
+> 💡 `::file-selector-button` 是标准名，旧代码里常见的是 `::-webkit-file-upload-button`（Chrome/Safari）。要兼容较老的浏览器，两条规则都写上，但**记得分开写**——放同一个选择器列表里会让整组失效。
+
 **伪元素汇总表：**
 
 | 伪元素 | 说明 | 典型用途 |
 |--------|------|----------|
 | `::before` | 元素内容前插入 | 加图标、加装饰 |
 | `::after` | 元素内容后插入 | 加箭头、清除浮动 |
-| `::first-line` | 第一行 | 首行特殊样式 |
-| `::first-letter` | 第一个字母 | 首字下沉 |
-| `::selection` | 选中文字 | 高亮颜色 |
-| `::placeholder` | 占位符文字 | 输入框占位符样式 |
-| `::marker` | 列表标记 | 列表符号样式 |
-| `::backdrop` | 全屏背景 | 全屏时背景色 |
+| `::first-line` | 第一行（仅块级容器，可用属性有限） | 首行特殊样式 |
+| `::first-letter` | 第一个字母（仅块级容器） | 首字下沉 |
+| `::selection` | 选中文字（只能改颜色、背景、阴影等） | 高亮颜色 |
+| `::placeholder` | 占位符文字（需元素有 `placeholder`） | 输入框占位符样式 |
+| `::marker` | 列表项的标记（写 `li::marker`，不是 `ol::marker`） | 列表符号样式 |
+| `::file-selector-button` | 文件选择按钮 | 自定义上传按钮 |
+| `::backdrop` | 全屏/弹窗背后的遮罩层 | 全屏时背景色、`dialog` 背景 |
+| `::cue` | 媒体字幕文本 | 字幕样式 |
+
+> ⚠️ **伪元素用在替换元素上不生效**：`input`、`img`、`select`、`textarea`、`br`、`video` 等都不支持 `::before`/`::after`，因为它们没有"内容区域"可供插入（不过 `input`、`textarea` 支持 `::placeholder`，`video` 支持 `::cue`）。给 `input` 加装饰请改用外层容器 + 兄弟元素。
 
 ```mermaid
 graph LR
@@ -1896,13 +2092,20 @@ mindmap
 3. **掌握 :has()**：这是目前最强大的选择器
 4. **区分 :focus 和 :focus-visible**：对无障碍访问很重要
 
+### 本章易错点速查
+
+| 易错点 | 正确做法 |
+|--------|----------|
+| `a:last-child` 被当成"最后一个链接" | 它选的是"作为父元素最后一个子元素的 a"，多半要写 `li:last-child a` |
+| 给 `input` 写 `::before` / `::after` | 替换元素不支持伪元素，用容器 + 兄弟元素，或 `appearance: none` 自己画 |
+| `ol::marker` / `ul::marker` | 标记长在列表项上，写 `li::marker` |
+| `::first-letter { content: "…" }` | `content` 只对 `::before`、`::after`、`::marker` 生效 |
+| `content: """;` | 字符串里要转义，写成 `content: "\""` 或 `content: '"'` |
+| `:focus { outline: none }` 直接删轮廓 | 必须给一个替代的可见焦点样式，否则键盘用户"失明" |
+| 用 `:placeholder-shown` 但没写 `placeholder` | 加 `placeholder=" "` 空格占位符 |
+| 链接伪类顺序乱写 | 按 LVHA（`:link` → `:visited` → `:hover` → `:active`）排列 |
+| `<div>\n</div>` 以为能命中 `:empty` | 换行会形成空白文本节点，必须写成 `<div></div>` |
+
 ### 下章预告
 
 下一章我们将学习选择器优先级，这是 CSS 中最容易被忽略但又极其重要的知识点。理解了优先级，你才能真正掌握 CSS 的层叠规则！
-
-
-
-
-
-
-

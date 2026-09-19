@@ -34,7 +34,7 @@ Rust 的解决方案是**所有权系统（Ownership System）**：
 - **类型系统（Type System）**：用类型来约束行为，比如 `&T` 共享引用、`&mut T` 独占可变引用
 - **生命周期（Lifetime）**：编译期追踪引用的有效范围，彻底告别迷途指针
 
-```rust
+```rust,compile_fail
 // Rust 的借用规则在编译期就拒绝了数据竞争
 fn main() {
     let mut data = vec![1, 2, 3];
@@ -140,7 +140,10 @@ Unix 特有的模块路径通常是 `std::os::unix::`，Windows 则是 `std::os:
 libc = "0.2"
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：libc
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // 使用 libc 直接调用 Unix 系统调用
 use libc::{c_char, c_int, c_void, size_t, strlen};
 use std::ffi::CString;
@@ -219,8 +222,8 @@ fn main() -> io::Result<()> {
     let mut file = File::create("hello_rust.txt")?;
     
     // 写入数据
-    file.write_all(b"你好，Rust 文件系统！\n")?;
-    file.write_all(b"这是第二行文字。\n")?;
+    file.write_all("你好，Rust 文件系统！\n".as_bytes())?;
+    file.write_all("这是第二行文字。\n".as_bytes())?;
     
     // 关闭文件（自动在 Drop 时发生）
     drop(file);
@@ -243,7 +246,7 @@ fn main() -> io::Result<()> {
 文件内容：
 你好，Rust 文件系统！
 这是第二行文字。
-文件大小：42 字节
+文件大小：55 字节
 ```
 
 `File` 实现了以下关键 trait：
@@ -261,13 +264,14 @@ Rust 提供了两种打开文件的主要方式，各有各的用武之地：
 
 ```rust
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 
 fn main() -> io::Result<()> {
     // 方案一：File::create —— 创建新文件或截断已有文件
     // "要么是个新文件，要么把旧的清空重来"
     let mut new_file = File::create("brand_new.txt")?;
-    new_file.write_all(b"新文件内容，覆盖一切！")?;
+    // 注意：b"..." 只能写 ASCII 字节，含中文的字符串要用 .as_bytes()
+    new_file.write_all("新文件内容，覆盖一切！".as_bytes())?;
 
     // 方案二：File::open —— 以只读模式打开已有文件
     // "文件必须存在，不存在就报错"
@@ -448,7 +452,9 @@ BufReader: 成功读取 10000 行
 tokio = { version = "1", features = ["full"] }
 ```
 
-```rust
+> ⚠️ 下面的示例依赖 `tokio` crate，需要先在 `Cargo.toml` 里加入上面的依赖才能运行，因此标记为 `ignore`，不参与本书的编译检查。
+
+```rust,ignore
 use std::error::Error;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
@@ -456,7 +462,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 async fn main() -> Result<(), Box<dyn Error>> {
     // 异步创建文件
     let mut file = tokio::fs::File::create("async_hello.txt").await?;
-    file.write_all(b"这是异步写入的数据！\n").await?;
+    file.write_all("这是异步写入的数据！\n".as_bytes()).await?;
     
     // 异步读取文件
     let contents = tokio::fs::read_to_string("async_hello.txt").await?;
@@ -499,7 +505,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 `tokio` 的异步 I/O 基于两个核心 trait：`AsyncRead` 和 `AsyncWrite`。它们是异步版本的 `Read` 和 `Write`——底层确实通过 `poll` 函数实现 Future 的状态机，但你写代码时直接用 `await` 即可，完全感知不到 `poll` 的存在：
 
-```rust
+> ⚠️ 同上，本示例同样依赖 `tokio` crate（`ignore`）。
+
+```rust,ignore
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use std::error::Error;
 
@@ -509,9 +517,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mut file = tokio::fs::File::create("async_trait_demo.txt").await?;
     
     // AsyncWriteExt 提供了方便的异步写入方法
-    file.write_all(b"第一行：异步写入就是这么优雅\n").await?;
-    file.write_all(b"第二行：不需要回调地狱\n").await?;
-    file.write_all(b"第三行：直接 await，神清气爽\n").await?;
+    file.write_all("第一行：异步写入就是这么优雅\n".as_bytes()).await?;
+    file.write_all("第二行：不需要回调地狱\n".as_bytes()).await?;
+    file.write_all("第三行：直接 await，神清气爽\n".as_bytes()).await?;
     
     // 必须 shutdown 来确保数据 flush
     file.shutdown().await?;
@@ -565,7 +573,10 @@ epoll 有三个核心系统调用：
 - `epoll_ctl()`：向 epoll 实例注册/修改/删除监视的 fd
 - `epoll_wait()`：等待事件发生（可设置超时）
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：libc
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use libc::{c_int, epoll_event, EPOLLIN, EPOLLOUT};
 use std::error::Error;
 
@@ -700,7 +711,10 @@ epoll 示例演示完毕！
 
 `kqueue` 是 macOS 和 BSD 系统（如 FreeBSD、OpenBSD）上的 I/O 多路复用机制，由 Jonathan Lemon 在 2000 年左右为 FreeBSD 设计。相比 epoll，`kqueue` 更灵活，支持更多类型的事件通知。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：libc
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use libc::{c_int, kevent, kqueue, EVFILT_READ, EV_ADD};
 use std::error::Error;
 
@@ -776,7 +790,7 @@ kevent 返回：1 个事件
 
 Windows 的 I/O 多路复用机制叫 **IOCP（I/O Completion Ports，输入/输出完成端口）**。它是最早的异步 I/O 机制之一，设计理念与其他 Unix 系统完全不同——它是一种**基于队列的完成通知模型**。
 
-```rust
+````rust
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -833,7 +847,7 @@ IOCP（I/O Completion Ports）是 Windows 的高性能 I/O 模型。
 
     Ok(())
 }
-```
+````
 
 ### 19.2.4 mio crate
 
@@ -843,13 +857,17 @@ IOCP（I/O Completion Ports）是 Windows 的高性能 I/O 模型。
 
 #### 19.2.4.1 mio 跨平台 I/O 抽象
 
+`mio` 是跨平台的底层 I/O 抽象库，tokio 等运行时的网络部分就构建在它之上。
+
 ```toml
 # Cargo.toml
 [dependencies]
 mio = "0.8"
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate 或平台特性，请配合 Cargo.toml 依赖使用（本块标记为 ignore）。
+
 use mio::event::Event;
 use mio::net::{TcpListener, TcpStream};
 use mio::{Events, Interest, Poll, Token};
@@ -944,7 +962,9 @@ mio 示例完成！
 
 mio 的核心是 **Registry** 系统。你通过 `poll.registry()` 获取 `Registry`，然后调用 `register()` 和 `deregister()` 来管理事件订阅。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate 或平台特性，请配合 Cargo.toml 依赖使用（本块标记为 ignore）。
+
 use mio::{Poll, Token, Interest, event::Source};
 use std::error::Error;
 
@@ -1016,6 +1036,8 @@ mio 是 Rust 异步网络生态的基石。几乎所有成熟的 Rust 异步网�
 TCP 和 UDP 是互联网协议栈的两大基石：**TCP 是打电话（建立连接、保证顺序、保证送达）**，**UDP 是发传单（无连接、不保证顺序、可能丢包）**。
 
 #### 19.3.1.1 std::net::TcpStream / TcpListener / UdpSocket
+
+标准库的 `TcpListener`/`TcpStream` 是同步阻塞式的，一次读写会占住当前线程。
 
 ```rust
 use std::net::{TcpListener, TcpStream, UdpSocket};
@@ -1228,13 +1250,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 #### 19.3.2.1 tokio::net（异步网络原语）
 
+tokio 的网络原语是同名 API 的异步版本，需要在异步运行时里使用。
+
 ```toml
 # Cargo.toml
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use std::error::Error;
 
 #[tokio::main]
@@ -1319,6 +1346,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 Unix Domain Socket（UDS）是一种本地通信机制，**不走网络协议栈**，直接在进程间通信（IPC）。它比 TCP over localhost 更快、更安全（不会暴露到网络），常用于 nginx 与 PHP-FPM 的通信、桌面应用的进程间通信等场景。
 
 #### 19.3.3.1 std::os::unix::net
+
+Unix 域套接字只在类 Unix 系统上可用，性能高于 TCP 回环，还能传递文件描述符。
 
 ```rust
 use std::error::Error;
@@ -1410,13 +1439,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 #### 19.3.4.1 socket2::Socket（高级配置）
 
+`socket2` 暴露了标准库没有打开的底层套接字选项，例如 `SO_REUSEADDR`、TCP keepalive 等。
+
 ```toml
 # Cargo.toml
 [dependencies]
 socket2 = "0.5"
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate 或平台特性，请配合 Cargo.toml 依赖使用（本块标记为 ignore）。
+
 use socket2::{Socket, Domain, Type, Protocol};
 use std::error::Error;
 
@@ -1519,6 +1552,8 @@ socket2 演示完成！
 
 #### 19.3.5.1 set_nonblocking(true/false)
 
+把套接字设为非阻塞后，读写不会挂起线程，而是立刻返回 `WouldBlock`，需要自己轮询或交给事件循环。
+
 ```rust
 use std::net::TcpListener;
 use std::error::Error;
@@ -1572,7 +1607,10 @@ accept 立即返回：WouldBlock（没有连接等待）
 
 在 Unix 系统上，非阻塞模式通常通过 `fcntl()` 设置 `O_NONBLOCK` 标志来实现。这在 `libc` 中可以直接操作：
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：libc
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use libc::{fcntl, F_GETFL, F_SETFL, O_NONBLOCK};
 use std::error::Error;
 
@@ -1618,13 +1656,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 Windows 的非阻塞 I/O 叫做"重叠 I/O（Overlapped I/O）"。它的特点是：发起一个 I/O 操作后立即返回，操作结果通过事件或完成端口通知。
 
-```rust
+````rust
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!("=== Windows Overlapped I/O 概念 ===\n");
 
-    println!("
+    // 注意：这段说明文字里含有 C 结构体的 { } 花括号，
+    // 直接写进 println!("...") 会被当成格式化占位符，所以要配合 "{}" 与 r#"..."# 使用。
+    println!("{}", r#"
 Overlapped I/O 是 Windows 的异步 I/O 机制。
 
 【与 Unix 非阻塞 I/O 的区别】
@@ -1681,11 +1721,11 @@ Overlapped I/O 是 Windows 的异步 I/O 机制。
 【Rust 生态建议】
   大多数情况下，使用 tokio 或 async-std 比直接操作 Overlapped I/O 更高效。
   它们在 Windows 上底层使用 IOCP，性能优秀且 API 更友好。
-");
+"#);
 
     Ok(())
 }
-```
+````
 
 #### 19.3.5.4 非阻塞 recv / send
 
@@ -1774,6 +1814,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 #### 19.3.5.5 非阻塞 accept
 
+非阻塞的 `accept` 在没有新连接时立即返回 `WouldBlock`，所以下面必须显式处理这个错误。
+
 ```rust
 use std::net::TcpListener;
 use std::error::Error;
@@ -1843,6 +1885,8 @@ WouldBlock: 暂无连接 (尝试 #5)
 在 `no_std` 环境下，Rust 程序不链接标准库（`std`），只使用 `core` 库。这意味着没有 `println!`、没有 `Vec`、没有堆分配——你的代码要学会"裸泳"。
 
 #### 19.4.1.1 #![no_std]
+
+`#![no_std]` 表示不链接标准库，嵌入式与内核开发里很常见。
 
 ```rust
 // 这是一个 no_std 程序，不链接标准库
@@ -2036,7 +2080,9 @@ fn panic(_: &core::panic::PanicInfo) -> ! { loop {} }
 
 #### 19.4.2.1 硬件抽象层（GPIO / I2C / SPI / UART）
 
-```rust
+> 下面是 **伪代码**，只用于展示 API 设计思路，依赖 `embedded-hal` 等 crate，无法直接编译，因此标记为 `ignore`。
+
+```rust,ignore
 // embedded-hal 的 trait 示例（伪代码，展示 API 设计）
 // 实际使用时请添加依赖：embedded-hal = "1.0"
 
@@ -2176,6 +2222,8 @@ ARM Cortex-M 和 Cortex-R 是嵌入式领域最流行的处理器架构。Cortex
 
 #### 19.4.3.1 ARM Cortex-M 生态
 
+ARM Cortex-M 是嵌入式 Rust 最成熟的平台生态，`cortex-m` 系列 crate 提供了访问外设的基础设施。
+
 ```toml
 # Cargo.toml（嵌入式项目）
 [dependencies]
@@ -2189,7 +2237,9 @@ rustflags = [
 ]
 ```
 
-```rust
+> ⚠️ 本示例依赖 `cortex-m`、`cortex-m-rt`、`stm32f1xx-hal`，还需要交叉编译到 `thumbv7em-none-eabihf` 目标才能构建（`ignore`）。
+
+```rust,ignore
 // 典型的 Cortex-M 嵌入式 Rust 程序
 #![no_std]
 #![no_main]
@@ -2423,7 +2473,9 @@ fn main() -> i32 {
   - 软件定时器，在指定时间后触发回调
 */
 
-println!("FreeRTOS + Rust：安全、高性能的实时嵌入式系统！");
+fn main() {
+    println!("FreeRTOS + Rust：安全、高性能的实时嵌入式系统！");
+}
 ```
 
 ### 19.4.5 WASM 平台
@@ -2431,6 +2483,8 @@ println!("FreeRTOS + Rust：安全、高性能的实时嵌入式系统！");
 WebAssembly（WASM）是一种可移植的字节码格式，可以接近原生的速度在浏览器中运行。Rust 是编译到 WASM 最成熟的语言之一。
 
 #### 19.4.5.1 wasm32-unknown-unknown（WebAssembly 目标）
+
+`wasm32-unknown-unknown` 是把代码编译成浏览器/Node 可用的 WebAssembly 时使用的目标。
 
 ```bash
 # 安装 WASM 目标
@@ -2506,7 +2560,9 @@ features = [
 ]
 ```
 
-```rust
+> ⚠️ 本示例依赖 `wasm-bindgen`、`web-sys`，需要 `wasm-pack` 与 `wasm32-unknown-unknown` 目标才能构建，因此标记为 `ignore`。
+
+```rust,ignore
 use wasm_bindgen::prelude::*;
 
 // 当使用 wasm-bindgen 时，#[wasm_bindgen] 是关键宏
@@ -2519,7 +2575,7 @@ pub fn greet(name: &str) -> String {
 
 // 从 JS 导入一个函数，然后在 Rust 中调用
 #[wasm_bindgen]
-extern "C" {
+unsafe extern "C" {
     // 声明 JS 中的 random() 函数
     #[wasm_bindgen(js_namespace = Math)]
     fn random() -> f64;
@@ -2625,13 +2681,17 @@ Rust 不仅能写内核驱动和嵌入式固件，它也是打造命令行工具
 
 #### 19.5.1.1 Args（参数定义）
 
+`clap` 的 `Args` derive 用结构体字段来描述命令行参数。
+
 ```toml
 # Cargo.toml
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 ```
 
-```rust
+> ⚠️ 本示例依赖 `clap`（`ignore`）。
+
+```rust,ignore
 use clap::Parser;
 
 #[derive(Parser, Debug)]
@@ -2699,7 +2759,7 @@ $ cargo run -- --pattern "fn main" --file "*.rs" src
 
 很多 CLI 工具都有子命令，比如 `git commit`、`docker build`、`cargo run`：
 
-```rust
+```rust,ignore
 use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
@@ -2800,7 +2860,9 @@ $ cargo run -- serve --port 3000 --host 0.0.0.0
 
 #### 19.5.1.3 derive API（声明式参数）
 
-```rust
+`#[derive(Parser)]` 根据字段类型和属性自动生成解析逻辑，包括子命令与参数动作。
+
+```rust,ignore
 use clap::{Parser, ArgAction};
 
 #[derive(Parser, Debug)]
@@ -2867,7 +2929,10 @@ Rust 的 `Result` 类型是错误处理的基石。但在实际应用中，我�
 anyhow = "1"
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：anyhow
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use anyhow::{Context, Result, bail};
 
 fn read_config() -> Result<String> {
@@ -2949,7 +3014,9 @@ fn main() -> Result<()> {
 thiserror = "1"
 ```
 
-```rust
+> ⚠️ 本示例依赖 `thiserror`（`ignore`）。
+
+```rust,ignore
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -3047,7 +3114,10 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：serde_json、tracing
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use tracing::{info, warn, error, debug, Level, instrument};
 use tracing_subscriber::{fmt, EnvFilter};
 
@@ -3151,7 +3221,12 @@ println!("  - 库作者不需要决定'用哪个日志库'");
 
 #### 19.5.3.3 env_logger / pretty_env_logger
 
-```rust
+`env_logger` 是 `log` 门面最常用的后端实现，用环境变量控制日志级别。
+
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：env_logger
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use env_logger::{Builder, LevelFilter};
 use log::{info, warn, error};
 use std::env;
@@ -3189,7 +3264,11 @@ $ RUST_LOG=info cargo run
 
 #### 19.5.3.4 日志级别（error / warn / info / debug / trace）
 
-```rust
+`log` 门面提供五个级别，实际是否输出由后端过滤决定。
+
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate 或平台特性，请配合 Cargo.toml 依赖使用（本块标记为 ignore）。
+
 use log::{error, warn, info, debug, trace};
 
 fn main() {
@@ -3245,13 +3324,18 @@ CLI 工具处理长时间任务时，没有进度条会让用户焦虑。`indica
 
 #### 19.5.4.1 indicatif（多进度条支持）
 
+`indicatif` 用来画进度条，支持多进度条和迭代器适配。
+
 ```toml
 # Cargo.toml
 [dependencies]
 indicatif = "0.17"
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：indicatif
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use indicatif::{ProgressBar, ProgressIterator, MultiProgress, ProgressStyle};
 use std::thread;
 use std::time::Duration;
@@ -3350,7 +3434,12 @@ fn main() {
 
 #### 19.5.4.2 ProgressBar / ProgressIterator
 
-```rust
+`ProgressBar` 负责展示百分比与附加信息，配合 `ProgressIterator` 可以让 `for` 循环自动带上进度。
+
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：indicatif
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use indicatif::{ProgressBar, ProgressIterator};
 use std::time::Duration;
 
@@ -3407,13 +3496,17 @@ CLI 工具的输出如果只有黑白两种颜色，就像吃火锅只有清汤�
 
 #### 19.5.5.1 colored / yansi（终端配色）
 
+`colored`/`yansi` 给终端输出加上颜色与样式；写库时要注意在非终端环境下自动降级。
+
 ```toml
 # Cargo.toml
 [dependencies]
 colored = "2"
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate 或平台特性，请配合 Cargo.toml 依赖使用（本块标记为 ignore）。
+
 use colored::*;
 
 fn main() {
@@ -3499,7 +3592,9 @@ fn main() {
 crossterm = "0.27"
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate 或平台特性，请配合 Cargo.toml 依赖使用（本块标记为 ignore）。
+
 use crossterm::{
     queue,
     style::{PrintStyledContent, Stylable, Color, SetForegroundColor, ResetColor},
@@ -3678,31 +3773,31 @@ fn main() {
 
 恭喜你！如果你读到这里，说明你已经掌握了 Rust 系统编程的核心技能树。让我来总结一下这一章的关键知识点：
 
-### 19.1 系统编程基础
+## 19.1 系统编程基础
 - **Rust 的定位**：既有 C/C++ 的硬件控制能力，又有内存安全和数据竞争保护——这是革命性的组合
 - **std::os 模块**：提供了 Unix/Windows 特定功能的统一出口
 - **libc crate**：直接绑定 Unix 系统调用，适合需要极端控制的场景
 
-### 19.2 文件 I/O 与 I/O 模型
+## 19.2 文件 I/O 与 I/O 模型
 - **同步 I/O**：通过 `std::fs::File`、`BufReader`/`BufWriter` 进行，是最直觉的模式
 - **异步 I/O**：`tokio::fs` 提供了异步文件操作，适合高并发场景
 - **I/O 多路复用**：epoll（Linux）、kqueue（macOS/BSD）、IOCP（Windows）分别统治各自的平台
 - **mio**：跨平台 I/O 抽象层，是 Rust 异步网络生态的基石
 
-### 19.3 网络编程
+## 19.3 网络编程
 - **TCP/UDP**：标准库提供了完整的套接字支持
 - **Unix Domain Socket**：本地进程间通信，比 TCP localhost 更快
 - **socket2**：精细控制 socket 选项，是高性能网络编程的必备工具
 - **非阻塞 I/O**：让单个线程管理大量连接成为可能
 
-### 19.4 嵌入式开发
+## 19.4 嵌入式开发
 - **no_std 环境**：不依赖标准库，适合 OS 内核和固件开发
 - **embedded-hal**：硬件抽象层，让驱动程序跨 MCU 移植
 - **cortex-m / svd2rust**：ARM Cortex-M 生态的完整支持
 - **RTOS 集成**：Rust 可以与 FreeRTOS 等实时操作系统无缝协作
 - **WebAssembly**：Rust 是 WASM 生态最成熟的语言
 
-### 19.5 命令行工具开发
+## 19.5 命令行工具开发
 - **clap**：声明式命令行参数解析，API 优雅
 - **anyhow / thiserror**：应用程序和库的错误处理利器
 - **tracing / log**：结构化日志和日志门面

@@ -249,6 +249,8 @@ property是Python的** getter/setter 解决方案**。在Java里你得写一堆g
 
 #### 14.2.4.1 @property getter
 
+`@property` 把方法"伪装"成属性：调用方写 `c.radius`，而不是 `c.radius()`。这样一来，"取这个值"的语义可以在**不改变调用方式**的前提下，从"直接读字段"升级成"计算"或"校验"。
+
 ```python
 class Circle:
     def __init__(self, radius):
@@ -273,6 +275,8 @@ print(c.area)     # 78.53975 —— 同样是方法调用
 > 就像一个展览柜——你可以看，但不好意思，不能摸。
 
 #### 14.2.4.2 @name.setter
+
+setter 用 `@属性名.setter` 注册，与 getter 同名。它最典型的用途就是在赋值时把关：半径不能为负、年龄不能填成 200，全都在这个函数里拦住，别处再也写不进非法值。
 
 ```python
 class Circle:
@@ -304,6 +308,8 @@ c.radius = -5      # ValueError: 半径不能为负数！
 > 有了setter，你就可以在赋值时"守门"——不符合条件的值一律拒绝！
 
 #### 14.2.4.3 @name.deleter
+
+deleter 用 `@属性名.deleter` 注册，负责 `del obj.attr` 时的行为。业务代码里用得不多，但有它才算覆盖"读、写、删"三个动作，property 的语义才是完整的。
 
 ```python
 class Circle:
@@ -740,6 +746,8 @@ print(times3(7))    # 21
 
 ### 14.4.4 __len__（len() 支持）
 
+实现 `__len__` 之后，`len(obj)` 和布尔判断（`if obj:`）就都能用了——因为对象的"真假"默认就是看长度是否为 0。注意它必须返回**非负整数**，否则 `len()` 会直接抛 `ValueError`。
+
 ```python
 class Stack:
     """一个简单的栈"""
@@ -766,6 +774,8 @@ print(len(s))   # 3 —— 直接用len()！
 ---
 
 ### 14.4.5 __getitem__ / __setitem__ / __delitem__（索引操作支持）
+
+这三个魔术方法让对象支持 `obj[key]`、`obj[key] = value`、`del obj[key]`。顺带一个常被忽略的好处：只要 `__getitem__` 能按整数索引，`for x in obj` 的迭代能力就自动具备了。
 
 ```python
 class MyList:
@@ -983,6 +993,8 @@ print(-v1)        # Vector(-1, -2) —— __neg__
 
 ### 14.4.9 __lt__ / __gt__ / __le__ / __ge__（比较运算符重载）
 
+比较运算符重载让对象能按业务语义排序（比如按分数比高低）。要注意"相等"和"排序"是两套语义：`__eq__` 管相等，`__lt__`/`__le__`/`__gt__`/`__ge__` 管顺序。实现不全就会出现 `a < b` 能跑、`a > b` 报错的尴尬。
+
 ```python
 class Student:
     def __init__(self, name, score):
@@ -1024,11 +1036,13 @@ print(max(students))   # Student('李四', 92)
 print(min(students))   # Student('王五', 78)
 ```
 
-> 💡 小技巧：Python 3.7引入了`functools.total_ordering`装饰器，只需要定义`__eq__`和一个比较运算符（`__lt__`、`__le__`、`__gt__`或`__ge__`之一），其他运算符会自动生成。
+> 💡 小技巧：`functools.total_ordering` 这个装饰器**从 Python 2.7 / 3.2 起就有了**，不是 3.7 的新东西。它只需要你定义 `__eq__` 和一个比较运算符（`__lt__`、`__le__`、`__gt__`、`__ge__` 四选一），其余三个会自动补全。
 
 ---
 
 ### 14.4.10 __contains__（in 运算符支持）
+
+实现 `__contains__` 就定义了 `x in obj` 的含义。没有它时 Python 会退化成用 `__iter__` 逐个比对——能用，但如果容器内部本来就有更快的查找方式（哈希表等），自己实现会快很多。
 
 ```python
 class BingoBoard:
@@ -1143,6 +1157,8 @@ print(PluginRegistry.plugins)
 
 #### 14.4.13.1 限制实例属性
 
+`__slots__` 的第一个作用是**限制**：类里只允许出现列表里列出的属性名。写错名字（比如 `self.nmae = ...`）会立刻抛 `AttributeError`，这类拼写错误再也藏不住。
+
 ```python
 class Point:
     __slots__ = ['x', 'y']  # 只能有这两个属性！
@@ -1156,6 +1172,8 @@ p.z = 3    # AttributeError: 'Point' object has no attribute 'z'
 ```
 
 #### 14.4.13.2 内存优化
+
+第二个作用是省内存：普通实例背后挂着一个 `__dict__`（哈希表），而 `__slots__` 实例把属性存进固定槽位。实例数量到几十万、上百万时，两者的内存差距相当可观。
 
 ```python
 import sys
@@ -1187,6 +1205,8 @@ print(sys.getsizeof(s))      # __slots__对象（无__dict__，实际运行时�
 ```
 
 #### 14.4.13.3 __slots__ 陷阱
+
+`__slots__` 最容易坑人的地方在继承：只要继承链上**某一层没写** `__slots__`，子类实例又会带上 `__dict__`，"省内存"的效果当场失效。想全程省内存，每一层都得声明。
 
 ```python
 # 陷阱1：父类有__slots__，子类没有__slots__，那子类会有__dict__
@@ -1543,7 +1563,7 @@ Python 3.8引入了`typing.Protocol`，它定义了**结构化子类型**（Stat
 from typing import Protocol
 
 class Drawable(Protocol):
-    """只要你有draw方法，就是"可绘制的""""
+    """只要你有 draw 方法，就是"可绘制的"（Protocol 定义的是结构化子类型）"""
     def draw(self) -> str:
         ...
 
@@ -1604,6 +1624,8 @@ class Shape(ABC):
 
 ### 14.7.2 @abstractmethod
 
+`@abstractmethod` 标出"必须由子类实现"的方法：只要类里还留着没实现的抽象方法，实例化就会抛 `TypeError`。前提是它得配合 `ABC`（或 `ABCMeta` 元类）使用，单独写 `@abstractmethod` 不生效。
+
 ```python
 class Rectangle(Shape):
     def __init__(self, width, height):
@@ -1649,6 +1671,8 @@ except TypeError as e:
 ---
 
 ### 14.7.3 抽象属性
+
+抽象属性和抽象方法用的是同一套机制：把 `@property` 与 `@abstractmethod` 叠加，就要求子类必须提供一个同名属性——可以是普通数据属性，也可以是计算属性。
 
 ```python
 from abc import ABC, abstractmethod
@@ -1744,6 +1768,8 @@ print(p1 == p2)     # True —— 自动生成__eq__
 
 ### 14.8.2 字段选项（default / field / kw_only）
 
+dataclass 的字段声明里，`field()` 用来表达"默认值需要动态生成"（如 `default_factory=list`）或"不参与 `__init__`"（`init=False`）这类细节；`kw_only=True` 则让构造参数只能按关键字传。
+
 ```python
 from dataclasses import dataclass, field
 
@@ -1779,6 +1805,8 @@ cfg = Config(host="example.com", debug=True)
 
 ### 14.8.3 frozen=True（不可变数据类）
 
+`frozen=True` 让实例变为不可变：一旦赋值就抛 `FrozenInstanceError`，同时自动生成 `__hash__`——于是这类对象可以放进集合、也能当字典的键。
+
 ```python
 from dataclasses import dataclass
 
@@ -1796,6 +1824,8 @@ p.x = 3  # FrozenInstanceError: cannot assign to field 'x'
 ---
 
 ### 14.8.4 __post_init__（初始化后处理）
+
+`__post_init__` 会在自动生成的 `__init__` 末尾被调用，专门用来放"由其他字段推导出来的初始化逻辑"（比如由半径算出面积），避免这段计算散落在外面。
 
 ```python
 from dataclasses import dataclass, field
@@ -2102,13 +2132,13 @@ flowchart TB
     subgraph "属性与访问控制"
         B1[公有属性] --> B2[受保护属性_]
         B2 --> B3[私有属性__name改写]
-        B3 --> B4[@property装饰器]
+        B3 --> B4["@property 装饰器"]
         B4 --> B5[描述符协议]
     end
     
     subgraph "方法"
-        C1[实例方法] --> C2[@classmethod]
-        C2 --> C3[@staticmethod]
+        C1[实例方法] --> C2["@classmethod"]
+        C2 --> C3["@staticmethod"]
         C3 --> C4[__new__vs__init__]
         C4 --> C5[方法绑定行为]
     end

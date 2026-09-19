@@ -761,8 +761,8 @@ dependencies {
 // Spring Boot 插件会自动处理依赖管理
 ```
 
-```java
-// src/main/java/com/example/DemoApplication.kt
+```kotlin
+// src/main/kotlin/com/example/DemoApplication.kt
 package com.example
 
 import org.springframework.boot.autoconfigure.SpringBootApplication

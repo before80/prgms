@@ -116,7 +116,7 @@ Grid 布局的开启方式和 Flexbox 类似，只需要给父容器加上 `disp
 ```
 Flexbox（Flexbox 一维布局）：
 ┌─────────────────────────────────────┐
-│  Logo    导航菜单        登录按钮  │
+│  Logo    导航菜单        登录按钮   │
 └─────────────────────────────────────┘
   → 只需要控制水平方向
 
@@ -237,19 +237,22 @@ Grid（Grid 二维布局）：
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
   /* 三列，比例是1:2:1 */
-  /* 如果容器宽度是1000px，则分别是250px、500px、250px */
+  /* 如果容器宽度是1000px 且不留 gap，则分别是250px、500px、250px；
+     有 gap 时先扣掉 gap 再按比例分（见下方计算示意） */
   gap: 20px;
 }
 ```
 
 ```
-fr 单位计算示意（容器宽度1000px，间距20px × 3 = 60px，因为有4条隐式网格线产生3个间距）：
-可用空间 = 1000 - 60 = 940px
+fr 单位计算示意（容器宽度 1000px，3 列之间有 2 个 gap，每个 20px）：
+可用空间 = 1000 - 20 × 2 = 960px
 
 1fr 2fr 1fr 比例总和 = 1 + 2 + 1 = 4
-第一列 = 940 × 1/4 = 235px
-第二列 = 940 × 2/4 = 470px
-第三列 = 940 × 1/4 = 235px
+第一列 = 960 × 1/4 = 240px
+第二列 = 960 × 2/4 = 480px
+第三列 = 960 × 1/4 = 240px
+
+注意：n 列只有 n-1 个间距；gap 会先被扣掉，剩下的空间才按 fr 的比例分配。
 ```
 
 **响应式神器：auto-fill 和 auto-fit**
@@ -271,7 +274,7 @@ fr 单位计算示意（容器宽度1000px，间距20px × 3 = 60px，因为有4
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
-  /* 当内容撑不满时，auto-fit 会让列合并 */
+  /* 空轨道会被塌陷，已有项目拉伸填满整行 */
 }
 ```
 
@@ -282,16 +285,16 @@ fr 单位计算示意（容器宽度1000px，间距20px × 3 = 60px，因为有4
   <div>1</div>
   <div>2</div>
 </div>
-<!-- 如果只有2个元素，auto-fill 会留出第3列的位置 -->
+<!-- 容器越宽，铺出的列越多；没有被项目用到的轨道就留空 -->
 
 <div class="auto-fit-grid">
   <div>1</div>
   <div>2</div>
 </div>
-<!-- 如果只有2个元素，auto-fit 会让它们自动扩展填满 -->
+<!-- 空的轨道会塌陷，两个项目会拉伸填满整行 -->
 ```
 
-> 💡 **小贴士**：大多数情况下用 `auto-fit` 比 `auto-fill` 更实用，因为它会自动适应内容数量。
+> 💡 **小贴士**：两者的列数都由容器宽度决定，和项目数量无关——别被"只有 2 个元素"误导。区别只在"空轨道是否塌陷"：`auto-fit` 会让少数项目拉伸铺满，`auto-fill` 会保留空位。所以"卡片数量很少但希望它们撑满整行"用 `auto-fit`；"希望卡片宽度保持一致、不要被拉得变形"用 `auto-fill`。
 
 ### 24.2.2 grid-template-rows——定义行高
 
@@ -382,13 +385,13 @@ grid-template-areas:
   "footer footer footer";
 
 实际效果：
-┌─────────┬─────────┬─────────┐
-│           header              │
-├─────────┼─────────┼─────────┤
-│  sidebar │   main  │  aside  │
-├─────────┼─────────┼─────────┤
-│           footer              │
-└─────────┴─────────┴─────────┘
+┌───────────┬───────────┬───────────┐
+│              header               │
+├───────────┼───────────┼───────────┤
+│  sidebar  │   main    │   aside   │
+├───────────┼───────────┼───────────┤
+│              footer               │
+└───────────┴───────────┴───────────┘
 ```
 
 ### 24.2.4 grid-auto-columns / rows——控制隐式网格尺寸
@@ -563,19 +566,20 @@ grid-template-areas:
 ```
 
 ```
-auto-fill vs auto-fit 对比（容器宽度800px，3个元素，每个minmax 150px）：
+auto-fill vs auto-fit 对比（容器 800px，只有 3 个元素，每列 minmax(150px, 1fr)）：
 
-auto-fill（保留空列）：
+auto-fill（容器能铺出 4 列，多出来的那一列就空着）：
 ┌────────┬────────┬────────┬────────┐
-│  元素1  │  元素2  │  元素3  │  (空列) │
+│ 元素1  │ 元素2  │ 元素3  │  (空)  │
 └────────┴────────┴────────┴────────┘
 
-auto-fit（自动扩展）：
-┌─────────────────┬─────────────────┐
-│     元素1        │     元素2        │
-├─────────────────┴─────────────────┤
-│              元素3                   │
-└───────────────────────────────────┘
+auto-fit（空轨道塌陷，剩下的 3 列被拉伸填满整行）：
+┌──────────────┬──────────────┬──────────────┐
+│    元素1     │    元素2     │    元素3     │
+└──────────────┴──────────────┴──────────────┘
+
+关键差异一句话：两者的列数都由"容器宽度"决定，跟你有几个元素无关；
+区别只在于"多出来的空轨道要不要塌陷"。
 ```
 
 ### 24.3.4 min-content / max-content——内容的最小/最大尺寸
@@ -925,71 +929,55 @@ Subgrid 是 Grid 布局中相对较新的功能，让嵌套的网格可以"继�
 
 ### 24.7.2 典型场景——对齐卡片网格内部内容
 
-下面才是**真正的 subgrid**——用 `grid-template-columns: subgrid` 让卡片的列轨道直接继承父网格：
+Subgrid 最经典的用途，就是"让一排卡片里的标题、正文、按钮彼此对齐"——这在没有 subgrid 的时代只能靠固定高度硬凑。
+
+关键点：**卡片跨的是父网格的"行"，所以继承的也必须是行（`grid-template-rows: subgrid`）**，父网格必须先把行定义出来。
 
 ```css
-/* ✅ 正确示范：用 subgrid 让卡片继承父网格的列轨道 */
+/* ✅ 正确示范：卡片跨父网格的 3 行，并继承这 3 行的高度 */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-rows: auto auto auto;   /* 父网格先定义好 3 行：图片 / 标题+描述 / 按钮 */
   gap: 32px;
 }
 
 .product-card {
   display: grid;
-  /* 子网格继承父网格的列轨道 */
-  grid-template-columns: subgrid;
-  grid-row: span 3;  /* 跨父网格的3行 */
+  grid-row: span 3;                 /* 卡片跨父网格的 3 行 */
+  grid-template-rows: subgrid;      /* 用 subgrid 继承这 3 行的轨道尺寸 */
+  gap: 0;                           /* 子网格的 gap 要归零，否则会和父网格的间距叠加 */
+  row-gap: 16px;                    /* 需要内部间距就单独设 row-gap */
 }
 
+/* 卡片内部三段各自落在父网格的对应行上，高度自动对齐 */
 .product-card img {
-  grid-column: 1 / -1;  /* 横跨父网格的所有列 ✓ */
-}
-
-.product-card h3 {
-  grid-column: 1 / -1;
-}
-
-.product-card p {
-  grid-column: 1 / -1;
+  grid-row: 1;
 }
 
 .product-card button {
-  grid-column: 1 / -1;
+  grid-row: 3;
+  align-self: end;
 }
 ```
 
-```css
-/* 让所有卡片的标题对齐、内容对齐、按钮对齐 */
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 32px;
-}
-
-.product-card {
-  display: grid;
-  /* 子网格继承父网格的列轨道 */
-  grid-template-columns: subgrid;
-  grid-row: span 3;
-}
-
-.product-card img {
-  grid-column: 1 / -1;  /* 横跨所有列 */
-}
-
-.product-card h3 {
-  grid-column: 1 / -1;
-}
-
-.product-card p {
-  grid-column: 1 / -1;
-}
-
-.product-card button {
-  grid-column: 1 / -1;
-}
+```html
+<!-- 每个卡片都是父网格的直接子元素，才会跨到父网格的行 -->
+<div class="product-grid">
+  <article class="product-card">
+    <img src="p1.jpg" alt="商品1">
+    <h3>商品一</h3>
+    <button>加入购物车</button>
+  </article>
+  <article class="product-card">
+    <img src="p2.jpg" alt="商品2">
+    <h3>商品二</h3>
+    <button>加入购物车</button>
+  </article>
+</div>
 ```
+
+> 🌐 **浏览器支持**：subgrid 已经进入基线可用状态——Firefox 71+、Safari 16+、Chrome/Edge 117+ 都支持。不过在老浏览器上它会被当成无效声明，所以要留好降级方案（比如给卡片设置 `min-height`，或者用一个 `.no-subgrid` 的回退样式）。
 
 ## 24.8 Grid 常见坑
 
@@ -1101,4 +1089,3 @@ graph TD
 ### 下章预告
 
 下一章我们将学习响应式设计，让网页适配各种屏幕尺寸！
-

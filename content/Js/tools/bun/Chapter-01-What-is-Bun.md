@@ -31,7 +31,7 @@ Bun 的"渐进式采用"意味着：你不需要一次性把所有项目迁移�
 
 Node.js 用的是 **V8 引擎**（Google Chrome 内核），Bun 用的是 **JavaScriptCore 引擎**（Apple Safari 内核）。两者都是 JavaScript 引擎，只是"发动机"不同。
 
-> 📌 **版本提示（2026-09 核对）**：Bun 当前稳定版为 **1.4.x**。Bun 1.4 已将运行时底层从 Zig 重写为 **Rust**，同时保留 JavaScriptCore 作为 JavaScript 引擎，并大幅提升了 Node.js 兼容性。本文后面提到“Zig”的地方，均指 Bun 1.3 及之前的历史实现。
+> 📌 **版本提示（2026-09 核对）**：Bun 当前稳定版为 **1.4.x**（最新为 1.4.2，2026-09-05 发布）。Bun 1.4 已将运行时底层从 Zig 重写为 **Rust**，同时保留 JavaScriptCore 作为 JavaScript 引擎（Bun 里仍有约 20% 的 C++ 代码，JavaScriptCore、uWebSockets、BoringSSL、SQLite 等都是 C/C++ 库），并大幅提升了 Node.js 兼容性。本文后面提到“Zig”的地方，均指 Bun 1.3 及之前的历史实现。Bun 团队已于 2025 年 12 月加入 Anthropic。
 
 Bun 的目标是 **100% 兼容 Node.js**，意味着你不需要改一行代码，直接把 `node` 换成 `bun`，你的 Node.js 项目大概率就能跑起来。当然，"大概率"是因为 Node.js 的生态太庞大了，Bun 团队正在努力追赶，目前兼容性是**持续进行中、尚未完全完成**的工作。
 
@@ -67,6 +67,8 @@ graph LR
 
 npm、pnpm、yarn 都是 Node.js 的包管理器，它们的共同特点是：**慢**。
 
+（更准确的说法是：它们都很成熟，但在包数量多、依赖树深的大项目里，安装阶段往往要花掉相当可观的等待时间，这正是 Bun 想解决的痛点。）
+
 Bun 的 `bun install` **直接替代 npm / pnpm / yarn**，用法几乎一样：
 ```bash
 bun install          # 等价于 npm install
@@ -74,9 +76,9 @@ bun add react        # 等价于 npm install react
 bun remove react     # 等价于 npm uninstall react
 ```
 
-Bun 官方称 `bun install` 比 yarn **快 30 倍**（以 Remix 应用的缓存安装为基准）。
+Bun 官方页面上给出的口径是：**切换到 `bun install` 后，安装速度最多可提升约 25 倍**（相对 `npm install`）。
 
-> ⚠️ **注意**：上述 30 倍数据来自 Remix 应用**缓存安装**场景的基准测试，不同项目（包数量、网络条件、是否有缓存）实际差距可能不同。实测也差不多——第一次装包你可能没感觉，但当你 `rm -rf node_modules` 之后重装，差距会让你怀疑人生。
+> ⚠️ **注意**："最多 25 倍"来自官方基准测试的特定场景，不同项目（包数量、网络条件、是否有缓存、磁盘速度）实际差距可能很大。经验上，首次安装受网络带宽限制差距没那么夸张；而在有全局缓存的情况下重装，差距会非常明显。
 
 ### 为什么 Bun 这么快？
 
@@ -95,7 +97,7 @@ webpack、vite、esbuild 都是"打包器"——它们负责把你的 TypeScript
 
 Bun 也有内置打包器（`bun build`），但它的定位是**适合轻量打包场景**。如果你的项目复杂度一般，Bun 的打包速度会让你惊呼"这是什么神仙"；但如果你是超大型项目（几千个模块的那种），复杂场景下可能仍需要 Vite 或 Webpack 的精细控制。
 
-> ⚠️ **注意**：`bun build` 目前**缺少 HMR（热模块替换）**和代码分割等重要功能，生产级大型项目建议评估后再使用。
+> ⚠️ **注意**：`bun build` 是一条**一次性构建命令**，它本身不是开发服务器；开发时用 `bun build --watch` 增量重建即可。浏览器侧的**热模块替换（HMR）**由 Bun 的**开发服务器**提供：`bun ./index.html` 或 `Bun.serve({ development: true })`（Bun 1.2.3+）。**代码分割**也早已支持，只要加 `--splitting`（或 `splitting: true`）。真正需要评估的是插件生态、复杂产物定制以及超大型 monorepo 的构建策略——这些场景 Vite / Webpack 更成熟。
 
 简单区分：
 - **Bun**：小到中型项目，打包快，配置少
@@ -125,7 +127,7 @@ describe("加法运算", () => {
 });
 ```
 
-Bun 官方称 `bun test` 比 Jest **快 10-30 倍**（实际感受：Jest 还在预热，Bun 已经跑完交卷了）。原因是 Bun 的运行时启动快，而且测试框架直接集成在运行时里，没有额外的进程开销。
+Bun 官方对 `bun test` 的主打卖点是"内置、Jest 兼容、启动极快"，**没有给出一个可以到处套用的固定倍数**——实际差距取决于测试数量、I/O 占比和是否需要启动配套环境。通常的感受是：测试越多、越偏纯计算，差距越明显；Jest 还在做启动和转译准备时，Bun 往往已经跑完了。原因在于 Bun 的运行时启动快，而且测试框架直接集成在运行时里，少了额外的进程与转译开销。
 
 ### bun test vs Jest
 
@@ -157,11 +159,11 @@ Bun 的启动速度通常显著快于 Node.js，这得益于 JavaScriptCore 引�
 ### 包安装速度
 
 ```bash
-# 官方数据（Remix 缓存安装场景）
-bun install  vs  yarn  快 30 倍
+# 官方口径（相对 npm install）
+bun install  最多快约 25 倍
 ```
 
-> ⚠️ 30 倍数据基于 Remix 应用**缓存安装**场景的基准测试。不同项目（包数量、网络条件、是否首次安装）实际差距可能差异较大。
+> ⚠️ "最多 25 倍"基于官方基准测试的特定场景。不同项目（包数量、网络条件、是否首次安装、磁盘速度）实际差距可能很大；包越多、缓存越命中，差距越明显。
 
 这不是吹牛——Bun 用了裸文件操作、并发下载等技术，把中间环节压缩到最少。
 
@@ -188,9 +190,9 @@ Bun 原生实现了 Node.js 的核心模块，比如：
 - `bun:sqlite` — 高性能 SQLite 数据库（同步查询为主，也支持异步）
   > ⚠️ 声称"比 better-sqlite3 快 3-6 倍"的数据来自特定基准测试，实际提升因查询类型而异。
 - `bun:ffi` — 调用 C 类库（Zig、Rust、C/C++ 等）
-- `bun:uuid` — 生成 UUID
+- `Bun.randomUUIDv7()` / `crypto.randomUUID()` — 生成 UUID（**没有** `bun:uuid` 这个模块；v7 版本可从 `"bun"` 中导入）
 - WebSocket 服务器 — 通过 `Bun.serve()` 的 `websocket` 配置实现，含发布/订阅功能
-- 内置 S3（v1.2+）、Redis（v1.3+）、YAML、CSS 颜色转换等 API
+- 内置 S3、Redis、YAML、CSS 颜色转换等 API（S3 与 Redis 客户端都在 1.2 之后陆续加入；Redis 的发布/订阅是 1.2.23 新增，且官方标注为实验性）
 
 > ⚠️ **Node.js 兼容性说明**：Bun 目标是实现 Node.js 核心模块的兼容，但这是一项**持续进行、尚未完全完成**的工作。部分模块（如 `os`、`util`、`net`、`http`、`dgram`、`zlib` 等）已有支持，但仍有少数模块和边界情况在完善中。使用前建议查阅 [Bun 官方兼容性文档](https://bun.sh/docs/runtime/nodejs-apis)。
 
@@ -253,8 +255,16 @@ Bun 从零实现了 **Node-API**，因此大多数 `.node` 模块可以直接 `r
 
 Bun 对 Windows 的支持在 **v1.1+** 版本已经相对稳定，但需要注意：
 
-- **最低要求**：Windows 10 版本 1809 或更高
-- **仍有兼容性问题**：部分边缘场景可能遇到问题
+各平台的最低要求（官方安装文档口径）：
+
+| 平台 | 最低要求 |
+|------|----------|
+| Windows | Windows 10 **1809** 或更高（含 Windows ARM64） |
+| macOS | macOS **13.0** 或更高 |
+| Linux | 内核 **3.10** 或更高（老内核会优雅降级，部分新系统调用不可用） |
+
+- **CPU 要求**：x64 需要有 **SSE4.2** 指令集（Intel Nehalem / AMD Bulldozer 及更新的 CPU），更老的 x64 CPU 直接不支持；
+- **仍有兼容性问题**：Windows 上的部分边缘场景（文件锁、长路径、某些原生模块）仍可能踩坑。
 
 如果你在 Windows 上用 Bun，遇到奇怪的报错，可以先查一下 Bun 的 GitHub Issues，看看有没有类似情况。
 

@@ -526,29 +526,22 @@ git amend
 
 记住：**rebase -i 是"历史整容师"——让你的提交历史从"车祸现场"变成"精选集"！**
 
+#### 速查：合并最近 3 个提交
 
+```bash
+# 1. 启动交互式 rebase（这里合并最近 4 个提交）
+git rebase -i HEAD~4
 
-# 交互式 rebase
-git rebase -i HEAD~3
-
-# 在编辑器中修改：
-pick 0123456 feat: 实现功能
+# 2. 在打开的编辑器里，把要合并的提交的 pick 改成 squash（保留信息）或 fixup（丢弃信息）
+pick   0123456 feat: 实现功能
 squash 9ab9012 fix: fix
 squash def5678 fix: fix again
 squash abc1234 fix: fix fix
 
-# 保存，编辑合并后的提交信息
+# 3. 保存退出，接着编辑合并后的提交信息，再次保存退出
 ```
 
-```bash
-# 方法2：使用 git reset + git commit
-
-# 回到功能提交
-git reset --soft HEAD~3
-
-# 重新提交
-git commit -m "feat: 实现功能（包含所有修复）"
-```
+> 注意：`git rebase -i HEAD~N` 里的 `N` 是**要纳入编辑范围的最近提交个数**，不是"要合并的个数"。上面的例子里 4 个提交被纳入，其中 3 个被 squash 到第 1 个，最终留下 1 个提交。
 
 ---
 
@@ -1239,30 +1232,37 @@ jobs:
 
 ### 替代方案
 
-```markdown
-## 子模块的替代方案
+子模块并不是唯一的办法，常见的替代方案有三种：
 
-### 1. Git Subtree
+**方案一：Git Subtree（把子仓库"融进"主项目）**
+
 ```bash
-# 合并子仓库到主项目
+# 把子仓库合并进主项目的 libs/library 目录
 git subtree add --prefix=libs/library \
     https://github.com/user/library.git main --squash
 
-# 更新
+# 之后更新
 git subtree pull --prefix=libs/library \
     https://github.com/user/library.git main --squash
 ```
 
-### 2. Package Manager
+subtree 的代码就实实在在躺在主项目里，克隆时不用额外初始化，代价是提交历史会和主项目混在一起。
+
+**方案二：包管理器**
+
 - npm / yarn（JavaScript）
 - pip（Python）
 - Maven / Gradle（Java）
 - Go Modules
 
-### 3. 复制代码
+如果那个库值得发布，用包管理器依赖是最标准的做法。
+
+**方案三：直接复制代码**
+
 - 简单直接
 - 但失去版本控制
-```
+
+这是最省事的做法，但从此以后你就得手动跟进上游的每一次修改。
 
 ### 对比
 
@@ -1500,4 +1500,3 @@ lerna bootstrap
 ---
 
 **第22章完**
-

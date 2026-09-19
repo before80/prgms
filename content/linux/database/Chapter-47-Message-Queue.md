@@ -177,8 +177,8 @@ Advanced Message Queuing Protocol（高级消息队列协议），是一种网�
 **Docker安装（最简单）**
 
 ```bash
-# 拉取RabbitMQ镜像（带管理界面）
-docker pull rabbitmq:3.12-management
+# 拉取RabbitMQ镜像（带管理界面；版本号请取当前稳定版，4.x 已是主流）
+docker pull rabbitmq:4-management
 
 # 运行RabbitMQ容器
 docker run -d \
@@ -187,7 +187,7 @@ docker run -d \
     -p 15672:15672 \
     -e RABBITMQ_DEFAULT_USER=admin \
     -e RABBITMQ_DEFAULT_PASS=Admin123 \
-    rabbitmq:3.12-management
+    rabbitmq:4-management
 
 # 查看运行状态
 docker ps
@@ -196,34 +196,61 @@ docker ps
 docker logs rabbitmq
 ```
 
+> 版本提醒：RabbitMQ **3.12 系列已停止维护**，新部署建议用 4.x（容器镜像标签写 `rabbitmq:4-management`
+> 或更具体的 `rabbitmq:4.1-management`）。3.x 与 4.x 在 Erlang 版本要求、
+> 部分插件和 `rabbitmqctl` 输出上有差异，跟着老教程操作时注意对版本。
+
 **Ubuntu/Debian安装**
 
 ```bash
-# 安装Erlang（RabbitMQ依赖Erlang）
+# 方式A：用发行版自带的包（最简单，版本通常略旧）
 sudo apt update
-sudo apt install -y erlang
+sudo apt install -y rabbitmq-server
 
-# 添加RabbitMQ仓库
-curl -fsSL https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/rabbitmq.gpg
-
-# 安装RabbitMQ
+# 方式B：用 RabbitMQ 官方仓库装新版本（推荐生产环境）
+# 1) 准备工具
+sudo apt install -y curl gnupg apt-transport-https
+# 2) 导入官方签名密钥
+curl -1sLf "https://dl.cloudsmith.io/public/rabbitmq/rabbitmq-server/gpg.key" \
+  | sudo gpg --dearmor -o /usr/share/keyrings/rabbitmq.gpg
+# 3) 添加软件源——注意把 "noble" 换成你系统的代号（lsb_release -cs 可以查到）
+sudo tee /etc/apt/sources.list.d/rabbitmq.list >/dev/null <<'EOF'
+deb [signed-by=/usr/share/keyrings/rabbitmq.gpg] https://dl.cloudsmith.io/public/rabbitmq/rabbitmq-server/deb/ubuntu noble main
+deb-src [signed-by=/usr/share/keyrings/rabbitmq.gpg] https://dl.cloudsmith.io/public/rabbitmq/rabbitmq-server/deb/ubuntu noble main
+EOF
+# 4) 安装
 sudo apt update
 sudo apt install -y rabbitmq-server
 
 # 启动服务
-sudo systemctl start rabbitmq-server
-sudo systemctl enable rabbitmq-server
+sudo systemctl enable --now rabbitmq-server
+
+# 启用自带的管理插件（Web界面）
+sudo rabbitmq-plugins enable rabbitmq_management
 
 # 查看状态
 sudo systemctl status rabbitmq-server
 ```
 
+> ⚠️ 原教程里那种"只下载了 GPG 密钥、却没把 `sources.list` 写进去"的写法是**不完整**的，
+> 照着做 `apt install` 拿到的还是系统仓库里的旧版本。要么按上面的方式 B 完整配置仓库，
+> 要么就用方式 A（够用但版本旧）。
+
 **访问管理界面**
 
 安装完成后，可以通过浏览器访问RabbitMQ管理界面：
 - 地址：`http://localhost:15672`
-- 默认账号：`guest` / `guest`（或你自己设置的账号）
+- 默认账号：`guest` / `guest`（**默认只允许从本机 localhost 登录**；远程访问请另建管理员账号）
 - 端口15672是管理界面，5672是AMQP协议端口
+
+> 想建一个能从别处登录的管理员：
+> ```bash
+> sudo rabbitmqctl add_user admin 'AdminPass123'
+> sudo rabbitmqctl set_user_tags admin administrator
+> sudo rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
+> ```
+> 注意：默认的 `guest/guest` 出于安全考虑被限制为只能从 localhost 登录，
+> **不要**为了远程登录去修改配置放开它，直接新建账号即可。
 
 ### 47.2.2 交换机
 
@@ -269,12 +296,25 @@ flowchart TB
 **方式2：通过命令行**
 
 ```bash
-# 使用rabbitmqadmin创建交换机
-docker exec rabbitmq rabbitmqadmin declare exchange \
+# rabbitmqadmin 并不在容器里，它是"管理插件"提供的一个 Python 脚本，
+# 需要先从管理界面下载（前提：已启用 rabbitmq_management 插件）
+curl -O http://localhost:15672/cli/rabbitmqadmin
+chmod +x rabbitmqadmin
+
+# 用它创建交换机
+./rabbitmqadmin -u admin -p Admin123 declare exchange \
     name=my-exchange \
     type=direct \
     durable=true
 ```
+
+> 如果不想用 `rabbitmqadmin`，也可以用 HTTP API 直接调：
+> ```bash
+> curl -u admin:Admin123 -X PUT http://localhost:15672/api/exchanges/%2f/my-exchange \
+>   -H 'content-type: application/json' \
+>   -d '{"type":"direct","durable":true}'
+> ```
+> 注意交换机名里的 `my-exchange` 在 API 路径里要 URL 编码，默认虚拟主机 `/` 编码成 `%2f`。
 
 ### 47.2.3 队列
 
@@ -303,20 +343,24 @@ docker exec rabbitmq rabbitmqadmin declare exchange \
 **方式2：通过命令行**
 
 ```bash
-# 声明队列
-docker exec rabbitmq rabbitmqadmin declare queue \
+# 声明队列（用上一步下载好的 rabbitmqadmin）
+./rabbitmqadmin -u admin -p Admin123 declare queue \
     name=my-queue \
     durable=true
 
 # 列出所有队列
-docker exec rabbitmq rabbitmqadmin list queues
+./rabbitmqadmin -u admin -p Admin123 list queues
 
 # 绑定队列到交换机
-docker exec rabbitmq rabbitmqadmin declare binding \
+./rabbitmqadmin -u admin -p Admin123 declare binding \
     source=my-exchange \
     destination=my-queue \
     routing_key=my-key
 ```
+
+> 顺带记一下三种"谁在干活"的区别：`rabbitmqctl` 是**随服务器安装的管理命令**（管用户、权限、插件、集群）；
+> `rabbitmqadmin` 是管理插件提供的 **HTTP 客户端脚本**（声明交换机/队列/绑定最方便）；
+> 两者都不能互相替代。
 
 ### 47.2.4 生产者
 
@@ -576,41 +620,61 @@ RabbitMQ核心概念：
 **Docker安装（最简单）**
 
 ```bash
-# 创建一个网络（可选）
-docker network create kafka-net
+# 用 Docker Compose 起一个单节点 Kafka（KRaft 模式，不需要 ZooKeeper）
+# 文件名：compose.yaml
+cat > compose.yaml <<'EOF'
+services:
+  kafka:
+    image: apache/kafka:4.0.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+EOF
 
-# 启动Zookeeper（Kafka依赖Zookeeper）
-docker run -d \
-    --name zookeeper \
-    -p 2181:2181 \
-    confluentinc/cp-zookeeper:latest \
-    environment ZOOKEEPER_CLIENT_PORT=2181
-
-# 启动Kafka
-docker run -d \
-    --name kafka \
-    --network kafka-net \
-    -p 9092:9092 \
-    -e KAFKA_BROKER_ID=1 \
-    -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 \
-    -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \
-    -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
-    confluentinc/cp-kafka:latest
+docker compose up -d
 
 # 查看Kafka日志
 docker logs -f kafka
 ```
 
+> ⚠️ **必须知道的版本变化**：Kafka **4.0（2025年发布）已经彻底移除 ZooKeeper**，
+> 统一用 **KRaft** 模式来管理元数据。所以：
+> - 老教程里的"先起 `cp-zookeeper` 再起 `cp-kafka`、配 `KAFKA_ZOOKEEPER_CONNECT`"
+>   只适用于 **Kafka 3.9 及以前**；
+> - Kafka 3.3 起 KRaft 就已可用于生产，新集群请直接上 KRaft（架构更简单，少一个组件要维护）；
+> - 另外原教程里那句 `environment ZOOKEEPER_CLIENT_PORT=2181` 是**错的写法**——
+>   传给 docker 的 `environment` 会被当成"容器启动命令"，正确写法是 `-e ZOOKEEPER_CLIENT_PORT=2181`
+>   （或用 `--env-file`）。
+
 **Kafka管理工具（可选）**
 
 ```bash
-# 安装kafka-manager（一个Web管理界面）
+# 用 Kafka-UI 提供 Web 管理界面
+# 注意：老教程里的 hlebalbau/kafka-manager 早已停止维护（且依赖 ZooKeeper），
+#       现在更常用 provectuslabs/kafka-ui 或 AKHQ
 docker run -d \
-    --name kafka-manager \
-    -p 9000:9000 \
-    -e ZK_HOSTS=zookeeper:2181 \
-    hlebalbau/kafka-manager:stable
+    --name kafka-ui \
+    -p 8080:8080 \
+    -e KAFKA_CLUSTERS_0_NAME=local \
+    -e KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=localhost:9092 \
+    --network container:kafka \
+    provectuslabs/kafka-ui:latest
 ```
+
+> `--network container:kafka` 表示**和 Kafka 容器共用网络栈**，所以里面用 `localhost:9092` 就能连上
+> （正好等于上面配置的 `KAFKA_ADVERTISED_LISTENERS`）。
+> 如果改成把两个容器放进同一个自定义网络，那就必须把 `KAFKA_ADVERTISED_LISTENERS`
+> 也改成 `kafka:9092`，否则客户端拿到的是 `localhost` 会连不上——
+> 这就是 Kafka 新手最常踩的"容器里连不上 Kafka"的坑。
 
 ### 47.3.2 Topic
 
@@ -712,9 +776,9 @@ flowchart TB
     P0 --> C1
     P1 --> C1
     P2 --> C2
-    
-    Note over C1,C2: 同一消费者组内，消息只被消费一次
 ```
+
+> 同一个分区只会被**组内一个消费者**消费：分区 0、1 归消费者 1，分区 2 归消费者 2。所以想要提高并行度，就得增加分区数；反过来，分区数是消费并行度的上限（一个分区的消息在组内是严格有序的）。
 
 - 同一消费者组内，**一条消息只被一个消费者消费**
 - 不同消费者组，**可以重复消费同一条消息**
@@ -723,11 +787,9 @@ flowchart TB
 **创建消费者组：**
 
 ```bash
-# 创建消费者组
-kafka-consumer-groups.sh --create \
-    --bootstrap-server localhost:9092 \
-    --group my-group \
-    --topic my-topic
+# ⚠️ 消费者组**不需要也不能手工"创建"**：只要一个消费者用 group.id=my-group
+#    开始订阅 Topic，这个组就自动出现了（组是消费时"浮现"出来的）。
+#    所以 kafka-consumer-groups.sh 里没有 --create 这个选项，老教程写错了。
 
 # 查看消费者组列表
 kafka-consumer-groups.sh --list --bootstrap-server localhost:9092
@@ -736,12 +798,23 @@ kafka-consumer-groups.sh --list --bootstrap-server localhost:9092
 kafka-consumer-groups.sh --describe \
     --bootstrap-server localhost:9092 \
     --group my-group
+
+# 常用运维操作：重置位移（注意：必须先把消费者停掉）
+kafka-consumer-groups.sh --bootstrap-server localhost:9092 \
+    --group my-group --topic my-topic \
+    --reset-offsets --to-earliest --execute
 ```
+
+> 另外提醒：消费者组的成员状态由 **Group Coordinator** 管理，
+> 消费者数超过分区数时，多出来的消费者会**空闲**（这也是前面"分区数是并行度上限"的含义）。
 
 **Python生产者示例：**
 
 ```python
 # 安装kafka库
+# 说明：kafka-python 用纯 Python 实现，上手简单、依赖少，适合学习和轻量场景；
+#       生产上更常用官方维护、基于 librdkafka 的 confluent-kafka（性能更好）：
+#       pip install confluent-kafka
 pip install kafka-python
 
 # producer.py
@@ -873,5 +946,3 @@ Kafka核心概念：
 > 中间件说：'你们不用直接聊了，我替你们传话！'"
 > 
 > 记住：**没有消息队列的系统，就像没有快递柜的快递公司——容易乱，容易丢！** 📦
-
-

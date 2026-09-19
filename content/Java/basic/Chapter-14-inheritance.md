@@ -99,9 +99,9 @@ class Cat extends Animal {
 
 ### 继承的语法
 
-```java
+```text
 [访问修饰符] class 子类名 extends 父类名 {
-    // 子类的成员
+    // 子类新增的成员
 }
 ```
 
@@ -134,6 +134,8 @@ classDiagram
 ```
 
 ### 完整的示例代码
+
+把前面的 `Animal` 和 `Dog` 拼到一起，就是一个最小的继承示例：
 
 ```java
 /**
@@ -398,6 +400,8 @@ parentRef.count = 10
 
 ### 重写示例
 
+子类用同样的方法签名"覆盖"父类的方法，就叫重写（Override）。加上 `@Override` 注解，可以让编译器帮你检查是否真的重写成功：
+
 ```java
 /**
  * 方法重写演示：动物世界
@@ -599,6 +603,8 @@ super.变量名;
 
 ### super 完整示例
 
+`super` 用来访问父类成员：`super.方法()` 调用父类方法，`super(参数)` 调用父类构造方法。下面这个例子同时演示了两者：
+
 ```java
 /**
  * super 关键字演示
@@ -797,6 +803,8 @@ sequenceDiagram
 
 ### 代码验证
 
+下面这段代码的输出来自"父类构造 → 子类构造 → 调用方法"的真实执行顺序，建议自己跑一遍对照着看：
+
 ```java
 /**
  * 继承中的对象创建过程演示
@@ -875,7 +883,11 @@ class Child extends Parent {
     }
 }
 
-new Child();  // 输出：Child doing something, value = 0
+public class ConstructorTrapDemo {
+    public static void main(String[] args) {
+        new Child();  // 输出：Child doing something, value = 0
+    }
+}
 ```
 
 > **血泪教训**：在构造方法中调用可被重写的方法，会导致子类方法在子类实例变量初始化之前执行，从而读取到默认值（0、null、false）。这是一个难以发现的 bug，务必避免！
@@ -917,6 +929,8 @@ class ColoredShape extends Shape {}  // 所有形状都要能着色？
 ```
 
 ### 组合的优雅实现
+
+同样的功能，用"持有对象"（组合）而不是"继承"来实现，耦合更低、也更灵活：
 
 ```java
 /**
@@ -1117,7 +1131,7 @@ classDiagram
     Shape <|-- Circle : 继承
     Shape <|-- Square : 继承
 
-    note top of Shape : "继承关系\nCircle is-a Shape"
+    note for Shape "继承关系：Circle is-a Shape"
 
     %% 组合示例
     class CoffeeMachine {
@@ -1141,7 +1155,7 @@ classDiagram
     CoffeeMachine o-- Milk : 组合
     CoffeeMachine o-- Sugar : 组合
 
-    note bottom of CoffeeMachine : "组合关系\nCoffeeMachine has-a Coffee"
+    note for CoffeeMachine "组合关系\nCoffeeMachine has-a Coffee"
 ```
 
 ---

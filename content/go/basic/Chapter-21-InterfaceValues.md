@@ -15,6 +15,8 @@ draft = false
 
 ### 21.1.1 接口值的组成
 
+一个接口值在内存里是**两个机器字**：一个指向动态类型信息，一个指向实际数据。理解了这一点，后面“接口比较”“接口不等于 nil”这些看似古怪的现象，你都能自己推出来：
+
 ```go
 package main
 
@@ -48,6 +50,8 @@ func main() {
 ```
 
 ### 21.1.2 接口值的相等性
+
+两个接口值要相等，必须**动态类型相同、动态值也相等**；如果动态类型本身不可比较（切片、map、函数），比较会直接 panic：
 
 ```go
 package main
@@ -87,6 +91,8 @@ func main() {
 ## 21.2 动态类型与动态值
 
 ### 21.2.1 同一接口，不同类型
+
+同一个接口变量可以在不同时刻装着不同的动态类型，运行时被调用的方法也是按**动态类型**去查表找出来的：
 
 ```go
 package main
@@ -145,12 +151,13 @@ func main() {
 
 ### 21.2.2 类型信息保留
 
+把值放进接口时，**类型不会被丢掉**。所以同一个 `any` 里装的到底是什么，可以用类型断言或反射查出来：
+
 ```go
 package main
 
 import (
     "fmt"
-    "reflect"
 )
 
 type DataHolder interface {
@@ -207,6 +214,8 @@ func main() {
 
 ### 21.3.1 nil接口 vs nil值接口
 
+这是初学者最容易踩的坑：**接口本身是 nil** 和 **接口里装着一个 nil 指针** 是两回事——后者的 `== nil` 是 `false`：
+
 ```go
 package main
 
@@ -245,6 +254,8 @@ func main() {
 
 ## 21.4 接口与nil比较
 
+把 21.3 的结论再推一遍：`err != nil` 为真，并不必然代表“真的出错了”，它只说明接口里装着某个动态类型。这也是“明明返回了 nil 指针，调用方却认为有错误”这类 bug 的根源：
+
 ```go
 package main
 
@@ -281,6 +292,8 @@ func main() {
 
 ### 21.5.1 接口调用开销
 
+接口调用不是零成本的：需要查 itab，还要经过一次间接跳转，值装箱时往往还伴随内存分配。热路径上值得留意，但也不必过早做微观优化：
+
 ```go
 package main
 
@@ -295,11 +308,23 @@ type Adder interface {
 
 type SimpleAdder struct{}
 
+// 值接收者即可：Add 不修改 SimpleAdder 的状态
+func (SimpleAdder) Add(a, b int) int { return a + b }
+
 func benchmarkInterface() int {
-    var a Adder = &SimpleAdder{}
+    var a Adder = SimpleAdder{}
     result := 0
     for i := 0; i < 1_000_000; i++ {
         result = a.Add(1, 2)
+    }
+    return result
+}
+
+func benchmarkDirect() int {
+    s := SimpleAdder{}
+    result := 0
+    for i := 0; i < 1_000_000; i++ {
+        result = s.Add(1, 2) // 直接调用，编译器有机会内联
     }
     return result
 }
@@ -308,11 +333,18 @@ func main() {
     fmt.Println("=== 接口调用性能测试 ===")
 
     start := time.Now()
-    benchmarkInterface()
+    fmt.Println("接口调用结果:", benchmarkInterface())
     interfaceTime := time.Since(start)
-    fmt.Printf("接口调用100万次耗时: %v\n", interfaceTime) // 接口调用100万次耗时: ~150ms
+    fmt.Printf("接口调用100万次耗时: %v\n", interfaceTime)
+
+    start = time.Now()
+    fmt.Println("直接调用结果:", benchmarkDirect())
+    directTime := time.Since(start)
+    fmt.Printf("直接调用100万次耗时: %v\n", directTime)
 }
 ```
+
+> 注意：具体耗时每次运行都不一样，不要把它当成"接口一定慢 150ms"之类的固定结论。真正有意义的是量级——接口调用比直接调用多一次 itab 查表和间接跳转，通常是**纳秒级**的差异。而且 `benchmarkDirect` 里的调用极可能被编译器内联甚至把整个循环优化掉，所以两者差距会被放大，这里的数字只能用来"感受量级"，不能当作严谨的基准测试。
 
 ---
 
@@ -330,4 +362,3 @@ func main() {
 **nil陷阱：**
 - 真正的nil接口：动态类型为nil，动态值为nil
 - nil值接口：动态类型非nil，动态值为nil
-

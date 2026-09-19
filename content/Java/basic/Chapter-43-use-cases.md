@@ -9,9 +9,30 @@ draft = false
 +++
 # 第四十三章 Java 能做什么——各领域应用场景详解
 
-![Java应用场景](https://via.placeholder.com/800x400?text=Java+Application+Scenarios)
+```mermaid
+mindmap
+  root((Java 的应用版图))
+    Web 后端
+      Spring Boot
+      支付 / 电商 / 金融
+    移动与桌面
+      Android
+      JavaFX / Swing
+    大数据
+      Hadoop / Spark / Flink
+      Kafka
+    云原生与微服务
+      Spring Cloud
+      Kubernetes 周边工具
+    嵌入式与物联网
+      Java ME 遗产
+      边缘网关
+    科研与工具
+      构建工具 Gradle
+      IDE IntelliJ IDEA
+```
 
-> 想象一下，Java就像IT界的"瑞士军刀"——不是最酷的，但不是万能的，而是**什么都能干**的那种。本章我们就来扒一扒Java在各个领域是如何大显神通的。
+> 想象一下，Java 就像 IT 界的"瑞士军刀"——不是最锋利的，也不是最轻便的，但胜在**什么都能干**。本章我们就来扒一扒 Java 在各个领域是如何大显神通的。
 
 ## 43.1 Web 后端开发
 

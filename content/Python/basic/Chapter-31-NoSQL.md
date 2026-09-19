@@ -736,6 +736,8 @@ MongoDB 的 CRUD（Create, Read, Update, Delete）非常灵活，因为它基于
 
 #### 高级查询
 
+pymongo 的查询就是"传一个字典当条件"：字段可以直接写值，也可以嵌 `$gt`、`$in` 这类操作符；`ASCENDING`/`DESCENDING` 负责给 `.sort()` 指定方向。
+
 ```python
 from pymongo import MongoClient, ASCENDING, DESCENDING
 
@@ -809,6 +811,8 @@ for s in page2:
 ```
 
 #### 高级更新
+
+批量更新用 `bulk_write` 加 `UpdateOne`：一次网络往返提交多条修改，比循环单条更新快得多。`upsert=True` 的意思是"有就更新、没有就插入"。
 
 ```python
 from pymongo import MongoClient, UpdateOne
@@ -1335,6 +1339,8 @@ print('\n完成！')
 | **Neo4j** | 图数据库，用节点和边存储关系，擅长社交网络分析 |
 
 ### NoSQL 数据库选择指南
+
+选型时先看数据形态和访问模式：键值/缓存考虑 Redis，文档型考虑 MongoDB，宽列考虑 Cassandra/HBase，图关系考虑 Neo4j。不要仅仅因为"不想写 SQL"就上 NoSQL——它换来的是另一种复杂度。
 
 ```
 我需要……

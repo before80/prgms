@@ -64,7 +64,8 @@ MySQL的发展历程，堪称一部"变形记"：
 Monty一咬牙，脚一跺，决定：
 > **"老子自己干！"**
 
-于是，Monty fork了MySQL 5.5的代码，创造了**MariaDB**。为什么叫MariaDB？因为Monty的小女儿叫Maria（这是程序员给女儿最好的礼物啊！）
+于是，Monty 基于当时最新的 MySQL 5.1 代码 fork 出了**MariaDB**（2009 年发布首个版本，
+后来又陆续把 MySQL 5.5、5.6 的改进合并进来）。为什么叫MariaDB？因为Monty的小女儿叫Maria（这是程序员给女儿最好的礼物啊！）
 
 **MariaDB和MySQL的关系：**
 - MariaDB是MySQL的**分支**（fork）
@@ -470,8 +471,16 @@ flowchart TD
 | 连接被拒绝 | 端口没开/防火墙 | `sudo ufw allow 3306` |
 | 密码错误 | 忘了密码 | 重置密码或重新安装 |
 | 服务启动失败 | 端口被占用 | `lsof -i:3306` 查看 |
-| 无法远程连接 | bind-address配置 | 修改为 `0.0.0.0` |
+| 无法远程连接 | bind-address配置 | 改成监听具体网卡IP；确实要写 `0.0.0.0` 时务必配合防火墙和白名单（见下方警告） |
 | Docker容器退出了 | 配置错误 | `docker logs mysql-server` |
+
+> ⚠️ **关于 `bind-address = 0.0.0.0` 的安全提醒**：
+> 它表示 MySQL 监听**所有网卡**。如果这台机器有公网IP、防火墙又放开了 3306，而账号密码还不够强，
+> 那基本等于把数据库放到大街上——互联网上扫描 3306 的机器人**每分钟都在扫**。
+> 更稳妥的做法是：
+> 1. 保持 `bind-address = 127.0.0.1`，外部需要访问就走 SSH 隧道（`ssh -L 3306:127.0.0.1:3306 user@server`）；
+> 2. 或者绑定内网网卡（如 `bind-address = 10.0.0.5`），并用防火墙只放行应用服务器的 IP；
+> 3. 应用账号一律用"指定IP + 最小权限 + 强密码"，不要用 `'user'@'%'`。
 
 ### 小结
 
@@ -625,7 +634,9 @@ long_query_time = 2  # 超过2秒算慢查询
 
 # 二进制日志（用于主从复制和数据恢复）
 log_bin = /var/log/mysql/mysql-bin.log
-expire_logs_days = 7  # 日志保留7天
+# 日志保留7天：MySQL 8.0 起推荐用 binlog_expire_logs_seconds（单位是秒）
+# expire_logs_days 在 8.0 里已被废弃，只是为了兼容老配置还认
+binlog_expire_logs_seconds = 604800
 max_binlog_size = 100M
 ```
 
@@ -649,12 +660,20 @@ sudo cp /etc/mysql/mariadb.conf.d/50-server.cnf /etc/mysql/mariadb.conf.d/50-ser
 sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
 
 # 3. 修改后，检查语法
+#    MySQL 8.0.16+ 提供了 --validate-config（不改数据、只检查配置是否合法）
 sudo mysqld --validate-config
 # 如果输出 "Safely checked" 就没有语法错误
+#    老版本 MySQL 或 MariaDB 如果没有这个选项，就用 --help --verbose 走一遍解析，
+#    或者直接重启并立刻查看错误日志（出错时服务会起不来，日志里会写明哪一行有问题）
+sudo mysqld --help --verbose > /dev/null
 
 # 4. 重启服务使配置生效
 sudo systemctl restart mariadb  # 或 mysql
 ```
+
+> 提醒：改配置前一定先 `cp` 备份（上面第 1 步），改错了可以马上还原；
+> 另外**不要在线直接改 `max_connections` 之类的关键项后就重启生产库**，
+> 最好在低峰期操作，并确认业务能容忍一次重启。
 
 ### 44.3.2 字符集配置
 
@@ -808,18 +827,18 @@ MySQL/MariaDB的权限系统有三层结构：
 
 ```mermaid
 flowchart TB
-    A[MySQL权限系统] --> B[用户账户<br/>who are you?]
-    A --> C[权限<br/>what can you do?]
-    A --> D[数据库对象<br/>on what?]
-    
-    B --> B1[用户名@主机名]
-    C --> C1[SELECT]
-    C --> C2[INSERT]
-    C --> C3[UPDATE]
-    C --> C4[DELETE]
-    C --> C5[ALL PRIVILEGES]
-    
-    D --> D1[数据库.表]
+    A["MySQL 权限系统"] --> B["用户账户<br/>who are you?"]
+    A --> C["权限<br/>what can you do?"]
+    A --> D["数据库对象<br/>on what?"]
+
+    B --> B1["用户名@主机名"]
+    C --> C1["SELECT"]
+    C --> C2["INSERT"]
+    C --> C3["UPDATE"]
+    C --> C4["DELETE"]
+    C --> C5["ALL PRIVILEGES"]
+
+    D --> D1["数据库.表"]
 ```
 
 **用户名的格式：** `用户名@主机`
@@ -960,7 +979,9 @@ TO 'dev_user'@'192.168.1.%';
 **场景3：给DBA全部权限**
 
 ```sql
--- DBA需要管理一切，但不能给其他DBA授权（安全考虑）
+-- DBA需要管理一切，包含"把权限再授给别人"的能力（WITH GRANT OPTION）
+-- 注意：WITH GRANT OPTION 意味着这个人可以把同样的权限继续授予他人，权限会"扩散"，
+--       所以只应该给极少数管理员账号
 GRANT ALL PRIVILEGES 
 ON *.* 
 TO 'dba_admin'@'localhost'
@@ -997,13 +1018,15 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON db3.* TO 'multi_db_user'@'%';
 #### 创建用户+授权一条搞定
 
 ```sql
--- 如果用户不存在，可以直接用GRANT创建（MySQL特性）
--- 同时创建用户并授权
-GRANT SELECT, INSERT, UPDATE, DELETE 
-ON myapp.* 
-TO 'new_app_user'@'%' 
-IDENTIFIED BY 'NewUserPass2024!';
+-- MySQL 8.0 起，GRANT 语句里已经**不能**再写 IDENTIFIED BY，
+-- 必须先 CREATE USER 再 GRANT（两句话，各干一件事）
+CREATE USER 'new_app_user'@'%' IDENTIFIED BY 'NewUserPass2024!';
+GRANT SELECT, INSERT, UPDATE, DELETE ON myapp.* TO 'new_app_user'@'%';
 ```
+
+> ⚠️ 老教程里常见的 `GRANT ... TO 'u'@'h' IDENTIFIED BY '密码';` 这种"一句话创建用户并授权"的写法，
+> 在 **MySQL 8.0 中已被移除**，执行会直接报语法错误。它只在 MySQL 5.7 及更早版本、以及
+> MariaDB 的部分版本里可用。写新项目时请一律使用 `CREATE USER` + `GRANT` 两步走。
 
 ### 44.4.3 REVOKE - 回收权限
 
@@ -1099,7 +1122,9 @@ flowchart TD
 
 ```sql
 -- ❌ 错误示范：root用户给外部应用使用
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'password';
+-- 注意：MySQL 8.0 起 GRANT 语句里不能再直接跟 IDENTIFIED BY，必须先 CREATE USER 再 GRANT
+CREATE USER 'root'@'%' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';
 
 -- ❌ 错误示范：密码太简单
 CREATE USER 'app'@'%' IDENTIFIED BY '123456';
@@ -1118,14 +1143,21 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON myapp.* TO 'app'@'192.168.1.100';
 -- 方法1：用ALTER USER改自己的密码
 ALTER USER 'username'@'host' IDENTIFIED BY 'NewPassword123!';
 
--- 方法2：用SET改密码
+-- 方法2：用SET PASSWORD改密码（MySQL 5.7+/MariaDB 都支持）
 SET PASSWORD FOR 'username'@'host' = 'NewPassword123!';
 
--- 方法3：用UPDATE直接修改（需要FLUSH PRIVILEGES）
-UPDATE mysql.user SET authentication_string = PASSWORD('NewPassword123!') 
-WHERE user = 'username' AND host = 'host';
-FLUSH PRIVILEGES;
+-- 方法3：旧版本才有的写法（MySQL 5.7 及更早、MariaDB）
+SET PASSWORD FOR 'username'@'host' = PASSWORD('NewPassword123!');
 ```
+
+> ⚠️ **别再照抄老教程里的这两招**：
+> - `UPDATE mysql.user SET authentication_string = PASSWORD('xxx')`：
+>   `PASSWORD()` 函数在 **MySQL 8.0 已被删除**，而且 8.0 起也不再允许直接改 `mysql.user` 表，
+>   必须用 `ALTER USER`。
+> - 想"免密码"或改认证插件，也用 `ALTER USER 'u'@'h' IDENTIFIED WITH mysql_native_password BY 'xxx';`
+>   这种写法，不要去改系统表。
+>
+> MySQL 8.0+ 改密码的标准答案只有一句：`ALTER USER '用户名'@'主机' IDENTIFIED BY '新密码';`
 
 ### 查看用户权限
 
@@ -1136,20 +1168,24 @@ SHOW GRANTS;
 -- 查看指定用户权限
 SHOW GRANTS FOR 'username'@'host';
 
--- 查看权限的另一种方式（MySQL 8.0+）
+-- 列出"这台服务器上支持哪些权限"（是权限清单，不是某个用户的权限！）
 SHOW PRIVILEGES;
 ```
 
 ### 刷新权限
 
 ```sql
--- 修改用户表后需要刷新权限
+-- 只有在**手工改了 mysql 库里的授权表**（比如 INSERT/UPDATE mysql.user）之后才需要执行它
 FLUSH PRIVILEGES;
-
--- 这两个命令也可以reload权限
-FLUSH TABLES;
-FLUSH STATUS;
 ```
+
+> 小心别被老教程带偏：
+> - 用 `CREATE USER` / `GRANT` / `REVOKE` 这些语句改权限时，MySQL 会**自动**更新内存中的权限表，
+>   **不需要**手动 `FLUSH PRIVILEGES`；
+> - `FLUSH TABLES` 是关掉并重新打开表（常用于需要"释放表锁"的场景），
+>   `FLUSH STATUS` 是重置状态计数器，**这两个命令都不会刷新权限**；
+> - 顺带一提，"必须 `FLUSH PRIVILEGES`"几乎成了网上的迷信，除非你直接改过系统表，
+>   否则加不加都没有区别。
 
 ### 小结
 
@@ -1236,6 +1272,14 @@ CREATE DATABASE IF NOT EXISTS myapp;
 CREATE DATABASE myapp 
 DATA DIRECTORY '/mnt/fast-disk/myapp/';
 ```
+
+> 注意：`DATA DIRECTORY` 只对 **InnoDB 表**有意义，而且：
+> - 目录要**先建好**，并且属主是 MySQL 的运行用户（通常是 `mysql`）；
+> - 早期/部分环境下这个目录**不能放在有 `SETGID` 或开启了某些挂载选项（如 `noexec`）的分区上**；
+> - 备份和迁移时会多一份"外部目录"要一起搬，容易踩坑。
+>
+> 所以除非你非常确定要这么做（比如 SSD 盘不够、要把大表挪到另一块盘），
+> 否则**推荐用普通建库方式 + 表空间（`ALTER TABLE ... TABLESPACE`）或 LVM 扩容**来解决问题。
 
 #### 创建数据库时的参数说明
 
@@ -1326,9 +1370,10 @@ SELECT DATABASE();
 -- 方法2：查看连接状态
 STATUS;
 
--- 方法3：查看当前数据库
-SELECT @current_db;
 ```
+
+> 小提醒：**没有** `@current_db` 这个内置变量，写 `SELECT @current_db;` 只会返回 `NULL`。
+> 想看当前库，用 `SELECT DATABASE();` 或者 `STATUS;` 就够了。
 
 执行结果：
 
@@ -1469,9 +1514,17 @@ CREATE TABLE 表名 (
 | `TEXT` | 长文本 | 文章内容 |
 | `DATE` | 日期 | '2024-01-01' |
 | `DATETIME` | 日期时间 | '2024-01-01 12:30:00' |
-| `TIMESTAMP` | 时间戳 | 1704067200 |
-| `BOOLEAN` | 布尔值 | TRUE/FALSE |
+| `TIMESTAMP` | 日期时间（存的是"年月日时分秒"，不是整数时间戳） | '2024-01-01 12:30:00' |
+| `BOOLEAN` | 布尔值（MySQL 里其实就是 `TINYINT(1)` 的别名） | TRUE/FALSE（等价于 1/0） |
 | `JSON` | JSON数据 | '{"key": "value"}' |
+
+> ⚠️ **`TIMESTAMP` 和 `DATETIME` 别搞混**：
+> - `DATETIME` 存的是"你写进去的字面时间"，范围 1000-01-01 ~ 9999-12-31，**不受时区影响**；
+> - `TIMESTAMP` 存的是 UTC 时间戳，查询时按会话时区转换显示，范围是
+>   `1970-01-01 00:00:01` ~ **`2038-01-19 03:14:07`（UTC，也就是著名的"2038 问题"）**，
+>   超出就会报错；
+> - 所以"记录未来时间（比如会员到期日 2040 年）"要用 `DATETIME`，不要用 `TIMESTAMP`；
+> - `TIMESTAMP` 的示例值也不是数字 `1704067200`，在 MySQL 里照样得写 `'2024-01-01 12:30:00'`。
 
 #### 创建表实战
 
@@ -1490,8 +1543,10 @@ CREATE TABLE users (
     -- 邮箱：可变字符串，最多100字符，唯一
     email VARCHAR(100) NOT NULL UNIQUE,
     
-    -- 密码：哈希存储，固定长度64字符（SHA256）
-    password_hash CHAR(64) NOT NULL,
+    -- 密码：**绝不能存明文**！这里只是示意字段。
+    -- 注意别用裸 SHA256/MD5 存密码（容易被彩虹表撞库），应用侧应使用 bcrypt / Argon2 / scrypt，
+    -- 这类哈希结果长度不固定，所以字段建议给足够宽，例如 VARCHAR(255)
+    password_hash VARCHAR(255) NOT NULL,
     
     -- 年龄：整数，可空
     age INT,
@@ -2258,16 +2313,26 @@ gunzip < /backup/myapp_backup.sql.gz | mysql -u root -p
 
 # 配置
 DB_USER="root"
-DB_PASS="YourPassword"
 DB_NAME="myapp"
 BACKUP_DIR="/backup/mysql"
 DATE=$(date +%Y%m%d_%H%M%S)
+
+# 密码不要写死在脚本里！放到权限为 600 的 ~/.my.cnf 里，让客户端自己读
+#   [client]
+#   user=root
+#   password=你的密码
+# 然后 chmod 600 ~/.my.cnf
 
 # 创建备份目录（如果不存在）
 mkdir -p $BACKUP_DIR
 
 # 执行备份
-mysqldump -u $DB_USER -p$DB_PASS $DB_NAME | gzip > $BACKUP_DIR/${DB_NAME}_${DATE}.sql.gz
+# --single-transaction：InnoDB 下用一致性快照，导出期间不锁表，业务不受影响
+# --routines --triggers --events：存储过程/触发器/定时事件一起备份，否则恢复后会丢
+# --set-gtid-purged=OFF：避免带 GTID 信息导致在别的实例上导入失败
+mysqldump --single-transaction --routines --triggers --events \
+    --set-gtid-purged=OFF \
+    -u "$DB_USER" "$DB_NAME" | gzip > "$BACKUP_DIR/${DB_NAME}_${DATE}.sql.gz"
 
 # 删除7天前的备份
 find $BACKUP_DIR -name "*.sql.gz" -mtime +7 -delete
@@ -2275,6 +2340,12 @@ find $BACKUP_DIR -name "*.sql.gz" -mtime +7 -delete
 # 输出备份信息
 echo "备份完成: ${DB_NAME}_${DATE}.sql.gz"
 ```
+
+> ⚠️ **生产环境备份的三个坑**：
+> 1. **不加 `--single-transaction` 的 mysqldump 会加全局读锁**，大库导出期间业务会卡住；
+> 2. **备份文件要异地存放**，并且定期做"恢复演练"——没恢复过的备份等于没有备份；
+> 3. 数据量大（几十 GB 以上）时，`mysqldump` 会很慢，建议换成
+>    **Percona XtraBackup 的物理热备**，或者 **MySQL Shell 的 `util.dumpInstance()`**（支持并行、压缩）。
 
 ```bash
 # 给脚本添加执行权限
@@ -2437,8 +2508,10 @@ flowchart TD
 
 ```bash
 # 安装xtrabackup（需要添加Percona源）
-# Ubuntu
-apt install xtrabackup
+# Ubuntu/Debian（包名带版本号）
+sudo apt install percona-xtrabackup-80
+# RHEL 系
+sudo dnf install percona-xtrabackup-80
 
 # 全量备份
 xtrabackup --backup --target-dir=/backup/full --user=root --password=xxx
@@ -2516,11 +2589,14 @@ binlog-ignore-db = mysql
 binlog-ignore-db = information_schema
 binlog-ignore-db = performance_schema
 
-# 日志格式（推荐MIXED或ROW）
-binlog_format = MIXED
+# 日志格式：用 ROW（记录"每行被改成什么"，主从一致性最有保障）
+# 注意：MySQL 8.0 默认就是 ROW；binlog_format 这个参数从 8.0.34 起已被标记为废弃
+#       （官方计划在未来版本移除），所以新配置其实可以不写这一行；
+#       老教程里的 MIXED / STATEMENT 不要再用了
+binlog_format = ROW
 
-# 从服务器读取位置（过期日志自动删除，保留7天）
-expire_logs_days = 7
+# 日志保留时间（MySQL 8.0 起用秒为单位；旧的 expire_logs_days 已废弃）
+binlog_expire_logs_seconds = 604800
 ```
 
 **步骤2：重启MySQL服务**
@@ -2561,6 +2637,23 @@ SHOW MASTER STATUS;
 | mysql-bin.000003|     456 | myapp        | mysql,information_schema |
 +---------------+----------+--------------+------------------+
 ```
+
+> ⚠️ **术语和命令的"新旧名字"（很重要）**：
+> MySQL 从 8.0.22 开始把"主从"改称"源/副本（source/replica）"，并给了一批新命令：
+>
+> | 老写法（8.0 之前，很多教程还在用） | 新写法（推荐） |
+> |-----------------------------------|----------------|
+> | `SHOW MASTER STATUS` | `SHOW BINARY LOG STATUS`（8.0.22+） |
+> | `CHANGE MASTER TO ...` | `CHANGE REPLICATION SOURCE TO ...` |
+> | `START SLAVE` / `STOP SLAVE` | `START REPLICA` / `STOP REPLICA` |
+> | `SHOW SLAVE STATUS` | `SHOW REPLICA STATUS` |
+> | `MASTER_HOST` / `MASTER_USER` ... | `SOURCE_HOST` / `SOURCE_USER` ... |
+>
+> **MySQL 8.4 已经彻底移除了老的那一套**，在 8.4/9.x 上执行 `CHANGE MASTER TO` 会直接报错。
+> MariaDB 则一直沿用 `MASTER/SLAVE` 的写法。
+> 所以下面这些例子请按你的版本"对号入座"：MySQL 8.0.22+ 用新命令，老版本或 MariaDB 用旧命令。
+> 顺便说一句，`read_only = ON` 只挡普通用户，**拥有 SUPER 权限的账号（比如 root）仍能写入**，
+> 要连 root 也挡住，才需要打开 `super_read_only = ON`。
 
 ### 44.11.2 配置从服务器
 
@@ -2716,6 +2809,8 @@ sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
 # bind-address = 127.0.0.1
 
 # 监听所有网卡（允许远程连接）
+# ⚠️ 只有在"数据库只暴露给内网 + 防火墙已限制来源IP"的前提下才这么写，
+#    公网机器请务必保持 127.0.0.1，远程访问走 SSH 隧道
 bind-address = 0.0.0.0
 
 # 或者只监听指定IP
@@ -2752,15 +2847,15 @@ FLUSH PRIVILEGES;
 **方法3：开放防火墙端口**
 
 ```bash
-# Ubuntu/Debian (ufw)
-sudo ufw allow 3306/tcp
+# Ubuntu/Debian (ufw)：只放行应用服务器的IP，不要直接 allow 3306/tcp 给所有人
+sudo ufw allow from 192.168.1.0/24 to any port 3306 proto tcp
 
-# CentOS/RHEL (firewalld)
-sudo firewall-cmd --permanent --add-port=3306/tcp
+# CentOS/RHEL (firewalld)：同样限定来源网段，firewall-cmd 支持 rich rule
+sudo firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="192.168.1.0/24" port port="3306" protocol="tcp" accept'
 sudo firewall-cmd --reload
 
-# 或者直接关闭防火墙（不推荐生产环境）
-sudo systemctl stop firewalld
+# ❌ 不要为了图省事直接关防火墙（sudo systemctl stop firewalld），
+#    那等于把整台机器的所有端口都暴露出去
 ```
 
 #### 远程连接测试
@@ -2873,17 +2968,3 @@ COLLATE utf8mb4_unicode_ci;
 > 这告诉我们：有时候，"被抛弃"可能是最好的安排。
 > 
 > 记住：**数据库千万个，备份第一个，操作不规范，亲人两行泪！** 🔥
-
-
-
-
-
-
-
-
-
-
-
-
-
-

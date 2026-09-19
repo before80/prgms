@@ -213,6 +213,8 @@ python -i test_i.py
 
 #### 10.1.6.1 #!/usr/bin/env python3
 
+shebang 必须写在文件的**第一行**（前面不能有空行、不能有注释），而且推荐用 `env` 去找解释器，而不是硬编码 `/usr/bin/python3`：虚拟环境、Homebrew、各个发行版的解释器路径都不一样，`env` 会顺着 `PATH` 找到当前环境里真正在用的那个。
+
 ```python
 #!/usr/bin/env python3
 # 这是个使用 shebang 的脚本
@@ -239,7 +241,9 @@ chmod +x hello.py    # 赋予执行权限
 ./hello.py           # 直接运行（不需要 python 前缀）
 ```
 
-> 等等！Windows 用户别走！Windows 不认识 shebang，它看到 `#!` 会以为这是注释，根本不鸟你。不过没关系，等我们学到 PyInstaller 的时候，Windows 用户就能笑着看 Linux 用户了——因为 PyInstaller 打包出来的 .exe，Windows 和 Linux 都能用！
+> 等等！Windows 用户别走！Windows 不认识 shebang，它看到 `#!` 会当成普通注释，直接跳过。不过没关系，等我们学到 PyInstaller 的时候，Windows 用户也能拿到双击即用的程序。
+>
+> ⚠️ 但这里必须澄清一个流传极广的说法：**PyInstaller 不支持交叉编译**。你打包好的可执行文件里带着一个完整的 Python 运行时和当前平台的二进制依赖，所以在 Windows 上打包只能得到 Windows 程序，在 Linux 上打包只能得到 Linux 程序。想同时提供多个平台的版本，就得在各自的平台上（或者用 CI 的多个 runner）分别打包。
 
 ### 10.1.7 python 命令行参数速查
 
@@ -256,6 +260,8 @@ python -B script.py
 > 什么？你不想看到满桌子的 `__pycache__` 文件夹？`-B` 就是你的清洁工！
 
 #### 10.1.7.2 -v：verbose，详细输出导入信息
+
+`-v` 会在每次导入模块时打印一行信息，还会把模块搜索路径一并列出来。排查"为什么 import 到的是别的同名模块""为什么包明明装了却找不到"这类问题时，这堆输出比任何猜测都直接。
 
 ```bash
 python -v script.py
@@ -295,6 +301,8 @@ python -W ignore::DeprecationWarning script.py  # 只忽略特定警告
 `sys.argv` 是最简单、最直接的方式，就像用筷子吃饭——能吃饱，但不够优雅。
 
 #### 10.2.1.1 sys.argv[0] 是脚本名，sys.argv[1:] 是参数
+
+`sys.argv` 就是一个列表：第 0 个元素是**脚本自己的名字**（可能是相对路径，也可能是模块路径），真正的参数从 `sys.argv[1]` 开始。列表里的每个元素都是字符串，数字要自己转。
 
 ```python
 # greet.py
@@ -340,6 +348,8 @@ age = int(sys.argv[1])  # 字符串转整数
 `argparse` 是 Python 标准库，专门用来处理命令行参数。用它你可以轻松做出专业的 CLI 工具——带帮助信息、类型检查、默认值、子命令，应有尽有。
 
 #### 10.2.2.1 基础用法
+
+argparse 的套路非常固定：建一个 `ArgumentParser`（顺手写上 `description`，`--help` 会好看很多）、用 `add_argument` 逐个声明参数、最后 `parse_args()` 取结果。`-h`/`--help` 是自动送的，不用自己写。
 
 ```python
 # basic_argparse.py
@@ -542,11 +552,15 @@ positional arguments:
 
 #### 10.2.3.1 安装
 
+click 就是个纯 Python 包，`pip install click` 即可。它和 argparse 的关系不是替代而是"更顺手"：功能集合相近，但写法从"配置对象"变成了装饰器。
+
 ```bash
 pip install click
 ```
 
 #### 10.2.3.2 @click.command() 和 @click.option()
+
+`@click.command()` 把一个函数变成命令，`@click.option()` 声明选项：参数名默认由长选项名推导（`--count` → 函数参数 `count`），类型、默认值、帮助文字都写在装饰器里。函数签名本身就成了参数文档。
 
 ```python
 # click_demo.py
@@ -688,11 +702,15 @@ Typer 是基于 Click 开发的，语法更简洁，特别适合已经熟悉 Pyt
 
 #### 10.2.4.1 安装
 
+Typer 同样是纯 Python 包，`pip install typer` 就能用；如果还想要更漂亮的帮助输出和 shell 自动补全，再装上 `rich` 和 `shellingham` 即可。
+
 ```bash
 pip install typer
 ```
 
 #### 10.2.4.2 @app.command()
+
+Typer 的写法几乎是"加个类型提示就完事"：参数类型、默认值、布尔开关全部从函数签名推导出来（`count: int = 1` 直接变成 `--count`）。`app.command()` 把函数注册成子命令，不指定名字就默认用函数名。
 
 ```python
 # typer_demo.py
@@ -770,11 +788,15 @@ Google 出品的 fire 更激进——它可以自动把任何 Python 程序、�
 
 #### 10.2.5.1 安装
 
+Python Fire 是 Google 的开源项目，`pip install fire` 一条命令装好。除了自动生成 CLI，它还能把任意 Python 对象（类、模块、字典）导出成命令行接口。
+
 ```bash
 pip install fire
 ```
 
 #### 10.2.5.2 任何 Python 函数自动生成 CLI
+
+`fire.Fire(函数)` 会把函数的参数直接映射成命令行参数，类型靠默认值和 `help` 注解推断。它适合把脚本"临时变成命令"，但要做正式的 CLI，参数校验和帮助信息的精细度仍然不如 click / Typer。
 
 ```python
 # fire_demo.py
@@ -845,6 +867,8 @@ PyInstaller 是最流行的 Python 打包工具，能把 Python 程序打包成�
 
 #### 10.3.1.1 安装
 
+装 PyInstaller 时建议放进项目自己的虚拟环境：它要分析你环境里装了哪些包，装在全局环境容易把不相干的包一并打进去，产物会莫名其妙地变大。
+
 ```bash
 pip install pyinstaller
 ```
@@ -909,8 +933,8 @@ pyinstaller --onefile --icon=myapp.ico hello_packaged.py
 
 > 图标格式要求：
 > - Windows: `.ico` 格式
-> - Linux: `.png` 或 `.ico`
 > - macOS: `.icns` 格式
+> - Linux：可执行文件本身没有统一的图标机制，`--icon` 在 Linux 上不起作用（桌面环境的图标来自 `.desktop` 文件）；如果给的是 PNG 这类非平台格式的图片，PyInstaller 会尝试调用 Pillow 帮你转成 `.ico`/`.icns`
 
 没有图标？可以去 [iconifier.net](https://iconifier.net) 或 [favicon.io](https://favicon.io/) 之类的网站生成。
 
@@ -1016,13 +1040,13 @@ flowchart LR
 
 ```python
 a = Analysis(
-    ['hello.py'],
-    datas=[
-        ('./config.json', 'config/'),      # 把 config.json 放到 config/ 目录
-        ('./images/*.png', 'images/'),       # 把所有 png 放到 images/ 目录
-        ('./assets', 'assets'),              # 把整个 assets 目录放进去
+    ['hello.py'],          # 第一个位置参数：入口脚本
+    hiddenimports=[        # 之后的参数必须全部用关键字形式
+        'numpy',
+        'sklearn',
+        'my_custom_module',
     ],
-    ...
+    # 其他参数可参考 PyInstaller 文档，例如 pathex、datas、binaries
 )
 ```
 
@@ -1052,13 +1076,13 @@ with open(config_path, 'r') as f:
 
 ```python
 a = Analysis(
-    ['hello.py'],
-    hiddenimports=[
+    ['hello.py'],          # 第一个位置参数：入口脚本
+    hiddenimports=[        # 之后的参数必须全部用关键字形式
         'numpy',
         'sklearn',
         'my_custom_module',
     ],
-    ...
+    # 其他参数可参考 PyInstaller 文档，例如 pathex、datas、binaries
 )
 ```
 
@@ -1118,11 +1142,15 @@ PyInstaller 是"打包"，Nuitka 是"编译"。Nuitka 把 Python 代码编译成
 
 #### 10.3.2.1 安装
 
+Nuitka 走的是"把 Python 编译成 C、再编译成二进制"的路线，`pip install nuitka` 会顺带装好它需要的辅助库；第一次编译还要求本机有 C 编译器（gcc / clang / MSVC）。
+
 ```bash
 pip install nuitka
 ```
 
 #### 10.3.2.2 基本命令
+
+Nuitka 最常见的组合是 `--standalone`（连同依赖打包成一个目录）加 `--onefile`（再压成单个文件）。和 PyInstaller 一样，它**不跨平台**：在哪个系统上跑，就只能产出那个系统的可执行文件。
 
 ```bash
 # 单文件模式
@@ -1132,6 +1160,8 @@ nuitka --standalone --onefile hello.py
 ```
 
 #### 10.3.2.3 性能优化选项
+
+`--optimize=3` 让 Nuitka 在编译期做更激进的优化，`--lto` 打开链接期优化，`--remove-output` 则在打包完成后清掉中间文件。优化开得越猛，编译时间越长——这是必然的取舍。
 
 ```bash
 # 启用所有优化
@@ -1184,11 +1214,15 @@ cx_Freeze 又是一个打包工具，语法和 PyInstaller 类似。
 
 #### 10.3.3.1 安装
 
+`pip install cx_Freeze`。它和 PyInstaller 的核心区别是"配置驱动"：打包规则写在 `setup.py` 里，更适合和 setuptools 的构建流程配合使用。
+
 ```bash
 pip install cx_Freeze
 ```
 
 #### 10.3.3.2 setup.py 配置
+
+`setup()` 里的 `executables` 列表描述"要生成哪些可执行文件"，`build_exe_options` 则负责打包细节（额外模块、要包含的数据文件等）。改完配置执行 `python setup.py build`，产物会出现在 `build/` 目录下。
 
 ```python
 # setup.py
@@ -1230,6 +1264,8 @@ briefcase 是 [BeeWare](https://beeware.org/) 项目的一部分，主要用于�
 
 #### 10.3.4.1 安装
 
+Briefcase 属于 BeeWare 生态，`pip install briefcase` 之后用 `briefcase create`、`briefcase build`、`briefcase run` 这一串子命令，把你的 Python 代码变成各平台上的原生安装包。
+
 ```bash
 pip install briefcase
 ```
@@ -1270,6 +1306,8 @@ briefcase build linux      # Linux
 `setup.py` 是 Python 打包的"老前辈"，虽然新标准推荐用 `pyproject.toml`，但理解 setup.py 对了解打包历史很有帮助。
 
 #### 10.4.1.1 setup() 函数参数详解
+
+`setup()` 的每个参数都对应一段元数据：`name`/`version` 是包名和版本，`packages=find_packages()` 自动收集所有子包，`install_requires` 声明运行依赖，`entry_points` 定义命令行入口。这套写法至今仍然有效，但新项目更应该把它搬进 `pyproject.toml`。
 
 ```python
 # setup.py
@@ -1369,6 +1407,8 @@ build-backend = "setuptools.build_meta"   # 使用 setuptools 作为构建后端
 
 #### 10.4.2.2 [project] 项目元数据配置
 
+`[project]` 是 PEP 621 定义的现代元数据表：名字、版本、依赖、Python 版本要求全放在这里，setuptools、hatch、flit、pdm 这些构建后端都认这套格式。写了它，就不必再维护一份信息重复的 `setup.py`。
+
 ```toml
 [project]
 name = "mypackage"
@@ -1394,6 +1434,8 @@ dependencies = [
 ```
 
 #### 10.4.2.3 [project.optional-dependencies] 可选依赖
+
+`[project.optional-dependencies]` 用来声明"可选的额外依赖组"：用户执行 `pip install mypackage[dev]`，就会把 `dev` 组里列的包一起装上。把测试、文档、开发工具分门别类放进去，普通用户的安装才能保持轻量。
 
 ```toml
 [project.optional-dependencies]
@@ -1461,11 +1503,15 @@ myapp = "mypackage.cli:main"
 
 #### 10.4.3.1 安装
 
+`pip install build`。这个工具的职责很单纯：调用 `pyproject.toml` 里声明的构建后端，生成 sdist 和 wheel。它是官方推荐的构建入口，取代了过去直接在项目里执行 `setup.py` 的做法。
+
 ```bash
 pip install build
 ```
 
 #### 10.4.3.2 python -m build 生成 dist/ 目录
+
+`python -m build` 默认先打一个源码包（sdist），再在隔离环境里用它构建出 wheel。产物都在 `dist/` 下：`.tar.gz` 是源码分发，`.whl` 才是用户实际安装的东西。只想生成 wheel 就加 `--wheel`。
 
 ```bash
 # 进入项目目录
@@ -1492,11 +1538,15 @@ dist/
 
 #### 10.4.4.1 安装
 
+`pip install twine`。twine 只做一件事：把构建产物安全地上传到 PyPI——全程 HTTPS，支持 API Token，还能在上传前校验元数据格式。
+
 ```bash
 pip install twine
 ```
 
 #### 10.4.4.2 twine upload 上传命令
+
+`twine upload dist/*` 会把 `dist/` 里的所有产物推到 PyPI，加 `--repository testpypi` 则推到测试站点。要注意：**同名版本号不能重复上传**，PyPI 不允许覆盖已发布的版本，这是它的硬性规则。
 
 ```bash
 # 上传到 PyPI
@@ -1584,6 +1634,8 @@ version = "1.0.0"      # 正式版
 
 #### 10.4.6.1 --repository testpypi 配置
 
+Test PyPI 是一个完全独立的站点：账号、密码、项目名都和正式 PyPI 分开。先用它把流程跑通——确认元数据、README 渲染、`pip install` 都没问题——再往正式 PyPI 上传。
+
 ```bash
 # 先注册 Test PyPI 账号（和 PyPI 分开的）
 # https://test.pypi.org/account/register/
@@ -1593,6 +1645,8 @@ twine upload --repository testpypi dist/*
 ```
 
 #### 10.4.6.2 测试安装方式
+
+从 Test PyPI 安装时必须显式指定 `--index-url`；如果项目的依赖都在正式 PyPI 上，还要补一个 `--extra-index-url`，让 pip 在两个源里都能查找。
 
 ```bash
 # 从 Test PyPI 安装（需要指定 --index-url）
@@ -1822,6 +1876,8 @@ conda activate myenv
    - conda 用 `environment.yml` 管理环境
 
 ### 实战路线图
+
+把这一章的内容串起来，就是一条完整的"从代码到用户"流水线：先把脚本写好并加上命令行参数，再决定交付方式——是让用户自己装 Python 后 `pip install`，还是打成双击就能跑的可执行文件，最后才谈发布到 PyPI。
 
 ```
 写代码 → 命令行参数 → 打包 exe → 发布到 PyPI

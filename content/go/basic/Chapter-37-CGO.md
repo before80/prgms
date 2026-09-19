@@ -1,4 +1,4 @@
-+++
+﻿+++
 title = "第37章 CGO"
 weight = 370
 date = "2026-03-23T08:39:00+08:00"
@@ -138,7 +138,7 @@ func main() {
 
     // 使用 C 的数学函数
     x := 27.0
-    result := C.cubeRoot(x)
+    result := C.cubeRoot(C.double(x))
     fmt.Printf("立方根(%.0f) = %.2f\n", x, result)
 
     // 使用 C 的阶乘函数
@@ -171,18 +171,18 @@ Go 和 C 之间有一套固定的基本类型映射规则：
 |---------|--------|------|
 | bool | bool | 注意：C 的 bool 是 1 字节，Go 的 bool 也是 1 字节 |
 | byte | uint8 | 完全等价 |
-| int8 | int8 / char | 取决于平台 |
-| int16 | int16 / short | 完全等价 |
-| int32 | int32 / int | 完全等价 |
-| int64 | int64 / long long | 完全等价 |
-| uint8 | uint8 / unsigned char | 完全等价 |
-| uint16 | uint16 / unsigned short | 完全等价 |
-| uint32 | uint32 / unsigned int | 完全等价 |
-| uint64 | uint64 / unsigned long long | 完全等价 |
-| float32 | float | 完全等价 |
-| float64 | double | 完全等价 |
-| complex64 | 不支持 | C 没有复数类型 |
-| complex128 | 不支持 | C 没有复数类型 |
+| int8 | int8_t / char | 1 字节；`char` 是否有符号由平台决定 |
+| int16 | int16_t / short | 2 字节 |
+| int32 | int32_t | `int` 通常是 4 字节，但标准只保证 ≥2 字节 |
+| int64 | int64_t / long long | `long` 在 LP64 上是 8 字节，在 Windows 上只有 4 字节 |
+| uint8 | uint8_t / unsigned char | 1 字节 |
+| uint16 | uint16_t / unsigned short | 2 字节 |
+| uint32 | uint32_t / unsigned int | 4 字节 |
+| uint64 | uint64_t / unsigned long long | 8 字节 |
+| float32 | float | 通常完全等价 |
+| float64 | double | 通常完全等价 |
+| int / uint | 无 | Go 的 `int` 宽度随平台变化（32 位或 64 位），cgo 不会自动映射，必须显式转换 |
+| complex64 / complex128 | 无 | C99 虽然有 `_Complex`，但 cgo 不提供现成映射 |
 
 ```go
 package main
@@ -204,7 +204,10 @@ void printTypes() {
 }
 */
 import "C"
-import "unsafe"
+import (
+    "fmt"
+    "unsafe"
+)
 
 func main() {
     C.printTypes()
@@ -228,6 +231,7 @@ package main
 
 /*
 #include <stdio.h>
+#include <stdlib.h>   // C.free 需要它
 #include <string.h>
 
 // 接收 C 字符串并返回长度
@@ -248,7 +252,6 @@ void toUpperCase(char* s) {
 import "C"
 import (
     "fmt"
-    "reflect"
     "unsafe"
 )
 
@@ -327,13 +330,12 @@ func main() {
     C.accessMemory(cPtr)
 
     // C 函数修改了值，看看 Go 这边是否受影响
-    fmt.Printf("C 函数修改后，Go 变量值: %d\n", value) // 999
     fmt.Printf("C 函数修改后，Go 变量值: %d\n", value)
     // 输出: 999！说明 C 和 Go 共享同一块内存
 }
 ```
 
-> ⚠️ **警告**：上面的例子展示了 CGO 指针转换的能力，但也很危险。Go 的 GC 不理解 C 指针，如果 C 代码持有 Go 的内存指针，可能导致 GC 混乱或崩溃。上面的例子能 work 是因为 `goPtr` 是栈变量，函数返回后仍然有效。在实际代码中要谨慎使用。
+> ⚠️ **警告**：cgo 对“把 Go 指针传给 C”有两条硬性约束。第一，被指向的 Go 内存里**不能含有 Go 指针**——这里是指向 `int` 的内存，所以合法；如果要传的是含指针的结构体，必须先把数据复制到 C 分配的内存再传。第二，C 代码**不能在本次调用返回之后继续持有**这个 Go 指针。一旦 C 把它存进全局变量、队列，或者交给另一个线程长期使用，Go 的垃圾回收和 goroutine 栈增长都可能让这块内存失效，程序会以极难复现的方式崩溃。所以这种转换只适合“调用期间临时借用”的场景。
 
 ---
 
@@ -351,6 +353,7 @@ package main
 /*
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>  // strncpy 需要它
 
 typedef struct {
     int id;
@@ -394,7 +397,11 @@ func main() {
     fmt.Println("=== 调用 C 函数 ===")
 
     // 创建员工
-    emp := C.createEmployee(1, C.CString("张三"), 10000.0)
+    // C.CString 分配的是 C 内存，必须由 Go 侧显式释放，否则会泄漏
+    cName := C.CString("张三")
+    defer C.free(unsafe.Pointer(cName))
+
+    emp := C.createEmployee(1, cName, 10000.0)
     defer C.freeEmployee(emp)
 
     // 打印员工信息
@@ -417,8 +424,15 @@ package main
 /*
 #include <stdio.h>
 
+// 要用 C 的写法引用导出的 Go 函数，必须先在 C 侧声明它们
+// （声明会出现在 //export 生成的 _cgo_export.h 里，这里显式写一遍更直观）
+extern void onNumber(int);
+extern void onData(int, int);
+
 // 这个函数会调用我们传入的回调函数
-void processWithCallback(void (*callback)(int)) {
+// 注意：文件里一旦出现 //export，前导注释中就只能有声明、不能有函数定义，
+// 否则会报 duplicate symbol，所以这里的辅助函数都要加 static
+static void processWithCallback(void (*callback)(int)) {
     for (int i = 0; i < 5; i++) {
         callback(i); // 调用回调，传入 0-4
     }
@@ -427,7 +441,7 @@ void processWithCallback(void (*callback)(int)) {
 // 这个函数接受一个数据和一个处理函数
 typedef void (*Handler)(int, int);
 
-void processData(int* data, int len, Handler handler) {
+static void processData(int* data, int len, Handler handler) {
     for (int i = 0; i < len; i++) {
         handler(i, data[i]); // 调用处理器，传入索引和值
     }
@@ -451,13 +465,13 @@ func onData(idx, val C.int) {
 func main() {
     fmt.Println("=== Go 函数回调 ===")
 
-    // 传递 Go 函数作为回调
-    // 注意：Go 函数必须是导出（首字母大写）的
-    C.processWithCallback(C.onNumber)
+    // 把导出的 Go 函数转成 C 的函数指针
+    // 注意：Go 函数必须先用 //export 导出（首字母大写）
+    C.processWithCallback((*[0]byte)(C.onNumber))
 
     fmt.Println("\n处理数据：")
     data := []C.int{10, 20, 30, 40, 50}
-    C.processData(&data[0], C.int(len(data)), C.onData)
+    C.processData(&data[0], C.int(len(data)), C.Handler(C.onData))
 }
 ```
 
@@ -505,7 +519,7 @@ func main() {
 
     // 将 C 指针转换为 Go 切片进行操作
     // 注意：这里只是"视图"，不复制数据
-    goSlice := (*[10]C.int)(cArray)[:size:size]
+    goSlice := (*[10]C.int)(unsafe.Pointer(cArray))[:size:size]
 
     // 初始化数组
     for i := 0; i < size; i++ {
@@ -518,7 +532,6 @@ func main() {
     // 修改
     goSlice[5] = 100
     fmt.Printf("修改后[5] = %d\n", goSlice[5]) // 100
-    fmt.Printf("修改后[5] = %d\n", goSlice[5])
 }
 ```
 
@@ -554,8 +567,12 @@ import (
 func main() {
     fmt.Println("=== 内存释放责任 ===")
 
+    // C.CString 分配的内存同样由 Go 负责释放
+    cName := C.CString("张三")
+    defer C.free(unsafe.Pointer(cName))
+
     // C 分配了内存，返回给 Go
-    cGreeting := C.create_greeting(C.CString("张三"))
+    cGreeting := C.create_greeting(cName)
     defer C.free_greeting(cGreeting) // Go 负责释放！
 
     // 转换为 Go 字符串
@@ -576,8 +593,10 @@ func main() {
 
 最常见的 CGO 用法：包装一个现有的 C 库，让它能在 Go 中使用。
 
+> 📦 **前置条件**：下面的例子封装的是第三方 C 库 cJSON（https://github.com/DaveGamble/cJSON）。编译前需要先安装它，让 `#include "cJSON.h"` 能找到头文件，并链接 `libcjson`。为了让示例能独立阅读，这里把它写成 `main` 包；真实项目里通常会把它单独放在自己的包中。
+
 ```go
-package cjson
+package main
 
 /*
 #include "cJSON.h"
@@ -627,14 +646,19 @@ func CreateObject() *JSONObject {
 
 // AddString 添加字符串字段
 func (obj *JSONObject) AddString(key, value string) {
-    C.go_cJSON_AddStringToObject(obj.ptr, C.CString(key), C.CString(value))
+    // C.CString 分配的内存必须释放，否则每调用一次就泄漏一次
+    cKey := C.CString(key)
+    defer C.free(unsafe.Pointer(cKey))
+    cValue := C.CString(value)
+    defer C.free(unsafe.Pointer(cValue))
+    C.go_cJSON_AddStringToObject(obj.ptr, cKey, cValue)
 }
 
 // AddNumber 添加数字字段
 func (obj *JSONObject) AddNumber(key string, value float64) {
-    C.go_cJSON_AddStringToObject(obj.ptr, C.CString(key), C.CString(fmt.Sprintf("%f", value)))
-    // 实际应该用 go_cJSON_AddNumberToObject，这里简化了
-    _ = value
+    cKey := C.CString(key)
+    defer C.free(unsafe.Pointer(cKey))
+    C.go_cJSON_AddNumberToObject(obj.ptr, cKey, C.double(value))
 }
 
 // Print 将 JSON 对象格式化为字符串
@@ -662,7 +686,7 @@ func main() {
 
 ### 37.5.2 性能关键路径优化
 
-在某些性能关键的代码路径上，使用 C 代码可以显著提升性能：
+在某些性能关键的代码路径上，使用 C 代码**可能**提升性能——但并不是一定的。当计算量足够大、CGO 调用的固定开销可以忽略时，C 版本通常更快；如果每次都只算几个数，跨语言调用的开销反而会让 C 版本更慢。下面这个例子故意选了“每次处理一千万个元素”的重活，只有这样你才看得到 C 的优势。
 
 ```go
 package main
@@ -719,7 +743,8 @@ func main() {
     cTime := time.Since(start)
     fmt.Printf("C 版本耗时: %v, 结果: %.2f\n", cTime, cSum)
 
-    fmt.Printf("C 比 Go 快: %.1f 倍\n", float64(goTime)/float64(cTime))
+    fmt.Printf("Go 耗时 / C 耗时 = %.2f（大于 1 说明 C 更快）\n", float64(goTime)/float64(cTime))
+    fmt.Println("注意：这个比值随机器、编译器和数据规模波动很大，不能把一次跑分当成普遍结论。")
 }
 ```
 
@@ -845,7 +870,7 @@ func main() {
 **调试技巧**：
 1. 使用 `delve`（`dlv debug`）调试器
 2. 在 C 代码中添加 `printf` 进行日志调试
-3. 使用 `-cgocflags` 传递调试信息给 C 编译器
+3. 用环境变量 `CGO_CFLAGS="-g -O0"` 给 C 编译器传调试信息（`go build` 本身并没有 `-cgocflags` 这个选项）
 
 ---
 
@@ -855,11 +880,11 @@ func main() {
 
 | C 库 | Go 替代方案 |
 |------|-------------|
-| libcurl | `go-curl` / `net/http` |
-| SQLite | `mattn/go-sqlite3` / `modernc.org/sqlite` |
-| OpenSSL | `golang.org/x/crypto` |
-| libpng | `github.com/pnganic` |
-| zlib | `github.com/golang/groupcache/lz4` |
+| libcurl | 标准库 `net/http`，绝大多数场景已经够用 |
+| SQLite | `modernc.org/sqlite`（纯 Go 转译）；`mattn/go-sqlite3` 更快，但它本身依赖 CGO |
+| OpenSSL | 标准库 `crypto/tls`、`golang.org/x/crypto` |
+| libpng | 标准库 `image/png` |
+| zlib | 标准库 `compress/zlib`、`compress/gzip` |
 
 **建议**：能用纯 Go 就用纯 Go，实在不行再用 CGO。
 
@@ -880,6 +905,8 @@ CGO 内部的编译流程：
 5. Go 链接器将 Go 代码和 C 目标文件链接在一起
 
 ### 37.8.2 链接过程
+
+想知道 cgo 到底生成了什么、链接了哪些库，可以打开 `-x` 看完整的编译命令，或者用 `-save-temps` 把中间产物留在磁盘上：
 
 ```bash
 # 查看 CGO 生成的临时文件
@@ -911,9 +938,11 @@ CGO_ENABLED=1 GOOS=windows GOARCH=amd64 \
 
 ### 37.9.1 基本类型映射
 
-参见 36.2.1 节的基本类型映射表。
+参见 37.2.1 节的基本类型映射表。
 
 ### 37.9.2 结构体映射
+
+C 的 `struct` 在 cgo 里会映射成一个同构的 Go 结构体，**字段名和布局保持一致**，可以直接用 `C.Point{...}` 构造，也可以传 `&cPoint`：
 
 ```go
 package main
@@ -970,7 +999,6 @@ package main
 
 /*
 #include <stdio.h>
-#include <string.h>
 
 typedef union {
     int as_int;
@@ -978,13 +1006,11 @@ typedef union {
     char as_bytes[4];
 } IntOrFloat;
 
-void print_union(IntOrFloat u, const char* which) {
-    if (strcmp(which, "int") == 0) {
-        printf("as int: %d\n", u.as_int);
-    } else if (strcmp(which, "float") == 0) {
-        printf("as float: %f\n", u.as_float);
-    }
-}
+// cgo 会把 union 变成一块不透明的字节数组，Go 侧既不能读也不能写它的成员。
+// 唯一的办法是在 C 侧写访问函数。
+static void  set_int(IntOrFloat* u, int v) { u->as_int = v; }
+static int   get_int(IntOrFloat u)          { return u.as_int; }
+static float get_float(IntOrFloat u)        { return u.as_float; }
 */
 import "C"
 import (
@@ -996,20 +1022,22 @@ func main() {
 
     var u C.IntOrFloat
 
-    // 作为整数使用
-    u.as_int = 1065353216 // 浮点数 1.0 的位表示
-    C.print_union(u, C.CString("int"))
+    // 作为整数写入：1065353216 恰好是浮点数 1.0 的 IEEE 754 位模式
+    C.set_int(&u, 1065353216)
+    fmt.Printf("按 int 读:   %d\n", int32(C.get_int(u)))
 
-    // 作为浮点数使用
-    C.print_union(u, C.CString("float"))
+    // 同一块内存换个角度读，就变成了浮点数
+    fmt.Printf("按 float 读: %f\n", float64(C.get_float(u)))
 }
 ```
 
 ### 37.9.4 指针映射
 
-参见 36.2.3 节和 36.3.2 节。
+参见 37.2.3 节。
 
 ### 37.9.5 数组映射
+
+C 的数组在 cgo 里最省事的处理方式就是转成指针再传长度——也就是把“指针 + 长度”当作数组的表示：
 
 ```go
 package main
@@ -1037,13 +1065,13 @@ int sum_int_array(int* arr, int len) {
 import "C"
 import (
     "fmt"
-    "unsafe"
 )
 
 func main() {
     fmt.Println("=== 数组映射 ===")
 
-    // Go 切片转 C 数组
+    // Go 切片转 C 数组：直接把首元素地址传过去即可，
+    // 这种写法（&slice[0]）不需要 unsafe，是 cgo 推荐的传递方式
     goSlice := []C.int{1, 2, 3, 4, 5}
 
     C.print_int_array(&goSlice[0], C.int(len(goSlice)))
@@ -1069,11 +1097,14 @@ package main
 /*
 #include <stdio.h>
 
+// 先在 C 侧声明要引用的导出函数
+extern void onValue(int);
+
 // 声明一个回调函数类型
 typedef void (*Callback)(int);
 
-// 这个函数会调用回调
-void process_with_callback(Callback cb) {
+// 有了 //export，前导注释里只能有声明，所以辅助函数必须加 static
+static void process_with_callback(Callback cb) {
     printf("C: 开始处理\n");
     for (int i = 0; i < 3; i++) {
         printf("C: 调用回调，值=%d\n", i);
@@ -1113,7 +1144,11 @@ package main
 #include <stdio.h>
 #include <pthread.h>
 
-void* call_from_c(void* arg) {
+extern void onThreadValue(int);
+
+typedef void (*Callback)(int);
+
+static void* call_from_c(void* arg) {
     // 回调函数指针
     void (*callback)(int) = (void (*)(int))arg;
     for (int i = 0; i < 5; i++) {
@@ -1122,7 +1157,7 @@ void* call_from_c(void* arg) {
     return NULL;
 }
 
-void create_thread_and_call(void (*callback)(int)) {
+static void create_thread_and_call(Callback callback) {
     pthread_t thread;
     pthread_create(&thread, NULL, call_from_c, (void*)callback);
     pthread_join(thread, NULL);
@@ -1176,7 +1211,6 @@ import "C"
 import (
     "fmt"
     "time"
-    "unsafe"
 )
 
 func main() {
@@ -1250,7 +1284,7 @@ func main() {
 
     // 打印结果
     for i := 0; i < count; i++ {
-        fmt.Printf("dest[%d] = %s\n", i, C.GoString(cDest))
+        fmt.Printf("dest[%d] = %s\n", i, C.GoString(cDest[i]))
         C.free(unsafe.Pointer(cDest[i]))
     }
 }
@@ -1264,7 +1298,7 @@ func main() {
 package main
 
 /*
-#include <unistd.h"
+#include <unistd.h>
 
 void blocking_operation(int* result) {
     sleep(1); // 模拟耗时操作
@@ -1339,6 +1373,8 @@ CGO 代码内存问题常用工具：
 - MSan: 检测未初始化内存使用
 
 ### 常见 CGO 内存问题
+
+下面这三个函数分别演示了 C 世界里最经典的三类内存事故。**它们都是故意写错的**，不要照抄：
 
 ```go
 package main
@@ -1424,4 +1460,3 @@ func main() {
 - 🌟 WebAssembly 可以作为跨语言方案
 
 > 💡 **最后一句话**：CGO 是一把双刃剑——它让你能够站在 C 几十年积累的巨人肩膀上，但代价是代码复杂度和调试难度的大幅提升。除非真的需要，否则请三思而后行！
-

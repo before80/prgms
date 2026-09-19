@@ -14,9 +14,9 @@ draft = false
 
 字符串是编程中最常用的数据类型之一。Rust 的字符串系统有点独特——它区分了 `String` 和 `&str`，这两种类型各有各的用途。理解它们的区别，是掌握 Rust 字符串处理的关键！
 
-#### 3.1.1 String 与 &str 的本质区别
+### 3.1.1 String 与 &str 的本质区别
 
-##### 3.1.1.1 String：拥有所有权的动态字符串
+#### 3.1.1.1 String：拥有所有权的动态字符串
 
 `String` 是一个**拥有所有权**的字符串类型，存储在堆上，可以动态增长。它就像一个任性的小朋友——我想变大就变大！
 
@@ -38,7 +38,7 @@ fn main() {
 }
 ```
 
-##### 3.1.1.2 &str：借用的字符串切片
+#### 3.1.1.2 &str：借用的字符串切片
 
 `&str` 是一个**借用**的字符串视图，由指向数据的指针和长度组成。它就像是 String 的"身份证复印件"——你可以随便看，但不能据为己有！
 
@@ -56,7 +56,9 @@ fn main() {
 }
 ```
 
-##### 3.1.1.3 内存布局对比
+#### 3.1.1.3 内存布局对比
+
+下面这张图对比 `String` 与 `&str` 的内存布局：`String` 自己在栈上持有堆缓冲区的指针、长度和容量，而 `&str` 只是一个指向别人数据的「胖指针」。
 
 ```mermaid
 graph TB
@@ -96,9 +98,11 @@ fn main() {
 }
 ```
 
-#### 3.1.2 字符串切片（&str）
+### 3.1.2 字符串切片（&str）
 
-##### 3.1.2.1 &str 的创建
+#### 3.1.2.1 &str 的创建
+
+`&str` 可以从字面量、`String` 借用或切片三种来源得到，它们的共同点是都不拥有数据。
 
 ```rust
 fn main() {
@@ -119,7 +123,9 @@ fn main() {
 }
 ```
 
-##### 3.1.2.2 &str 作为函数参数
+#### 3.1.2.2 &str 作为函数参数
+
+参数写成 `&str` 时，调用处传 `&String` 会自动解引用，字面量也能直接传，所以它是最通用的只读字符串参数类型。
 
 ```rust
 // &str 是最灵活的字符串参数类型
@@ -137,7 +143,9 @@ fn main() {
 }
 ```
 
-##### 3.1.2.3 字符串切片的内存结构
+#### 3.1.2.3 字符串切片的内存结构
+
+切片不复制数据，它只记录起始指针和长度；下面的代码打印切片的长度以及它指向的字节。
 
 ```rust
 fn main() {
@@ -157,9 +165,11 @@ fn main() {
 }
 ```
 
-#### 3.1.3 String 的创建与操作
+### 3.1.3 String 的创建与操作
 
-##### 3.1.3.1 String::new() / String::from()
+#### 3.1.3.1 String::new() / String::from()
+
+`String::new()` 创建空字符串（不分配堆内存），`String::from()` 则从字符串字面量拷贝出一份拥有所有权的数据。
 
 ```rust
 fn main() {
@@ -176,7 +186,9 @@ fn main() {
 }
 ```
 
-##### 3.1.3.2 to_string() / to_owned()
+#### 3.1.3.2 to_string() / to_owned()
+
+两者都能从 `&str` 得到 `String`：`to_string()` 走 `Display`/`ToString`，`to_owned()` 走 `ToOwned` trait，对字符串而言结果相同。
 
 ```rust
 fn main() {
@@ -191,7 +203,9 @@ fn main() {
 }
 ```
 
-##### 3.1.3.3 String::with_capacity(capacity)
+#### 3.1.3.3 String::with_capacity(capacity)
+
+预分配容量可以避免反复扩容搬移数据；注意 `capacity()` 表示「至少能装下多少」，实际值可能比请求的更大。
 
 ```rust
 fn main() {
@@ -207,27 +221,31 @@ fn main() {
 }
 ```
 
-##### 3.1.3.4 String::from_utf8_lossy
+#### 3.1.3.4 String::from_utf8_lossy
+
+非法 UTF-8 字节序列无法进入 `String`：`String::from_utf8` 会返回 `Result`，而 `from_utf8_lossy` 用替换字符兜底。
 
 ```rust
 fn main() {
     // 字节到字符串的转换
     let bytes = vec![104, 101, 108, 108, 111]; // "hello" 的 UTF-8 字节
     let s = String::from_utf8(bytes).unwrap();
-    println!("从 UTF-8 创建: {}", s);
+    println!("从 UTF-8 创建: {}", s); // 从 UTF-8 创建: hello
     
-    // 无效 UTF-8 处理
+    // 无效 UTF-8 的处理
     let invalid_bytes = vec![255, 254, 236, 225]; // 不是有效的 UTF-8
-    // from_utf8_lossy 返回 Cow<str>，可以直接使用或转为 String
-    let lossy_string = str::from_utf8_lossy(&invalid_bytes);
-    println!("lossy 转换: {}", lossy_string); // Cow<str> 实现了 Display
-    // 无效字节被替换为 U+FFFD（�）
+    // 注意是 String::from_utf8_lossy，不是 str::from_utf8_lossy
+    let lossy_string = String::from_utf8_lossy(&invalid_bytes);
+    println!("lossy 转换: {}", lossy_string); // 每个非法字节都会被换成 U+FFFD（�）
+    println!("是借用还是拥有？ {}", std::any::type_name_of_val(&lossy_string)); // Cow<str>
 }
 ```
 
-#### 3.1.4 字符串常用方法
+### 3.1.4 字符串常用方法
 
-##### 3.1.4.1 拼接：push_str / push / format!
+#### 3.1.4.1 拼接：push_str / push / format!
+
+三种拼接方式各有取舍：`push_str`/`push` 在原地修改，`format!` 总是新建一个 `String`。
 
 ```rust
 fn main() {
@@ -254,7 +272,9 @@ fn main() {
 }
 ```
 
-##### 3.1.4.2 查询：len / is_empty / contains / starts_with / ends_with
+#### 3.1.4.2 查询：len / is_empty / contains / starts_with / ends_with
+
+这一组方法都不会改动字符串本身；特别注意 `len()` 返回的是字节数而不是字符数。
 
 ```rust
 fn main() {
@@ -276,7 +296,9 @@ fn main() {
 }
 ```
 
-##### 3.1.4.3 切片与 UTF-8 边界
+#### 3.1.4.3 切片与 UTF-8 边界
+
+按字节切片时越界、或切在多字节字符中间都会 panic，中文字符串尤其容易踩到。
 
 ```rust
 fn main() {
@@ -296,7 +318,9 @@ fn main() {
 }
 ```
 
-##### 3.1.4.4 修剪：trim / trim_start / trim_end / trim_matches
+#### 3.1.4.4 修剪：trim / trim_start / trim_end / trim_matches
+
+`trim` 系列按 `char::is_whitespace` 判断，返回的是原字符串的子切片，不会重新分配内存。
 
 ```rust
 fn main() {
@@ -315,7 +339,9 @@ fn main() {
 }
 ```
 
-##### 3.1.4.5 大小写：to_lowercase / to_uppercase
+#### 3.1.4.5 大小写：to_lowercase / to_uppercase
+
+大小写转换会返回新的 `String`，因为个别字符转换后可能变成多个字符（例如 `ß` 变成 `SS`）。
 
 ```rust
 fn main() {
@@ -336,7 +362,9 @@ fn main() {
 }
 ```
 
-##### 3.1.4.6 替换：replace / replacen / replace_range
+#### 3.1.4.6 替换：replace / replacen / replace_range
+
+`replace` 替换全部匹配，`replacen` 限定次数，`replace_range` 按字节区间替换并要求区间落在字符边界上。
 
 ```rust
 fn main() {
@@ -357,7 +385,9 @@ fn main() {
 }
 ```
 
-##### 3.1.4.7 分割：split / split_once / split_whitespace / lines / split_at
+#### 3.1.4.7 分割：split / split_once / split_whitespace / lines / split_at
+
+分割返回的是惰性迭代器，不会立刻分配；`split_whitespace` 还会把连续的空白折叠成一个分隔符。
 
 ```rust
 fn main() {
@@ -391,7 +421,9 @@ fn main() {
 }
 ```
 
-##### 3.1.4.8 解析：parse<T>
+#### 3.1.4.8 解析：parse<T>
+
+`parse::<T>()` 借助 `FromStr` trait 把文本转成目标类型，返回 `Result`，所以失败必须处理。
 
 ```rust
 fn main() {
@@ -408,7 +440,9 @@ fn main() {
 }
 ```
 
-##### 3.1.4.9 chars().count() vs len()
+#### 3.1.4.9 chars().count() vs len()
+
+`len()` 数的是字节，`chars().count()` 数的是 Unicode 标量值，中文和 emoji 上两者差别明显。
 
 ```rust
 fn main() {
@@ -432,9 +466,11 @@ fn main() {
 }
 ```
 
-#### 3.1.5 字符串的迭代
+### 3.1.5 字符串的迭代
 
-##### 3.1.5.1 字符迭代：chars()
+#### 3.1.5.1 字符迭代：chars()
+
+`chars()` 按 Unicode 标量值迭代，是遍历字符串内容最常用的方式。
 
 ```rust
 fn main() {
@@ -453,7 +489,9 @@ fn main() {
 }
 ```
 
-##### 3.1.5.2 字节迭代：bytes()
+#### 3.1.5.2 字节迭代：bytes()
+
+`bytes()` 按原始 UTF-8 字节迭代，适合处理二进制协议或需要精确控制字节的场合。
 
 ```rust
 fn main() {
@@ -472,7 +510,9 @@ fn main() {
 }
 ```
 
-##### 3.1.5.3 Unicode 字符簇迭代
+#### 3.1.5.3 Unicode 字符簇迭代
+
+标准库的迭代只到「标量值」这一层；emoji 家庭、带变音符号的字母要按人眼看到的一个字符切分，得借助 `unicode-segmentation` 这类 crate。
 
 ```rust
 // Rust 标准库不直接支持 grapheme clusters（字符簇）
@@ -497,7 +537,9 @@ fn main() {
 }
 ```
 
-##### 3.1.5.4 迭代与下标访问的区别
+#### 3.1.5.4 迭代与下标访问的区别
+
+Rust 不允许用 `s[i]` 取字符，因为下标是字节索引，落在多字节字符中间会产生无效字符串；要遍历请用 `chars()`。
 
 ```rust
 fn main() {
@@ -522,9 +564,11 @@ fn main() {
 }
 ```
 
-#### 3.1.6 字符串格式化
+### 3.1.6 字符串格式化
 
-##### 3.1.6.1 format! 宏
+#### 3.1.6.1 format! 宏
+
+`format!` 返回一个全新的 `String`，是把多个值拼成文本时最常用的办法。
 
 ```rust
 fn main() {
@@ -538,7 +582,9 @@ fn main() {
 }
 ```
 
-##### 3.1.6.2 print! / println! / eprint! / eprintln!
+#### 3.1.6.2 print! / println! / eprint! / eprintln!
+
+这四个宏的区别只在输出流和是否换行：`print!`/`println!` 走标准输出，带 `eprint` 的版本走标准错误。
 
 ```rust
 fn main() {
@@ -557,29 +603,36 @@ fn main() {
 }
 ```
 
-##### 3.1.6.3 write! / writeln!
+#### 3.1.6.3 write! / writeln!
+
+`write!`/`writeln!` 把格式化结果写进任意 `io::Write` 实现，比 `format!` 少一次中间分配，代价是必须处理 `io::Result`。
 
 ```rust
-use std::io;
+use std::io::{self, Write};
 
 fn main() -> io::Result<()> {
-    // 写入文件
+    // 写入文件：writeln! 需要 Write trait 在作用域里（上面的 use 就是干这个的）
     use std::fs::File;
     let mut file = File::create("output.txt")?;
     
     writeln!(file, "第一行")?;
     writeln!(file, "第二行: {}", 42)?;
     
-    // 写入 String
-    let mut s = String::new();
-    writeln!(s, "格式化到 String: {}", 100)?;
-    println!("{}", s);
+    // String 也能接收格式化输出，但它实现的是 std::fmt::Write，而不是 io::Write
+    {
+        use std::fmt::Write as _;
+        let mut s = String::new();
+        writeln!(s, "格式化到 String: {}", 100).unwrap();
+        println!("{}", s); // 格式化到 String: 100
+    }
     
     Ok(())
 }
 ```
 
-##### 3.1.6.4 format_args!
+#### 3.1.6.4 format_args!
+
+`format_args!` 生成的是借用参数的 `Arguments` 结构，不能长期保存，它是所有格式化宏底层的公共机制。
 
 ```rust
 fn main() {
@@ -596,9 +649,11 @@ fn main() {
 }
 ```
 
-#### 3.1.7 转义字符
+### 3.1.7 转义字符
 
-##### 3.1.7.1 \n / \r\n / \t
+#### 3.1.7.1 \n / \r\n / \t
+
+下面列出最常用的几个转义序列，注意 Rust 源码里的换行也可以直接写在字符串中。
 
 ```rust
 fn main() {
@@ -613,7 +668,9 @@ fn main() {
 }
 ```
 
-##### 3.1.7.2 \\ / \' / \"
+#### 3.1.7.2 \\ / \' / \"
+
+要在字符串里写出反斜杠、单引号或双引号本身，需要额外加一个反斜杠转义。
 
 ```rust
 fn main() {
@@ -628,25 +685,30 @@ fn main() {
 }
 ```
 
-##### 3.1.7.3 \xNN / \u{NNNNNN}
+#### 3.1.7.3 \xNN / \u{NNNNNN}
+
+`\xNN` 只能表示不超过 `\x7F` 的字节，非 ASCII 字符必须用 `\u{...}` 写码点。
 
 ```rust
 fn main() {
-    // \xNN: 十六进制字节
-    println!("\\x48\\x49: HI"); // \x48 = 72 = 'H', \x49 = 73 = 'I'
+    // \xNN：按字节写（合法的十六进制字节，范围到 \x7F）
+    println!("\x48\x49"); // HI（\x48 = 72 = 'H'，\x49 = 73 = 'I'）
     
-    // \u{NNNNNN}: Unicode 码点
-    println!("\\u{2764}: ❤"); // ❤
-    println!("\\u{1F600}: 😀"); // 😀
+    // \u{NNNNNN}：按 Unicode 码点写
+    println!("\u{2764}"); // ❤
+    println!("\u{1F600}"); // 😀
+    println!("\u{4E2D}"); // 中
     
-    // 完整的 Unicode 转义
-    println!("\\u{4E2D}: {}", '\u{4E2D}'); // 中
+    // 顺便一提：反斜杠本身要写两次才能打印出来
+    println!("\\u{{4E2D}} 会原样打印转义写法");
 }
 ```
 
-#### 3.1.8 C 风格字符串
+### 3.1.8 C 风格字符串
 
-##### 3.1.8.1 CStr：来自 C 的字符串
+#### 3.1.8.1 CStr：来自 C 的字符串
+
+和 C 打交道时，字符串以 `\0` 结尾且不保证是合法 UTF-8，因此有了 `CStr`。
 
 ```rust
 use std::ffi::CStr;
@@ -660,7 +722,9 @@ fn main() {
 }
 ```
 
-##### 3.1.8.2 CString：传递给 C 的字符串
+#### 3.1.8.2 CString：传递给 C 的字符串
+
+`CString` 是拥有所有权的 C 字符串，传给 C 函数时用 `as_ptr()` 取裸指针。
 
 ```rust
 use std::ffi::CString;
@@ -675,7 +739,9 @@ fn main() {
 }
 ```
 
-##### 3.1.8.3 CString::new 与 null 字节处理
+#### 3.1.8.3 CString::new 与 null 字节处理
+
+`CString::new` 会拒绝内部含 `\0` 的输入，因为那会截断 C 侧看到的字符串。
 
 ```rust
 use std::ffi::CString;
@@ -695,7 +761,9 @@ fn main() {
 }
 ```
 
-##### 3.1.8.4 CStr::as_cstr / CStr::to_str / to_bytes
+#### 3.1.8.4 CStr::as_cstr / CStr::to_str / to_bytes
+
+`to_str()` 只在内容恰好是合法 UTF-8 时才成功，`to_bytes()` 则总是可用。
 
 ```rust
 use std::ffi::CStr;
@@ -703,22 +771,25 @@ use std::ffi::CStr;
 fn main() {
     let c_str = CStr::from_bytes_with_nul(b"hello\0").unwrap();
     
-    // as_cstr: 返回 &CStr
-    let _: &CStr = c_str.as_cstr();
+    // CStr 本身就是"字符串引用"，没有 as_cstr() 这种转换；
+    // 想拿到 &CStr 直接用它自己就行
+    let _: &CStr = c_str;
     
-    // to_str: 转成 &str（可能失败）
+    // to_str: 转成 &str（可能失败，因为 C 字符串不保证是 UTF-8）
     let s: &str = c_str.to_str().unwrap();
-    println!("to_str: {}", s);
+    println!("to_str: {}", s); // to_str: hello
     
     // to_bytes: 转成 &[u8]（不包含结尾的 \0）
     let bytes: &[u8] = c_str.to_bytes();
-    println!("to_bytes: {:?}", bytes); // [104, 101, 108, 108, 111]
+    println!("to_bytes: {:?}", bytes); // to_bytes: [104, 101, 108, 108, 111]
 }
 ```
 
-#### 3.1.9 OsStr / OsString（操作系统原生字符串）
+### 3.1.9 OsStr / OsString（操作系统原生字符串）
 
-##### 3.1.9.1 OsStr：操作系统字符串切片
+#### 3.1.9.1 OsStr：操作系统字符串切片
+
+`OsStr` 表示「操作系统眼里的字符串」：在 Unix 上它可以是任意字节，不保证是合法 UTF-8。
 
 ```rust
 use std::ffi::OsStr;
@@ -733,7 +804,9 @@ fn main() {
 }
 ```
 
-##### 3.1.9.2 OsString：拥有所有权的操作系统字符串
+#### 3.1.9.2 OsString：拥有所有权的操作系统字符串
+
+`OsString` 是 `OsStr` 的拥有所有权版本，两者关系类似 `String` 与 `&str`。
 
 ```rust
 use std::ffi::OsString;
@@ -749,7 +822,9 @@ fn main() {
 }
 ```
 
-##### 3.1.9.3 OsStr 与 str / String 的转换
+#### 3.1.9.3 OsStr 与 str / String 的转换
+
+与 `str`/`String` 之间的转换在 Unix 上可能失败，因此要用 `to_str()`、`into_string()` 这类返回 `Result`/`Option` 的方法。
 
 ```rust
 use std::ffi::{OsStr, OsString};
@@ -759,21 +834,21 @@ fn main() {
     
     // OsStr -> &str（可能失败，因为 OsStr 不一定是 UTF-8）
     if let Some(s) = os_str.to_str() {
-        println!("OsStr -> str: {}", s);
+        println!("OsStr -> str: {}", s); // OsStr -> str: hello
     }
     
-    // OsStr -> &String
-    // 没有直接转换，需要 to_str 后 unwrap
-    
-    // OsString -> String（可能失败）
+    // OsString -> String：返回的是 Result，不是 Option！
     let os_string = OsString::from("hello");
-    if let Some(s) = os_string.into_string() {
-        println!("OsString -> String: {}", s);
+    match os_string.into_string() {
+        Ok(s) => println!("OsString -> String: {}", s),
+        Err(os) => println!("无法转换成 UTF-8: {:?}", os),
     }
 }
 ```
 
-##### 3.1.9.4 std::env::var() 返回 OsString
+#### 3.1.9.4 std::env::var() 返回 OsString
+
+环境变量未必是合法 UTF-8，所以 `std::env::var` 返回 `Result<String, VarError>`，需要拿到原始字节时用 `var_os`。
 
 ```rust
 use std::env;
@@ -797,13 +872,15 @@ fn main() {
 
 ---
 
-### 3.2 元组（Tuple）
+## 3.2 元组（Tuple）
 
 元组是 Rust 中一种轻量级的复合类型，可以存储不同类型的多个值。它就像一个"固定大小的、轻量级的、不可变的容器"。
 
-#### 3.2.1 元组的创建与访问
+### 3.2.1 元组的创建与访问
 
-##### 3.2.1.1 元组的创建语法
+#### 3.2.1.1 元组的创建语法
+
+元组把不同类型的值打包在一起，元素的顺序和类型共同构成它的类型。
 
 ```rust
 fn main() {
@@ -825,7 +902,9 @@ fn main() {
 }
 ```
 
-##### 3.2.1.2 通过索引访问
+#### 3.2.1.2 通过索引访问
+
+元组用 `.0`、`.1` 这样的数字下标访问元素，不能用方括号。
 
 ```rust
 fn main() {
@@ -843,7 +922,9 @@ fn main() {
 }
 ```
 
-##### 3.2.1.3 元组类型注解
+#### 3.2.1.3 元组类型注解
+
+元组类型的写法就是把各元素类型按顺序放进括号，元素类型不同也没关系。
 
 ```rust
 fn main() {
@@ -860,9 +941,11 @@ fn main() {
 }
 ```
 
-#### 3.2.2 元组作为函数返回值
+### 3.2.2 元组作为函数返回值
 
-##### 3.2.2.1 多返回值场景
+#### 3.2.2.1 多返回值场景
+
+元组最典型的用途是从函数返回多个值，调用处再用解构把结果拆开。
 
 ```rust
 fn main() {
@@ -883,7 +966,9 @@ fn divide(dividend: f64, divisor: f64) -> (f64, f64) {
 }
 ```
 
-##### 3.2.2.2 标准库示例
+#### 3.2.2.2 标准库示例
+
+标准库里也有不少返回元组的函数，例如 `Option::ok_or` 把 `Option` 转成 `Result`。
 
 ```rust
 fn main() {
@@ -900,9 +985,11 @@ fn main() {
 }
 ```
 
-#### 3.2.3 元组解构
+### 3.2.3 元组解构
 
-##### 3.2.3.1 let 解构赋值
+#### 3.2.3.1 let 解构赋值
+
+`let` 模式可以直接把元组拆成多个变量，一次绑定多个名字。
 
 ```rust
 fn main() {
@@ -918,7 +1005,9 @@ fn main() {
 }
 ```
 
-##### 3.2.3.2 match 中的元组解构
+#### 3.2.3.2 match 中的元组解构
+
+`match` 的每个分支都可以解构元组，配合字面量模式还能做精确匹配。
 
 ```rust
 fn main() {
@@ -938,7 +1027,9 @@ fn main() {
 }
 ```
 
-##### 3.2.3.3 函数参数解构
+#### 3.2.3.3 函数参数解构
+
+函数参数位置同样支持模式，可以在调用时就把元组拆开。
 
 ```rust
 fn main() {
@@ -952,7 +1043,9 @@ fn process((x, y): (i32, i32)) -> i32 {
 }
 ```
 
-##### 3.2.3.4 部分解构 + rest
+#### 3.2.3.4 部分解构 + rest
+
+解构时也可以只取需要的几个位置，其余用 `..` 忽略。
 
 ```rust
 fn main() {
@@ -970,13 +1063,15 @@ fn main() {
 
 ---
 
-### 3.3 数组（Array）与切片（Slice）
+## 3.3 数组（Array）与切片（Slice）
 
 数组和切片是 Rust 中存储固定和可变数量元素的方式。数组的长度在编译时就确定，切片则是对数组或向量部分数据的引用。
 
-#### 3.3.1 数组的创建与访问
+### 3.3.1 数组的创建与访问
 
-##### 3.3.1.1 数组类型注解
+#### 3.3.1.1 数组类型注解
+
+数组类型写成 `[T; N]`，长度是类型的一部分，必须在编译期确定。
 
 ```rust
 fn main() {
@@ -991,7 +1086,9 @@ fn main() {
 }
 ```
 
-##### 3.3.1.2 数组字面量
+#### 3.3.1.2 数组字面量
+
+`[value; N]` 语法把同一个值复制 N 份，因此元素类型必须实现 `Copy`。
 
 ```rust
 fn main() {
@@ -1009,7 +1106,9 @@ fn main() {
 }
 ```
 
-##### 3.3.1.3 数组下标访问
+#### 3.3.1.3 数组下标访问
+
+数组下标从 0 开始，运行时会做边界检查，越界会 panic 而不是读到垃圾数据。
 
 ```rust
 fn main() {
@@ -1030,7 +1129,9 @@ fn main() {
 }
 ```
 
-##### 3.3.1.4 数组越界访问
+#### 3.3.1.4 数组越界访问
+
+下面演示越界访问的后果，以及如何用 `get()` 拿到 `Option` 做安全检查。
 
 ```rust
 fn main() {
@@ -1052,9 +1153,11 @@ fn main() {
 }
 ```
 
-#### 3.3.2 数组的内存布局
+### 3.3.2 数组的内存布局
 
-##### 3.3.2.1 栈上连续内存
+#### 3.3.2.1 栈上连续内存
+
+数组元素在栈上连续排列，因此大小固定、访问快，但不能像 `Vec` 那样增长。
 
 ```rust
 fn main() {
@@ -1072,7 +1175,9 @@ fn main() {
 }
 ```
 
-##### 3.3.2.2 数组大小在编译期确定
+#### 3.3.2.2 数组大小在编译期确定
+
+数组长度必须是编译期常量，运行期才知道的长度只能交给切片或 `Vec`。
 
 ```rust
 fn main() {
@@ -1088,7 +1193,9 @@ fn main() {
 }
 ```
 
-##### 3.3.2.3 数组无法动态增长
+#### 3.3.2.3 数组无法动态增长
+
+数组的长度不可变，增删元素要改用 `Vec`。
 
 ```rust
 fn main() {
@@ -1104,9 +1211,11 @@ fn main() {
 }
 ```
 
-#### 3.3.3 切片（Slice）作为视图
+### 3.3.3 切片（Slice）作为视图
 
-##### 3.3.3.1 &[T] 切片类型
+#### 3.3.3.1 &[T] 切片类型
+
+切片是「指向一段连续元素」的视图，本质上由指针和长度两个字段组成。
 
 ```rust
 fn main() {
@@ -1122,7 +1231,9 @@ fn main() {
 }
 ```
 
-##### 3.3.3.2 从数组创建切片
+#### 3.3.3.2 从数组创建切片
+
+用区间语法可以从数组或 `Vec` 借出部分元素，`&arr[..]` 得到覆盖整个数组的切片。
 
 ```rust
 fn main() {
@@ -1144,7 +1255,9 @@ fn main() {
 }
 ```
 
-##### 3.3.3.3 切片的内存布局
+#### 3.3.3.3 切片的内存布局
+
+下面这张图说明切片与底层数组的关系：切片自己只是一对（指针，长度）。
 
 ```mermaid
 graph TB
@@ -1181,7 +1294,9 @@ fn main() {
 }
 ```
 
-##### 3.3.3.4 字符串切片 &str 对应字节切片 &[u8]
+#### 3.3.3.4 字符串切片 &str 对应字节切片 &[u8]
+
+`&str` 可以看成带 UTF-8 保证的 `&[u8]`，必要时也能转成字节切片来处理。
 
 ```rust
 fn main() {
@@ -1201,9 +1316,11 @@ fn main() {
 }
 ```
 
-#### 3.3.4 多维数组
+### 3.3.4 多维数组
 
-##### 3.3.4.1 [[T; N]; M] 二维数组
+#### 3.3.4.1 [[T; N]; M] 二维数组
+
+把数组嵌套起来就得到二维结构，`[[i32; 3]; 2]` 表示 2 行、每行 3 个元素。
 
 ```rust
 fn main() {
@@ -1219,7 +1336,9 @@ fn main() {
 }
 ```
 
-##### 3.3.4.2 访问方式
+#### 3.3.4.2 访问方式
+
+二维数组用 `arr[i][j]` 逐层索引，行列顺序在类型里已经写死。
 
 ```rust
 fn main() {
@@ -1239,7 +1358,9 @@ fn main() {
 }
 ```
 
-##### 3.3.4.3 多维数组作为函数参数
+#### 3.3.4.3 多维数组作为函数参数
+
+多维数组作参数时维度也固定在类型中，工程里更常见的做法是传切片。
 
 ```rust
 fn main() {
@@ -1256,13 +1377,15 @@ fn print_matrix(m: &[[f64; 2]; 2]) {
 
 ---
 
-### 3.4 结构体（Struct）
+## 3.4 结构体（Struct）
 
 结构体是 Rust 中最重要的自定义类型之一。它允许你将多个不同类型的数据组合在一起，形成一个有意义的整体。
 
-#### 3.4.1 命名字段结构体
+### 3.4.1 命名字段结构体
 
-##### 3.4.1.1 struct 定义语法
+#### 3.4.1.1 struct 定义语法
+
+结构体把若干个有名字的字段组合成一个新类型，每个字段都要写清类型。
 
 ```rust
 // 定义结构体
@@ -1286,7 +1409,9 @@ fn main() {
 }
 ```
 
-##### 3.4.1.2 字段访问
+#### 3.4.1.2 字段访问
+
+用点号访问结构体字段，能否修改由绑定本身的可变性决定。
 
 ```rust
 struct Rectangle {
@@ -1307,7 +1432,9 @@ fn main() {
 }
 ```
 
-##### 3.4.1.3 字段初始化简写语法
+#### 3.4.1.3 字段初始化简写语法
+
+当局部变量名与字段名相同时，可以省略字段名只写一次。
 
 ```rust
 struct User {
@@ -1332,7 +1459,9 @@ fn main() {
 }
 ```
 
-##### 3.4.1.4 所有权字段
+#### 3.4.1.4 所有权字段
+
+字段里放 `String` 这类拥有所有权的类型时，结构体整体也就拥有这些数据，移动语义随之而来。
 
 ```rust
 struct Person {
@@ -1355,9 +1484,11 @@ fn main() {
 }
 ```
 
-#### 3.4.2 元组结构体
+### 3.4.2 元组结构体
 
-##### 3.4.2.1 元组结构体定义
+#### 3.4.2.1 元组结构体定义
+
+元组结构体只有类型、没有字段名，适合做轻量包装。
 
 ```rust
 // 元组结构体：没有字段名，只有类型
@@ -1374,7 +1505,9 @@ fn main() {
 }
 ```
 
-##### 3.4.2.2 通过索引访问字段
+#### 3.4.2.2 通过索引访问字段
+
+元组结构体的字段用 `.0`、`.1` 访问，常见做法是配合 `impl` 提供构造函数。
 
 ```rust
 struct RGB(u8, u8, u8);
@@ -1400,7 +1533,9 @@ fn main() {
 }
 ```
 
-##### 3.4.2.3 何时使用元组结构体
+#### 3.4.2.3 何时使用元组结构体
+
+需要区分语义但又不必给每个字段命名时，元组结构体比完整结构体更简洁。
 
 ```rust
 // 场景1：轻量级聚合
@@ -1419,9 +1554,11 @@ fn main() {
 }
 ```
 
-#### 3.4.3 单元结构体
+### 3.4.3 单元结构体
 
-##### 3.4.3.1 struct Foo;
+#### 3.4.3.1 struct Foo;
+
+单元结构体没有任何字段，主要用途是承载 trait 实现或充当类型标记。
 
 ```rust
 // 单元结构体：没有任何字段
@@ -1447,7 +1584,9 @@ fn main() {
 }
 ```
 
-##### 3.4.3.2 单元结构体的作用
+#### 3.4.3.2 单元结构体的作用
+
+借助 `PhantomData`，单元结构体还能在类型层面携带信息而不占用运行时空间。
 
 ```rust
 // PhantomData：用于标记类型
@@ -1468,9 +1607,11 @@ fn main() {
 }
 ```
 
-#### 3.4.4 结构体更新语法
+### 3.4.4 结构体更新语法
 
-##### 3.4.4.1 ..default
+#### 3.4.4.1 ..default
+
+先用 `Default::default()` 造出默认值，再用 `..` 覆盖要改的字段。
 
 ```rust
 #[derive(Default)]
@@ -1494,7 +1635,9 @@ fn main() {
 }
 ```
 
-##### 3.4.4.2 ..other_instance
+#### 3.4.4.2 ..other_instance
+
+也可以从另一个同类型实例「继承」剩余字段，注意这会把未列出的字段移动过来。
 
 ```rust
 struct User {
@@ -1525,9 +1668,11 @@ fn main() {
 }
 ```
 
-#### 3.4.5 结构体方法
+### 3.4.5 结构体方法
 
-##### 3.4.5.1 impl 块定义方法
+#### 3.4.5.1 impl 块定义方法
+
+`impl` 块为结构体添加方法，方法与字段访问共用同一套点号语法。
 
 ```rust
 struct Rectangle {
@@ -1549,7 +1694,9 @@ fn main() {
 }
 ```
 
-##### 3.4.5.2 &self 参数
+#### 3.4.5.2 &self 参数
+
+`&self` 是不可变借用，方法只能读取字段。
 
 ```rust
 struct Counter {
@@ -1573,7 +1720,9 @@ fn main() {
 }
 ```
 
-##### 3.4.5.3 &mut self 参数
+#### 3.4.5.3 &mut self 参数
+
+`&mut self` 允许方法修改字段，同一时刻只能存在一个可变借用。
 
 ```rust
 struct Counter {
@@ -1604,7 +1753,9 @@ fn main() {
 }
 ```
 
-##### 3.4.5.4 self 参数
+#### 3.4.5.4 self 参数
+
+`self` 按值接收，方法会把实例消费掉，适合做「转换」类的操作。
 
 ```rust
 struct Person {
@@ -1630,9 +1781,11 @@ fn main() {
 }
 ```
 
-#### 3.4.6 关联函数
+### 3.4.6 关联函数
 
-##### 3.4.6.1 不带 self 的函数
+#### 3.4.6.1 不带 self 的函数
+
+关联函数不接收 `self`，通过 `类型名::函数名` 调用，通常用作构造函数。
 
 ```rust
 struct Point {
@@ -1664,7 +1817,9 @@ fn main() {
 }
 ```
 
-##### 3.4.6.2 构造函数模式
+#### 3.4.6.2 构造函数模式
+
+Rust 没有专门的构造语法，惯例是提供 `new` 这样的关联函数返回 `Self`。
 
 ```rust
 struct User {
@@ -1702,7 +1857,9 @@ fn main() {
 }
 ```
 
-##### 3.4.6.3 多 impl 块
+#### 3.4.6.3 多 impl 块
+
+同一个类型可以写多个 `impl` 块，常按功能分组或配合泛型约束拆分。
 
 ```rust
 struct Rectangle {
@@ -1742,9 +1899,11 @@ fn main() {
 }
 ```
 
-#### 3.4.7 结构体与所有权
+### 3.4.7 结构体与所有权
 
-##### 3.4.7.1 字段的可变性规则
+#### 3.4.7.1 字段的可变性规则
+
+`let mut` 控制的是整个结构体绑定的可变性，不能单独把某个字段设为可变。
 
 ```rust
 struct Counter {
@@ -1761,7 +1920,9 @@ fn main() {
 }
 ```
 
-##### 3.4.7.2 结构体的移动行为
+#### 3.4.7.2 结构体的移动行为
+
+只要字段里有非 `Copy` 类型，结构体赋值的默认行为就是移动。
 
 ```rust
 struct Person {
@@ -1782,7 +1943,9 @@ fn main() {
 }
 ```
 
-##### 3.4.7.3 Copy 类型字段的结构体
+#### 3.4.7.3 Copy 类型字段的结构体
+
+所有字段都实现 `Copy` 且派生了 `Copy` 时，结构体赋值才会复制而不是移动。
 
 ```rust
 #[derive(Copy, Clone)]
@@ -1802,13 +1965,15 @@ fn main() {
 
 ---
 
-### 3.5 枚举（Enum）
+## 3.5 枚举（Enum）
 
 枚举是 Rust 中表示"一个值可以是几种类型之一"的类型。它比结构体更灵活，因为不同的变体可以携带不同的数据。
 
-#### 3.5.1 枚举的定义与基本使用
+### 3.5.1 枚举的定义与基本使用
 
-##### 3.5.1.1 枚举的定义
+#### 3.5.1.1 枚举的定义
+
+枚举列出所有可能的取值，每个取值叫一个变体。
 
 ```rust
 // 定义枚举
@@ -1832,7 +1997,9 @@ fn main() {
 }
 ```
 
-##### 3.5.1.2 带数据的枚举变体
+#### 3.5.1.2 带数据的枚举变体
+
+变体可以携带数据，而且不同变体携带的数据形态可以完全不同。
 
 ```rust
 enum Message {
@@ -1850,7 +2017,9 @@ fn main() {
 }
 ```
 
-##### 3.5.1.3 枚举的内存布局
+#### 3.5.1.3 枚举的内存布局
+
+带数据的枚举在内存里通常是「标签 + 最大变体的载荷」，具体布局由编译器决定。
 
 ```mermaid
 graph TB
@@ -1886,9 +2055,11 @@ fn main() {
 }
 ```
 
-#### 3.5.2 Option<T> 枚举详解
+### 3.5.2 Option<T> 枚举详解
 
-##### 3.5.2.1 Option::Some / Option::None
+#### 3.5.2.1 Option::Some / Option::None
+
+标准库的 `Option<T>` 只有两个变体，它把「可能没有值」写进了类型系统。
 
 ```rust
 fn main() {
@@ -1906,26 +2077,28 @@ fn main() {
 }
 ```
 
-##### 3.5.2.2 Option 的设计哲学
+#### 3.5.2.2 Option 的设计哲学
+
+`Option` 取代了可空指针的角色：`None` 必须被显式处理，编译器会盯着你。
 
 ```rust
 fn main() {
     // Option 替代了其他语言的 null
     // 好处：编译器强制你处理 None 的情况！
-    // 再也不会遇到 "thread 'main' panicked at..." 这种让人头秃的错误了！（其他语言的 null 问题，懂的人都懂...）
-    
     let names = vec!["Alice", "Bob", "Charlie"];
     
-    // 其他语言可能返回 null
-    // Rust 返回 Option
+    // 其他语言可能返回 null，Rust 返回 Option
     let first = names.get(0);
     println!("第一个名字: {:?}", first); // Some("Alice")
     
     let tenth = names.get(9);
     println!("第十个名字: {:?}", tenth); // None（安全！编译器会提醒你处理）
+}
 ```
 
-##### 3.5.2.3 unwrap / expect / unwrap_unchecked
+#### 3.5.2.3 unwrap / expect / unwrap_unchecked
+
+这三个方法在 `None` 时都会 panic，区别只在报错信息是否自定义。
 
 ```rust
 fn main() {
@@ -1944,7 +2117,9 @@ fn main() {
 }
 ```
 
-##### 3.5.2.4 unwrap_or / unwrap_or_else / unwrap_or_default
+#### 3.5.2.4 unwrap_or / unwrap_or_else / unwrap_or_default
+
+不想 panic 时，用这组方法提供兜底值或兜底计算。
 
 ```rust
 fn main() {
@@ -1963,7 +2138,9 @@ fn main() {
 }
 ```
 
-##### 3.5.2.5 map / and_then / or / or_else / filter / flatten
+#### 3.5.2.5 map / and_then / or / or_else / filter / flatten
+
+这组组合子让 `Option` 的链式处理不必层层写 `match`。
 
 ```rust
 fn main() {
@@ -1985,16 +2162,18 @@ fn main() {
     let result = none.or(Some(100));
     println!("or: {:?}", result); // Some(100)
     
-    // filter：过滤
-    let result = some.filter(|x| x > 10);
+    // filter：注意闭包收到的是 &T（内部值的引用），所以要解引用
+    let result = some.filter(|x| *x > 10);
     println!("filter (5 > 10): {:?}", result); // None
     
-    let result = some.filter(|x| x < 10);
+    let result = some.filter(|x| *x < 10);
     println!("filter (5 < 10): {:?}", result); // Some(5)
 }
 ```
 
-##### 3.5.2.6 is_some / is_none / as_ref / as_mut
+#### 3.5.2.6 is_some / is_none / as_ref / as_mut
+
+检查与借用类方法不会消耗 `Option`，`as_ref` 用来把 `Option<T>` 转成 `Option<&T>`。
 
 ```rust
 fn main() {
@@ -2018,9 +2197,11 @@ fn main() {
 }
 ```
 
-#### 3.5.3 Result<T, E> 枚举详解
+### 3.5.3 Result<T, E> 枚举详解
 
-##### 3.5.3.1 Result::Ok / Result::Err
+#### 3.5.3.1 Result::Ok / Result::Err
+
+`Result<T, E>` 用两个变体区分成功与失败，并各自携带类型信息。
 
 ```rust
 fn main() {
@@ -2038,7 +2219,9 @@ fn main() {
 }
 ```
 
-##### 3.5.3.2 unwrap / expect / unwrap_err
+#### 3.5.3.2 unwrap / expect / unwrap_err
+
+`unwrap_err` 在成功时 panic，是 `unwrap` 的反面，常用于测试。
 
 ```rust
 fn main() {
@@ -2057,7 +2240,9 @@ fn main() {
 }
 ```
 
-##### 3.5.3.3 unwrap_or / unwrap_or_else / unwrap_or_default
+#### 3.5.3.3 unwrap_or / unwrap_or_else / unwrap_or_default
+
+与 `Option` 的同类方法一样，这组方法给出失败时的兜底值。
 
 ```rust
 fn main() {
@@ -2065,18 +2250,20 @@ fn main() {
     let err: Result<i32, &str> = Err("error");
     
     // unwrap_or
-    println!("ok.unwrap_or(0): {}", ok.unwrap_or(0)); // 42
-    println!("err.unwrap_or(0): {}", err.unwrap_or(0)); // 0
+    println!("ok.unwrap_or(0): {}", ok.unwrap_or(0)); // ok.unwrap_or(0): 42
+    println!("err.unwrap_or(0): {}", err.unwrap_or(0)); // err.unwrap_or(0): 0
     
-    // unwrap_or_else
-    println!("err.unwrap_or_else(|| -1): {}", err.unwrap_or_else(|| -1)); // -1
+    // unwrap_or_else：闭包接收的是那个错误值，所以参数不能省
+    println!("err.unwrap_or_else(|_| -1): {}", err.unwrap_or_else(|_| -1)); // -1
     
-    // unwrap_or_default
+    // unwrap_or_default：用 T 的 Default 实现兜底
     println!("err.unwrap_or_default(): {}", err.unwrap_or_default()); // 0
 }
 ```
 
-##### 3.5.3.4 map / map_err / and_then / or / or_else
+#### 3.5.3.4 map / map_err / and_then / or / or_else
+
+`map` 只改成功值，`map_err` 只改错误值，`and_then` 用于串联可能失败的下一步。
 
 ```rust
 fn main() {
@@ -2097,7 +2284,9 @@ fn main() {
 }
 ```
 
-##### 3.5.3.5 ? 操作符（错误传播）
+#### 3.5.3.5 ? 操作符（错误传播）
+
+`?` 在出错时提前返回，并自动做一次 `From` 转换，是错误传播最简洁的写法。
 
 ```rust
 use std::num::ParseIntError;
@@ -2116,7 +2305,9 @@ fn main() {
 }
 ```
 
-##### 3.5.3.6 is_ok / is_err / as_ref / as_mut / as_deref
+#### 3.5.3.6 is_ok / is_err / as_ref / as_mut / as_deref
+
+与 `Option` 对应的一组检查与借用方法；其中 `as_deref` 会在 `T: Deref` 时把 `Result<T, E>` 借成 `Result<&T::Target, &E>`。
 
 ```rust
 fn main() {
@@ -2127,12 +2318,13 @@ fn main() {
     println!("ok.is_ok(): {}", ok.is_ok()); // true
     println!("err.is_err(): {}", err.is_err()); // true
     
-    // as_ref：转换为 &Result<T, E>
-    let ok_ref: Result<&i32, &str> = ok.as_ref();
+    // as_ref：把 Result<T, E> 变成 Result<&T, &E>
+    // 因为这里的 E 本身就是 &str，所以拿到的是 Result<&i32, &&str>
+    let ok_ref: Result<&i32, &&str> = ok.as_ref();
     println!("as_ref: {:?}", ok_ref); // Ok(42)
     
-    // as_mut：转换为 &mut Result<T, E>
-    let mut ok_mut = Ok(42);
+    // as_mut：变成 Result<&mut T, &mut E>
+    let mut ok_mut: Result<i32, &str> = Ok(42);
     if let Ok(v) = ok_mut.as_mut() {
         *v = 100;
     }
@@ -2140,9 +2332,11 @@ fn main() {
 }
 ```
 
-#### 3.5.4 match 与枚举的完整匹配
+### 3.5.4 match 与枚举的完整匹配
 
-##### 3.5.4.1 match 穷尽匹配要求
+#### 3.5.4.1 match 穷尽匹配要求
+
+`match` 必须覆盖枚举的所有变体，漏掉分支编译不过，这正是它比 `if` 更安全的地方。
 
 ```rust
 enum Direction {
@@ -2165,7 +2359,9 @@ fn main() {
 }
 ```
 
-##### 3.5.4.2 解构枚举变体
+#### 3.5.4.2 解构枚举变体
+
+分支模式可以顺着变体把内部数据取出来，结构体风格与元组风格的变体各有对应写法。
 
 ```rust
 enum Message {
@@ -2187,30 +2383,40 @@ fn main() {
 }
 ```
 
-##### 3.5.4.3 if let 简化单分支匹配
+#### 3.5.4.3 if let 简化单分支匹配
+
+只关心某一个变体时，`if let` 比写完整 `match` 更省事。
 
 ```rust
+enum Message {
+    Move { x: i32, y: i32 },
+    Quit,
+}
+
 fn main() {
     let msg = Message::Move { x: 10, y: 20 };
     
     // 完整 match
     match msg {
         Message::Move { x, y } => println!("移动到 ({}, {})", x, y),
-        _ => println!("其他消息"),
+        Message::Quit => println!("退出"),
     }
     
-    // if let 简化
+    // if let 简化：只关心其中一种情况
     if let Message::Move { x, y } = msg {
-        println!("移动到 ({}, {})", x, y);
+        println!("移动到 ({}, {})", x, y); // 移动到 (10, 20)
     }
 }
 ```
 
-#### 3.5.5 枚举的方法实现
+### 3.5.5 枚举的方法实现
 
-##### 3.5.5.1 impl enum 块
+#### 3.5.5.1 impl enum 块
+
+枚举和结构体一样可以用 `impl` 添加方法，`match self` 是方法体内最常见的入口。
 
 ```rust
+#[derive(Debug)]
 enum Direction {
     North,
     South,
@@ -2234,12 +2440,14 @@ impl Direction {
 }
 
 fn main() {
-    println!("North 反向: {:?}", Direction::North.opposite());
+    println!("North 反向: {:?}", Direction::North.opposite()); // North 反向: South
     println!("East 是垂直? {}", Direction::East.is_vertical()); // false
 }
 ```
 
-##### 3.5.5.2 #[derive(...)] 在枚举上的行为差异
+#### 3.5.5.2 #[derive(...)] 在枚举上的行为差异
+
+派生宏能否用在枚举上取决于变体是否满足条件，例如含 `String` 的变体就不能 `Copy`。
 
 ```rust
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -2269,13 +2477,15 @@ fn main() {
 
 ---
 
-### 3.6 模式匹配（Pattern Matching）
+## 3.6 模式匹配（Pattern Matching）
 
 模式匹配是 Rust 最强大的特性之一。它允许你检查一个值是否符合某种"模式"，并解构出其中的数据。
 
-#### 3.6.1 match 完整语法
+### 3.6.1 match 完整语法
 
-##### 3.6.1.1 基本 match 表达式
+#### 3.6.1.1 基本 match 表达式
+
+`match` 逐个比较分支模式，第一个匹配上的分支获胜。
 
 ```rust
 fn main() {
@@ -2292,7 +2502,9 @@ fn main() {
 }
 ```
 
-##### 3.6.1.2 match 作为表达式
+#### 3.6.1.2 match 作为表达式
+
+`match` 是表达式，各分支的返回值类型必须一致，结果可以直接赋给变量。
 
 ```rust
 fn main() {
@@ -2309,7 +2521,9 @@ fn main() {
 }
 ```
 
-##### 3.6.1.3 match 的求值顺序
+#### 3.6.1.3 match 的求值顺序
+
+下图强调 `match` 自上而下顺序匹配，`_` 一旦出现，后面的分支就再也轮不到。
 
 ```mermaid
 graph LR
@@ -2332,9 +2546,11 @@ fn main() {
 }
 ```
 
-#### 3.6.2 解构模式
+### 3.6.2 解构模式
 
-##### 3.6.2.1 解构元组
+#### 3.6.2.1 解构元组
+
+模式可以一次拆开元组里的所有元素。
 
 ```rust
 fn main() {
@@ -2349,7 +2565,9 @@ fn main() {
 }
 ```
 
-##### 3.6.2.2 解构结构体
+#### 3.6.2.2 解构结构体
+
+结构体模式按字段名解构，用 `..` 可以忽略剩余字段。
 
 ```rust
 struct Point {
@@ -2374,7 +2592,9 @@ fn main() {
 }
 ```
 
-##### 3.6.2.3 解构枚举
+#### 3.6.2.3 解构枚举
+
+枚举模式先写出变体名，再按该变体的数据形态继续拆解。
 
 ```rust
 enum Message {
@@ -2394,7 +2614,9 @@ fn main() {
 }
 ```
 
-##### 3.6.2.4 解构嵌套模式
+#### 3.6.2.4 解构嵌套模式
+
+模式可以任意嵌套，一层层剥开 `Option`、元组和结构体。
 
 ```rust
 fn main() {
@@ -2408,9 +2630,11 @@ fn main() {
 }
 ```
 
-#### 3.6.3 匹配守卫（Match Guard）
+### 3.6.3 匹配守卫（Match Guard）
 
-##### 3.6.3.1 if 条件附加在分支后
+#### 3.6.3.1 if 条件附加在分支后
+
+分支后面可以加 `if` 守卫，只有守卫为真时该分支才成立。
 
 ```rust
 fn main() {
@@ -2419,12 +2643,17 @@ fn main() {
     match num {
         Some(x) if x > 5 => println!("大于5: {}", x), // 匹配！
         Some(x) if x <= 5 => println!("小于等于5: {}", x),
+        // ⚠️ 关键点：带 if 的匹配臂不算"穷尽"！
+        // 编译器会认为 Some 还可能没被覆盖，所以必须补一个兜底分支
+        Some(_) => println!("Some，但没匹配上任何带条件的分支"),
         None => println!("没有值"),
     }
 }
 ```
 
-##### 3.6.3.2 多条件组合
+#### 3.6.3.2 多条件组合
+
+用 `|` 把多个模式并在一起，它们会共用同一个分支体。
 
 ```rust
 fn main() {
@@ -2442,9 +2671,11 @@ fn main() {
 }
 ```
 
-#### 3.6.4 范围与多值匹配
+### 3.6.4 范围与多值匹配
 
-##### 3.6.4.1 范围模式
+#### 3.6.4.1 范围模式
+
+`..=` 可以写出闭区间模式，两个端点本身也包含在内。
 
 ```rust
 fn main() {
@@ -2468,7 +2699,9 @@ fn main() {
 }
 ```
 
-##### 3.6.4.2 多值匹配
+#### 3.6.4.2 多值匹配
+
+字符和数字都可以用 `|` 并列写出多个备选值。
 
 ```rust
 fn main() {
@@ -2482,7 +2715,9 @@ fn main() {
 }
 ```
 
-##### 3.6.4.3 数值范围 vs 字符范围
+#### 3.6.4.3 数值范围 vs 字符范围
+
+范围模式既可用于数值也可用于 `char`，比较的是码点顺序。
 
 ```rust
 fn main() {
@@ -2503,9 +2738,11 @@ fn main() {
 }
 ```
 
-#### 3.6.5 @ 绑定
+### 3.6.5 @ 绑定
 
-##### 3.6.5.1 x @ 1..=5
+#### 3.6.5.1 x @ 1..=5
+
+`@` 在判断范围的同时，把匹配到的值绑定到变量上。
 
 ```rust
 fn main() {
@@ -2520,7 +2757,9 @@ fn main() {
 }
 ```
 
-##### 3.6.5.2 @ 在解构中的使用
+#### 3.6.5.2 @ 在解构中的使用
+
+`@` 也可以出现在解构内部，把整个子结构或某个字段绑出来。
 
 ```rust
 struct Point {
@@ -2543,9 +2782,11 @@ fn main() {
 }
 ```
 
-#### 3.6.6 忽略剩余字段
+### 3.6.6 忽略剩余字段
 
-##### 3.6.6.1 .. 忽略结构体剩余字段
+#### 3.6.6.1 .. 忽略结构体剩余字段
+
+结构体模式里的 `..` 表示「其余字段都不关心」。
 
 ```rust
 struct Config {
@@ -2572,7 +2813,9 @@ fn main() {
 }
 ```
 
-##### 3.6.6.2 .. 在元组和枚举中的使用
+#### 3.6.6.2 .. 在元组和枚举中的使用
+
+在元组和切片模式里，`..` 可以匹配任意多个元素，包括零个。
 
 ```rust
 fn main() {
@@ -2596,9 +2839,11 @@ fn main() {
 }
 ```
 
-#### 3.6.7 if-let 与 while-let
+### 3.6.7 if-let 与 while-let
 
-##### 3.6.7.1 if let Some(x) = option
+#### 3.6.7.1 if let Some(x) = option
+
+`if let` 只处理匹配成功的一种情况，其余情况走 `else`。
 
 ```rust
 fn main() {
@@ -2617,30 +2862,36 @@ fn main() {
 }
 ```
 
-##### 3.6.7.2 if let...else 变体
+#### 3.6.7.2 if let...else 变体
+
+`if let ... else` 让「匹配」和「不匹配」两条路径都有落点。
 
 ```rust
 fn main() {
     let option = Some(42);
     
     if let Some(x) = option {
-        println!("有值: {}", x);
+        println!("有值: {}", x); // 有值: 42
     } else {
         println!("没有值");
     }
     
-    // 带条件的 if let
+    // 带条件的 if let：Rust 2024 支持 let 链，用 && 把条件接在后面
     let option = Some(100);
     
-    if let Some(x) = option if x > 50 {
-        println!("大于50的值: {}", x);
+    // 下面这种写法是错的（编译器会报 expected `{`, found keyword `if`）：
+    // if let Some(x) = option if x > 50 { ... }
+    if let Some(x) = option && x > 50 {
+        println!("大于50的值: {}", x); // 大于50的值: 100
     } else {
         println!("小于等于50或没有值");
     }
 }
 ```
 
-##### 3.6.7.3 while let 循环模式
+#### 3.6.7.3 while let 循环模式
+
+`while let` 在模式持续匹配时反复执行循环体，非常适合消费栈或迭代器。
 
 ```rust
 fn main() {
@@ -2662,7 +2913,9 @@ fn main() {
 }
 ```
 
-##### 3.6.7.4 matches! 宏
+#### 3.6.7.4 matches! 宏
+
+`matches!` 把「模式是否匹配」压缩成一个布尔表达式。
 
 ```rust
 fn main() {
@@ -2690,27 +2943,37 @@ fn main() {
 }
 ```
 
-#### 3.6.8 let 链中的模式匹配（Rust 2024）
+### 3.6.8 let 链中的模式匹配（Rust 2024）
 
-##### 3.6.8.1 let Some(x) = opt if condition
+#### 3.6.8.1 if let Some(x) = opt && x > 10
+
+let 链把多个模式匹配和布尔条件合并到同一个条件表达式里。它从 rustc 1.88 起稳定，但**只在 Rust 2024 及之后的 edition 可用**——旧 edition 下编译器会直接报 `let chains are only allowed in Rust 2024 or later`。
 
 ```rust
 fn main() {
-    // Rust 2024 引入的 let 链语法
-    // let Some(x) = option if condition
-    
     let option: Option<i32> = Some(42);
-    
-    // 以前要这样写：
+
+    // Rust 2024 之前：两层 if 嵌套
     if let Some(x) = option {
         if x > 10 {
-            println!("大于10: {}", x);
+            println!("大于10: {}", x); // 大于10: 42
         }
     }
-    
-    // Rust 2024 可以合并：
-    // let Some(x) = option if x > 10;
-    // println!("大于10: {}", x);
+
+    // Rust 2024 起：用 && 把条件接在模式后面
+    if let Some(x) = option
+        && x > 10
+    {
+        println!("大于10: {}", x);
+    }
+
+    // while 条件里同样可以使用 let 链
+    let mut iter = vec![1, 2, 3].into_iter();
+    while let Some(n) = iter.next()
+        && n < 3
+    {
+        println!("n = {}", n); // 1、2
+    }
 }
 ```
 
@@ -2737,4 +3000,3 @@ fn main() {
 ---
 
 > 💡 **学习建议**：这一章的内容是 Rust 的核心基础，建议动手敲代码验证每一个例子。别光看不练，否则明天就会"战略性遗忘"！
-

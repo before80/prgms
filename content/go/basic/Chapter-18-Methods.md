@@ -142,6 +142,8 @@ func main() {
 
 #### 18.2.1.1 副本机制
 
+值接收者拿到的是**一份完整的拷贝**，方法里怎么改都影响不到调用方：
+
 ```go
 package main
 
@@ -214,6 +216,8 @@ func main() {
 指针接收者，方法拿到的是值的指针。这意味着方法可以直接修改原对象！就像给了一把万能钥匙，可以直接进入对象内部进行修改！
 
 #### 18.2.2.1 修改原值
+
+想让方法真的改到调用方的对象，就必须用指针接收者：
 
 ```go
 package main
@@ -393,13 +397,22 @@ func (u *User) SetAge(age int) {
 func main() {
     user := User{Name: "小明", Age: 18}
 
-    // 混乱来了！
-    // user.GetName() 可以正常调用
-    // user.SetAge(30) 也可以正常调用（Go自动取地址）
-    // 但是！(&user).SetAge 和 user.SetAge 行为不一致！
-    // 这会让代码变得难以理解和维护
+    // 直接调用时，Go 会自动取地址，下面两行完全等价，不存在"行为不一致"：
+    user.SetAge(30)           // 编译器帮你写成 (&user).SetAge(30)
+    (&user).SetAge(31)
+    fmt.Println(user.Age)     // 31
+    fmt.Println(user.GetName()) // 小明
+
+    // 真正不一致的是"方法集"：
+    var setter interface{ SetAge(int) }
+    // setter = user   // ❌ 编译错误：User 的方法集里只有 GetName，没有 SetAge
+    setter = &user     // ✅ *User 的方法集里既有 GetName 也有 SetAge
+    setter.SetAge(40)
+    fmt.Println(user.Age) // 40
 }
 ```
+
+> 所以"混乱"不是体现在普通调用上（`user.SetAge(...)` 和 `(&user).SetAge(...)` 完全一样），而是体现在**方法集**上：`User` 值不满足只要求指针方法的接口，`*User` 才满足。混用接收者最容易在这里让人踩坑，因此官方风格指南建议同一个类型的所有方法统一用同一种接收者。
 
 > **Go语言的"方法集"规则**
 > - 值类型的方法集：只能调用值接收者的方法
@@ -414,7 +427,10 @@ func main() {
 ```go
 package main
 
-import "fmt"
+import (
+    "fmt"
+    "math"
+)
 
 type Point struct {
     X, Y int
@@ -422,7 +438,7 @@ type Point struct {
 
 // 读取操作，用值接收者（不会修改原对象）
 func (p Point) Distance() float64 {
-    return float64(p.X*p.X + p.Y*p.Y)
+    return math.Sqrt(float64(p.X*p.X + p.Y*p.Y))
 }
 
 // 写入操作，用指针接收者（需要修改原对象）
@@ -432,24 +448,27 @@ func (p *Point) Move(dx, dy int) {
 }
 
 // 只读属性访问，用值接收者（符合直觉）
-func (p Point) X() int {
+// 注意：方法名不能和字段名重名！
+// func (p Point) X() int { return p.X } // ❌ 编译错误：field and method with the same name X
+func (p Point) GetX() int {
     return p.X
 }
 
-// 但如果要返回指针或修改自身，用指针接收者
-func (p *Point) Clone() *Point {
-    return &Point{X: p.X, Y: p.Y}
+// 需要返回一个副本时，值接收者直接返回自身即可
+func (p Point) Clone() Point {
+    return p
 }
 
 func main() {
     p := Point{X: 3, Y: 4}
-    fmt.Println("距离:", p.Distance()) // 距离: 25
+    fmt.Println("距离:", p.Distance())  // 距离: 5
+    fmt.Println("X 坐标:", p.GetX())    // X 坐标: 3
 
     p.Move(1, 2)
     fmt.Printf("移动后: %+v\n", p) // 移动后: {X:4 Y:6}
 
     clone := p.Clone()
-    fmt.Printf("克隆: %+v\n", clone) // 克隆: &{X:4 Y:6}
+    fmt.Printf("克隆: %+v\n", clone) // 克隆: {X:4 Y:6}
 }
 ```
 
@@ -501,6 +520,8 @@ func main() {
 
 #### 18.3.2.1 值调指针方法
 
+如果 `x` 是**可寻址的**（普通变量、切片元素、结构体字段等），那么 `x.SetName(...)` 会被编译器自动改写成 `(&x).SetName(...)`，所以能直接调用：
+
 ```go
 package main
 
@@ -526,6 +547,8 @@ func main() {
 ```
 
 #### 18.3.2.2 指针调值方法
+
+反过来，对指针调用值接收者方法时，编译器自动解引用，等价于 `(*p).GetName()`：
 
 ```go
 package main
@@ -887,11 +910,16 @@ func (u *SafeUser) SayHello() {
 }
 
 func main() {
+    // nil 接收者本身是合法的，只要方法里不碰字段就不会 panic
     var dangerous *DangerousUser = nil
-    // dangerous.SayHello() // 注释掉，防止 panic
+    fmt.Println("dangerous 是否 nil:", dangerous == nil) // true
+    // dangerous.SayHello() // 一旦取消注释，就会 panic: nil pointer dereference
 
     var safe *SafeUser = nil
     safe.SayHello() // 用户是 nil，无法打招呼
+
+    safe = &SafeUser{Name: "小明"}
+    safe.SayHello() // 你好，我是 小明
 }
 ```
 
@@ -991,13 +1019,14 @@ func (u *User) Greet() {
 
 func main() {
     u1 := User{Name: "小明"}
+    fmt.Println("u1:", u1) // u1: {小明}
     // var g1 Greeter = u1 // 错误！User 值类型的方法集不包含 *User 的 Greet()
-    // 提示：cannot use u1 (type User) as type Greeter in assignment:
-    //       User does not implement Greeter (Greet method has pointer receiver)
+    // 提示：cannot use u1 (variable of type User) as Greeter value in variable declaration:
+    //       User does not implement Greeter (method Greet has pointer receiver)
 
     u2 := &User{Name: "小红"}
     var g2 Greeter = u2 // 正确！*User 指针类型的方法集包含 Greet()
-    fmt.Printf("u2: %+v\n", g2) // u2: &{Name:小红}
+    g2.Greet()           // 你好，我是 小红
 }
 ```
 
@@ -1037,17 +1066,17 @@ func (u *User) PointerMethod() {
 }
 
 func main() {
-    // User 类型（值）的方法集
-    var u1 User
-    fmt.Printf("User 方法集: ")
-    // u1.ValueMethod()  // ✓
-    // u1.PointerMethod() // ✗ 错误！
+    // User 类型（值）的方法集：只有 ValueMethod
+    u1 := User{Name: "小明"}
+    u1.ValueMethod() // ✓
+    // u1.PointerMethod() // ✗ 编译错误：cannot call pointer method PointerMethod on User
+    fmt.Println("u1 可用方法数:", 1) // 只有值接收者方法
 
-    // *User 类型（指针）的方法集
-    var u2 *User
-    fmt.Printf("\n*User 方法集: ")
-    // u2.ValueMethod()   // ✓（自动解引用）
-    // u2.PointerMethod() // ✓
+    // *User 类型（指针）的方法集：ValueMethod + PointerMethod 都有
+    u2 := &User{Name: "小红"}
+    u2.ValueMethod()   // ✓（自动解引用）
+    u2.PointerMethod() // ✓
+    fmt.Println("u2 可用方法数:", 2)
 }
 ```
 
@@ -1229,27 +1258,30 @@ type Greeter interface {
 
 type Chinese struct{}
 
-func (c *Chinese) Greet() {
-    // do nothing
-}
-
-func benchmark(greeter Greeter, name string) {
-    start := time.Now()
-    for i := 0; i < 10000000; i++ {
-        greeter.Greet()
-    }
-    fmt.Printf("%s 耗时: %v\n", name, time.Since(start))
-}
+func (c *Chinese) Greet() {}
 
 func main() {
-    // 静态类型：编译时确定
+    const N = 20000000
     c := &Chinese{}
 
-    // 动态类型：通过接口调用
-    var g Greeter = c
+    // 静态调度：编译期就确定了要调用哪个函数
+    start := time.Now()
+    for i := 0; i < N; i++ {
+        c.Greet() // 直接调用 *Chinese.Greet
+    }
+    direct := time.Since(start)
 
-    // benchmark(c, "静态调度")     // 直接调用，快！
-    // benchmark(g, "动态调度")     // 接口调用，慢一点
+    // 动态调度：每次都要通过接口的 itab 查表
+    var g Greeter = c
+    start = time.Now()
+    for i := 0; i < N; i++ {
+        g.Greet() // 通过接口调用
+    }
+    indirect := time.Since(start)
+
+    fmt.Printf("直接调用 %d 次: %v\n", N, direct)
+    fmt.Printf("接口调用 %d 次: %v\n", N, indirect)
+    // 具体差值随机器和编译器版本变化，通常只有几纳秒到十几纳秒/次
 }
 ```
 
@@ -1272,65 +1304,52 @@ Go语言的方法是实现各种设计模式的利器！让我们来看几个经
 ```go
 package main
 
-import "fmt"
+import (
+    "fmt"
+    "strings"
+)
 
-// DataProcessor 定义算法骨架
-type DataProcessor struct{}
+// Go 没有"抽象方法"，也没有 C++/Java 那样的虚函数派发：
+// 嵌入结构体后调用 d.Process(data) 只会静态地找到 DataProcessor 自己的方法，
+// 绝不会跳到"子类"的实现上。所以模板方法在 Go 里要用"接口 + 普通函数"来表达。
 
-// TemplateMethod 是模板方法
-func (d *DataProcessor) TemplateMethod(data string) string {
+// Processor 声明算法中可变的那几步
+type Processor interface {
+    Validate(data string) bool
+    Process(data string) string
+    Log(result string)
+}
+
+// TemplateMethod 就是"模板"：流程固定，具体步骤由 Processor 决定
+func TemplateMethod(p Processor, data string) string {
     // 1. 验证数据
-    if !d.Validate(data) {
+    if !p.Validate(data) {
         return "数据验证失败"
     }
-
     // 2. 处理数据（钩子方法）
-    result := d.Process(data)
-
+    result := p.Process(data)
     // 3. 记录日志
-    d.Log(result)
-
+    p.Log(result)
     return result
 }
 
-// 默认实现，子类可以覆盖
-func (d *DataProcessor) Validate(data string) bool {
-    return data != ""
-}
+// 提供一套默认实现，供具体处理器嵌入复用
+type BaseProcessor struct{}
 
-// 子类必须实现
-func (d *DataProcessor) Process(data string) string
-
-// 默认实现，子类可以覆盖
-func (d *DataProcessor) Log(result string) {
-    fmt.Println("[LOG]", result)
-}
+func (BaseProcessor) Validate(data string) bool { return strings.TrimSpace(data) != "" }
+func (BaseProcessor) Log(result string)         { fmt.Println("[LOG]", result) }
 
 // 具体实现：UpperCaseProcessor
-type UpperCaseProcessor struct {
-    DataProcessor // 嵌入父类
-}
+type UpperCaseProcessor struct{ BaseProcessor }
 
-func (u *UpperCaseProcessor) Process(data string) string {
-    // 全部转为大写
-    result := ""
-    for _, c := range data {
-        if c >= 'a' && c <= 'z' {
-            result += string(c - 32)
-        } else {
-            result += string(c)
-        }
-    }
-    return result
+func (UpperCaseProcessor) Process(data string) string {
+    return strings.ToUpper(data)
 }
 
 // 具体实现：ReverseProcessor
-type ReverseProcessor struct {
-    DataProcessor
-}
+type ReverseProcessor struct{ BaseProcessor }
 
-func (r *ReverseProcessor) Process(data string) string {
-    // 反转字符串
+func (ReverseProcessor) Process(data string) string {
     runes := []rune(data)
     for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
         runes[i], runes[j] = runes[j], runes[i]
@@ -1338,16 +1357,19 @@ func (r *ReverseProcessor) Process(data string) string {
     return string(runes)
 }
 
-func (r *ReverseProcessor) Log(result string) {
+// 覆写默认的 Log
+func (ReverseProcessor) Log(result string) {
     fmt.Println("[DEBUG] 处理结果:", result)
 }
 
 func main() {
-    upper := &UpperCaseProcessor{}
-    fmt.Println(upper.TemplateMethod("hello world")) // HELLO WORLD [LOG] HELLO WORLD
+    upper := UpperCaseProcessor{}
+    fmt.Println(TemplateMethod(upper, "hello world")) // 先打印 [LOG] HELLO WORLD，再返回 HELLO WORLD
 
-    reverse := &ReverseProcessor{}
-    fmt.Println(reverse.TemplateMethod("hello")) // olleh [DEBUG] 处理结果: olleh
+    reverse := ReverseProcessor{}
+    fmt.Println(TemplateMethod(reverse, "hello")) // 先打印 [DEBUG] 处理结果: olleh，再返回 olleh
+
+    fmt.Println(TemplateMethod(upper, "   ")) // 数据验证失败
 }
 ```
 
@@ -1553,4 +1575,3 @@ func main() {
 6. **设计模式**：方法可以实现模板方法、访问者、策略等经典模式
 
 记住一个核心原则：**如果方法需要修改对象状态，用指针接收者；如果只是读取，用值接收者；保持一致性是关键！**
-

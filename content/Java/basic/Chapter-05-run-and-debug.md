@@ -74,11 +74,13 @@ public class HelloWorld {
 
 编译好的 `.class` 文件只是静静躺在磁盘上的一堆字节。想要运行它，得先把它的内容加载到内存里——这个工作就交给 **ClassLoader（类加载器）**。
 
-Java 有三种默认的类加载器：
+JDK 9 之前，Java 有三层默认的类加载器；JDK 9 引入模块系统之后，原先的 **Extension ClassLoader** 被 **Platform Class Loader** 取代，分工变成了下面这样：
 
-- **Bootstrap ClassLoader**：最顶层的加载器，负责加载 Java 核心类库（`java.lang.*` 等），它是用 C++ 实现的，不是 Java 类
-- **Extension ClassLoader**（Platform ClassLoader）：负责加载 `jre/lib/ext` 目录下的扩展类
-- **App ClassLoader**（System ClassLoader）：负责加载应用程序 `classpath` 下的类
+- **Bootstrap Class Loader**：最顶层的加载器，由 JVM 用本地代码（C/C++）实现，因此在 Java 层没有对应的类对象（用 `null` 表示）。它负责加载最核心的类库，也就是 `java.base` 模块（`java.lang.*`、`java.util.*` 等）
+- **Platform Class Loader**（JDK 8 及更早版本里叫 Extension Class Loader）：JDK 8 时代它负责加载 `jre/lib/ext` 目录下的扩展 JAR；JDK 9 之后 `jre/lib/ext` 这个目录已经不存在，它改为加载 `java.se` 等平台模块，以及少数仍留在 JDK 中的独立模块（如 `java.sql`、`java.xml`）
+- **System Class Loader**（也叫 App Class Loader）：负责加载应用程序类路径（classpath / 模块路径）下的类
+
+> ⚠️ **版本差异**：`jre/lib/ext`、`Extension ClassLoader` 都是 JDK 8 时代的说法。JDK 9 之后 JDK 安装目录被重整为 `bin/`、`lib/`、`conf/`、`jmods/` 等，扩展机制（Extension Mechanism）已被废弃，由模块系统（JPMS）接管。
 
 这三个加载器形成了经典的 **双亲委托模型（Parent Delegation Model）**：
 
@@ -119,18 +121,16 @@ public class ClassLoaderDemo {
 ```mermaid
 flowchart TD
     A["📄 MyApp.java"] --> B["🔧 javac 编译"]
-    B --> C["📦 MyApp.class\n字节码文件"]
+    B --> C["📦 MyApp.class<br>（字节码）"]
     C --> D["🚀 java 命令启动 JVM"]
-    D --> E["📂 ClassLoader 加载类"]
-    E --> F{"类已加载?"}
-    F -- 否 --> E
-    F -- 是 --> G["💻 JVM 执行引擎"]
-    G --> H{"首次执行?"}
-    H -- 是 --> I["⚡ 解释执行\nInterpreter"]
-    H -- 多次执行 --> J["🔥 JIT 编译\nJust-In-Time"]
-    I --> K["📊 运行结果"]
-    J --> K
-    J -.-> |"热点代码"| I
+    D --> E["📂 ClassLoader 加载并初始化类"]
+    E --> F["💻 执行引擎执行字节码"]
+    F --> G{"方法被频繁调用？<br>（热点代码）"}
+    G -- 否 --> H["⚡ 解释执行<br>Interpreter"]
+    G -- 是 --> I["🔥 JIT 编译为机器码<br>Just-In-Time"]
+    H --> J["📊 输出运行结果"]
+    I --> J
+    J --> K["🎉 程序正常退出"]
 ```
 
 **流程简述：**
@@ -150,7 +150,7 @@ JVM 执行字节码有两种模式，理解它们是进阶的必修课。
 
 > **热点代码（Hot Spot）**：被频繁执行的代码，通常是循环体或被调用次数很多的短方法。
 
-HotSpot JVM（Oracle 官方默认的 JVM）内置了两种 JIT 编译器：
+HotSpot 虚拟机（OpenJDK 与 Oracle JDK 的默认虚拟机）内置了两种 JIT 编译器：
 
 | 编译器 | 用途 | 编译速度 | 生成代码质量 |
 |--------|------|----------|--------------|
@@ -298,6 +298,9 @@ public class StepDemo {
 如果你想持续关注某个表达式的值，可以把它加到 **Watches（监视）窗口**里。比如你怀疑 `list.size() > 3` 会出问题，就把它加进去，它会实时显示 `true` 或 `false`。
 
 ```java
+import java.util.ArrayList;
+import java.util.List;
+
 public class WatchDemo {
     public static void main(String[] args) {
         List<String> fruits = new ArrayList<>();
@@ -445,7 +448,7 @@ jconsole
 jconsole <pid>
 ```
 
-> 如果你在 Linux 服务器上，可以加 `-J-Djava.awt.headless=true` 参数让它在无图形界面环境下运行，然后通过 X11 转发到本地查看。
+> jconsole 是图形界面程序，需要本机有图形环境。如果服务器在远端，请先开启 SSH 的 X11 转发（`ssh -X`）再把窗口转发到本地；**不要**给它加 `-Djava.awt.headless=true`，那会让它彻底启动不起来（headless 的含义就是"不要图形界面"）。无图形界面的服务器上请改用 `jstat`、`jcmd`、`jstack` 这些命令行工具。
 
 jconsole 的几个核心标签页：
 
@@ -457,7 +460,9 @@ jconsole 的几个核心标签页：
 
 ### 5.3.3 jvisualvm：性能分析和堆内存查看工具
 
-**jvisualvm**（VisualVM）是功能最全面的 JDK 可视化工具，比 jconsole 更强大，可以做性能分析（Profiler）、抓取堆转储（Heap Dump）、查看线程转储（Thread Dump）等。
+**jvisualvm**（VisualVM）是功能更全面的可视化工具，比 jconsole 更强大，可以做性能分析（Profiler）、抓取堆转储（Heap Dump）、查看线程转储（Thread Dump）等。
+
+> ⚠️ **它不在新版 JDK 里了**：JDK 8 自带 `jvisualvm`，但从 JDK 9 起 VisualVM 已从 JDK 中剥离，需要到 <https://visualvm.github.io> 单独下载，或者用 `brew install --cask visualvm` 之类的方式安装。新版 JDK 里与它定位相近的是 JDK Mission Control（JMC，配合 JFR 使用）。
 
 ```bash
 jvisualvm
@@ -472,10 +477,7 @@ jvisualvm 的核心功能：
 - **抽样器**：对 CPU 和内存进行采样分析，找出消耗最大的方法
 - **堆转储**：点击"堆 Dump"可以生成 `.hprof` 文件，分析哪些对象占用了最多内存
 
-```java
-// 生成堆转储文件后，可以用 jvisualvm 打开查看
-// 或者用其他工具如 MAT（Memory Analyzer Tool）分析
-```
+生成的 `.hprof` 文件可以用 VisualVM 打开查看，也可以用 Eclipse MAT（Memory Analyzer Tool）做更专业的"谁占了多少内存、谁引用了谁"分析。
 
 ### 5.3.4 jstat：查看 GC 统计信息
 
@@ -505,7 +507,7 @@ S0C    S1C    S0U    S1U    EC       EU       OC       OU       MC     MU    CCS
 | YGC/YGCT | Young GC（年轻代垃圾回收）的次数/总耗时 |
 | FGC/FGCT | Full GC 的次数/总耗时 |
 
-> 💡 **调优小贴士**：如果发现 `FGC` 次数很多但 `FGCT` 很大，说明 Full GC 耗时长，可能需要调整堆大小或优化 GC 参数。
+> 💡 **调优小贴士**：如果 `FGC` 次数偏多、`FGCT`（Full GC 总耗时）也很大，说明 Full GC 既频繁又费时，通常意味着堆偏小或老年代增长过快，需要调整堆大小或更换/调优垃圾回收器。另外要注意：`CGC/CGCT` 是并发 GC 的次数与耗时（G1、ZGC 等现代回收器的多数工作是并发完成的），它们**不算**在 `FGC` 里，所以别只看 `FGC` 就下结论。
 
 常用 jstat 命令：
 
@@ -531,7 +533,14 @@ jmap -dump:format=b,file=heap.hprof <pid>
 
 生成的 `heap.hprof` 文件可以用 jvisualvm 或 Eclipse MAT 打开分析。
 
-> ⚠️ 生成大型堆转储可能会导致 JVM 暂停（Stop-The-World），在生产环境要谨慎使用，可以加上 `-F` 强制执行。
+> ⚠️ **生产环境慎用**：`jmap -dump` 会让 JVM 暂停（Stop-The-World），堆越大暂停越久。JDK 9 之后更推荐用 `jcmd <pid> GC.heap_dump heap.hprof` 来生成堆转储；如果进程已经卡死、常规方式拿不到快照，才用 `jmap -F`（强制模式）再试一次。
+
+完整用法还可以指定只导出存活对象（会先触发一次 Full GC，暂停更久）：
+
+```bash
+# live 表示只 dump 存活对象（会触发 Full GC，仅在必要时使用）
+jmap -dump:live,format=b,file=heap.hprof <pid>
+```
 
 ```bash
 # 查看堆内存概要（各类对象占用情况）
@@ -578,7 +587,7 @@ jmap -clstats <pid>
 3. **命令行工具**：
    - `jdb`：文本版调试器，适合无图形界面环境
    - `jconsole`：JVM 状态监控，图形化界面
-   - `jvisualvm`：性能分析和堆内存查看，功能最全
+   - `jvisualvm`：性能分析和堆内存查看（JDK 9 起需单独下载）
    - `jstat`：GC 统计信息，适合调优分析
    - `jmap`：堆转储和内存分析，排查内存问题的神器
 

@@ -23,7 +23,8 @@ div.id = 'my-div';
 div.textContent = '这是一个 div';
 
 console.log('创建的 div:', div.outerHTML);
-// <div id="my-div" class="container">这是一个 div</div>
+// <div class="container" id="my-div">这是一个 div</div>
+// ⭐ 属性顺序就是"设置顺序"：上面先写 className 再写 id，输出的顺序就跟着变
 ```
 
 ```javascript
@@ -62,7 +63,10 @@ console.log('完整结构:', article.outerHTML);
 ```javascript
 // 创建纯文本节点（不会被解析为 HTML）
 const text = document.createTextNode('<strong>粗体</strong>');
-console.log('文本节点:', text.textContent);  // <strong>粗体</strong>（HTML 被转义了）
+console.log('文本节点:', text.textContent);
+// <strong>粗体</strong>
+// ⭐ 注意：textContent 读出来的就是原始文本，没有"转义"这回事。
+// 只有把它序列化成 HTML（innerHTML）时，尖括号才会显示成 &lt; &gt;
 ```
 
 ```javascript
@@ -80,51 +84,60 @@ console.log('innerHTML:', div2.innerHTML);
 
 ---
 
-### createDocumentFragment：文档片段（减少回流）
+### createDocumentFragment：文档片段
 
-**DocumentFragment** 是一个轻量级的文档容器，添加到这个容器中的元素不会直接添加到 DOM，直到你把它添加到 DOM 中。这样可以减少回流次数。
+**DocumentFragment** 是一个轻量级的文档容器：往里塞的元素不会立刻进入页面，直到你把整个片段交给 DOM。这样可以把"100 次插入"压缩成"1 次插入"。
 
 ```javascript
-// 传统方法：每次 appendChild 都可能触发回流
+// 传统方法：一个一个往页面里塞
 const container = document.getElementById('container');
 for (let i = 0; i < 100; i++) {
   const item = document.createElement('div');
   item.textContent = `项 ${i}`;
-  container.appendChild(item);  // 触发 100 次回流！
+  container.appendChild(item);   // 一共修改了 100 次 DOM
 }
 ```
 
+> ⚠️ **先纠正一个流传很广的说法**：上面这段代码并**不会**触发 100 次回流。
+> 浏览器会把这一轮的所有 DOM 改动攒起来，等 JavaScript 执行完、到了下一次渲染时机才统一布局。
+> DocumentFragment 真正省下的是 **100 次 DOM 插入操作本身的开销**（每次插入都要维护父子/兄弟关系、更新内部索引、产生 MutationRecord 等），以及避免中间状态被 MutationObserver 观察到。真实收益取决于场景，别把它当成"性能银弹"。
+>
+> 顺带说一句：如果真的只是想批量塞内容，`innerHTML`、`insertAdjacentHTML`、`replaceChildren` 往往比循环 `appendChild` 更快。
+
 ```javascript
-// 使用 DocumentFragment：只触发一次回流
+// 使用 DocumentFragment：只在最后做一次插入
 const container = document.getElementById('container');
 const fragment = document.createDocumentFragment();
 
 for (let i = 0; i < 100; i++) {
   const item = document.createElement('div');
   item.textContent = `项 ${i}`;
-  fragment.appendChild(item);  // 添加到 fragment，不会触发回流
+  fragment.appendChild(item);  // 加在"暂存区"里，页面完全没有变化
 }
 
-container.appendChild(fragment);  // 一次性添加到 DOM，只触发一次回流
+container.appendChild(fragment);  // 真正改动 DOM 的只有这一下
 ```
 
 ```javascript
 // DocumentFragment 的特点
 const fragment = document.createDocumentFragment();
 
-// fragment 有父节点，但不在 DOM 树中
+// ⭐ 它不在 DOM 树里，所以没有父节点
 console.log('fragment 的父节点:', fragment.parentNode);  // null
 
-// 添加到 DOM 后，fragment 变为空
+// 在 fragment 内部可以正常攒节点
 fragment.appendChild(document.createElement('div'));
 console.log('添加后长度:', fragment.childNodes.length);  // 1
+
+// ⭐ 把 fragment 插进 DOM 时，它的"子节点"被整体搬走，fragment 自己被清空。
+// 也就是说 fragment 本身从来不会出现在页面上。
 container.appendChild(fragment);
 console.log('添加到 DOM 后长度:', fragment.childNodes.length);  // 0
 ```
 
 > 💡 **本章小结（第27章第1节）**
 > 
-> 创建节点有三种方法：`createElement` 创建元素节点，`createTextNode` 创建纯文本节点（HTML 不会被解析），`createDocumentFragment` 创建文档片段（用于减少回流）。使用 DocumentFragment 可以在添加到 DOM 之前先组装好节点，然后一次性添加，只触发一次回流。
+> 创建节点有三种方法：`createElement` 创建元素节点，`createTextNode` 创建纯文本节点（HTML 不会被解析），`createDocumentFragment` 创建文档片段。使用 DocumentFragment 可以在添加到 DOM 之前先把节点组装好，最后一次性插入，把 100 次 DOM 改动压缩成 1 次。要注意的是：页面布局本来就是浏览器批量计算的，所以它省下的主要是"DOM 操作本身的开销"，而不是"100 次回流"。
 
 ---
 
@@ -192,10 +205,8 @@ li2.textContent = '第二项';
 
 list.append(li1, li2);
 console.log('append 结果:', list.innerHTML);
-// <ul>
-//   <li>第一项</li>
-//   <li>第二项</li>
-// </ul>
+// <li>第一项</li><li>第二项</li>
+// ⭐ innerHTML 给的是"内部内容"，不含 list 自己的 <ul> 标签
 
 // 也可以插入文本节点
 list.append('（这是文本）');
@@ -213,10 +224,7 @@ nav.textContent = '导航';
 header.prepend(nav);
 
 console.log('prepend 结果:', header.innerHTML);
-// <header>
-//   <nav>导航</nav>
-//   <h1>标题</h1>
-// </header>
+// <nav>导航</nav><h1>标题</h1>
 ```
 
 ```javascript
@@ -231,10 +239,7 @@ note.textContent = '（小字说明）';
 p.after(note);
 
 console.log('after 结果:', container.innerHTML);
-// <div>
-//   <p>这是段落</p>
-//   <small>（小字说明）</small>
-// </div>
+// <p>这是段落</p><small>（小字说明）</small>
 ```
 
 ```javascript
@@ -248,11 +253,13 @@ const hr = document.createElement('hr');
 h2.before(hr);
 
 console.log('before 结果:', section.innerHTML);
-// <section>
-//   <hr>
-//   <h2>小标题</h2>
-// </section>
+// <hr><h2>小标题</h2>
 ```
+
+> 📌 **appendChild / append / before / after 的差别**：
+> `appendChild` 只收 Node，一次只能加一个；`append` 既能收 Node 也能收字符串，还能一次加多个。
+> `append` / `prepend` 是"塞进某个元素里面"，`before` / `after` 是"放在某个元素外面"。
+> 另外要注意，只有 `before` / `after` 才会管兄弟元素，`append` 是当子节点。
 
 ---
 
@@ -274,7 +281,7 @@ console.log('替换后:', container.innerHTML);
 ```
 
 ```javascript
-// replaceWith 也可以用字符串
+// ⚠️ replaceWith 传字符串不会解析 HTML！
 const span = document.createElement('span');
 span.textContent = '原来的 span';
 const wrapper = document.createElement('div');
@@ -282,7 +289,26 @@ wrapper.append(span);
 
 span.replaceWith('<strong>替换后的内容</strong>');
 console.log('字符串替换:', wrapper.innerHTML);
-// <div><strong>替换后的内容</strong></div>
+// &lt;strong&gt;替换后的内容&lt;/strong&gt;
+// 尖括号被原样显示出来了 —— 因为传入的字符串被当成"纯文本"插进去
+
+// ⭐ 想插入真正的 HTML 元素，有两条路：
+
+// 路线一：手动 createElement（安全，推荐）
+// 重新来一遍，这次用元素替换
+const span2 = document.createElement('span');
+span2.textContent = '原来的 span';
+const wrapper2 = document.createElement('div');
+wrapper2.append(span2);
+
+const strong = document.createElement('strong');
+strong.textContent = '替换后的内容';
+span2.replaceWith(strong);          // 传的是元素节点，不是字符串
+console.log('元素替换:', wrapper2.innerHTML);
+// <strong>替换后的内容</strong>
+
+// 路线二：用 innerHTML 直接写 HTML（⚠️ 数据来自用户时有 XSS 风险）
+// wrapper2.innerHTML = '<strong>替换后的内容</strong>';
 ```
 
 > 💡 **本章小结（第27章第2节）**
@@ -336,8 +362,10 @@ while (container.firstChild) {
 // 方法2：innerHTML
 container.innerHTML = '';
 
-// 方法3：replaceChildren（ES2022+）
-container.replaceChildren();
+// 方法3：replaceChildren（DOM 规范，Chrome 86+ / Safari 14+ 起支持）
+container.replaceChildren();       // 不传参数 = 清空所有子节点
+// 它的威力不止清空，还能"一次性替换成新内容"：
+// container.replaceChildren(nodeA, nodeB, '一段文本');
 ```
 
 ---
@@ -433,7 +461,9 @@ button.setAttribute('disabled', '');
 button.setAttribute('data-id', '123');
 
 console.log('button:', button.outerHTML);
-// <button type="submit" disabled data-id="123"></button>
+// <button type="submit" disabled="" data-id="123"></button>
+// ⭐ 注意布尔属性序列化后会带上 =""，这是标准规定的写法，
+//    浏览器读到时只要属性存在就算"开启"，值是不是空字符串无所谓
 ```
 
 ```javascript
@@ -444,9 +474,13 @@ const input = document.createElement('input');
 input.setAttribute('value', '123');
 console.log('value 类型:', typeof input.value);  // string
 
-// 直接赋值：可以是任意类型
+// 直接赋值：写进去的是数字，读出来还是字符串！
 input.value = 123;
-console.log('value 类型:', typeof input.value);  // number
+console.log('value 类型:', typeof input.value);  // string
+console.log('value 内容:', input.value);         // "123"
+// ⭐ 这是个大坑：表单元素的 value 永远是字符串。
+//    数字比较时要么用 Number(input.value)，要么用 input.valueAsNumber。
+//    另外 valueAsNumber 在内容不是数字时会返回 NaN。
 ```
 
 ```javascript
@@ -518,12 +552,13 @@ checkbox.checked = false;
 // data-* 属性：存储自定义数据
 const card = document.createElement('div');
 card.className = 'card';
-card.dataset.userId = '12345';
+card.dataset.userId = '12345';           // 对应 data-user-id
 card.dataset.username = '张三';
-card.dataset['product-id'] = 'PRO-001';  // 转为 data-product-id
+card.dataset.productId = 'PRO-001';      // 对应 data-product-id（写成小驼峰！）
 
 console.log('dataset:', card.dataset);
 // DOMStringMap { userId: '12345', username: '张三', productId: 'PRO-001' }
+// 实际生成的 HTML：<div class="card" data-user-id="12345" data-username="张三" data-product-id="PRO-001"></div>
 
 console.log('userId:', card.dataset.userId);  // 12345
 console.log('productId:', card.dataset.productId);  // PRO-001
@@ -531,9 +566,25 @@ console.log('productId:', card.dataset.productId);  // PRO-001
 
 ```javascript
 // dataset 的命名规则
-// data-user-name → dataset.userName
-// data-userid → dataset.userid
-// 短横线转为驼峰
+// data-user-name  →  dataset.userName
+// data-userid     →  dataset.userid   （⭐ 一个短横线都没有，就全小写，不会变成 userId）
+// data-a-b-c      →  dataset.aBC
+// 规则：data- 后面每遇到一个短横线，就把下一个字母大写
+```
+
+```javascript
+// ⚠️ 不要用带短横线的 key 去写 dataset，会直接抛错！
+try {
+  card.dataset['product-id'] = 'X';
+} catch (e) {
+  console.log(e.name, e.message);
+  // SyntaxError: 'product-id' is not a valid property name
+}
+// 要么写 dataset.productId，要么走老路 setAttribute('data-product-id', 'X')。
+
+// 💡 另外，dataset 里的值永远被当作字符串：
+card.dataset.count = 5;
+console.log(typeof card.dataset.count);  // string
 ```
 
 ```javascript
@@ -682,9 +733,17 @@ console.log('计算后 fontSize:', computed.fontSize);  // 可能有默认值
 // getComputedStyle 是只读的
 // 第一个参数是元素
 // 第二个参数是伪元素（如 ::before, ::after）
-const pseudoElement = document.querySelector('.tooltip::before');
-const styles = window.getComputedStyle(pseudoElement, '::before');
+const tooltip = document.querySelector('.tooltip');
+const styles = window.getComputedStyle(tooltip, '::before');
 console.log('content:', styles.content);
+// ⚠️ 常见错误写法：document.querySelector('.tooltip::before')
+//    querySelector 只接受"选择器"，不接受伪元素，
+//    在真实浏览器里会抛 SyntaxError: '...::before' is not a valid selector。
+//    伪元素只能通过 getComputedStyle 的第二个参数来访问。
+
+// 💡 getComputedStyle 返回的是只读对象，改它没用（即使改了也不会生效）：
+styles.color = 'red';                    // 静默失败（严格模式下抛 TypeError）
+tooltip.style.color = 'red';             // ✅ 想改样式请改 style 或 class
 ```
 
 > 💡 **本章小结（第27章第5节）**
@@ -704,6 +763,17 @@ console.log('content:', styles.content);
 // <div style="width: 100px; padding: 10px; border: 5px solid black;">
 // offsetWidth = 100 + 20 + 10 = 130
 // offsetHeight 同理
+// ⭐ 上面按 box-sizing: content-box 计算（默认值，width 只算内容区）。
+//    如果写的是 box-sizing: border-box，那么 width: 100px 已经含 border 和 padding，
+//    offsetWidth 就直接是 100。
+//
+// ⭐ 另外：offsetWidth 是整数（会被四舍五入），
+//    需要小数精度时请用 getBoundingClientRect().width。
+//
+// ⭐ 还有一些"没有布局"的元素会得到 0：
+//    - display: none 的元素
+//    - 尚未插入文档的元素（浏览器还没给它算布局）
+//    这就是为什么"先读尺寸、再插入 DOM"永远拿到 0。
 ```
 
 ---
@@ -731,9 +801,20 @@ console.log('content:', styles.content);
 
 ```javascript
 // offsetParent：最近的定位祖先元素
-// 如果没有定位祖先，是 <body>
+// 如果没有定位祖先，通常是 <body>（或内容根 html）
 
 // offsetTop / offsetLeft：元素边框外侧到 offsetParent 边框内侧的距离
+
+// ⭐ 三种会得到 null 的特殊情况：
+// 1. 元素自身是 position: fixed —— 它相对视口定位，没有 offsetParent
+// 2. 元素（或它的祖先）是 display: none —— 根本没参与布局
+// 3. 元素是 <body> 或 <html> 本身
+
+// 💡 还有一个经典坑：offsetParent / offsetTop 的参照物是"定位祖先"，
+// 所以链式累加（一层层往上加 offsetTop）很容易算错。
+// 想拿到元素相对视口的精确位置，直接用 getBoundingClientRect() 更稳：
+const rect = element.getBoundingClientRect();
+console.log('相对视口的绝对位置:', rect.left, rect.top);
 ```
 
 ---
@@ -755,16 +836,24 @@ console.log('y:', rect.y);            // y 坐标
 ```
 
 ```javascript
-// 判断元素是否在视口内
-function isInViewport(element) {
+// 判断元素"是否完整地"在视口内（只露出一部分时返回 false）
+function isFullyInViewport(element) {
   const rect = element.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
   return (
     rect.top >= 0 &&
     rect.left >= 0 &&
-    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    rect.bottom <= viewportHeight &&
+    rect.right <= viewportWidth
   );
 }
+
+// 只想判断"有没有露出一部分"的话：
+// rect.bottom > 0 && rect.top < viewportHeight &&
+// rect.right > 0 && rect.left < viewportWidth
+
+// 💡 批量观察元素进出视口，用 IntersectionObserver，不要手写 scroll 监听
 ```
 
 ---
@@ -827,8 +916,12 @@ element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 | 属性 | content | padding | border | scrollbar | 说明 |
 |------|---------|---------|--------|-----------|------|
 | offsetWidth | ✓ | ✓ | ✓ | ✓ | border + padding + content + 滚动条 |
-| clientWidth | ✓ | ✓ | ✗ | ✓ | padding + content |
+| clientWidth | ✓ | ✓ | ✗ | ✗ | padding + content（不含边框，也**不含滚动条**） |
 | scrollWidth | ✓ | ✓ | ✗ | ✗ | 滚动内容的总宽度（可能超出可视区） |
+
+> ⭐ 最容易记错的是 `clientWidth` 和滚动条的关系：
+> `clientWidth` 表示"排除边框和滚动条之后，真正能放内容的区域"，所以滚动条占的那十几像素是不算进去的。
+> 反过来 `offsetWidth` 是"从外到内全算上"，因此包含滚动条。
 
 ```javascript
 // 一图流
@@ -843,7 +936,7 @@ element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 // +-----------------+
 // 
 // offsetWidth = border + padding + content + scrollbar
-// clientWidth = padding + content（不含 border 和 scrollbar）
+// clientWidth = padding + content（不含 border，也不含 scrollbar）
 // scrollWidth = 内容的总宽度（可能超出可视区）
 ```
 
@@ -861,7 +954,7 @@ graph TD
     C --> C1["border ✗"]
     C --> C2["padding ✓"]
     C --> C3["content ✓"]
-    C --> C4["scrollbar ✓"]
+    C --> C4["scrollbar ✗"]
     
     D --> D1["border ✗"]
     D --> D2["padding ✓"]
@@ -871,7 +964,7 @@ graph TD
 
 > 💡 **本章小结（第27章第6节）**
 > 
-> DOM 提供了多种尺寸和位置 API：`offsetWidth/offsetHeight` 是 border + padding + content 的总尺寸；`clientWidth/clientHeight` 是 padding + content（不含 border）；`scrollWidth/scrollHeight` 是滚动内容的总尺寸；`getBoundingClientRect` 获取元素相对于视口的位置和尺寸；`scrollTop/scrollLeft` 是已滚动的距离；`scrollTo/scrollIntoView` 用于控制滚动。了解这些 API 的区别，有助于正确获取元素尺寸和实现滚动效果。
+> DOM 提供了多种尺寸和位置 API：`offsetWidth/offsetHeight` 包含 border、padding、content 和滚动条；`clientWidth/clientHeight` 是 padding + content（不含 border，也不含滚动条）；`scrollWidth/scrollHeight` 是滚动内容的总尺寸；`getBoundingClientRect` 获取元素相对于视口的位置和尺寸（支持小数精度）；`scrollTop/scrollLeft` 是已滚动的距离；`scrollTo/scrollIntoView` 用于控制滚动。另外记住两个坑：`display: none` 或未插入文档的元素读到的尺寸全是 0；表单元素的 `value` 永远是字符串。了解这些差异，才能正确获取元素尺寸和实现滚动效果。
 
 ---
 
@@ -879,13 +972,13 @@ graph TD
 
 ### 1. 创建节点
 - `createElement`：创建元素节点
-- `createTextNode`：创建纯文本节点
-- `createDocumentFragment`：创建文档片段，减少回流
+- `createTextNode`：创建纯文本节点（内容不会被解析成 HTML）
+- `createDocumentFragment`：创建文档片段，减少 DOM 插入次数（不是"减少回流"）
 
 ### 2. 插入与替换
 - `appendChild/insertBefore`：传统方法
-- `append/prepend/after/before`：ES2017+ 更简洁
-- `replaceWith`：替换元素
+- `append/prepend/after/before`：ES2017+ 更简洁，可一次插入多个节点或字符串
+- `replaceWith`：替换元素（传字符串会被当成纯文本，不解析 HTML）
 
 ### 3. 删除与克隆
 - `remove`：直接删除元素
@@ -894,17 +987,17 @@ graph TD
 
 ### 4. 属性操作
 - `getAttribute/setAttribute/removeAttribute`
-- 直接属性访问：`element.href`（href 会转绝对路径）
-- `dataset`：访问 data-* 自定义属性
+- 直接属性访问：`element.href`（href 会转绝对路径）；表单的 `value` 永远是字符串
+- `dataset`：访问 data-* 自定义属性，key 必须写小驼峰，带短横线会抛 SyntaxError
 
 ### 5. 类名与样式
 - `classList`：add/remove/toggle/contains/replace
 - `element.style`：行内样式（驼峰命名）
-- `getComputedStyle`：获取计算后的完整样式
+- `getComputedStyle`：获取计算后的完整样式（只读，伪元素只能从这里访问）
 
 ### 6. 尺寸与位置
-- `offsetWidth/offsetHeight`：border + padding + content
-- `clientWidth/clientHeight`：padding + content
+- `offsetWidth/offsetHeight`：border + padding + content + 滚动条
+- `clientWidth/clientHeight`：padding + content（不含 border 和滚动条）
 - `scrollWidth/scrollHeight`：滚动内容总尺寸
 - `getBoundingClientRect`：相对于视口的位置
 - `scrollTop/scrollLeft`：滚动位置

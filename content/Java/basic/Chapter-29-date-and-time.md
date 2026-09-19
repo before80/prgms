@@ -215,8 +215,8 @@ public class LocalTimeDemo {
         System.out.println("上班时间：" + start);
         System.out.println("下班时间：" + end);
 
-        // 时间比较
-        System.out.println("现在是不是上班时间？" + now.isAfter(start) && now.isBefore(end));
+        // 时间比较（注意 && 的优先级低于 +，布尔表达式要整体加括号）
+        System.out.println("现在是不是上班时间？" + (now.isAfter(start) && now.isBefore(end)));
 
         // 时间加减
         LocalTime oneHourLater = now.plusHours(1);
@@ -651,6 +651,7 @@ public class DateToTimeConvert {
 ```java
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
@@ -695,6 +696,7 @@ public class CalendarToTimeConvert {
 
 ```java
 import java.sql.*;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;

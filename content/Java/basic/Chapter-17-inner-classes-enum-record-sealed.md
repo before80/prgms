@@ -15,6 +15,8 @@ draft = false
 
 ## 17.1 内部类
 
+> 📌 **本章代码的组织方式**：内部类、枚举、record 的示例常常先定义类型、再在 `main` 里使用，所以后面的代码块会引用前面定义的类/枚举。请把它们视为**同一个目录下的一组 `.java` 文件**，一起编译运行。
+
 ### 17.1.1 什么是内部类？
 
 **内部类**（Inner Class），就是定义在另一个类内部的类。听起来像嵌套玩偶？对！就是那个意思。
@@ -530,6 +532,8 @@ final class Color extends java.lang.Enum {
 你有没有写过这样的类？
 
 ```java
+import java.util.Objects;
+
 // 一个"纯粹的数据容器"类—— getters、构造函数、equals()、hashCode()、toString()
 // 一个都不能少，写到你手酸！
 class Point {
@@ -649,17 +653,21 @@ record 看似万能，但它有一些**必须遵守的规则**：
 4. **不能声明 native 方法**
 
 ```java
-// ❌ 错误示范：record 不能扩展其他类
-record InvalidRecord(String name) extends String { }  // 编译错误！
-
-// ❌ 错误示范：record 不能有可变字段
-record MutableDemo(String name) {
-    private int count;  // 编译错误！不能声明额外的实例字段
-}
-
-// ✅ 正确示范：record 可以实现接口
+// ✅ 正确示范：record 可以实现接口，可以有静态字段和自定义方法
 record SerializablePoint(int x, int y) implements java.io.Serializable {
-    // 完全可以！
+    static final String DESCRIPTION = "二维平面上的点";  // 静态字段可以
+}
+```
+
+而下面这些写法都是**编译不过的**，看看就好：
+
+```java,ignore
+// ❌ 错误示范：record 隐式继承 java.lang.Record，不能再 extends 别的类
+record InvalidRecord(String name) extends String { }   // 编译错误！
+
+// ❌ 错误示范：record 不能声明额外的实例字段
+record MutableDemo(String name) {
+    private int count;  // 编译错误！实例字段只能来自构造参数
 }
 ```
 
@@ -738,8 +746,8 @@ record 适合用来替代那些"只用来承载数据"的类：
 ```java
 // 使用 sealed 声明 Shape 是一个密封类
 // permits 明确列出允许的子类
-sealed class Shape permits Circle, Rectangle, Triangle {
-    // 共同的字段和行为
+// 因为里面有抽象方法，所以类本身也要标 abstract
+abstract sealed class Shape permits Circle, Rectangle, Triangle {
     public abstract double area();
 }
 
@@ -783,9 +791,13 @@ final class Triangle extends Shape {  // ✅ 允许，还可以标记为 final
         return 0.5 * base * height;
     }
 }
+```
 
-// ❌ 编译错误！Hexagon 不在 permits 列表中
-class Hexagon extends Shape { }  // 不允许！
+如果不小心让一个"不在名单里"的类去继承它，编译会直接失败：
+
+```java,ignore
+// ❌ 编译错误！Hexagon 不在 Shape 的 permits 列表中
+class Hexagon extends Shape { }  // 报错：class is not allowed to extend sealed class
 ```
 
 ### 17.4.2 密封类的修饰符
@@ -800,7 +812,7 @@ class Hexagon extends Shape { }  // 不允许！
 
 ```java
 // 完整示例：展示四种修饰符的组合
-sealed class Animal permits Dog, Cat, Bird, Robot {
+abstract sealed class Animal permits Dog, Cat, Bird, Robot {
     public abstract String speak();
 }
 
@@ -822,14 +834,27 @@ non-sealed class Bird extends Animal {  // non-sealed：解除密封限制
     public String speak() { return "叽叽喳喳！"; }
 }
 
-// ❌ Robot 是抽象类，不密封它的子类，可以继承任何类
+// non-sealed：解除密封限制，之后谁都能继承它
 non-sealed class Robot extends Animal {
     @Override
     public String speak() { return "010101..."; }
 }
 
+class SealedModifiersDemo {
+    public static void main(String[] args) {
+        Animal[] animals = { new Dog(), new HouseCat(), new WildCat(), new Bird(), new Robot() };
+        for (Animal a : animals) {
+            System.out.println(a.getClass().getSimpleName() + ": " + a.speak());
+        }
+    }
+}
+```
+
+而下面这种"漏报户口"的继承会被编译器当场拦下：
+
+```java,ignore
 // ❌ 错误！ExoticPet 不在 Animal 的 permits 列表中
-class ExoticPet extends Animal {}  // 编译错误！
+class ExoticPet extends Animal {}  // 编译错误：class is not allowed to extend sealed class
 ```
 
 ### 17.4.3 密封接口
@@ -907,7 +932,9 @@ public class SealedInterfaceDemo {
 密封类的一个巨大优势是：**编译器能够进行穷尽性检查**。当你使用 `switch` 表达式或 `instanceof` 模式匹配时，编译器可以确保你处理了所有可能的情况。
 
 ```java
-sealed class Vehicle permits Car, Motorcycle, Bicycle {}
+// 注意：Vehicle 必须是 abstract，否则"它自己"也算一种可能的实例，
+// 下面的 switch 就不再穷尽了，编译器会报"不包含所有可能的输入值"。
+abstract sealed class Vehicle permits Car, Motorcycle, Bicycle {}
 
 final class Car extends Vehicle {
     void drive() { System.out.println("汽车在公路上行驶"); }

@@ -39,6 +39,8 @@ draft = false
 
 #### 9.1.1.1 安装与使用
 
+Black 是「不妥协」的格式化工具：装好之后直接跑，几乎没有配置项。
+
 ```bash
 # 安装 Black
 pip install black
@@ -144,6 +146,8 @@ flowchart LR
 
 #### 9.1.2.1 安装与使用
 
+Ruff 用 Rust 写成，把 lint 与格式化都包了，速度极快。
+
 ```bash
 # 安装 Ruff
 pip install ruff
@@ -183,6 +187,8 @@ ruff check --fix ./src && ruff format ./src
 > 💡 **进阶技巧**：Ruff 可以替代 `isort`（import 排序）、`flake8`（Lint）、`pylint`（部分功能）。一个工具顶三个，效率提升 300%！
 
 #### 9.1.2.3 ruff.toml 配置
+
+`ruff.toml` 用来挑选规则集、指定目标版本和忽略项。
 
 ```toml
 # ruff.toml
@@ -294,6 +300,8 @@ Ruff always ignores long lines with inline comments.
 
 #### 9.1.3.1 安装与使用
 
+isort 按照约定给 import 分组并排序。
+
 ```bash
 # 安装 isort
 pip install isort
@@ -334,6 +342,8 @@ profile = "black"
 > 💡 **懒人必备**：如果你用 Ruff，就不需要单独装 isort 了，因为 Ruff 的 `I` 规则已经包含了 isort 的功能！
 
 #### 9.1.3.3 pyproject.toml 配置
+
+在 `pyproject.toml` 里写 `profile = "black"`，可以让 isort 与 Black 的换行风格保持一致。
 
 ```toml
 [tool.isort]
@@ -463,6 +473,8 @@ indent_width = 4
 
 #### 9.1.5.1 安装 pre-commit
 
+`pre-commit` 把检查挂在 `git commit` 之前，代码不合规范就提交不上去。
+
 ```bash
 # 安装 pre-commit
 pip install pre-commit
@@ -509,6 +521,8 @@ repos:
 ```
 
 #### 9.1.5.3 安装 hook：pre-commit install
+
+在项目里执行一次 `pre-commit install`，钩子才会真正生效。
 
 ```bash
 # 在项目根目录执行
@@ -570,6 +584,8 @@ Trailing whitespace....................................................Passed
 - Ned's batchutil.pycog：检查复杂度
 
 #### 9.2.1.1 安装与使用
+
+Flake8 是经典的 lint 工具，规则覆盖面广。
 
 ```bash
 # 安装 Flake8
@@ -683,6 +699,8 @@ print(os.name)  # 现在用了
 
 #### 9.2.2.1 安装与使用
 
+Pylint 检查得更细，代价是慢、误报相对多一些。
+
 ```bash
 # 安装 Pylint
 pip install pylint
@@ -774,6 +792,8 @@ max-branches = 12
 还记得 9.1.2 介绍的 Ruff 吗？它不仅可以格式化代码，还能做 Lint 检查！一个工具当两个用，效率翻倍。
 
 #### 9.2.3.1 安装与使用
+
+Ruff 也能做 lint 检查，命令是 `ruff check`。
 
 ```bash
 # 安装（如果还没安装）
@@ -913,8 +933,8 @@ def process_user_data(user_data, config, db, cache):
     if user_data.is_valid:
         if config.enable_cache:
             if cache.get(user_data.id):
-                # ... 100行逻辑
-    return result
+                pass  # ... 这里还有 100 行逻辑
+    return None
 
 # 修复：拆分成多个小函数 ✅
 def process_user_data(user_data, config, db, cache):
@@ -1009,6 +1029,8 @@ print(add(1, "World")) # 输出: TypeError! 💥
 
 #### 9.3.1.1 安装与使用
 
+mypy 是标准的静态类型检查器，配合类型注解使用。
+
 ```bash
 # 安装 mypy
 pip install mypy
@@ -1047,6 +1069,8 @@ Found 2 errors in 1 file
 ```
 
 #### 9.3.1.2 配置文件：mypy.ini / pyproject.toml [tool.mypy]
+
+`[tool.mypy]` 段用来配置检查的严格程度与目标版本。
 
 ```toml
 # pyproject.toml
@@ -1141,6 +1165,8 @@ from untyped_library import something  # type: ignore[import]
 
 #### 9.3.2.1 Pyright 安装
 
+Pyright 由微软维护，除命令行外还提供 VS Code 集成。
+
 ```bash
 # 作为命令行工具安装
 npm install -g pyright  # 需要 Node.js
@@ -1172,6 +1198,8 @@ pyright --outputjson ./src
 > 💡 **如果你用 VS Code**：只需要装 Python 插件，Pylance 就内置了。不需要单独安装 Pyright CLI。
 
 #### 9.3.2.3 pyrightconfig.json 配置
+
+`pyrightconfig.json` 指定检查哪些目录、忽略哪些目录。
 
 ```json
 {
@@ -1293,6 +1321,8 @@ def process(data: Dict[str, Any]) -> str:
 
 #### 9.4.1.1 安装与使用
 
+Radon 用来度量圈复杂度与可维护性，帮你找出该拆分的函数。
+
 ```bash
 # 安装 Radon
 pip install radon
@@ -1312,6 +1342,8 @@ radon halstead my_code.py
 ```
 
 #### 9.4.1.2 计算圈复杂度
+
+`radon cc` 会逐个函数给出复杂度等级，A 最好、F 最差。
 
 ```bash
 $ radon cc -a my_code.py
@@ -1376,6 +1408,8 @@ def process_everything(data, config, user, env, options):
 
 #### 9.4.2.1 安装与使用
 
+wily 把复杂度指标按 git 提交历史纵向对比，看代码是在变好还是变坏。
+
 ```bash
 # 安装 wily
 pip install wily
@@ -1431,6 +1465,8 @@ flowchart TD
 
 #### 9.5.1.1 Fork 仓库
 
+参与开源的第一步是把仓库 Fork 到自己的账号下。
+
 ```bash
 # 在 GitHub 网页上点击 "Fork" 按钮
 # 或者用命令行
@@ -1439,6 +1475,8 @@ cd 项目名
 ```
 
 #### 9.5.1.2 创建分支
+
+为改动单独开一个分支，不要直接在主干上改。
 
 ```bash
 # 创建新分支
@@ -1456,6 +1494,8 @@ git checkout feature/add-user-validation
 > - `docs/xxx` - 文档更新
 
 #### 9.5.1.3 提交代码
+
+提交前先看清自己改了什么，再写清楚提交信息。
 
 ```bash
 # 查看修改
@@ -1522,7 +1562,7 @@ Reviewer 会：
 - 提出问题或建议
 - 批准或请求修改
 
-```markdown
+````markdown
 ## Review 注释示例
 
 ### 整体看起来不错！✅
@@ -1545,7 +1585,7 @@ Reviewer 会：
 ### 需要修改
 > 这个函数没有处理空列表的情况，会抛出异常。需要在开头加个判断。
 > -- @reviewer_alice
-```
+````
 
 #### 9.5.1.6 合并到主分支
 
@@ -1880,6 +1920,8 @@ def process_user(user):
 
 #### 9.7.1.1 变量/函数：小写 + 下划线（snake_case）
 
+变量与函数用小写加下划线（snake_case），这是官方建议的风格。
+
 ```python
 # ✅ 正确
 user_name = "Alice"
@@ -1894,6 +1936,8 @@ CalculateTotalPrice = 100.0  # PascalCase
 ```
 
 #### 9.7.1.2 类名：大写开头的驼峰（PascalCase）
+
+类名用大写开头的驼峰命名（PascalCase）。
 
 ```python
 # ✅ 正确
@@ -1915,6 +1959,8 @@ class userAccount:  # camelCase（不标准）
 ```
 
 #### 9.7.1.3 常量：全大写 + 下划线
+
+常量全部大写，单词之间用下划线分隔。
 
 ```python
 # ✅ 正确
@@ -1969,6 +2015,8 @@ print(user._User__password)  # 能访问，但不建议！⚠️
 > ⚠️ **名称改写**：Python 把 `__password` 变成了 `_类名__password`。这主要是为了避免子类不小心覆盖父类的属性，而不是真正的私有。
 
 #### 9.7.1.6 避免使用 l、O、I 等易混淆字符
+
+`l`、`O`、`I` 在不同字体下和数字难以分辨，不要拿来当变量名。
 
 ```python
 # ❌ 避免：l（小写L）、O（大写o）、I（大写i）
@@ -2028,6 +2076,8 @@ total = (
 
 #### 9.7.2.3 续行对齐：括号内悬挂缩进
 
+函数参数很长时可以换行书写，三种对齐方式里 Black 选择第一种（悬挂缩进 4 空格）。
+
 ```python
 # 方法一：悬挂缩进（Indentation with continuation）
 def send_email(
@@ -2035,15 +2085,17 @@ def send_email(
     subject,
     body,
 ):
-    # 继续代码
+    # 函数体（示例里省略实现，但不能留空）
+    pass
 
-# 方法二：悬挂缩进（多一层缩进）
+# 方法二：悬挂缩进（多一层缩进，PEP 8 允许，但 Black 会改成方法一的样式）
 def send_email(
         recipient,
         subject,
         body,
-    ):
-    # 继续代码
+):
+    # 函数体不能为空，省略实现时要写 pass
+    pass
 
 # 方法三：括号对齐（更紧凑）
 def send_email(recipient, subject, body):
@@ -2060,6 +2112,8 @@ text = "这是一段很长的文字，\
 
 #### 9.7.3.1 每行一个 import
 
+每个 import 单独一行，便于阅读，也便于版本控制追踪。
+
 ```python
 # ✅ 正确
 import os
@@ -2071,6 +2125,8 @@ import os, sys, requests
 ```
 
 #### 9.7.3.2 import 分组（标准库 / 第三方 / 本地），用空行分隔
+
+import 按标准库、第三方、本地三组排列，组与组之间空一行。
 
 ```python
 # 第一组：标准库
@@ -2096,6 +2152,8 @@ from my_project.models import User
 
 #### 9.7.3.3 绝对导入优先
 
+优先使用绝对导入，路径清晰，重名时也不容易出错。
+
 ```python
 # ✅ 推荐：绝对导入
 from my_project.utils import helper
@@ -2112,6 +2170,8 @@ from ..models import User
 > - 重构时更安全
 
 #### 9.7.3.4 避免 from xxx import *
+
+`from m import *` 会污染命名空间，还让静态检查失去作用，尽量避免。
 
 ```python
 # ❌ 非常糟糕：不知道导入了什么
@@ -2134,6 +2194,8 @@ my_module.specific_function()
 ### 9.7.4 注释规范
 
 #### 9.7.4.1 行内注释规范
+
+行内注释应该解释「为什么」，而不是复述代码在做什么。
 
 ```python
 # ✅ 好的行内注释：解释"为什么"，而不是"是什么"

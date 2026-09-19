@@ -121,15 +121,23 @@ sudo crontab -u longx -l
 ```bash
 # 删除当前用户的所有crontab任务
 crontab -r
-
-# 会提示确认
-# crontab: really delete longx's crontab? (y/n)
 ```
 
 ```bash
-# 不提示直接删除
-crontab -r -f
+# 想让它先问一句？加 -i（interactive）
+crontab -i -r
+# crontab: really delete longx's crontab? (y/n)
 ```
+
+> 🚨 **`crontab -r` 是本章最危险的命令，没有之一**。它**不会问你任何问题**，敲下回车，当前用户的所有定时任务立刻消失，而且**没有回收站、无法撤销**。老资料里常见的 `crontab -r -f` 更是张冠李戴——`crontab` 根本没有 `-f` 选项，`-f` 是 `rm` 的参数。
+>
+> 好习惯是：**改 crontab 之前先备份**。
+>
+> ```bash
+> crontab -l > ~/crontab.backup.$(date +%F)   # 先备份
+> crontab -e                                  # 再编辑
+> crontab ~/crontab.backup.2026-03-23         # 出错时从备份恢复
+> ```
 
 ### 28.3.4 crontab -u 用户：指定用户
 
@@ -221,18 +229,17 @@ cron表达式就是定时任务的"时间表"，告诉cron什么时候执行任�
 
 ```mermaid
 graph LR
-    A["0 3 * * *"] --> E["每天凌晨3点"]
-    A --> B["0 9 * * 1-5"]
-    B --> F["工作日早上9点"]
-    A --> C["0 0 1 * *"]
-    C --> G["每月1号午夜"]
-    A --> D["*/5 * * * *"]
-    D --> H["每5分钟"]
-    
-    style A fill:#ff6b6b
-    style B fill:#4ecdc4
-    style C fill:#45b7d1
-    style D fill:#51cf66
+    A["0 3 * * *"] --> A2["每天凌晨 3:00"]
+    B["0 9 * * 1-5"] --> B2["工作日早上 9:00"]
+    C["0 0 1 * *"] --> C2["每月 1 号 0:00"]
+    D["*/5 * * * *"] --> D2["每 5 分钟一次"]
+    E["30 4 1,15 * *"] --> E2["每月 1 号和 15 号的 4:30"]
+
+    style A fill:#ff6b6b,color:#fff
+    style B fill:#4ecdc4,color:#000
+    style C fill:#45b7d1,color:#fff
+    style D fill:#51cf66,color:#000
+    style E fill:#ffd43b,color:#000
 ```
 
 | 表达式 | 含义 |
@@ -355,7 +362,7 @@ at now + 3 minutes
 # at支持的时间格式很灵活
 at 14:30           # 今天下午2:30
 at 14:30 today      # 今天下午2:30
-at 14:30 tomorrow   # 明天上午2:30
+at 14:30 tomorrow   # 明天下午2:30（14:30 就是 24 小时制的下午 2 点半）
 at noon             # 中午12:00
 at midnight          # 午夜
 at now + 1 hour     # 1小时后
@@ -422,9 +429,9 @@ cat /etc/anacrontab
 
 除了cron，Systemd也有自己的定时任务功能——**systemd timer**。
 
-### 28.9.1 .timer 单元
+### 28.9.1 .service 单元：定义"要做什么"
 
-timer单元和service单元是配对使用的：
+systemd 的定时任务由**两个文件配对**组成：`.service` 说明"干什么"，`.timer` 说明"什么时候干"。先写 service：
 
 ```bash
 # 创建一个定时任务：每5分钟执行一次
@@ -439,7 +446,7 @@ ExecStart=/usr/local/bin/my-task.sh
 EOF'
 ```
 
-### 28.9.2 .service 单元
+### 28.9.2 .timer 单元：定义"什么时候做"
 
 ```bash
 # 2. 创建.timer文件
@@ -483,6 +490,85 @@ OnCalendar=weekly       # 每周
 
 ---
 
+## 28.10 cron 的"经典翻车现场"
+
+"脚本手动跑没问题，一放进 crontab 就不干活"——这是运维新手最常见的困扰。原因基本跑不出下面这几条。
+
+### 28.10.1 环境变量不一样：PATH 是头号杀手
+
+**cron 执行任务时用的是一套极简环境**，它不会读你的 `.bashrc`、`.profile`，`PATH` 通常只有 `/usr/bin:/bin`。所以你在终端里能跑的 `node`、`docker`、`python3`，到了 cron 里可能直接 "command not found"。
+
+```bash
+# ❌ 危险写法：依赖 PATH
+yunying-task deploy
+
+# ✅ 写法一：全部用绝对路径
+/usr/local/bin/yunying-task deploy
+
+# ✅ 写法二：在 crontab 顶部显式声明环境（crontab 支持这种"变量赋值行"）
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=me@example.com
+```
+
+> 调试技巧：如果怀疑是环境问题，先让 cron 把环境"打印"出来看看——
+> ```bash
+> * * * * * env > /tmp/cron-env.txt
+> ```
+> 一分钟后打开 `/tmp/cron-env.txt`，和你在终端里 `env` 的结果对比，差异一目了然。
+
+### 28.10.2 命令里的 `%` 要转义
+
+cron 把 `%` 当成特殊字符：**第一个未转义的 `%` 之后的内容会被当作"标准输入"**，而不是命令的一部分。所以带 `%` 的命令（比如 `date +%F`）必须写成 `\%`。
+
+```bash
+# ❌ 错误：后面的内容被当成 stdin
+0 3 * * * tar -czf /backup/log-$(date +%F).tar.gz /var/log
+
+# ✅ 正确：% 前面加反斜杠
+0 3 * * * tar -czf /backup/log-$(date +\%F).tar.gz /var/log
+
+# ✅ 更省心的写法：把逻辑放进脚本里，crontab 只负责调用脚本
+0 3 * * * /usr/local/bin/backup-logs.sh
+```
+
+### 28.10.3 没有日志，等于盲飞
+
+cron 默认会把命令的**标准输出和错误**通过邮件发给用户；如果机器没配邮件服务，这些输出就石沉大海。规范做法是**自己重定向到日志文件**：
+
+```bash
+# 把 stdout 和 stderr 都追加到日志（注意 2>&1 要在 >> 之后）
+0 3 * * * /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1
+
+# 什么都不想要？丢进黑洞（但强烈建议至少留 stderr）
+0 3 * * * /usr/local/bin/backup.sh > /dev/null 2>&1
+```
+
+> 但要注意：日志文件会一直长大。**要么用 logrotate 管理它，要么在脚本里自己控制大小**，否则某天日志把磁盘写满，又是一场事故。
+
+### 28.10.4 任务重叠：上一次还没跑完，下一次又开始了
+
+如果任务耗时超过间隔（比如每 5 分钟一次，但脚本要跑 20 分钟），你会同时跑起好几个实例，互相抢资源、抢锁、写坏数据。用 `flock` 加把锁：
+
+```bash
+# -n 表示"拿不到锁就直接退出"，绝不排队堆积
+*/5 * * * * /usr/bin/flock -n /tmp/backup.lock /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1
+```
+
+### 28.10.5 其他容易忽略的点
+
+| 现象 | 原因 |
+|------|------|
+| 每月 31 号的任务有时不执行 | 2 月、4 月没有 31 号。写"每月最后一天"应该用 `28-31` 配合脚本内部判断 |
+| 任务是"日"和"周"同时限定时行为诡异 | cron 对 `日` 和 `周` 两个字段的匹配是**"或"**关系（`5 4 1 * 1` 表示"每月 1 号**或**每周一"），不是"并且"。不确定就别同时写 |
+| 整点任务全挤在一起 | 大量任务都写 `0 * * * *`，整点机器负载飙升。**错峰**一下，比如写成 `7 * * * *`、`23 * * * *` |
+| 夏令时切换时任务重复/跳过 | 以系统时区为准。重要任务尽量避开切换时刻（凌晨 2~3 点） |
+| 改完 crontab 不生效 | `crontab -e` 保存即生效，不需要重启服务；但如果改的是 `/etc/cron.d/` 下的文件，注意**文件末尾必须留一个空行**，否则最后一行任务会被忽略 |
+
+> 一句话总结：**crontab 里只放"一行调用脚本"最省事**，把复杂的逻辑、环境准备、日志处理、加锁都写进脚本本身。脚本能手动跑通，再放进 cron，成功率会高得多。
+
+---
+
 ## 本章小结
 
 本章我们学习了Linux定时任务：
@@ -516,8 +602,3 @@ OnCalendar=weekly       # 每周
 ### 💡 记住这个原则
 
 > **重复任务用cron，一次任务用at。** cron负责日常自动化，at负责临时延时任务。
-
----
-
-**当前时间：2026年3月23日 22:29:03**
-**已完成"第二十八章"！🎉**

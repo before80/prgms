@@ -23,9 +23,9 @@ draft = false
 在 Python 里，定义函数的关键字是 `def`（define 的缩写）。语法如下：
 
 ```python
-def 函数名(参数1, 参数2, ...):
+def 函数名(参数1, 参数2):
     # 函数体
-    return 结果
+    return 参数1
 ```
 
 来一个最简单的例子：
@@ -122,6 +122,8 @@ print(times_ten(7))
 
 #### 13.1.3.1 __name__：函数名
 
+`__name__` 保存函数的名字；被装饰后它可能变成 `wrapper`，这也正是 `functools.wraps` 存在的理由。
+
 ```python
 def hello():
     pass
@@ -133,6 +135,8 @@ print(hello.__name__)
 > 这个属性在装饰器里特别有用，可以用来保留原函数的名字。
 
 #### 13.1.3.2 __doc__：文档字符串
+
+`__doc__` 就是函数定义下方的文档字符串，`help()` 读的正是它。
 
 ```python
 def greet(name):
@@ -152,6 +156,8 @@ print(greet.__doc__)
 
 #### 13.1.3.3 __annotations__：类型注解字典
 
+`__annotations__` 把类型注解收集成字典；注解只是元数据，Python 不会据此做类型检查。
+
 ```python
 def add(a: int, b: int) -> int:
     """返回两个整数的和"""
@@ -164,6 +170,8 @@ print(add.__annotations__)
 Python 3.5 引入了**类型注解**（Type Hints），让函数的参数和返回值有了"注释"。但注意，Python 本身**不会**根据注解做类型检查（那是 mypy 或 pydantic 的活），这只是给程序员看的"文档"。
 
 #### 13.1.3.4 __code__：代码对象
+
+`__code__` 指向编译后的代码对象，里面记录了变量名、常量等底层信息。
 
 ```python
 def square(x):
@@ -182,6 +190,8 @@ print(square.__code__.co_argcount)  # 参数个数
 `__code__` 是一个代码对象（Code Object），包含了函数的字节码信息。普通程序员用得不多，但如果你在做性能分析或写调试工具，就派上用场了。
 
 #### 13.1.3.5 __globals__：全局命名空间
+
+`__globals__` 是函数所属模块的全局命名空间字典。
 
 ```python
 global_var = 100
@@ -252,6 +262,8 @@ print(power(3, 3))
 这是 Python 新手最常踩的坑之一，也是面试官最爱的考点。
 
 #### 13.2.4.1 不要使用可变对象作为默认参数
+
+默认参数只在定义时求值一次，因此可变默认值会被所有调用共享，这是最经典的坑之一。
 
 ```python
 # 危险！不要这样做！
@@ -376,6 +388,8 @@ print_info(**info)
 
 #### 13.2.7.1 位置参数 → `*args` → 默认参数 → `**kwargs`
 
+参数的书写顺序有硬性规定：位置参数、`*args`、默认参数、`**kwargs`。
+
 ```python
 def mixed_params(pos1, pos2, *args, default="默认值", **kwargs):
     print(f"位置参数: {pos1}, {pos2}")
@@ -412,6 +426,8 @@ f(1, b=2, c=3) # 正确：a 按位置，b 和 c 按关键字
 ```
 
 #### 13.2.8.1 def f(a, /, b, *, c)：/ 前必须位置传递，* 后必须关键字传递
+
+`/` 之前的参数只能按位置传，`*` 之后的参数只能按关键字传。
 
 ```mermaid
 graph LR
@@ -572,6 +588,8 @@ print(x)  # 找 G → 找到了 "全局的 x"
 
 #### 13.4.1.1 Local：函数内部
 
+函数内部赋值的变量默认属于局部作用域（Local）。
+
 ```python
 def local_scope():
     local_var = "我是局部的"
@@ -584,6 +602,8 @@ local_scope()
 ```
 
 #### 13.4.1.2 Enclosing：外层函数（闭包）
+
+外层函数的变量对内部函数可见（Enclosing），这正是闭包的基础。
 
 ```python
 def outer():
@@ -600,6 +620,8 @@ outer()
 
 #### 13.4.1.3 Global：模块级别
 
+模块级别的变量属于全局作用域（Global），在函数里修改它需要 `global` 声明。
+
 ```python
 counter = 0  # 全局变量
 
@@ -615,6 +637,8 @@ increment()
 ```
 
 #### 13.4.1.4 Built-in：Python 内置（__builtins__）
+
+内置作用域（Built-in）存放着 `len`、`print` 这类内置名字。
 
 ```python
 print(len([1, 2, 3]))  # len 是内置函数
@@ -799,6 +823,8 @@ print([delayed_triple(x) for x in data])
 
 #### 13.4.4.3 闭包与自由变量
 
+闭包会把外层变量「记住」：这个累加器把历史消息保存在 `messages` 里，函数返回后依然可用。
+
 ```python
 def outer():
     messages = []  # 外层函数的变量
@@ -852,6 +878,8 @@ print(count)  # 全局的（global 没被影响）
 
 #### 13.5.1.1 lambda x: x * 2
 
+`lambda` 是只能写一个表达式的匿名函数，适合用完即弃的小逻辑。
+
 ```python
 # 普通函数
 def double(x):
@@ -869,6 +897,8 @@ print(double(5))
 > lambda 函数只能包含**一个表达式**，不能包含语句（如 `if`、`for`、`while`），也不能有 `return`。
 
 #### 13.5.1.2 配合 map、filter、sorted、max、min 使用
+
+`lambda` 最常出现在 `map`、`filter`、`sorted(key=...)` 这类高阶函数的参数位置。
 
 ```python
 # map：对每个元素应用函数
@@ -902,6 +932,8 @@ print(min_pair)
 
 #### 13.5.1.3 lambda 的限制（只能包含表达式）
 
+`lambda` 的表达式里不能出现赋值、`return` 等语句，复杂逻辑请老老实实写普通函数。
+
 ```python
 # lambda 不能有赋值语句
 # lambda x: x = x * 2  ← 语法错误！
@@ -920,6 +952,8 @@ lambda x: x * 2 if x > 0 else 0
 递归就是函数调用自己。解决问题时，把大问题拆成小问题，小问题的解法和大问题一样。
 
 #### 13.5.2.1 递归终止条件
+
+写递归的第一件事是把终止条件想清楚，否则就会无限递归直到栈溢出。
 
 ```python
 def countdown(n):
@@ -999,6 +1033,8 @@ def factorial_iter(n):
 
 #### 13.5.3.1 partial(func, *args, **kwargs)
 
+`partial` 把部分参数「预先绑定」，得到一个新的可调用对象。
+
 ```python
 from functools import partial
 
@@ -1029,6 +1065,8 @@ print(two_power(10))
 
 #### 13.5.4.1 接受函数作为参数
 
+把函数当作参数传递，是 Python 里最朴素的「策略模式」。
+
 ```python
 def apply_function(func, data):
     """对 data 中的每个元素应用 func"""
@@ -1042,6 +1080,8 @@ print(apply_function(lambda x: x + 10, numbers))
 ```
 
 #### 13.5.4.2 返回函数的函数
+
+函数也可以返回函数，配合闭包就能携带状态。
 
 ```python
 def create_discount_func(discount_rate):
@@ -1061,6 +1101,8 @@ print([twenty_percent_off(p) for p in prices])
 ```
 
 #### 13.5.4.3 常用高阶函数：map、filter、sorted、any、all
+
+这几个内置函数是最常用的高阶函数；很多场景下用推导式或 `sorted(key=)` 会更直观。
 
 ```python
 # map：映射
@@ -1103,6 +1145,8 @@ print(all([True, True, False, True]))
 
 #### 13.6.1.2 装饰器接收函数作为参数
 
+装饰器本质上就是「接收函数、返回函数」的可调用对象。
+
 ```python
 def my_decorator(func):
     """一个装饰器，接收被装饰的函数"""
@@ -1110,6 +1154,8 @@ def my_decorator(func):
 ```
 
 #### 13.6.1.3 装饰器返回新函数
+
+通常的写法是在包装函数里先做增强，再调用原函数并返回它的结果。
 
 ```python
 def my_decorator(func):
@@ -1157,6 +1203,8 @@ say_hi()
 如果装饰器需要参数，需要**再包一层**——这就是"装饰器工厂"。
 
 #### 13.6.3.1 三层函数：decorator_factory → decorator → wrapper
+
+带参数的装饰器需要三层函数：最外层收参数，中间层收函数，最内层是包装函数。
 
 ```python
 def repeat(times):  # decorator_factory
@@ -1234,6 +1282,8 @@ print(hello.__doc__)
 
 #### 13.6.5.1 @lru_cache：缓存结果
 
+`lru_cache` 把函数结果缓存起来，用空间换时间，适合纯函数与递归。
+
 ```python
 import functools
 
@@ -1248,6 +1298,8 @@ print(fibonacci(100))  # 瞬间完成（因为有缓存）
 ```
 
 #### 13.6.5.2 @property：属性装饰器
+
+`@property` 把方法伪装成属性访问，可以在不改变调用方式的前提下加入校验逻辑。
 
 ```python
 class Circle:
@@ -1279,6 +1331,8 @@ print(c.diameter)
 
 #### 13.6.5.3 @classmethod：类方法
 
+`@classmethod` 的第一个参数是类本身（`cls`），常用来写替代构造函数。
+
 ```python
 class Person:
     population = 0
@@ -1304,6 +1358,8 @@ print(Person.total_population())
 
 #### 13.6.5.4 @staticmethod：静态方法
 
+`@staticmethod` 既不接收 `self` 也不接收 `cls`，只是把函数挂在类里。
+
 ```python
 class Math:
     @staticmethod
@@ -1326,6 +1382,8 @@ print(Math.multiply(5, 6))
 
 #### 13.6.5.5 @functools.cache：无限缓存（Python 3.9+）
 
+`functools.cache` 等价于 `lru_cache(maxsize=None)`，适合结果集有限的函数。
+
 ```python
 import functools
 
@@ -1342,6 +1400,8 @@ def expensive_computation(n):
 ```
 
 #### 13.6.5.6 @functools.singledispatch：单分派泛函数
+
+`singledispatch` 按照第一个参数的类型选择实现，避免写一长串 `isinstance` 分支。
 
 ```python
 import functools
@@ -1382,6 +1442,8 @@ process(3.14)
 
 #### 13.6.6.1 class MyDecorator
 
+装饰器也能用类来实现：`__init__` 收下函数，`__call__` 负责调用。
+
 ```python
 class CountCalls:
     """统计函数调用次数的装饰器类"""
@@ -1420,6 +1482,8 @@ Docstring 是写在函数/类开头的字符串，用来解释它们的作用。
 
 ### 13.7.2 Google 风格 docstring
 
+Google 风格用 `Args:`、`Returns:` 这类小标题组织内容，可读性最好。
+
 ```python
 def compute_area(radius):
     """计算圆的面积。
@@ -1444,6 +1508,8 @@ def compute_area(radius):
 ```
 
 ### 13.7.3 NumPy 风格 docstring
+
+NumPy 风格适合参数很多、需要逐项说明类型与含义的库代码。
 
 ```python
 def compute_area(radius):
@@ -1472,6 +1538,8 @@ def compute_area(radius):
 
 ### 13.7.4 Sphinx 风格 docstring
 
+Sphinx 风格用 `:param:` 这类字段，方便 Sphinx 自动生成文档。
+
 ```python
 def compute_area(radius):
     """计算圆的面积。
@@ -1490,6 +1558,8 @@ def compute_area(radius):
 
 ### 13.7.5 __doc__ 属性
 
+函数定义下方的第一段字符串会自动成为 `__doc__`。
+
 ```python
 def hello():
     """这是 hello 函数的文档"""
@@ -1500,6 +1570,8 @@ print(hello.__doc__)
 ```
 
 ### 13.7.6 help() 函数读取 docstring
+
+`help()` 会把 docstring 排版后打印出来。
 
 ```python
 def greet(name, greeting="你好"):
@@ -1536,6 +1608,8 @@ Python 虽然不是纯函数式语言，但内置了不少函数式编程工具�
 
 ### 13.8.1 map（映射）
 
+`map` 对每个元素应用函数并返回迭代器；需要列表时记得用 `list()` 包一下。
+
 ```python
 # map(function, iterable) → 对每个元素应用函数
 numbers = [1, 2, 3, 4, 5]
@@ -1556,6 +1630,8 @@ print(cubed)
 
 ### 13.8.2 filter（过滤）
 
+`filter` 保留让函数返回真值的元素，同样返回迭代器。
+
 ```python
 # filter(function, iterable) → 保留让函数返回 True 的元素
 numbers = list(range(10))
@@ -1574,6 +1650,8 @@ print(big)
 ```
 
 ### 13.8.3 zip（并行打包）
+
+`zip` 把多个可迭代对象按位置配对，长度以最短的为准。
 
 ```python
 # zip 将多个可迭代对象"拉链式"配对
@@ -1599,6 +1677,8 @@ print(list(zip(a, b)))
 ```
 
 ### 13.8.4 enumerate（枚举）
+
+`enumerate` 在遍历时同时给出下标，还可以用 `start=` 指定起始编号。
 
 ```python
 # enumerate 为可迭代对象添加索引

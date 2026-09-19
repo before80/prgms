@@ -307,6 +307,8 @@ unsafe impl Sync for RawPtr {}
 
 #### 13.2.1.1 thread::spawn(|| closure)（创建新线程执行闭包）
 
+`thread::spawn` 接收一个闭包，在新线程里执行它，返回的 `JoinHandle` 用来等待结果。
+
 ```rust
 use std::thread;
 
@@ -326,6 +328,8 @@ fn main() {
 
 #### 13.2.1.2 线程命名：thread::Builder::name().spawn(...)
 
+`thread::Builder` 可以给线程起名字、指定栈大小，调试时线程名会出现在日志里，非常有用。
+
 ```rust
 use std::thread;
 
@@ -342,7 +346,9 @@ fn main() {
 }
 ```
 
-#### 13.2.1.3 thread::spawn_scoped（可借用栈变量，跨线程借用）
+#### 13.2.1.3 thread::scope（作用域线程，可借用栈变量）
+
+`thread::scope` 创建一个作用域，作用域内 spawn 出来的线程可以安全借用外层栈上的变量，因为 `scope` 会阻塞到所有线程结束才返回。
 
 ```rust
 use std::thread;
@@ -372,6 +378,8 @@ fn main() {
 
 #### 13.2.2.1 JoinHandle::join（等待线程完成并获取返回值）
 
+`join()` 阻塞当前线程直到目标线程结束，并把它返回的值或 panic 信息作为 `Result` 交回来。
+
 ```rust
 use std::thread;
 
@@ -387,6 +395,8 @@ fn main() {
 ```
 
 #### 13.2.2.2 线程 panic 处理（panic 不会终止其他线程）
+
+一个线程 panic 不会带走其他线程，但会让对应的 `join()` 返回 `Err`。
 
 ```rust
 use std::thread;
@@ -404,6 +414,8 @@ fn main() {
 ```
 
 #### 13.2.2.3 thread::Result<T> = Result<T, Box<dyn Any + Send>>
+
+`thread::Result<T>` 就是 `Result<T, Box<dyn Any + Send>>`，`Err` 里装着 panic 载荷。
 
 ```rust
 use std::thread;
@@ -428,8 +440,11 @@ fn main() {
 
 #### 13.2.3.1 thread_local! 宏（声明线程局部变量）
 
+`thread_local!` 声明每个线程各有一份的变量。
+
 ```rust
 use std::cell::RefCell;
+use std::thread;   // 下面要 spawn 线程，需要引入 thread
 
 thread_local! {
     // 每个线程都有自己独立的 counter
@@ -459,6 +474,8 @@ fn main() {
 
 #### 13.2.3.2 ThreadLocal<T>（线程局部智能指针）
 
+`LocalKey<T>` 是访问线程局部变量的句柄，同一个名字在不同线程里指向不同的数据。
+
 ```rust
 use std::cell::RefCell;
 
@@ -483,6 +500,8 @@ fn main() {
 ```
 
 #### 13.2.3.3 with 方法（访问线程局部变量）
+
+`with` 借出线程局部变量的值；因为它是借用，不能把引用带出闭包。
 
 ```rust
 use std::cell::RefCell;
@@ -547,6 +566,8 @@ fn main() {
 
 #### 13.3.1.2 Sender::send（发送，返回 Result）
 
+`send` 把消息放进通道，返回 `Err` 说明接收端已经全部销毁。
+
 ```rust
 use std::sync::mpsc;
 
@@ -567,12 +588,16 @@ fn main() {
 
 #### 13.3.1.3 Receiver::recv（接收，阻塞等待）
 
+`recv` 会阻塞直到有消息或通道关闭；`try_recv` 不阻塞，没有消息时立即返回 `Err`。
+
 ```rust
 use std::sync::mpsc;
 use std::time::Duration;
 
 fn main() {
-    let (tx, rx) = mpsc::channel();
+    // 用 turbofish 指定消息类型，否则编译器无法推断 T
+    let (tx, rx) = mpsc::channel::<String>();
+    let _keep_tx_alive = tx;   // 保持发送端存活，才能观察到真正的超时
     
     // recv() 会阻塞，直到收到消息或通道关闭
     println!("等待消息...");
@@ -587,6 +612,8 @@ fn main() {
 ```
 
 #### 13.3.1.4 单生产者多消费者
+
+标准库的 mpsc 通道只有一个接收端，所以「多消费者」要么共享 `Mutex<Receiver>`，要么改用其他通道实现。
 
 ```rust
 use std::sync::mpsc;
@@ -617,11 +644,13 @@ fn main() {
 
 #### 13.3.2.1 Sender::drop（发送端 Drop 后，recv 返回 None）
 
+发送端被 drop 之后，`recv` 返回 `Err(RecvError)`，在循环里表现为迭代结束。
+
 ```rust
 use std::sync::mpsc;
 
 fn main() {
-    let (tx, rx) = mpsc::channel();
+    let (tx, rx) = mpsc::channel::<i32>();
     
     // tx 被 drop，通道关闭
     drop(tx);
@@ -633,6 +662,8 @@ fn main() {
 ```
 
 #### 13.3.2.2 recv 返回 None 的时机（发送端全部 Drop）
+
+只有所有发送端（包括克隆出来的）都 drop 之后，接收端才会看到通道关闭。
 
 ```rust
 use std::sync::mpsc;
@@ -663,6 +694,8 @@ fn main() {
 
 #### 13.3.2.3 for value in receiver（迭代器接口自动处理）
 
+`Receiver` 实现了 `Iterator`，可以直接用 `for` 循环消费消息，收到关闭信号时循环自动结束。
+
 ```rust
 use std::sync::mpsc;
 use std::thread;
@@ -691,6 +724,8 @@ fn main() {
 ### 13.3.3 多生产者通道
 
 #### 13.3.3.1 Sender::clone（克隆发送端，实现多生产者）
+
+`Sender` 可以克隆，每个克隆出来的发送端都能独立发消息，这就是「多生产者」。
 
 ```rust
 use std::sync::mpsc;
@@ -721,6 +756,8 @@ fn main() {
 ```
 
 #### 13.3.3.2 克隆后需要 Drop 所有发送端才能让 recv 停止
+
+如果忘了 drop 克隆出来的发送端，`recv` 就会一直阻塞下去。
 
 ```rust
 use std::sync::mpsc;
@@ -759,28 +796,57 @@ fn main() {
 
 #### 13.3.4.1 std::sync::mpsc::Select（同步 select）
 
+标准库并没有同步版的 `select`：要在多个通道间「谁先来就收谁」，得用 `crossbeam-channel` 这类 crate，或者转到异步世界用 `tokio::select!`。
+
 ```rust
+// ⚠️ 勘误：标准库 **没有** `std::sync::mpsc::Select` 这个类型
+//（`mpsc::Select` 曾是 nightly 上的实验 API，早已移除）。
+// 要在多个通道之间「谁先来就收谁」，常见做法有：
+//   1. 用 `recv_timeout` 轮流轮询（简单但会引入延迟）；
+//   2. 把所有发送端统一成一个通道，用枚举区分来源；
+//   3. 使用 tokio 的 `tokio::select!` 或 crossbeam 的 `select!` 宏。
+//
+// 下面演示做法 2：把两个来源合并成一个通道。
 use std::sync::mpsc;
+use std::thread;
+
+#[derive(Debug)]
+enum Event {
+    FromA(i32),
+    FromB(i32),
+}
 
 fn main() {
-    let (tx1, rx1) = mpsc::channel();
-    let (tx2, rx2) = mpsc::channel();
-    
-    // std::sync::mpsc::Select 可以监听多个通道
-    use std::sync::mpsc::Select;
-    
-    let sel = Select::new();
-    
-    // 注意：标准库的 Select API 比较底层
-    // 实际项目中，async/await 的 tokio::select! 更常用
-    println!("标准库 mpsc 的 Select API 较底层");
-    println!("建议使用 async/await + tokio::select!");
+    let (tx, rx) = mpsc::channel::<Event>();
+
+    let tx_a = tx.clone();
+    thread::spawn(move || {
+        tx_a.send(Event::FromA(1)).unwrap();
+    });
+
+    let tx_b = tx.clone();
+    thread::spawn(move || {
+        tx_b.send(Event::FromB(2)).unwrap();
+    });
+
+    // 收到两个来源的消息（顺序取决于调度）
+    for _ in 0..2 {
+        match rx.recv() {
+            Ok(ev) => println!("收到事件: {:?}", ev),
+            Err(_) => break,
+        }
+    }
 }
 ```
 
 #### 13.3.4.2 tokio::select!（异步多路复用）
 
-```rust
+异步场景下用 `tokio::select!` 做多路复用；注意它只能在 async 上下文里使用。
+
+```rust,ignore
+// ⚠️ 勘误：`thread::spawn(move || ...)` 里不能直接写 async 块，
+//    而且本示例依赖 tokio，需要 Cargo.toml 里加 tokio 依赖（本块标记为 ignore）。
+
 // 这是 async/await 的 select（在第14章详细讲解）
 // 先剧透一下
 async fn example_select() {
@@ -816,6 +882,8 @@ fn main() {
 
 #### 13.4.1.1 std::sync::Mutex（互斥锁）
 
+`Mutex` 保证同一时刻只有一个线程能访问内部数据。
+
 ```rust
 use std::sync::Mutex;
 
@@ -833,6 +901,8 @@ fn main() {
 ```
 
 #### 13.4.1.2 MutexGuard（离开作用域自动释放）
+
+`lock()` 返回的 `MutexGuard` 实现了 `Drop`，离开作用域就自动解锁。
 
 ```rust
 use std::sync::Mutex;
@@ -852,6 +922,8 @@ fn main() {
 ```
 
 #### 13.4.1.3 lock() -> MutexGuard（借用，非获取所有权）
+
+guard 是借用而非拿走所有权，所以锁保护的数据在解锁后依然属于 `Mutex`。
 
 ```rust
 use std::sync::Mutex;
@@ -873,15 +945,18 @@ fn main() {
 
 #### 13.4.1.4 PoisonError（线程 panic 后锁进入 poison 状态）
 
+持锁线程 panic 后锁会「中毒」，后续 `lock()` 返回 `Err(PoisonError)`；用 `into_inner()` 可以取出里面的数据继续用。
+
 ```rust
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 fn main() {
-    let m = Mutex::new(0);
+    let m = Arc::new(Mutex::new(0));
     
-    // 模拟线程 panic
+    // ⚠️ move 闭包会把 m 移进线程里，所以主线程要留一份，用 Arc 共享
+    let m2 = Arc::clone(&m);
     let handle = std::thread::spawn(move || {
-        let mut g = m.lock().unwrap();
+        let mut g = m2.lock().unwrap();
         *g = 100;
         panic!("线程 panic 了！");
     });
@@ -902,7 +977,12 @@ fn main() {
 
 #### 13.4.1.5 tokio::sync::Mutex（async 上下文的互斥锁）
 
-```rust
+异步环境要用 `tokio::sync::Mutex`：标准库的锁会阻塞线程，而异步锁挂起的是任务。
+
+```rust,ignore
+// ⚠️ 本示例依赖 tokio：需要在 Cargo.toml 里加 `tokio = { version = "1", features = ["full"] }`，
+//    并且 `#[tokio::main]` 会替你生成运行时。直接用 rustc 编译会失败（本块标记为 ignore）。
+
 // tokio::sync::Mutex 用于 async 上下文
 // 与 std::sync::Mutex 不同的是，它的 lock() 返回 Future
 
@@ -954,6 +1034,8 @@ fn main() {
 
 #### 13.4.2.2 read() / write() 方法
 
+`read()` 返回读 guard，`write()` 返回写 guard；多个读可以并存，写必须独占。
+
 ```rust
 use std::sync::RwLock;
 
@@ -980,6 +1062,8 @@ fn main() {
 ```
 
 #### 13.4.2.3 RwLockReadGuard / RwLockWriteGuard
+
+这两个 guard 都实现了 `Deref`，用法与 `MutexGuard` 类似，离开作用域自动解锁。
 
 ```rust
 use std::sync::RwLock;
@@ -1023,6 +1107,8 @@ fn main() {
 
 #### 13.4.3.2 Arc::clone（cheap，递增计数，返回新的 Arc）
 
+`Arc::clone` 只把原子计数加一，不复制内部数据，所以可以放心地在每个线程里克隆一份。
+
 ```rust
 use std::sync::Arc;
 use std::thread;
@@ -1047,6 +1133,8 @@ fn main() {
 
 #### 13.4.3.3 Arc::make_mut（获取可变借用，写时复制）
 
+`make_mut` 在强引用为 1 时直接给出可变引用，否则先克隆一份，实现写时复制。
+
 ```rust
 use std::sync::Arc;
 
@@ -1059,7 +1147,7 @@ fn main() {
     
     // make_mut 在 ref_count > 1 时会克隆底层数据（写时复制）
     // 克隆操作发生在 data2 身上（最后创建的那个 Arc），返回其可变引用
-    let data_clone = Arc::clone(&data); // 再克隆一个，ref_count = 3
+    let mut data_clone = Arc::clone(&data); // 再克隆一个，ref_count = 3；make_mut 需要 mut 绑定
     let mutable_ref = Arc::make_mut(&mut data_clone); // 触发克隆，data_clone 获得独立副本
     mutable_ref.push(4);
     
@@ -1149,6 +1237,7 @@ fn main() {
 
 ```rust
 use std::sync::{Arc, Mutex, Condvar};
+use std::thread;   // 下面要用 thread::spawn
 
 fn main() {
     let pair = Arc::new((Mutex::new(false), Condvar::new()));
@@ -1184,8 +1273,10 @@ fn main() {
 
 #### 13.4.5.2 wait / notify_one / notify_all
 
+条件变量要配合 `Mutex` 使用：等待方 `wait` 会先释放锁并挂起，被唤醒后再重新加锁。
+
 ```rust
-use std::sync::{Mutex, Condvar};
+use std::sync::{Arc, Mutex, Condvar};
 
 fn main() {
     let pair = Arc::new((Mutex::new(0), Condvar::new()));
@@ -1232,6 +1323,8 @@ fn set_flag(flag: &Arc<Mutex<bool>>, cvar: &Condvar) {
 
 #### 13.4.6.1 Once（只执行一次，thread::spawn 同步）
 
+`Once` 保证初始化代码在多线程环境下只执行一次。
+
 ```rust
 use std::sync::Once;
 
@@ -1251,6 +1344,8 @@ fn main() {
 ```
 
 #### 13.4.6.2 OnceCell<T>（惰性单次初始化，非同步）
+
+`OnceCell` 是单线程版的一次性初始化容器，不涉及同步开销。
 
 ```rust
 use std::cell::OnceCell;
@@ -1275,6 +1370,8 @@ fn main() {
 
 #### 13.4.6.3 OnceLock<T>（同步惰性初始化，线程安全）
 
+`OnceLock` 是线程安全版，可以放进 `static` 做全局惰性初始化。
+
 ```rust
 use std::sync::OnceLock;
 
@@ -1294,6 +1391,8 @@ fn main() {
 ```
 
 #### 13.4.6.4 get_or_init（惰性初始化方法）
+
+`get_or_init` 在首次访问时执行初始化函数，之后的调用直接返回已有值。
 
 ```rust
 use std::sync::{Arc, OnceLock};
@@ -1317,6 +1416,8 @@ fn main() {
 
 #### 13.4.7.1 AtomicBool / AtomicI32 / AtomicU32 / AtomicPtr 等
 
+标准库为常用整数、指针和布尔类型都提供了原子版本，适合做计数器、标志位。
+
 ```rust
 use std::sync::atomic;
 
@@ -1328,6 +1429,8 @@ fn main() {
 ```
 
 #### 13.4.7.2 load / store / swap（基本操作）
+
+`load` 读取、`store` 写入、`swap` 交换，每一个方法都要显式传入内存序。
 
 ```rust
 use std::sync::atomic::{AtomicI32, Ordering};
@@ -1383,22 +1486,29 @@ use std::sync::atomic::{AtomicI32, Ordering};
 fn main() {
     let num = AtomicI32::new(10);
     
-    // compare_exchange: 如果当前值等于预期，就设置为新值
-    // 返回 (旧值, 是否成功)
-    
+    // ⚠️ 勘误：compare_exchange 返回的是 Result<T, T>，不是 (旧值, 是否成功)：
+    //   Ok(prev)   —— 比较成功，prev 是交换前的旧值
+    //   Err(actual) —— 比较失败，actual 是内存里当前的真实值
+
     // 成功的情况
-    let (old, ok) = num.compare_exchange(10, 20, Ordering::SeqCst, Ordering::SeqCst).unwrap_or((0, false));
-    println!("成功: ok={}, 旧值={}, 新值={}", ok, old, num.load(Ordering::SeqCst));
-    // 成功: ok=true, 旧值=10, 新值=20
-    
-    // 失败的情况（值已被其他线程修改）
-    let (old, ok) = num.compare_exchange(10, 30, Ordering::SeqCst, Ordering::SeqCst).unwrap_or((0, false));
-    println!("失败: ok={}, 旧值={}", ok, old);
-    // 失败: ok=false, 旧值=20
+    match num.compare_exchange(10, 20, Ordering::SeqCst, Ordering::SeqCst) {
+        Ok(prev) => println!("成功: 旧值={}, 新值={}", prev, num.load(Ordering::SeqCst)),
+        Err(actual) => println!("失败: 当前值是 {}", actual),
+    }
+    // 成功: 旧值=10, 新值=20
+
+    // 失败的情况（值已经不是 10 了）
+    match num.compare_exchange(10, 30, Ordering::SeqCst, Ordering::SeqCst) {
+        Ok(prev) => println!("成功: 旧值={}", prev),
+        Err(actual) => println!("失败: 当前值是 {}", actual),
+    }
+    // 失败: 当前值是 20
 }
 ```
 
 #### 13.4.7.5 Ordering（Relaxed / Release / Acquire / AcqRel / SeqCst）
+
+内存序决定原子操作周围的可见性与重排约束：Relaxed 最弱，SeqCst 最强，Acquire/Release 成对使用。
 
 ```rust
 use std::sync::atomic::{AtomicI32, Ordering};
@@ -1431,6 +1541,8 @@ fn main() {
 
 #### 13.4.8.1 避免嵌套锁（多个锁时固定顺序获取）
 
+需要同时持有多把锁时，最容易出问题的是加锁顺序不一致导致的死锁。
+
 ```rust
 use std::sync::Mutex;
 
@@ -1462,6 +1574,8 @@ fn main() {
 
 #### 13.4.8.2 固定顺序获取锁（字典序 / 层次顺序）
 
+让所有线程都按同一个全局顺序获取锁，就能从根上避免互相等待。
+
 ```rust
 use std::sync::{Arc, Mutex};
 
@@ -1476,8 +1590,9 @@ fn main() {
     let lock2 = Arc::new(Mutex::new(2));
     
     // 字典序：按地址排序
-    let (first, second) = if lock1.as_ref() as *const _ as usize 
-        < lock2.as_ref() as *const _ as usize {
+    // 注意括号：不写括号时 `usize <` 会被当成泛型实参的开头，解析失败
+    let (first, second) = if (lock1.as_ref() as *const _ as usize)
+        < (lock2.as_ref() as *const _ as usize) {
         (lock1.clone(), lock2.clone())
     } else {
         (lock2.clone(), lock1.clone())
@@ -1549,6 +1664,8 @@ fn main() {
 
 #### 13.5.1.1 基本类型和常见标准库类型：Send + Sync
 
+绝大多数基本类型和标准库类型都同时满足 `Send + Sync`，可以自由跨线程传递与共享。
+
 ```rust
 fn assert_send_sync<T: Send + Sync>() {}
 
@@ -1572,6 +1689,8 @@ fn main() {
 
 #### 13.5.1.2 &T：T: Sync 时 Send，&mut T：T: Send 时 Send
 
+`&T` 是 `Send` 当且仅当 `T: Sync`；`&mut T` 是 `Send` 当且仅当 `T: Send`。
+
 ```rust
 fn main() {
     // &T (共享引用) 是 Send 当且仅当 T 是 Sync
@@ -1589,6 +1708,8 @@ fn main() {
 
 #### 13.5.1.3 Rc<T>：非 Send / 非 Sync（单线程引用计数）
 
+`Rc` 的计数不是原子操作，因此既不 `Send` 也不 `Sync`，编译器会阻止它跨线程使用。
+
 ```rust
 use std::rc::Rc;
 
@@ -1605,6 +1726,8 @@ fn main() {
 ```
 
 #### 13.5.1.4 Arc<T>：Send + Sync（线程安全引用计数）
+
+`Arc` 用原子计数实现共享，因此在 `T: Send + Sync` 时它自己也 `Send + Sync`。
 
 ```rust
 use std::sync::Arc;
@@ -1624,6 +1747,8 @@ fn main() {
 ### 13.5.2 手动实现 Send / Sync
 
 #### 13.5.2.1 unsafe impl Send for MyType（需要保证内部数据安全）
+
+只有当你确信内部数据可以被安全共享时，才可以用 `unsafe impl Send/Sync` 手工放行。
 
 ```rust
 // 自定义线程安全的类型
@@ -1645,6 +1770,8 @@ fn main() {
 ```
 
 #### 13.5.2.2 裸指针 *const T / *mut T：非 Send / 非 Sync
+
+裸指针既不是 `Send` 也不是 `Sync`，需要由 `unsafe` 代码自行保证线程安全。
 
 ```rust
 fn main() {
@@ -1683,4 +1810,3 @@ fn main() {
 **记住**：Rust 的并发安全靠的是类型系统，而不是运行时检查。编译器会阻止你写出不安全的并发代码——虽然有时候你会觉得它过于严格，但相信我，比起在生产环境里遇到数据竞争，编译器的唠叨根本不算什么。
 
 > "在 Rust 的世界里，没有数据竞争，只有编译器的唠叨和你的耐心。学会跟编译器打交道，你就掌握了并发编程的金钥匙！"
-

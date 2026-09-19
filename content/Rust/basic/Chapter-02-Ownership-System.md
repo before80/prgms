@@ -23,9 +23,9 @@ draft = false
 
 这个管家就是 Rust 的所有权系统！它存在于**编译时**，不需要运行时开销，却能杜绝大多数内存安全问题！
 
-#### 2.1.1 什么是所有权
+### 2.1.1 什么是所有权
 
-##### 2.1.1.1 所有权三条规则
+#### 2.1.1.1 所有权三条规则
 
 Rust 的所有权系统有三条铁律，必须牢记：
 
@@ -50,7 +50,7 @@ fn main() {
 
 > 简单来说：谁创建，谁拥有，谁负责释放。—— 多么简洁公平的所有制！不像你室友，借了你的薯片，吃完了还假装不知道是谁吃的。
 
-##### 2.1.1.2 所有权与内存管理的关系
+#### 2.1.1.2 所有权与内存管理的关系
 
 传统的内存管理方式有三种：
 
@@ -68,7 +68,7 @@ fn main() {
 } // 作用域结束，s 被自动清理
 ```
 
-##### 2.1.1.3 堆上数据 vs 栈上数据的区别
+#### 2.1.1.3 堆上数据 vs 栈上数据的区别
 
 在 Rust 里，**栈上数据**（如整数、布尔等固定大小的类型）存储在栈内存，**堆上数据**（如 String、Vec 等动态大小的类型）存储在堆内存。
 
@@ -110,9 +110,11 @@ graph TB
     style B1 fill:#f9f
 ```
 
-#### 2.1.2 内存管理方式对比
+### 2.1.2 内存管理方式对比
 
-##### 2.1.2.1 垃圾回收（GC）
+#### 2.1.2.1 垃圾回收（GC）
+
+对比其他语言的内存管理方式：GC 语言让运行时在后台自动找出不再使用的对象。
 
 ```java
 // Java/Python：GC 自动回收
@@ -132,7 +134,9 @@ GC 的问题：
 - **内存占用高**：GC 需要堆空间来追踪对象
 - **程序停顿**：GC 回收时程序会暂停
 
-##### 2.1.2.2 手动管理
+#### 2.1.2.2 手动管理
+
+C 这类语言把内存分配与释放完全交给程序员，灵活性最高，代价是漏掉一次释放或重复释放就会出问题。
 
 ```c
 // C：手动管理内存
@@ -157,20 +161,26 @@ void leak_example() {
 - **双重释放**：同一块内存释放两次
 - **数据竞争**：多线程同时访问
 
-##### 2.1.2.3 所有权系统
+#### 2.1.2.3 所有权系统
+
+Rust 的方案是在编译期用所有权规则判断谁负责释放内存，因此既不需要 GC，也没有 `free` 调用。下面这段是反面教材：返回局部变量的引用会被编译器直接拒绝。
 
 ```rust
-// Rust：编译器保证内存安全
-fn main() {
+// ⚠️ 下面这段是"反面教材"：返回局部变量的引用，编译器会直接拒绝
+// fn dangle() -> &String {
+//     let s = String::from("hello");
+//     &s // 编译错误：missing lifetime specifier / cannot return reference to local variable
+// }
+// 正确写法：把所有权交出去，返回 String 本身
+fn no_dangle() -> String {
     let s = String::from("hello");
-    // ... 使用 s ...
-} // 作用域结束，s 自动释放
-// 没有 GC，没有手动 free，但绝对不会泄漏！
+    s
+}
 
-fn dangle() -> &String {
-    let s = String::from("hello");
-    &s // 编译错误！不能返回局部变量的引用！
-} // s 在这里被释放，返回的引用变成悬垂引用
+fn main() {
+    let s = no_dangle();
+    println!("{}", s); // hello
+}
 ```
 
 Rust 的保证：
@@ -179,7 +189,9 @@ Rust 的保证：
 - **无数据竞争**：借用规则保证线程安全
 - **零运行时开销**：所有检查都在编译时完成
 
-##### 2.1.2.4 引用计数
+#### 2.1.2.4 引用计数
+
+Swift 的 ARC 属于编译期插入的引用计数，计数归零立即释放，但遇到循环引用仍需手动打破。
 
 ```swift
 // Swift：自动引用计数（ARC）
@@ -210,9 +222,9 @@ person3 = nil // 引用计数 -1，变为 0，对象被释放
 - 维护引用计数有运行时开销
 - 不确定何时释放（最后一个引用消失时）
 
-#### 2.1.3 为什么 Rust 选择所有权模型
+### 2.1.3 为什么 Rust 选择所有权模型
 
-##### 2.1.3.1 零成本抽象的原则
+#### 2.1.3.1 零成本抽象的原则
 
 Rust 的口号是"零成本抽象"——如果你不使用某个特性，就不会有任何开销。
 
@@ -234,7 +246,9 @@ fn main() {
 - 如果你只使用栈上的 `Copy` 类型，编译器和 C 代码一样高效
 - 如果你使用堆上的 `Move` 类型，编译器确保安全释放，没有 GC 开销
 
-##### 2.1.3.2 编译期内存安全检查
+#### 2.1.3.2 编译期内存安全检查
+
+下面这段代码在编译期就会被拦下：把 `s` 移动给 `s2` 之后，`s` 已经失效。
 
 ```rust
 fn main() {
@@ -249,7 +263,9 @@ fn main() {
 - 不会产生安全漏洞
 - 不会产生内存泄漏
 
-##### 2.1.3.3 无运行时开销
+#### 2.1.3.3 无运行时开销
+
+所有权检查全部发生在编译期，编译产物里不会留下任何运行时记账，效果等价于手写的 C 代码。
 
 ```rust
 fn main() {
@@ -264,7 +280,6 @@ fn main() {
 
 Rust 的目标：**既有 C/C++ 的性能，又有 Python/Java 的安全**。
 
-mermaid
 ```mermaid
 flowchart TD
     A[Rust 内存管理] --> B[编译时分析]
@@ -294,13 +309,13 @@ flowchart TD
 
 ---
 
-### 2.2 移动语义（Move Semantics）
+## 2.2 移动语义（Move Semantics）
 
 移动语义是 Rust 所有权系统的核心概念之一。当我们把一个值赋给另一个变量、传给函数、或者从函数返回时，所有权可能会"移动"。理解移动语义，是掌握 Rust 的关键！
 
-#### 2.2.1 移动的定义
+### 2.2.1 移动的定义
 
-##### 2.2.1.1 移动语义的概念
+#### 2.2.1.1 移动语义的概念
 
 移动（Move）意味着**所有权的转移**。当一个值被"移动"后，原来的变量就不再有效了。
 
@@ -318,7 +333,7 @@ fn main() {
 
 > 想象一下：你把房子钥匙给了别人（移动），你自己就没有钥匙了（不能访问）。
 
-##### 2.2.1.2 移动后原变量不可再使用
+#### 2.2.1.2 移动后原变量不可再使用
 
 这是编译器强制保证的：
 
@@ -336,9 +351,11 @@ fn main() {
 }
 ```
 
-#### 2.2.2 移动的触发条件
+### 2.2.2 移动的触发条件
 
-##### 2.2.2.1 赋值操作中的移动
+#### 2.2.2.1 赋值操作中的移动
+
+把拥有堆数据的变量赋值给另一个变量时，所有权随之转移，原变量立即失效。
 
 ```rust
 fn main() {
@@ -363,7 +380,9 @@ fn main() {
 }
 ```
 
-##### 2.2.2.2 函数参数传递中的移动
+#### 2.2.2.2 函数参数传递中的移动
+
+把变量按值传给函数，所有权就交给函数，函数结束时由函数负责释放。
 
 ```rust
 fn main() {
@@ -379,7 +398,9 @@ fn take_ownership(text: String) {
 } // text 在这里被 drop，字符串被释放
 ```
 
-##### 2.2.2.3 函数返回值中的移动
+#### 2.2.2.3 函数返回值中的移动
+
+函数返回拥有所有权的值，所有权再交给调用者，这就是数据「走出函数」的方式。
 
 ```rust
 fn main() {
@@ -394,7 +415,9 @@ fn create_string() -> String {
 } // 不需要 drop，因为所有权已经转移
 ```
 
-##### 2.2.2.4 模式匹配中的移动
+#### 2.2.2.4 模式匹配中的移动
+
+在 `match` 里按值绑定变体内容，同样会把内容移动出来。
 
 ```rust
 fn main() {
@@ -410,9 +433,11 @@ fn main() {
 }
 ```
 
-#### 2.2.3 堆上数据的移动
+### 2.2.3 堆上数据的移动
 
-##### 2.2.3.1 Box<T> 的移动
+#### 2.2.3.1 Box<T> 的移动
+
+`Box` 本身只是一个指针，移动它只复制指针，堆上的数据原地不动。
 
 ```rust
 fn main() {
@@ -427,7 +452,9 @@ fn main() {
 }
 ```
 
-##### 2.2.3.2 Vec<T> / String / HashMap 等集合的移动
+#### 2.2.3.2 Vec<T> / String / HashMap 等集合的移动
+
+`Vec`、`String`、`HashMap` 都拥有堆缓冲区，因此赋值和传参默认都是移动。
 
 ```rust
 fn main() {
@@ -453,7 +480,9 @@ fn main() {
 }
 ```
 
-##### 2.2.3.3 自定义类型（struct / enum）的移动行为
+#### 2.2.3.3 自定义类型（struct / enum）的移动行为
+
+结构体只要含有非 `Copy` 字段，它本身就不是 `Copy`，整体按移动处理。
 
 ```rust
 struct Person {
@@ -487,7 +516,9 @@ fn main() {
 }
 ```
 
-##### 2.2.3.4 移动后底层数据重新分配
+#### 2.2.3.4 移动后底层数据重新分配
+
+移动既不复制堆数据也不重新分配，它改变的只是「谁拥有这块数据」这个身份。
 
 ```rust
 fn main() {
@@ -506,9 +537,9 @@ fn main() {
 }
 ```
 
-#### 2.2.4 栈上数据的复制（Copy Trait）
+### 2.2.4 栈上数据的复制（Copy Trait）
 
-##### 2.2.4.1 Copy trait 的定义
+#### 2.2.4.1 Copy trait 的定义
 
 和移动相反，实现了 `Copy` trait 的类型会**按位复制**，原变量仍然有效：
 
@@ -526,7 +557,9 @@ fn main() {
 }
 ```
 
-##### 2.2.4.2 哪些类型是 Copy
+#### 2.2.4.2 哪些类型是 Copy
+
+整数、浮点、`bool`、`char`、共享引用，以及只由这些类型组成的元组和数组，都是 `Copy` 类型。
 
 ```rust
 fn main() {
@@ -582,7 +615,9 @@ fn main() {
 }
 ```
 
-##### 2.2.4.3 Copy 与 Clone 的关系
+#### 2.2.4.3 Copy 与 Clone 的关系
+
+`Copy` 是 `Clone` 的子集：实现了 `Copy` 就必须同时实现 `Clone`，因为按位复制本身就是一种克隆。
 
 ```rust
 // 关系：实现了 Copy 的类型，必然也实现了 Clone
@@ -599,25 +634,21 @@ fn main() {
 }
 ```
 
-##### 2.2.4.4 所有字段都是 Copy 时结构体才是 Copy
+#### 2.2.4.4 所有字段都是 Copy 时结构体才是 Copy
+
+只有所有字段都实现 `Copy` 的结构体，才能派生 `Copy`。
 
 ```rust
-// 所有字段都是 Copy，结构体也是 Copy！
+// 所有字段都是 Copy，结构体也可以是 Copy（需要 derive）
+#[derive(Copy, Clone)]
 struct Point {
     x: f64, // f64 是 Copy
     y: f64, // f64 是 Copy
 }
 
-fn main() {
-    let p1 = Point { x: 1.0, y: 2.0 };
-    let p2 = p1; // 复制！因为所有字段都是 Copy
-
-    println!("p1.x = {}, p2.x = {}", p1.x, p2.x); // p1 和 p2 都有效！
-}
-
-// 但如果有一个字段不是 Copy，那整个结构体就不能是 Copy：
+// 只要有一个字段不是 Copy，整个结构体就不能是 Copy
 struct Person {
-    name: String, // String 不是 Copy，是移动语义！
+    name: String, // String 不是 Copy，是移动语义
     age: u32,     // u32 是 Copy
 }
 
@@ -633,13 +664,20 @@ fn demonstrate_person_move() {
 }
 
 fn main() {
+    let p1 = Point { x: 1.0, y: 2.0 };
+    let p2 = p1; // 复制！因为所有字段都是 Copy
+
+    println!("p1.x = {}, p2.x = {}", p1.x, p2.x); // p1 和 p2 都有效！
+
     demonstrate_person_move();
 }
 ```
 
-#### 2.2.5 移动后的使用限制
+### 2.2.5 移动后的使用限制
 
-##### 2.2.5.1 移动后变量不可再使用
+#### 2.2.5.1 移动后变量不可再使用
+
+移动之后继续使用原变量会直接编译报错，而不是留到运行时崩溃。
 
 ```rust
 fn main() {
@@ -657,7 +695,9 @@ fn main() {
 }
 ```
 
-##### 2.2.5.2 编译器错误示例分析
+#### 2.2.5.2 编译器错误示例分析
+
+下面剖析编译器给出的 `use of moved value` 报错，看清它指出的几个关键位置。
 
 ```rust
 fn main() {
@@ -677,9 +717,11 @@ fn main() {
 }
 ```
 
-#### 2.2.6 移动与函数参数
+### 2.2.6 移动与函数参数
 
-##### 2.2.6.1 按值传递与所有权转移
+#### 2.2.6.1 按值传递与所有权转移
+
+按值传参会把所有权一并交给函数，调用之后原变量失效。
 
 ```rust
 fn main() {
@@ -696,7 +738,9 @@ fn call_with_move(text: String) {
 } // text 在这里被 drop
 ```
 
-##### 2.2.6.2 借用作为替代方案
+#### 2.2.6.2 借用作为替代方案
+
+如果只想让函数读一下数据，传引用即可，所有权仍然留在调用者手里。
 
 ```rust
 fn main() {
@@ -713,9 +757,11 @@ fn call_with_borrow(text: &String) {
 } // text 是借用，不拥有数据，不负责 drop
 ```
 
-#### 2.2.7 返回值与所有权转移
+### 2.2.7 返回值与所有权转移
 
-##### 2.2.7.1 函数返回值的所有权
+#### 2.2.7.1 函数返回值的所有权
+
+把返回值交给调用者，是让数据「活着走出函数」的标准做法。
 
 ```rust
 fn main() {
@@ -729,7 +775,7 @@ fn create_string() -> String {
 } // 函数结束时不会 drop，因为所有权已经转移
 ```
 
-##### 2.2.7.2 所有权模式
+#### 2.2.7.2 所有权模式
 
 函数可以获取并返回所有权：
 
@@ -749,7 +795,7 @@ fn main() {
 }
 ```
 
-##### 2.2.7.3 借用模式
+#### 2.2.7.3 借用模式
 
 更常见的做法是借用数据，不获取所有权：
 
@@ -767,7 +813,6 @@ fn main() {
 }
 ```
 
-mermaid
 ```mermaid
 flowchart LR
     A[赋值/传参/返回] --> B{类型是 Copy?}
@@ -787,13 +832,15 @@ flowchart LR
 
 ---
 
-### 2.3 借用（Borrowing）
+## 2.3 借用（Borrowing）
 
 借用是 Rust 里最重要的概念之一！它让你可以在不获取所有权的情况下访问数据。想象一下：你去图书馆借书，书还是图书馆的，但你有了使用权。看完不还？那可是要被拉黑的——Rust 的借用检查器可比图书馆管理员严格多了。
 
-#### 2.3.1 引用的基本语法
+### 2.3.1 引用的基本语法
 
-##### 2.3.1.1 引用符号：&
+#### 2.3.1.1 引用符号：&
+
+`&` 创建引用（也叫借用），它不获得所有权，只是临时访问。
 
 ```rust
 fn main() {
@@ -808,7 +855,7 @@ fn main() {
 }
 ```
 
-##### 2.3.1.2 解引用符号：*
+#### 2.3.1.2 解引用符号：*
 
 解引用就是通过引用访问它指向的数据：
 
@@ -828,7 +875,9 @@ fn main() {
 }
 ```
 
-##### 2.3.1.3 引用作为函数参数
+#### 2.3.1.3 引用作为函数参数
+
+把 `&T` 作为参数，函数既能读到数据，又不会拿走所有权。
 
 ```rust
 fn main() {
@@ -846,9 +895,9 @@ fn print_string(s: &String) {
 } // s 是引用，不拥有数据，不会触发 drop
 ```
 
-#### 2.3.2 不可变引用
+### 2.3.2 不可变引用
 
-##### 2.3.2.1 &T 的创建
+#### 2.3.2.1 &T 的创建
 
 不可变引用允许你读取数据，但不能修改：
 
@@ -868,7 +917,7 @@ fn main() {
 }
 ```
 
-##### 2.3.2.2 不可变引用的特性
+#### 2.3.2.2 不可变引用的特性
 
 **可以同时存在任意多个不可变引用！**
 
@@ -888,9 +937,9 @@ fn main() {
 }
 ```
 
-#### 2.3.3 可变引用
+### 2.3.3 可变引用
 
-##### 2.3.3.1 &mut T 的创建
+#### 2.3.3.1 &mut T 的创建
 
 可变引用允许你修改数据：
 
@@ -909,7 +958,7 @@ fn main() {
 }
 ```
 
-##### 2.3.3.2 可变引用的特性
+#### 2.3.3.2 可变引用的特性
 
 **同时只能存在一个可变引用！**
 
@@ -929,9 +978,9 @@ fn main() {
 
 这是为什么？因为多个可变引用可能导致数据竞争（data race）。想象一下你和你的室友同时往冰箱里塞东西——最后冰箱门可能都关不上，数据也是一样。
 
-#### 2.3.4 借用规则
+### 2.3.4 借用规则
 
-##### 2.3.4.1 借用规则
+#### 2.3.4.1 借用规则
 
 Rust 的借用规则总结如下：
 
@@ -967,43 +1016,70 @@ graph LR
     D --> E
 ```
 
-##### 2.3.4.2 规则二：引用必须始终有效
+#### 2.3.4.2 规则二：引用必须始终有效
+
+第二条借用规则要求引用不能比它指向的数据活得更久，下面这个悬垂引用正是被这条规则拒绝的。
 
 ```rust
-fn main() {
-    // 悬垂引用：引用了一个已经不存在的值
-    // let r = dangle(); // 编译错误！
+// ⚠️ 反面教材：悬垂引用
+// fn dangle() -> &String {
+//     let s = String::from("hello");
+//     &s // 编译错误：s 在函数结束时被释放，返回的引用会变成悬垂引用
+// }
+
+// 编译器有时会给出更直白的提示：missing lifetime specifier
+// 意思是你没有告诉编译器"返回的引用活得和谁一样久"，而这里根本不可能满足
+
+// 正确做法：把所有权交出去
+fn no_dangle() -> String {
+    String::from("hello")
 }
 
-fn dangle() -> &String {
-    let s = String::from("hello");
-    &s // 返回 s 的引用，但 s 即将被销毁！
-} // s 在这里被 drop，返回的引用无效
+fn main() {
+    let s = no_dangle();
+    println!("{}", s); // hello
+}
 ```
 
-##### 2.3.4.3 违反借用规则的编译错误分析
+#### 2.3.4.3 违反借用规则的编译错误分析
+
+下面这段代码故意违反借用规则，用来观察编译器给出的冲突提示。
 
 ```rust
+// ⚠️ 这段代码故意演示编译错误，不要原样照抄
 fn main() {
     let mut s = String::from("hello");
     
-    // 错误示例1：同时存在不可变和可变引用
+    // 错误示例1：同时存在不可变引用和可变引用
     let r1 = &s; // 不可变引用
-    let r2 = &mut s; // 可变引用！
-    // 编译错误：cannot borrow `s` as mutable because it is also borrowed as immutable
+    // let r2 = &mut s; // 编译错误：cannot borrow `s` as mutable because it is also borrowed as immutable
     
-    println!("{}, {}", r1, r2);
+    println!("r1 = {}", r1); // r1 = hello
+
+    // 正确做法：不可变引用用完之后（NLL 会精确判断最后一次使用的位置），
+    // 再创建可变引用
+    let r2 = &mut s;
+    r2.push_str(", world");
+    println!("r2 = {}", r2); // r2 = hello, world
 }
 ```
 
 ```rust
+// ⚠️ 这段代码故意演示编译错误，不要原样照抄
 fn main() {
     let mut s = String::from("hello");
     
-    // 错误示例2：在使用不可变引用之前修改数据
+    // 错误示例2：在不可变引用还要使用时修改数据
     let r = &s;
-    s.push_str(", world"); // 编译错误！
-    println!("{}", r);
+    // s.push_str(", world"); // 编译错误：cannot borrow `s` as mutable because it is also borrowed as immutable
+    println!("{}", r); // hello
+
+    // 正确做法：先让不可变借用的最后一次使用结束，再修改
+    let mut s2 = String::from("hello");
+    let r2 = &s2;
+    println!("{}", r2); // hello
+    s2.push_str(", world");
+    println!("{}", s2); // hello, world
 }
 ```
 
@@ -1018,9 +1094,9 @@ fn main() {
 }
 ```
 
-#### 2.3.5 借用检查器（Borrow Checker）
+### 2.3.5 借用检查器（Borrow Checker）
 
-##### 2.3.5.1 借用检查器的工作原理
+#### 2.3.5.1 借用检查器的工作原理
 
 借用检查器是 Rust 编译器的一部分，负责检查所有借用是否合法。它基于**生命周期**（lifetimes）进行分析。
 
@@ -1037,7 +1113,7 @@ fn main() {
 } // r 的生命周期在这里结束
 ```
 
-##### 2.3.5.2 NLL（Non-Lexical Lifetimes，Rust 2018）
+#### 2.3.5.2 NLL（Non-Lexical Lifetimes，Rust 2018）
 
 NLL 是 Rust 2018 引入的重大改进。之前的借用检查器基于**词法作用域**（lexical scope），简单但保守；现在的 NLL 基于**实际使用处**，更聪明也更宽松。——说白了，编译器终于学会"用完就放手"这个道理了。
 
@@ -1072,7 +1148,9 @@ fn main() {
 }
 ```
 
-##### 2.3.5.3 NLL 的改进效果
+#### 2.3.5.3 NLL 的改进效果
+
+NLL（非词法生命周期）让借用的作用域在最后一次使用处结束，所以下面这段代码在现在的 Rust 里可以正常编译。
 
 ```rust
 // 之前的 Rust 版本无法编译这段代码：
@@ -1088,9 +1166,9 @@ fn main() {
 }
 ```
 
-#### 2.3.6 借用与函数参数
+### 2.3.6 借用与函数参数
 
-##### 2.3.6.1 借用作为函数参数
+#### 2.3.6.1 借用作为函数参数
 
 借用传参是最常见的用法：
 
@@ -1117,20 +1195,22 @@ fn modify(s: &mut String) {
 }
 ```
 
-##### 2.3.6.2 从函数返回引用
+#### 2.3.6.2 从函数返回引用
 
 返回引用时，必须确保返回的引用是有效的：
 
 ```rust
 fn main() {
     let s = String::from("hello");
-    let r = first_char(&s);
-    println!("第一个字符: {}", r); // 第一个字符: h
+    // 正确：按值返回 char，而不是返回引用
+    let c = first_char(&s);
+    println!("第一个字符: {:?}", c); // 第一个字符: Some('h')
 }
 
-// 正确：返回指向函数参数引用的引用
-fn first_char(s: &String) -> &char {
-    &s.chars().next().unwrap()
+// 错误写法：chars().next() 产生的是一个临时值，返回 &char 会指向不存在的内存
+// fn first_char(s: &str) -> &char { &s.chars().next().unwrap() } // 编译错误
+fn first_char(s: &str) -> Option<char> {
+    s.chars().next()
 }
 ```
 
@@ -1144,7 +1224,6 @@ fn first_char(s: &String) -> &char {
 
 ---
 
-mermaid
 ```mermaid
 flowchart TD
     A[借用检查规则] --> B[不可变引用 &T]
@@ -1168,13 +1247,13 @@ flowchart TD
 
 ---
 
-### 2.4 生命周期（Lifetime）概述
+## 2.4 生命周期（Lifetime）概述
 
 生命周期是 Rust 最抽象的概念之一，但它其实是让 Rust 实现内存安全的关键！生命周期描述的是**引用有效的作用域**。
 
-#### 2.4.1 什么是生命周期
+### 2.4.1 什么是生命周期
 
-##### 2.4.1.1 生命周期的概念
+#### 2.4.1.1 生命周期的概念
 
 每一个引用都有自己的"生命周期"——它是引用有效的代码区域：
 
@@ -1192,7 +1271,9 @@ fn main() {
 }
 ```
 
-##### 2.4.1.2 生命周期与引用的有效性
+#### 2.4.1.2 生命周期与引用的有效性
+
+生命周期描述引用「能活多久」，编译器靠它检查引用是否始终有效。
 
 ```rust
 fn main() {
@@ -1211,9 +1292,9 @@ fn main() {
 }
 ```
 
-#### 2.4.2 生命周期标注语法
+### 2.4.2 生命周期标注语法
 
-##### 2.4.2.1 'a 语法
+#### 2.4.2.1 'a 语法
 
 生命周期参数用单引号开头：
 
@@ -1239,7 +1320,9 @@ fn main() {
 }
 ```
 
-##### 2.4.2.2 &'a T 的含义
+#### 2.4.2.2 &'a T 的含义
+
+`&'a T` 读作「生命周期为 `'a` 的 `T` 引用」；`'static` 表示能活到程序结束。
 
 ```rust
 // &'a T 表示"生命周期为 'a 的 T 引用"
@@ -1253,7 +1336,9 @@ fn main() {
 }
 ```
 
-##### 2.4.2.3 多生命周期参数
+#### 2.4.2.3 多生命周期参数
+
+函数可以声明多个生命周期参数，用来分别描述不同参数的有效范围。
 
 ```rust
 fn main() {
@@ -1270,11 +1355,13 @@ fn main() {
 }
 ```
 
-#### 2.4.3 生命周期省略规则（Elision，三条规则）
+### 2.4.3 生命周期省略规则（Elision，三条规则）
 
 很多情况下，生命周期可以省略，因为编译器会自动推断。Rust 有三条生命周期省略规则：
 
-##### 2.4.3.1 输入生命周期省略规则
+#### 2.4.3.1 输入生命周期省略规则
+
+生命周期省略规则让常见写法不必手写标注：每个输入引用各获得一个独立生命周期参数。
 
 ```rust
 // 规则1：如果函数有参数引用，参数引用的生命周期成为输出生命周期
@@ -1288,7 +1375,9 @@ fn first_char<'a>(s: &'a str) -> &'a char {
 }
 ```
 
-##### 2.4.3.2 输出生命周期省略规则
+#### 2.4.3.2 输出生命周期省略规则
+
+当只有一个输入生命周期参数时，输出生命周期默认与它相同。
 
 ```rust
 // 规则2：如果函数只有一个输入生命周期参数，它会被赋给所有输出生命周期
@@ -1303,7 +1392,9 @@ fn get_string<'a>(s: &'a String) -> &'a String {
 }
 ```
 
-##### 2.4.3.3 无法省略时的显式标注
+#### 2.4.3.3 无法省略时的显式标注
+
+有多个输入引用又需要返回引用时，必须手写生命周期参数，明确返回的引用来自谁。
 
 ```rust
 // 当编译器无法推断时，必须显式标注
@@ -1329,9 +1420,9 @@ fn get_first<'a>(x: &'a str, _y: &str) -> &'a str {
 }
 ```
 
-#### 2.4.4 结构体中的生命周期
+### 2.4.4 结构体中的生命周期
 
-##### 2.4.4.1 struct &'a str
+#### 2.4.4.1 struct &'a str
 
 当结构体持有引用时，必须标注生命周期：
 
@@ -1353,7 +1444,9 @@ fn main() {
 }
 ```
 
-##### 2.4.4.2 多引用字段的生命周期
+#### 2.4.4.2 多引用字段的生命周期
+
+结构体里存放引用时，需要为每个引用字段声明生命周期参数。
 
 ```rust
 struct MultiRefs<'a, 'b> {
@@ -1374,9 +1467,9 @@ fn main() {
 }
 ```
 
-#### 2.4.5 生命周期子类型
+### 2.4.5 生命周期子类型
 
-##### 2.4.5.1 'a: 'b
+#### 2.4.5.1 'a: 'b
 
 `'a: 'b` 表示"`'a` 至少和 `'b` 一样长"，或者说"`'a` outlives `'b`"：
 
@@ -1402,7 +1495,9 @@ fn main() {
 }
 ```
 
-##### 2.4.5.2 生命周期约束
+#### 2.4.5.2 生命周期约束
+
+`'a: 'b` 表示 `'a` 至少和 `'b` 一样长，用来表达两个生命周期之间的包含关系。
 
 ```rust
 // 生命周期约束：'a: 'b 表示 'a outlives 'b
@@ -1428,9 +1523,9 @@ fn main() {
 }
 ```
 
-#### 2.4.6 静态生命周期
+### 2.4.6 静态生命周期
 
-##### 2.4.6.1 'static 的含义
+#### 2.4.6.1 'static 的含义
 
 `'static` 生命周期意味着"程序整个运行期间都有效"：
 
@@ -1442,7 +1537,9 @@ fn main() {
 }
 ```
 
-##### 2.4.6.2 字符串字面量的 'static 生命周期
+#### 2.4.6.2 字符串字面量的 'static 生命周期
+
+字符串字面量会被直接编进可执行文件，因此它们的生命周期是 `'static`。
 
 ```rust
 fn main() {
@@ -1457,7 +1554,9 @@ fn print_str(s: &'static str) {
 }
 ```
 
-##### 2.4.6.3 const / static 变量的隐含 'static
+#### 2.4.6.3 const / static 变量的隐含 'static
+
+`const` 与 `static` 项不借用局部变量，所以天然具备 `'static` 生命周期。
 
 ```rust
 // const 变量有 'static 生命周期
@@ -1472,7 +1571,7 @@ fn main() {
 }
 ```
 
-##### 2.4.6.4 T: 'static 约束
+#### 2.4.6.4 T: 'static 约束
 
 `T: 'static` 表示"T 不包含任何非 'static 引用"：
 
@@ -1496,7 +1595,6 @@ fn main() {
 }
 ```
 
-mermaid
 ```mermaid
 flowchart TD
     A[生命周期] --> B[生命周期标注 'a]
@@ -1518,15 +1616,17 @@ flowchart TD
 
 ---
 
-### 2.5 高级所有权主题
+## 2.5 高级所有权主题
 
 这一节我们深入探讨 Rust 所有权系统的高级特性：智能指针。所有权系统配合智能指针，让 Rust 能够优雅地处理复杂的内存管理场景。
 
-#### 2.5.1 Rc<T>：单线程引用计数智能指针
+### 2.5.1 Rc<T>：单线程引用计数智能指针
 
 当需要多个所有者时，`Rc<T>`（Reference Counted）就派上用场了！
 
-##### 2.5.1.1 Rc::new 创建引用计数
+#### 2.5.1.1 Rc::new 创建引用计数
+
+`Rc::new` 把一个值放进带引用计数的盒子，之后可以多次共享所有权。
 
 ```rust
 use std::rc::Rc;
@@ -1538,7 +1638,9 @@ fn main() {
 }
 ```
 
-##### 2.5.1.2 Rc::clone 增加引用计数
+#### 2.5.1.2 Rc::clone 增加引用计数
+
+共享所有权要用 `Rc::clone` 而不是 `.clone()`：前者只把计数加一，非常廉价。
 
 ```rust
 use std::rc::Rc;
@@ -1560,7 +1662,9 @@ fn main() {
 } // rc1, rc2, rc3 都离开作用域时，数据才被释放
 ```
 
-##### 2.5.1.3 Rc::downgrade 创建弱引用
+#### 2.5.1.3 Rc::downgrade 创建弱引用
+
+`Rc::downgrade` 产生弱引用，弱引用不增加强计数，因此不会阻止数据被释放。
 
 ```rust
 use std::rc::{Rc, Weak};
@@ -1579,7 +1683,9 @@ fn main() {
 }
 ```
 
-##### 2.5.1.4 Rc::strong_count / weak_count 查询计数
+#### 2.5.1.4 Rc::strong_count / weak_count 查询计数
+
+这两个函数分别查看当前的强引用与弱引用数量，排查引用循环时很有用。
 
 ```rust
 use std::rc::Rc;
@@ -1598,7 +1704,9 @@ fn main() {
 }
 ```
 
-##### 2.5.1.5 Rc<T> 不是 Send + Sync
+#### 2.5.1.5 Rc<T> 不是 Send + Sync
+
+`Rc` 的计数不是原子的，所以不能跨线程使用；多线程场景要用 `Arc`。
 
 ```rust
 use std::rc::Rc;
@@ -1616,11 +1724,13 @@ fn main() {
 
 > 如果需要在多线程间共享所有权，使用 `Arc<T>`！
 
-#### 2.5.2 Arc<T>：原子引用计数（线程安全）
+### 2.5.2 Arc<T>：原子引用计数（线程安全）
 
 `Arc<T>`（Atomic Reference Counted）是 `Rc<T>` 的线程安全版本。
 
-##### 2.5.2.1 Arc::new / Arc::clone
+#### 2.5.2.1 Arc::new / Arc::clone
+
+`Arc` 是原子引用计数版本，接口与 `Rc` 基本一致，但可以安全地跨线程共享。
 
 ```rust
 use std::sync::Arc;
@@ -1637,7 +1747,9 @@ fn main() {
 }
 ```
 
-##### 2.5.2.2 Arc<T> 的 Send + Sync 保证
+#### 2.5.2.2 Arc<T> 的 Send + Sync 保证
+
+因为计数是原子的，`Arc<T>` 在 `T: Send + Sync` 时也是 `Send + Sync`，可以直接丢给线程。
 
 ```rust
 use std::sync::Arc;
@@ -1660,24 +1772,31 @@ fn main() {
 }
 ```
 
-##### 2.5.2.3 Arc::make_mut（获取可变借用）
+#### 2.5.2.3 Arc::make_mut（获取可变借用）
+
+`make_mut` 在强计数为 1 时直接返回内部值的可变引用，否则先克隆一份，实现写时复制。
 
 ```rust
 use std::sync::Arc;
 
 fn main() {
-    let arc = Arc::new(vec![1, 2, 3]);
+    let mut arc = Arc::new(vec![1, 2, 3]);
+    let cloned = arc.clone(); // 现在有两个 Arc 指向同一份数据
     
-    // Arc::make_mut 返回 &mut T
-    // 如果有多个 Arc 引用，会触发克隆（写时复制）
-    let mutable_ref = Arc::make_mut(&mut arc.clone());
+    // Arc::make_mut 返回 &mut T：如果还有别的 Arc 共享这份数据，
+    // 它会先克隆一份出来（写时复制，COW），再返回新副本的可变引用
+    let mutable_ref = Arc::make_mut(&mut arc);
     mutable_ref.push(4);
     
-    println!("修改后: {:?}", arc);
+    println!("arc 修改后: {:?}", arc);        // [1, 2, 3, 4]
+    println!("cloned 不受影响: {:?}", cloned); // [1, 2, 3]
+    println!("cloned 的强引用计数: {}", Arc::strong_count(&cloned)); // 1
 }
 ```
 
-##### 2.5.2.4 Arc::downgrade / Weak<T>
+#### 2.5.2.4 Arc::downgrade / Weak<T>
+
+`Arc` 同样支持弱引用，配合 `Weak` 打破引用循环，用法与 `Rc` 一致。
 
 ```rust
 use std::sync::{Arc, Weak};
@@ -1696,11 +1815,13 @@ fn main() {
 }
 ```
 
-#### 2.5.3 RefCell<T>：内部可变性（单线程）
+### 2.5.3 RefCell<T>：内部可变性（单线程）
 
 `RefCell<T>` 提供了**内部可变性**——在不可变引用的地方提供可变访问。
 
-##### 2.5.3.1 RefCell<T> 的设计目的
+#### 2.5.3.1 RefCell<T> 的设计目的
+
+`RefCell` 把借用检查从编译期挪到运行期，让你在持有不可变绑定时仍能修改内部数据。
 
 ```rust
 use std::cell::RefCell;
@@ -1714,7 +1835,9 @@ fn main() {
 }
 ```
 
-##### 2.5.3.2 borrow() 返回 Ref<T>
+#### 2.5.3.2 borrow() 返回 Ref<T>
+
+`borrow()` 在运行期登记一次不可变借用，返回的 `Ref<T>` 离开作用域时自动注销。
 
 ```rust
 use std::cell::RefCell;
@@ -1734,7 +1857,9 @@ fn main() {
 }
 ```
 
-##### 2.5.3.3 borrow_mut() 返回 RefMut<T>
+#### 2.5.3.3 borrow_mut() 返回 RefMut<T>
+
+`borrow_mut()` 登记一次可变借用，同一时刻只能存在一个。
 
 ```rust
 use std::cell::RefCell;
@@ -1749,7 +1874,9 @@ fn main() {
 }
 ```
 
-##### 2.5.3.4 借用冲突时 panic!
+#### 2.5.3.4 借用冲突时 panic!
+
+违反运行期借用规则不会编译报错，而是在运行时 panic，这是使用 `RefCell` 的主要代价。
 
 ```rust
 use std::cell::RefCell;
@@ -1765,11 +1892,13 @@ fn main() {
 }
 ```
 
-#### 2.5.4 Cell<T>：简单的内部可变性（单线程）
+### 2.5.4 Cell<T>：简单的内部可变性（单线程）
 
 `Cell<T>` 是比 `RefCell<T>` 更轻量的选择，但只适用于 `Copy` 类型。
 
-##### 2.5.4.1 Cell<T> 的设计目的
+#### 2.5.4.1 Cell<T> 的设计目的
+
+`Cell` 允许通过共享引用替换整个值或读写 `Copy` 类型，全程不涉及借用计数。
 
 ```rust
 use std::cell::Cell;
@@ -1786,7 +1915,7 @@ fn main() {
 }
 ```
 
-##### 2.5.4.2 Cell<T> vs RefCell<T>
+#### 2.5.4.2 Cell<T> vs RefCell<T>
 
 | 特性 | Cell<T> | RefCell<T> |
 |------|---------|------------|
@@ -1814,7 +1943,9 @@ fn main() {
 }
 ```
 
-##### 2.5.4.3 RefCell<T> vs Cell<T> 怎么选
+#### 2.5.4.3 RefCell<T> vs Cell<T> 怎么选
+
+只改 `Copy` 小值时 `Cell` 更轻；需要拿到内部引用、操作非 `Copy` 数据时用 `RefCell`。
 
 ```rust
 use std::cell::{Cell, RefCell};
@@ -1833,11 +1964,13 @@ println!("{}", text.borrow());
 
 > 💡 小技巧：`&Cell<T>` 和 `&RefCell<T>` 都实现了 `Copy`，所以可以轻易地在多个地方共享修改能力！
 
-#### 2.5.5 组合模式：Rc<RefCell<T>> / Arc<Mutex<T>> / Arc<RwLock<T>>
+### 2.5.5 组合模式：Rc<RefCell<T>> / Arc<Mutex<T>> / Arc<RwLock<T>>
 
 组合使用这些智能指针可以应对各种复杂场景！
 
-##### 2.5.5.1 Rc<RefCell<T>>：单线程多所有权可变数据
+#### 2.5.5.1 Rc<RefCell<T>>：单线程多所有权可变数据
+
+单线程里既想共享所有权又想修改内容，标准组合是 `Rc<RefCell<T>>`。
 
 ```rust
 use std::cell::RefCell;
@@ -1859,7 +1992,9 @@ fn main() {
 }
 ```
 
-##### 2.5.5.2 Arc<Mutex<T>>：多线程多所有权可变数据
+#### 2.5.5.2 Arc<Mutex<T>>：多线程多所有权可变数据
+
+多线程共享可变数据，标准组合是 `Arc<Mutex<T>>`：`Arc` 负责共享，`Mutex` 负责互斥。
 
 ```rust
 use std::sync::{Arc, Mutex};
@@ -1884,7 +2019,9 @@ fn main() {
 }
 ```
 
-##### 2.5.5.3 Arc<RwLock<T>>：多线程多所有权读共享写独占
+#### 2.5.5.3 Arc<RwLock<T>>：多线程多所有权读共享写独占
+
+读多写少的场景用 `Arc<RwLock<T>>`，多个读者可以同时进入，写者独占。
 
 ```rust
 use std::sync::{Arc, RwLock};
@@ -1920,9 +2057,11 @@ fn main() {
 }
 ```
 
-#### 2.5.6 Mutex<T> 与 RwLock<T>
+### 2.5.6 Mutex<T> 与 RwLock<T>
 
-##### 2.5.6.1 Mutex<T>：互斥锁
+#### 2.5.6.1 Mutex<T>：互斥锁
+
+`Mutex` 用 `lock()` 取得访问权，锁会在 guard 被丢弃时自动释放。
 
 ```rust
 use std::sync::Mutex;
@@ -1940,7 +2079,9 @@ fn main() {
 }
 ```
 
-##### 2.5.6.2 MutexGuard 的作用域与 Drop
+#### 2.5.6.2 MutexGuard 的作用域与 Drop
+
+`MutexGuard` 实现了 `Drop`，所以锁的释放由作用域决定，提前 return 或 panic 都不会让锁泄漏。
 
 ```rust
 use std::sync::Mutex;
@@ -1958,7 +2099,9 @@ fn main() {
 } // 锁在这里自动释放
 ```
 
-##### 2.5.6.3 RwLock<T>：读写锁
+#### 2.5.6.3 RwLock<T>：读写锁
+
+`RwLock` 区分读锁与写锁，多个读可以并存，写必须独占。
 
 ```rust
 use std::sync::RwLock;
@@ -1984,7 +2127,9 @@ fn main() {
 }
 ```
 
-##### 2.5.6.4 read() / write() 方法
+#### 2.5.6.4 read() / write() 方法
+
+`read()` 返回读 guard，`write()` 返回写 guard，两者都会在离开作用域时解锁。
 
 ```rust
 use std::sync::RwLock;
@@ -2008,9 +2153,11 @@ fn main() {
 }
 ```
 
-#### 2.5.7 循环引用与内存泄漏
+### 2.5.7 循环引用与内存泄漏
 
-##### 2.5.7.1 引用循环的形成
+#### 2.5.7.1 引用循环的形成
+
+两个 `Rc` 互相指向对方时，强计数永远归不了零，数据就泄漏了。
 
 ```rust
 use std::rc::Rc;
@@ -2045,7 +2192,9 @@ fn main() {
 }
 ```
 
-##### 2.5.7.2 Weak<T> 弱引用打破循环
+#### 2.5.7.2 Weak<T> 弱引用打破循环
+
+把其中一条边改成 `Weak`，它不参与强计数，循环随之中断。
 
 ```rust
 use std::rc::{Rc, Weak};
@@ -2053,34 +2202,40 @@ use std::cell::RefCell;
 
 struct Node {
     value: i32,
-    next: Option<Rc<RefCell<Node>>>,
-    prev: Option<Weak<RefCell<Node>>>, // 改用 Weak
+    next: Option<Rc<RefCell<Node>>>,   // 强引用指向下一个节点
+    prev: Option<Weak<RefCell<Node>>>, // 弱引用指向上一个节点，避免循环引用
 }
 
 fn main() {
     let node1 = Rc::new(RefCell::new(Node {
         value: 1,
         next: None,
-        prev: Weak::new(),
+        prev: None,
     }));
     
     let node2 = Rc::new(RefCell::new(Node {
         value: 2,
         next: None,
-        prev: Weak::new(),
+        prev: None,
     }));
     
-    // 不增加强引用计数！
+    // next 用强引用：node2 的强引用计数变成 2
     node1.borrow_mut().next = Some(node2.clone());
-    node2.borrow_mut().prev = Rc::downgrade(&node1);
+    // prev 用弱引用：不增加 node1 的强引用计数
+    node2.borrow_mut().prev = Some(Rc::downgrade(&node1));
     
-    // 引用计数：node1 = 1, node2 = 1
-    println!("node1 强引用计数: {}", Rc::strong_count(&node1));
-    println!("node1 弱引用计数: {}", Rc::weak_count(&node1));
+    // node1 强引用计数 = 1（只有 node1 这个变量持有它）
+    println!("node1 强引用计数: {}", Rc::strong_count(&node1)); // 1
+    // node1 弱引用计数 = 1（node2.prev 指向它）
+    println!("node1 弱引用计数: {}", Rc::weak_count(&node1)); // 1
+    // node2 强引用计数 = 2（node2 变量 + node1.next）
+    println!("node2 强引用计数: {}", Rc::strong_count(&node2)); // 2
 }
 ```
 
-##### 2.5.7.3 用 Weak 替代强 Rc 环的一部分
+#### 2.5.7.3 用 Weak 替代强 Rc 环的一部分
+
+树结构里常见的做法是父节点用 `Rc` 持有子节点，子节点用 `Weak` 指回父节点。
 
 ```rust
 use std::rc::{Rc, Weak};
@@ -2088,36 +2243,38 @@ use std::cell::RefCell;
 
 struct TreeNode {
     value: i32,
-    children: Vec<Rc<RefCell<TreeNode>>>,
-    parent: Option<Weak<RefCell<TreeNode>>>, // 用 Weak 避免循环
+    children: Vec<Rc<RefCell<TreeNode>>>,   // 子节点用强引用
+    parent: Option<Weak<RefCell<TreeNode>>>, // 父节点用弱引用，避免循环引用
 }
 
 fn main() {
     let leaf = Rc::new(RefCell::new(TreeNode {
         value: 3,
         children: vec![],
-        parent: Weak::new(),
+        parent: None,
     }));
     
     let branch = Rc::new(RefCell::new(TreeNode {
         value: 2,
         children: vec![leaf.clone()],
-        parent: Weak::new(),
+        parent: None,
     }));
     
-    // leaf 指回 branch，但不增加 branch 的引用计数
+    // leaf 指回 branch，但不增加 branch 的强引用计数
     leaf.borrow_mut().parent = Some(Rc::downgrade(&branch));
     
-    // 可以通过 parent 访问到 branch
+    // 通过弱引用"升级"回强引用，才能访问父节点
     if let Some(parent) = leaf.borrow().parent.as_ref() {
         if let Some(p) = parent.upgrade() {
-            println!("leaf 的父节点值: {}", p.borrow().value);
+            println!("leaf 的父节点值: {}", p.borrow().value); // 2
         }
     }
 }
 ```
 
-##### 2.5.7.4 Rust 不保证无内存泄漏
+#### 2.5.7.4 Rust 不保证无内存泄漏
+
+Rust 只保证内存安全，不保证不泄漏：`Rc` 循环、`mem::forget`、`Box::leak` 都能合法地泄漏内存。
 
 ```rust
 // Rust 不能保证完全没有内存泄漏！
@@ -2148,9 +2305,9 @@ fn main() {
 }
 ```
 
-#### 2.5.8 悬垂引用（Dangling Reference）
+### 2.5.8 悬垂引用（Dangling Reference）
 
-##### 2.5.8.1 悬垂引用的定义
+#### 2.5.8.1 悬垂引用的定义
 
 悬垂引用是指引用了已释放内存的引用：
 
@@ -2162,7 +2319,9 @@ char* dangle() {
 } // s 被销毁，指针指向无效内存
 ```
 
-##### 2.5.8.2 Rust 如何在编译期避免悬垂引用
+#### 2.5.8.2 Rust 如何在编译期避免悬垂引用
+
+下面的函数想返回局部变量的引用，编译器会直接拒绝——这正是 Rust 在编译期避开悬垂引用（use-after-free）的方式。
 
 ```rust
 // Rust 在编译时就禁止悬垂引用！
@@ -2178,7 +2337,6 @@ fn dangle() -> &String {
 
 ---
 
-mermaid
 ```mermaid
 flowchart TD
     A[智能指针] --> B[Rc<T>]
@@ -2216,16 +2374,19 @@ flowchart TD
 
 ---
 
-### 2.6 Deref 与 DerefMut Trait（解引用多态）
+## 2.6 Deref 与 DerefMut Trait（解引用多态）
 
 `Deref` 和 `DerefMut` 是 Rust 提供的两个 trait，它们让你的自定义类型可以像指针一样使用。这就是 Rust 零成本抽象的典型例子！
 
-#### 2.6.1 Deref trait
+### 2.6.1 Deref trait
 
-##### 2.6.1.1 Deref::deref(self) -> &Self::Target
+#### 2.6.1.1 Deref::deref(self) -> &Self::Target
+
+实现 `Deref` 之后，自定义类型就能像指针一样使用 `.` 和方法调用。
 
 ```rust
 use std::fmt::Display;
+use std::ops::Deref;
 
 struct Wrapper<T> {
     value: T,
@@ -2248,19 +2409,19 @@ impl<T> Deref for Wrapper<T> {
 fn main() {
     let wrapper = Wrapper { value: 42 };
 
-    // 通过 Deref 自动解引用：Wrapper -> i32
-    // println! 会自动解引用 wrapper 来匹配 Display trait
+    // Deref 让 *wrapper 等价于 *(wrapper.deref())
     println!("wrapper 通过解引用访问: {}", *wrapper); // 42
+    // 注意：Display 用于 {} 的是 wrapper 本身，而不是解引用后的值
     println!("wrapper 通过 Display trait: {}", wrapper); // 42
 }
 ```
 
-##### 2.6.1.2 自动解引用规则
+#### 2.6.1.2 自动解引用规则
 
 Rust 会在方法调用时自动解引用：
 
 ```rust
-use std::fmt::Display;
+use std::ops::Deref;
 
 struct Wrapper(String);
 
@@ -2279,15 +2440,15 @@ fn print_length(s: &str) {
 fn main() {
     let wrapper = Wrapper(String::from("hello"));
     
-    // 自动解引用：Wrapper -> String -> str
+    // 自动解引用：&Wrapper -> &String -> &str（Deref 强制转换）
     print_length(&wrapper); // 正确！&Wrapper 自动变成 &str
     
-    // 方法调用也自动解引用
+    // 方法调用也会自动解引用：Wrapper 上没有 to_uppercase，就去 String 上找
     println!("{}", wrapper.to_uppercase()); // HELLO
 }
 ```
 
-##### 2.6.1.3 Box<T> 实现 Deref
+#### 2.6.1.3 Box<T> 实现 Deref
 
 `Box<T>` 是最典型的 Deref 实现：
 
@@ -2306,11 +2467,15 @@ fn main() {
 }
 ```
 
-#### 2.6.2 DerefMut trait
+### 2.6.2 DerefMut trait
 
-##### 2.6.2.1 DerefMut::deref_mut(&mut self) -> &mut Self::Target
+#### 2.6.2.1 DerefMut::deref_mut(&mut self) -> &mut Self::Target
+
+`DerefMut` 提供可变解引用，让 `*x = v` 和方法调用拿到 `&mut`。
 
 ```rust
+use std::ops::{Deref, DerefMut};
+
 struct MutWrapper<T> {
     value: T,
 }
@@ -2332,13 +2497,15 @@ impl<T> DerefMut for MutWrapper<T> {
 fn main() {
     let mut wrapper = MutWrapper { value: 5 };
     
-    // 可以通过解引用修改
+    // 因为实现了 DerefMut，所以可以通过解引用直接修改
     *wrapper = 10;
     println!("wrapper: {}", *wrapper); // wrapper: 10
 }
 ```
 
-##### 2.6.2.2 DerefMut 与 Deref 的关系
+#### 2.6.2.2 DerefMut 与 Deref 的关系
+
+`DerefMut` 以 `Deref` 为前提，想实现它必须同时实现 `Deref`。
 
 ```rust
 // 要实现 DerefMut，必须先实现 Deref
@@ -2352,9 +2519,13 @@ impl<T> DerefMut for MutWrapper<T> {
 } // 隐含 Deref 的实现
 ```
 
-##### 2.6.2.3 自动解引用的可变规则
+#### 2.6.2.3 自动解引用的可变规则
+
+要让方法拿到 `&mut self`，绑定本身必须可变，而且解引用链上的每一层都要实现 `DerefMut`。
 
 ```rust
+use std::ops::{Deref, DerefMut};
+
 struct Counter {
     count: u32,
 }
@@ -2382,17 +2553,22 @@ impl DerefMut for Counter {
 fn main() {
     let mut counter = Counter { count: 0 };
     
-    // 自动解引用调用可变方法
     counter.increment();
     println!("count: {}", *counter); // count: 1
+
+    // DerefMut 也让我们能把 Counter 当成 u32 直接赋值
+    *counter = 100;
+    println!("count: {}", *counter); // count: 100
 }
 ```
 
-#### 2.6.3 Deref 强制转换（Deref Coercion）
+### 2.6.3 Deref 强制转换（Deref Coercion）
 
 Deref 强制转换是 Rust 的语法糖，让类型可以自动转换：
 
-##### 2.6.3.1 &String → &str
+#### 2.6.3.1 &String → &str
+
+把 `&String` 传给需要 `&str` 的参数可以自动转换，这就是解引用强制转换。
 
 ```rust
 fn takes_str(s: &str) {
@@ -2409,7 +2585,9 @@ fn main() {
 }
 ```
 
-##### 2.6.3.2 &Vec<T> → &[T]
+#### 2.6.3.2 &Vec<T> → &[T]
+
+同理，`&Vec<T>` 在需要 `&[T]` 的位置会自动变成切片引用。
 
 ```rust
 fn takes_slice(s: &[i32]) {
@@ -2424,9 +2602,13 @@ fn main() {
 }
 ```
 
-##### 2.6.3.3 自定义类型的 Deref 强制转换
+#### 2.6.3.3 自定义类型的 Deref 强制转换
+
+为自己的类型实现 `Deref`，它也能享受同样的自动转换。
 
 ```rust
+use std::ops::Deref;
+
 struct MyBox<T>(T);
 
 impl<T> Deref for MyBox<T> {
@@ -2441,17 +2623,17 @@ fn main() {
     let box_str = MyBox(String::from("hello"));
     let box_i32 = MyBox(42);
     
-    // 自定义类型也可以 Deref 强制转换
-    let s: &String = &box_str; // MyBox<String> -> &String
-    let i: &i32 = &box_i32; // MyBox<i32> -> &i32
+    // &MyBox<String> 会被 Deref 强制转换成 &String
+    let s: &String = &box_str;
+    // &MyBox<i32> 会被转换成 &i32
+    let i: &i32 = &box_i32;
     
-    println!("s: {}, i: {}", s, i);
+    println!("s: {}, i: {}", s, i); // s: hello, i: 42
 }
 ```
 
 ---
 
-mermaid
 ```mermaid
 flowchart TD
     A[Deref trait] --> B[解引用操作 *]
@@ -2494,4 +2676,3 @@ flowchart TD
 
 **下一章预告：**
 第三章"复合数据类型"将带你学习 Rust 中的高级数据类型：字符串、元组、数组、结构体和枚举。这些是构建复杂程序的基础！准备好了吗？🚀
-

@@ -39,6 +39,12 @@ Java 8 是 2014 年发布的，距今已经超过 10 年。但它至今仍是企
 想象一下：你接手了一辆 2014 年的车，要把它升级成 2026 年的智能汽车。发动机、底盘、线路全都不一样了，你怎么改？大部分企业面临的就是这种困境。代码几百万行，依赖几十个第三方库，升级一次需要 3-6 个月甚至更久，期间还不能停止服务。
 
 ```java
+import java.util.ArrayList;
+import java.util.List;
+import java.sql.Connection;
+import java.sql.Statement;
+import java.sql.ResultSet;
+
 // 这是一个典型的 Java 8 遗留代码场景
 // 业务逻辑已经稳定运行多年，没人敢动
 public class OldBackendService {
@@ -58,7 +64,12 @@ public class OldBackendService {
         conn.close();
         return users;
     }
-    
+
+    // 省略具体实现：真实项目里这里会从连接池取一个连接
+    private Connection getConnection() {
+        throw new UnsupportedOperationException("示例代码：请替换为真实的连接获取逻辑");
+    }
+
     // 谁知道这段代码有多少地方在调用？
     // 万一改了出问题，谁负责？
 }
@@ -255,7 +266,7 @@ public class SequenceCollectionDemo {
         // Java 21 引入了 SequencedCollection 接口
         // List、Deque 都实现了它
         
-        var list = java.util.ArrayList.<String>of("苹果", "香蕉", "樱桃");
+        var list = java.util.List.of("苹果", "香蕉", "樱桃");
         
         // 新方法：getFirst()、getLast()
         System.out.println("第一个：" + list.getFirst());   // 苹果
@@ -266,7 +277,7 @@ public class SequenceCollectionDemo {
     }
 }
 
-// 3. 模式匹配 for switch（预览版在 Java 21 成熟）
+// 3. 模式匹配 for switch（在 Java 21 转正，成为正式特性）
 public class PatternMatchingSwitchDemo {
     static String describe(Object obj) {
         // switch 不仅能匹配类型，还能匹配条件
@@ -288,20 +299,23 @@ public class PatternMatchingSwitchDemo {
     }
 }
 
-// 4. String Templates（字符串模板，Java 21 预览版）
-// 解释：更安全的字符串拼接，不用担心注入攻击
+// 4. String Templates（字符串模板）——注意：这个特性已经被撤回了！
+// Java 21 首次预览（JEP 430），Java 22 二次预览（JEP 459），
+// 到 Java 23（JEP 465）直接被撤回，今天的 JDK 里已经没有它了。
 public class StringTemplateDemo {
     public static void main(String[] args) {
-        // Java 21 预览特性，需要 --enable-preview 启用
-        // String name = "World";
-        // String greeting = STR."Hello, \{name}!";
-        // System.out.println(greeting);  // Hello, World!
-        
-        System.out.println("=== 字符串模板（需要 --enable-preview）===");
-        System.out.println("示例代码：");
-        System.out.println("    String name = \"Java\";");
-        System.out.println("    String result = STR.\"Hello, \\\\{name}!\";");
-        System.out.println("    // 输出：Hello, Java!");
+        // 撤回前那套 STR."..." 语法今天已经编译不过了，别再照抄。
+        // 现在应该用 String.format / formatted() / 文本块来拼接：
+        String name = "World";
+        String greeting = String.format("Hello, %s!", name);
+        System.out.println(greeting); // Hello, World!
+
+        // 多行内容用文本块 + formatted()
+        String multi = """
+                你好，%s！
+                今天是学习 Java 的好日子。
+                """.formatted(name);
+        System.out.print(multi);
     }
 }
 ```
@@ -330,6 +344,10 @@ public class StringTemplateDemo {
 **1. 现代语法让你写代码更爽**
 
 ```java
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 // 对比一下 Java 8 和 Java 17 的代码风格
 
 // Java 8：创建一个用户列表，筛选年龄大于 18 的，取名字
@@ -422,6 +440,10 @@ Java 8 的知识不仅有用，而且非常重要。原因：
    学习 Java 8 能帮你理解大量开源项目的设计思路。
 
 ```java
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 // Java 8 的 Lambda 和 Stream 是 Java 升级的基础
 // 不管你用 8、11、17 还是 21，这些都逃不掉
 
@@ -495,6 +517,8 @@ class User {
 **对比示例**：
 
 ```java
+import java.util.Objects;
+
 // ===== Java 8 vs Java 17/21 代码对比 =====
 
 // 场景：定义一个不可变的数据对象
@@ -572,7 +596,7 @@ class CompareDemo {
 
 Java 的版本策略有点复杂，你需要理解两个关键概念：**LTS** 和 **非 LTS**。
 
-### 3.3.1 LTS（长期支持版）：8、11、17、21——企业首选
+### 3.3.1 LTS（长期支持版）：8、11、17、21、25——企业首选
 
 **LTS** 是 Long-Term Support 的缩写，中文叫"长期支持版"。
 
@@ -587,8 +611,8 @@ timeline
                : Sealed Class、Pattern Matching
     2023年9月 : Java 21 发布（LTS）
                : Virtual Threads、Record 完善
-    2026年9月 : Java 25 预计发布（LTS）
-               : 敬请期待...
+    2025年9月 : Java 25 发布（LTS）
+               : Scoped Values、紧凑源文件转正
 ```
 
 **LTS 版本的特点**：
@@ -606,8 +630,9 @@ timeline
 - Java 11（2018）——支持到 2026 年
 - Java 17（2021）——支持到 2029 年
 - Java 21（2023）——支持到 2031 年
+- Java 25（2025）——**当前最新 LTS**，支持到 2033 年
 
-> **小贴士**：Oracle 有一个"两张发布线"策略——每两年发布一个 LTS 版本，期间每 6 个月发布一个非 LTS 版本。所以 LTS 版本是"每隔一个"。
+> **小贴士**：Oracle 采用"两条发布线"策略——每个 LTS 之后，每 6 个月发布一个非 LTS 版本，大约每两年（4 个版本）再出一个 LTS。所以从 Java 11 起，LTS 依次是 11、17、21、25，中间各夹着 3 个非 LTS 版本。
 
 ### 3.3.2 非 LTS：每 6 个月发布一个新版本——尝鲜专用
 
@@ -618,8 +643,9 @@ graph LR
     A[Java 21 LTS] --> B[Java 22<br/>2024年3月]
     B --> C[Java 23<br/>2024年9月]
     C --> D[Java 24<br/>2025年3月]
-    D --> E[Java 25<br/>2025年9月<br/>LTS候选?]
-    E --> F[...]
+    D --> E[Java 25<br/>2025年9月<br/>LTS]
+    E --> F[Java 26<br/>2026年3月]
+    F --> G[...]
 ```
 
 **非 LTS 版本的特点**：
@@ -637,13 +663,13 @@ graph LR
 // 假设你在 Java 22 中使用了一个预览特性
 // 万一这个特性在 Java 23 中被改了呢？
 
-// Java 22 的预览特性：String Templates（字符串模板）
-// 用法可能是这样（以实际预览语法为准）：
-String name = "World";
-String greeting = STR."Hello, \{name}!";  // 需要 --enable-preview
+// 真实案例：String Templates（字符串模板）
+// Java 21 首次预览（JEP 430），Java 22 二次预览（JEP 459），
+// 到 Java 23（JEP 465）直接被撤回——这套语法从 JDK 里消失了。
+// 如果你当初把它写进了生产代码，升级 JDK 时就要全部重写！
 
-// 到了 Java 23，如果语法改了，你得重写代码！
-// 所以预览特性不适合生产环境
+// 所以：预览特性只适合学习和评估，不适合生产环境。
+// 一个特性只有在 JEP 上标为 "Final" 之后，才值得依赖。
 ```
 
 **我的建议**：

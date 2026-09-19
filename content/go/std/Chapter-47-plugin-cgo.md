@@ -61,12 +61,12 @@ plugin 包的精髓在于**符号解析**。当你用 `go build -buildmode=plugi
 
 ```mermaid
 flowchart TB
-    subgraph 插件二进制 ["插件 binary（.so/.dll）"]
+    subgraph pb["插件二进制（.so / .dll）"]
         S1["Symbol: SayHello<br/>地址: 0x7f8a2b1c"]
         S2["Symbol: Version<br/>地址: 0x7f8a2b1d"]
     end
-    subgraph 主程序 ["主程序"]
-        L["Lookup&#40;\"SayHello\"&#41;"] --> R["解析符号表"]
+    subgraph mp["主程序"]
+        L["Lookup('SayHello')"] --> R["解析符号表"]
         R --> A["找到地址 0x7f8a2b1c"]
         A --> C["类型断言为 func()"]
         C --> Call["调用函数"]

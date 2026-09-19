@@ -516,21 +516,21 @@ func main() {
 
 ### 8.3.3 条件编译
 
-使用构建标签可以实现条件编译。
+使用构建标签（build tag）可以实现条件编译：满足标签的文件才会被编进程序。
 
 ```go
-
-// +build linux
+//go:build linux
 
 package main
 
 import "fmt"
 
 func main() {
-    fmt.Println("只在 Linux 上编译") // 只在 Linux 上编译
+    fmt.Println("只在 Linux 上编译")
 }
-
 ```
+
+> 两个细节要注意：一是构建标签必须写在**文件最前面**，并且和 `package` 之间要空一行；二是 Go 1.17 起推荐使用 `//go:build linux` 这种写法（旧的 `// +build linux` 仍然可用但已过时，两者也可以同时出现以兼容老工具链）。因为没有匹配到当前系统，这个示例在 macOS/Windows 上**编译不出任何文件**，报 `build constraints exclude all Go files` 是正常的。
 
 
 ## 本章小结
@@ -558,4 +558,3 @@ func main() {
    - 短路求值：`&&` 和 `||` 的优化
    - 分支预测：CPU 和编译器优化
    - 条件编译：使用构建标签
-

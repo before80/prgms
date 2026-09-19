@@ -41,6 +41,14 @@ draft = false
 .hidden { border-style: hidden; }    /* 隐藏边框 */
 ```
 
+> ⚠️ **兄弟俩的区别 + 一个必知细节：**
+> - `none`：没有边框，而且如果同时设置了 `border-width`，宽度会被**计算成 0**。
+> - `hidden`：同样看不见，但在**表格边框合并**（`border-collapse: collapse`）时，
+>   `hidden` 的优先级更高，能把相邻单元格的边框"压下去"。
+> - 关键点：**边框能不能显示出来，取决于 `border-style`，不取决于 `border-width`**。
+>   只写 `border-width: 5px` 而没写 style 的话，什么都不会出现——因为 `border-style`
+>   的初始值就是 `none`，宽度会被当成 0。这就是"我明明设了宽度却没边框"的元凶。
+
 ### 13.1.3 border-color——默认 currentColor
 
 ```css
@@ -254,6 +262,31 @@ source、slice、width、outset、repeat 可以合并成一行搞定：
 }
 ```
 
+### 13.5.6 使用 outline 的三个注意点
+
+```css
+/* 1. 浏览器默认给键盘聚焦的元素画 outline（通常是蓝色光圈），
+      这是无障碍功能的一部分，别简单粗暴地 outline: none 掉它。 */
+:focus-visible {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
+/* 2. 想换个不止于"实线"的样式，outline-style 还支持 auto
+      （浏览器自己画的原生聚焦样式，形状各家不同）。 */
+input:focus {
+  outline-style: auto;
+}
+
+/* 3. outline 是"围着元素画一圈"，形状由浏览器决定：
+      现代浏览器会跟着 border-radius 一起走圆角（Chrome 94+、Firefox 88+）。
+      它不像 border 那样占位置，也不会被元素自身的 overflow 裁剪掉。 */
+```
+
+> 💡 **为什么 outline 不占空间？** 因为它是**绘制**在元素边界之外的，不参与盒模型计算。
+> 也正因如此，`outline` 常常被用来做"不影响布局的高亮"——排查布局问题时给元素加个
+> `outline: 2px solid red`，比加 `border` 安全得多：不会把周围的元素挤走。
+
 ---
 
 ## 本章小结
@@ -278,4 +311,3 @@ source、slice、width、outset、repeat 可以合并成一行搞定：
 ### 本章结束！
 
 恭喜你完成了第十三章的学习！边框、圆角、阴影、轮廓……你已经学会了给元素化妆的多种手段。接下来可以去探索更多 CSS 技能点，或者直接动手做点小项目练练手！
-

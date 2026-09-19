@@ -137,6 +137,36 @@ find /home -type f \( -name "*.txt" -o -name "*.md" \)
 find /home -type f -not -name ".*"
 ```
 
+### 8.2.6 find -exec：找到后顺手执行命令
+
+找到了文件，接下来往往还要**对它们做点什么**（改权限、删除、统计大小……）。这时就要用 `-exec` 或 `-delete`，不需要再手动把结果一行行抄下来。
+
+```bash
+# -exec ... \;  ：对每个找到的文件执行一次命令（\; 是结束标记，必须转义）
+find /tmp -type f -name "*.tmp" -exec rm {} \;
+
+# -exec ... +  ：把多个文件名一次交给命令（更快，推荐）
+find /var/log -type f -name "*.log" -exec gzip {} +
+
+# -delete：直接删除找到的文件（比 -exec rm 更安全也更高效）
+find /tmp -type f -name "*.tmp" -delete
+
+# -exec 里用 -i 会逐个确认（交互式删除）
+find . -type f -name "*.bak" -ok rm {} \;
+```
+
+> **`{}` 和 `\;` 的含义**：`{}` 是"当前文件"的占位符，`\;` 告诉 find"命令到此结束"。写成 `-exec rm {} +` 时，find 会把尽量多的文件名**一次性**附在命令后面（相当于 `rm a b c ...`），比每个文件启动一次进程快得多。
+
+> **⚠️ 顺序陷阱**：`find . -name "*.tmp" -delete` 里，**`-delete` 必须放在最后**。如果写成 `-delete -name "*.tmp"`，它会在筛选之前就把所有文件删掉。`-delete` 还会自动开启 `-depth`（先处理子目录再处理父目录）。
+
+> **文件名里有空格/换行怎么办**：别用 `find ... | xargs rm`（会被空格拆散），要用 NUL 分隔：
+> ```bash
+> find . -type f -name "*.log" -print0 | xargs -0 rm -v
+> # 或者干脆用 -exec ... +，天然支持特殊字符
+> ```
+
+> **想先"看看会删什么"再动手**：把最后一步换成 `-print` 或 `-ls`，确认无误后再改成 `-delete`。这是运维里最省心的自保习惯。
+
 ---
 
 ## 8.3 locate 快速查找文件（基于数据库）
@@ -221,6 +251,12 @@ which -a python
 > # 如果没有安装，输出空白
 > # 如果安装了，显示路径
 > ```
+
+> **`which` 在脚本里不可靠**：`which` 只看 `PATH` 里的可执行文件，**认不出别名、函数和 Shell 内置命令**（比如 `which cd` 在有些系统上什么都输出不了）。脚本里判断一个命令是否存在，应该用：
+> ```bash
+> command -v git >/dev/null 2>&1 && echo "git 已安装"
+> ```
+> 想看清楚"这个命令到底是什么"，用下一节的 `type` 最准。
 
 ---
 
@@ -413,6 +449,10 @@ grep -E "error|warning|critical" log.txt
 
 `egrep` = grep with **E**xtended regex，支持**扩展正则表达式**，比普通 grep 更强大。
 
+> ⚠️ **先把这件事说清楚**：`egrep` 和 `fgrep` 已经被弃用了。它们最早只是 shell 脚本包装器，后来被合并成 `grep -E` / `grep -F`，POSIX 标准里已经删除了这两个命令名。GNU grep 目前仍然能识别，但会打印 `egrep is obsolescent; using grep -E` 这样的警告，**未来版本可能直接移除**。
+>
+> 所以：**新脚本一律写 `grep -E` 和 `grep -F`**。本节保留 `egrep` 的写法，是因为老脚本和老教材里到处都能见到它，你需要看得懂。
+
 ### 8.8.1 egrep "word1|word2"：多条件
 
 ```bash
@@ -450,7 +490,49 @@ fgrep "192.168.1.1" access.log
 fgrep "example.com (tm)" file.txt
 ```
 
-> 小技巧：大多数情况下用 `grep -F` 代替 `fgrep`，效果一样。
+> 小技巧：凡是 `fgrep`，都可以直接换成 `grep -F`，效果完全一样，而且不会收到弃用警告。同理，`egrep` → `grep -E`。
+
+### 8.9.1 三种"正则方言"：BRE、ERE、PCRE
+
+初学者最容易被绕晕的地方就是"为什么 `+` 有时管用、有时不管用"。原因在于 `grep` 的方言：
+
+| 方言 | 触发方式 | 特点 | 典型用途 |
+|------|----------|------|----------|
+| BRE（基本正则） | `grep`（默认） | `+ ? { } ( ) \|` 都是普通字符，要加 `\` 才有特殊含义 | POSIX 标准环境 |
+| ERE（扩展正则） | `grep -E` | `+ ? { } ( ) \|` 直接就是元字符 | 日常使用（推荐） |
+| PCRE（兼容 Perl） | `grep -P` | 支持 `\d`、`\w`、`\s`、`\b`、环视等 | 复杂匹配（GNU grep 专属） |
+
+```bash
+# 同一个"一个或多个数字"，在两种方言下的写法
+grep "[0-9]\{1,\}" file.txt      # BRE：大括号要转义（这种写法很啰嗦）
+grep -E "[0-9]{1,}" file.txt     # ERE：直接写，清爽得多
+grep -E "[0-9]+" file.txt        # 更常见
+
+# PCRE 才有的简写
+grep -P "\d{3}-\d{4}" phone.txt
+```
+
+记住一句话：**默认的 `grep` 是 BRE，写 `+`、`?`、`|`、`{}`、`()` 时要加 `\` 或干脆改用 `-E`**。这也是很多"正则明明写的对，执行却没结果"的根源。
+
+### 8.9.2 现代替代品：ripgrep 与 fd
+
+`grep -r` 和 `find` 在大型代码库上偏慢，语法也不够顺手。如今开发者的日常工具箱里通常还会放两个用 Rust 写的工具：
+
+```bash
+# 安装
+sudo apt install ripgrep fd-find     # Ubuntu/Debian
+brew install ripgrep fd              # macOS
+
+# rg：递归搜索（默认就忽略 .gitignore 里的文件，速度极快）
+rg "TODO" --type java
+rg -n "class\s+\w+" -g '*.java'
+
+# fd：更友好的 find（语法更短，默认忽略隐藏目录与 .gitignore）
+fd -e md -t f 'Chapter'
+fd -x rm {}          # 配合 -x 直接对结果执行命令
+```
+
+它们不是要取代 `grep`/`find`——**服务器上未必装了它们**，`grep` 和 `find` 才是"到哪都能用"的通用工具。但在自己的开发机上，这两个能省下大量时间。
 
 ---
 
@@ -605,8 +687,9 @@ grep -v "^$" file.txt
 | 命令 | 作用 | 特点 |
 |------|------|------|
 | `grep` | 文本搜索 | 最常用，功能强大 |
-| `egrep` | 扩展正则搜索 | 支持更多正则语法 |
-| `fgrep` | 快速字符串匹配 | 不支持正则，速度快 |
+| `grep -E` | 扩展正则搜索 | 等价于已弃用的 `egrep`，推荐写法 |
+| `grep -F` | 固定字符串匹配 | 等价于已弃用的 `fgrep`，不解析正则，最安全 |
+| `grep -P` | PCRE 正则 | 支持 `\d`、`\b`、环视等，GNU grep 专属 |
 
 **常用 grep 选项：**
 
@@ -621,6 +704,18 @@ grep -v "^$" file.txt
 -C  # 显示前后行
 -c  # 统计匹配行数
 ```
+
+还有两个不常用但关键时刻能救命的选项：
+
+```bash
+# 只显示"匹配了什么"，而不是整行（-o = only-matching）
+grep -oE "[0-9]{1,3}(\.[0-9]{1,3}){3}" access.log
+
+# -L = files-without-match：列出"不包含某词"的文件
+grep -L "TODO" *.md
+```
+
+最后要记住的是 **grep 的退出码**，写脚本时几乎一定会用到：`0` 表示找到了匹配，`1` 表示没有匹配，`2` 表示出错（比如文件不存在）。很多脚本里的 `if grep -q ...; then` 就是靠这个语义工作的——注意 **"没找到"也属于"命令执行成功"，只是返回 1**，别把 1 和"命令失败"混为一谈。
 
 **正则表达式速查表：**
 

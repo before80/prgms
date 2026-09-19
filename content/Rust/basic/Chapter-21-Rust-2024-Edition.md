@@ -30,7 +30,7 @@ timeline
     2021 : Rust 2021 Edition
            "闭包捕获优化" —— 更聪明的闭包
     2024 : Rust 2024 Edition
-           "我们终于不用写那么多 turbofish 了！" —— 泛型简化
+             "let 链、unsafe extern、更严格的 unsafe 规则" —— 细节打磨
 ```
 
 **Rust 2015（1.0）**：元年开始。Rust 终于从"每周撕裂自己一次"的频繁发布节奏中稳定下来，推出了 1.0。这是 Rust 作为"靠谱语言"的第一年。
@@ -39,7 +39,7 @@ timeline
 
 **Rust 2021**：相对保守的一个 Edition，但对细节的打磨堪称完美。闭包现在只捕获真正用到的变量，而不是把整个世界都塞进口袋。同时，Rust 2021 还让闭包的 capture 行为更符合直觉——默认按引用捕获，只有必要时才按值捕获。
 
-**Rust 2024**：2024 Edition 是 Rust 有史以来最大规模的 Edition 之一。它不是那种"哇，功能多到爆炸"的 Edition，而是"我们把过去五年大家抱怨最多的小痛点全修了"的 Edition。`let` 链、泛型 trait 中的异步方法、gen 块语法（nightly 中）……这简直是一场针对"语言设计强迫症"的集体治疗。
+**Rust 2024**：2024 Edition 是 Rust 有史以来规模最大的 Edition 之一。它不是那种"哇，功能多到爆炸"的 Edition，而是"我们把过去五年大家抱怨最多的小痛点全修了"的 Edition：`let` 链、`unsafe extern`、RPIT 生命周期捕获规则调整、`unsafe_op_in_unsafe_fn`、尾表达式的临时值作用域调整……这简直是一场针对"语言设计强迫症"的集体治疗。（提醒：trait 中的 `async fn` 是 Rust 1.75 稳定的语言能力，并不属于 Edition 2024 的专属特性。）
 
 > 每一次 Edition 都不是为了破坏你的代码，而是为了让新代码更优雅。旧代码？Rust 团队说了："继续跑，别担心，我们没那么狠。"
 
@@ -123,13 +123,14 @@ fn main() {
     let condition = true;
 
     // 噔噔！let 链来啦！
-    // 语法：let 模式 = 表达式 if 条件 && let 模式 = 表达式 if 条件 ...
-    if let Some(x) = some_value if x > 10 && let Some(y) = another if y > 50 {
+    // 语法：let 模式 = 表达式 && 布尔条件 && let 模式 = 表达式 && ...
+    // 注意：一个 let 后面如果还想追加条件，接的是 `&&`，不是 `if`。
+    if let Some(x) = some_value && x > 10 && let Some(y) = another && y > 50 {
         println!("🎉 宝藏到手！x = {}, y = {}", x, y);
     }
 
     // 结合普通布尔条件一起用，更香！
-    if condition && let Some(z) = some_value if z > 20 {
+    if condition && let Some(z) = some_value && z > 20 {
         println!("z = {} 也符合条件哦！", z);
     }
 }
@@ -140,9 +141,9 @@ fn main() {
 **let 链的规则（记住这些，你就掌握了 let 链的武林秘籍）：**
 
 1. `let PATTERN = EXPRESSION` 是基本单位
-2. `if CONDITION` 可选，放在任何位置
-3. 用 `&&` 串联多个 let 或条件
-4. 整个链的"成功"需要所有 `let` 都匹配成功，所有 `if` 条件都为 true
+2. 各单位之间用 `&&` 串联；`&&` 的左右两侧既可以是 `let` 模式匹配，也可以是普通的布尔表达式
+3. let 链必须**以 `let` 开头**——纯布尔条件单独写出来只是普通的 `&&` 表达式，不叫 let 链
+4. 整个链"成功"的条件：所有 `let` 都匹配成功，并且所有布尔条件都为 `true`
 
 ```rust
 fn main() {
@@ -192,7 +193,9 @@ fn main() {
 
     for config in configs {
         // let 链让配置验证变成单行艺术品
-        if let Some(host) = config.host
+        // 注意：host 是 String（非 Copy），这里用 &config.host 借用，
+        // 否则 config 会被部分移动，下面 else 分支里的 {:?} 就用不了了。
+        if let Some(host) = &config.host
             && let Some(port) = config.port
             && port > 1000
             && config.debug
@@ -290,8 +293,9 @@ fn main() {
     // Rust 2024：直接在模式中用 & 简化引用匹配
 
     for (i, num_opt) in numbers.iter().enumerate() {
+        // num_opt 是 &Option<i32>，匹配 Some(n) 之后 n 是 &i32，解引用一次就够了
         match num_opt {
-            Some(n) if **n > 2 => {  // 双重解引用，眼睛好疼
+            Some(n) if *n > 2 => {
                 println!("位置 {}: 大数 {}", i, n);
             }
             Some(n) => {
@@ -306,7 +310,7 @@ fn main() {
     // 更优雅的方式：使用 match 表达式直接处理
     let transformed: Vec<i32> = numbers.iter()
         .map(|n| match n {
-            Some(n) if *n > 2 => n * 10,
+            Some(n) if *n > 2 => *n * 10,
             Some(n) => *n,
             None => 0,
         })
@@ -348,9 +352,11 @@ trait AsyncMyTrait {
 
 **Rust 1.75+：async trait 方法稳定化 —— 异步 Rust 站起来！**
 
-```rust
+> ⚠️ 本示例依赖 `tokio`（提供 `#[tokio::main]` 运行时）与 `futures`（提供 `join_all`）两个 crate，需要在 `Cargo.toml` 中声明后才能运行，因此标记为 `ignore`。**注意：trait 里写 `async fn` 本身是 Rust 1.75 起就有的标准库能力，与这两个外部依赖无关。**
+
+```rust,ignore
 // Rust 1.75+ 终于支持直接在 trait 里写 async fn 了！
-// 这段代码在 Rust 1.75 稳定版中可以完美运行
+// 这段代码需要在 Cargo.toml 中声明 tokio、futures 两个依赖
 
 use futures::future::join_all;
 use std::future::Future;
@@ -425,29 +431,39 @@ async fn main() {
 
 **async trait 的对象安全 —— dyn AsyncTrait：**
 
+> ⚠️ 这里要先纠正一个非常常见的误解：**trait 里的 `async fn` 默认并不对象安全（dyn compatible）**。
+> Rust 1.75 稳定的只是"trait 里可以写 `async fn`"（RPITIT），这类 trait 不能直接写成 `dyn AsyncClone`，
+> 编译器会报 `the trait ... is not dyn compatible`。想在 trait 对象上使用异步方法，
+> 必须手动把返回类型写成 `Pin<Box<dyn Future<...>>>`——这也是目前唯一稳定的做法：
+
 ```rust
 use std::future::Future;
+use std::pin::Pin;
 
-// async fn 在 trait 中默认是对象安全的（前提是没有泛型参数）
 trait AsyncClone {
-    async fn clone_boxed(&self) -> Box<dyn AsyncClone + Send>;
+    // 手写返回类型后，trait 重新变得对象安全
+    fn clone_boxed<'a>(
+        &'a self,
+    ) -> Pin<Box<dyn Future<Output = Box<dyn AsyncClone + Send + 'a>> + Send + 'a>>;
 }
 
-// 用 Pin<Box<...>> 来处理 self 的生命周期
 struct Cloner;
 
 impl AsyncClone for Cloner {
-    async fn clone_boxed(&self) -> Box<dyn AsyncClone + Send> {
-        Box::new(Cloner)
+    fn clone_boxed<'a>(
+        &'a self,
+    ) -> Pin<Box<dyn Future<Output = Box<dyn AsyncClone + Send + 'a>> + Send + 'a>> {
+        Box::pin(async move { Box::new(Cloner) as Box<dyn AsyncClone + Send> })
     }
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let original = Cloner;
-    let cloned: Box<dyn AsyncClone + Send> = original.clone_boxed().await;
-    println!("🧬 克隆完成！对象已生成");
-    // 输出: 🧬 克隆完成！对象已生成
+    // 这里不接异步运行时，只构造出 Future 验证类型
+    let future = original.clone_boxed();
+    drop(future);
+    println!("🧬 已构造出 Pin<Box<dyn Future<Output = Box<dyn AsyncClone + Send>>>>");
+    println!("   真正执行它需要一个异步运行时，例如 tokio 或 futures::executor::block_on");
 }
 ```
 
@@ -568,12 +584,13 @@ impl Transform for Transformer {
 fn main() {
     let t = Transformer;
     let result = t.transform(42);
-    println!("{}", result);
-    // 输出: 📝 已转换: 42
+    // 返回类型是 impl std::fmt::Debug，所以这里只能用 {:?}
+    println!("{:?}", result);
+    // 输出: "📝 已转换: 42"（String 的 Debug 输出带引号）
 
     let result2 = t.transform("hello rust");
-    println!("{}", result2);
-    // 输出: 📝 已转换: hello rust
+    println!("{:?}", result2);
+    // 输出: "📝 已转换: hello rust"
 }
 ```
 
@@ -583,18 +600,19 @@ fn main() {
 
 **什么是生成器？** 生成器就是一个可以在 `yield` 处暂停的函数。当你再次调用它时，它会从上次暂停的地方继续执行。
 
-**⚠️ 警告：`gen { ... }` 语法目前仍为 Nightly 特性，需要 `#![feature(generators)]`，尚未稳定！以下代码需要在 nightly 编译器下运行。**
+> ⚠️ 警告：生成器（现在官方叫**协程 / Coroutine**）仍是 Nightly 特性，尚未稳定，语法也随时可能变化！
+>
+> 注意：老的 `#![feature(generators)]`、`std::ops::Generator` 已经被改名并从编译器中**移除**（照抄旧写法会直接报 `feature has been removed`）。现在叫 `#![feature(coroutines)]` / `std::ops::Coroutine`，`gen { ... }` 块也换成了 `#[coroutine] || { ... }` 闭包写法。下面的代码已按当前 nightly 的写法更新，并且标记为 `ignore`。
 
-```rust
-#![feature(generators)]
-#![feature(generator_trait)]
+```rust,ignore
+#![feature(coroutines, coroutine_trait, stmt_expr_attributes)]
 
-use std::ops::Generator;
+use std::ops::{Coroutine, CoroutineState};
 use std::pin::Pin;
 
 fn main() {
-    // 使用 gen 块语法糖创建生成器
-    let mut generator = gen {
+    // 使用 #[coroutine] 闭包创建协程
+    let mut generator = #[coroutine] || {
         println!("🔄 生成器启动！");
         yield 1;  // 暂停在这里，返回 1
         println!("🔄 继续执行...");
@@ -604,39 +622,36 @@ fn main() {
         "完成！"  // 最终返回值
     };
 
-    // 通过 Generator trait 的 resume 方法来驱动生成器
-    // 注意：需要用 Pin 固定生成器
-    unsafe {
-        println!("初始: {:?}", Pin::new(&mut generator).resume());
-        // 输出: 🔄 生成器启动！
-        // 输出: 初始: Yielded(1)
+    // 通过 Coroutine trait 的 resume 方法来驱动协程
+    // 注意：需要用 Pin 固定协程；当前 nightly 上的 resume 已经不需要 unsafe 了
+    println!("初始: {:?}", Pin::new(&mut generator).resume(()));
+    // 输出: 🔄 生成器启动！
+    // 输出: 初始: Yielded(1)
 
-        println!("继续: {:?}", Pin::new(&mut generator).resume());
-        // 输出: 🔄 继续执行...
-        // 输出: 继续: Yielded(2)
+    println!("继续: {:?}", Pin::new(&mut generator).resume(()));
+    // 输出: 🔄 继续执行...
+    // 输出: 继续: Yielded(2)
 
-        println!("再继续: {:?}", Pin::new(&mut generator).resume());
-        // 输出: 🔄 即将结束...
-        // 输出: 再继续: Yielded(3)
+    println!("再继续: {:?}", Pin::new(&mut generator).resume(()));
+    // 输出: 🔄 即将结束...
+    // 输出: 再继续: Yielded(3)
 
-        println!("最后: {:?}", Pin::new(&mut generator).resume());
-        // 输出: 最后: Returned("完成！")
-    }
+    println!("最后: {:?}", Pin::new(&mut generator).resume(()));
+    // 输出: 最后: Complete("完成！")
 }
 ```
 
-**生成器迭代器 —— 用生成器实现一个斐波那契（Nightly）：**
+**协程迭代器 —— 用协程实现一个斐波那契（Nightly）：**
 
-```rust
-#![feature(generators)]
-#![feature(generator_trait)]
+```rust,ignore
+#![feature(coroutines, coroutine_trait, stmt_expr_attributes)]
 
-use std::ops::Generator;
+use std::ops::{Coroutine, CoroutineState};
 use std::pin::Pin;
 
 fn main() {
-    // 用 gen 块写一个斐波那契生成器（优雅到哭）
-    let mut fibonacci = gen {
+    // 用 #[coroutine] 闭包写一个斐波那契协程（优雅到哭）
+    let mut fibonacci = #[coroutine] || {
         let mut a = 0;
         let mut b = 1;
         loop {
@@ -650,11 +665,9 @@ fn main() {
     // 取斐波那契数列的前 10 个数
     print!("斐波那契: ");
     for _ in 0..10 {
-        // 通过 Generator trait 驱动
-        unsafe {
-            if let std::ops::Yielded(n) = Pin::new(&mut fibonacci).resume() {
-                print!("{} ", n);
-            }
+        // 通过 Coroutine trait 驱动
+        if let CoroutineState::Yielded(n) = Pin::new(&mut fibonacci).resume(()) {
+            print!("{} ", n);
         }
     }
     println!();
@@ -686,9 +699,9 @@ fn main() {
 
 > 2024 Edition 发布后，Rust 团队并没有躺平——他们继续"修修补补，让语言更丝滑"。本节介绍 2024 Edition 之后稳定化的新特性，以及那些正在 nightly 中打磨的预览特性。
 
-### 21.3.1 const impl Trait（Nightly 预览）
+### 21.3.1 const trait impl（Nightly 预览）
 
-> 想象一下：你有一个 trait，它的实现可以在编译期（const context）执行，而不只是运行时。这意味着你可以在数组大小、静态变量初始化等场景中使用 impl Trait。Rust 正在解锁这个技能——但目前还在 nightly 中！
+> 想象一下：你有一个 trait，它的方法可以在编译期（const context）执行，而不只是运行时。这意味着你可以在常量求值、静态变量初始化、数组长度等场景里调用 trait 方法。Rust 正在解锁这个技能——但目前还在 nightly 中！
 
 **Rust 之前的限制：const fn 不能用 impl Trait：**
 
@@ -706,115 +719,87 @@ const fn create_string() -> String {
 }
 ```
 
-**Nightly 预览：const impl Trait 解锁！**（需要 `#![feature(const_trait_impl)]`）
+**Nightly 预览：const trait impl**（需要 `#![feature(const_trait_impl)]`）
 
-```rust
-// ⚠️ 以下代码需要 Nightly Rust + const_trait_impl feature
+> 名字先纠正：这个特性的正式名称是 **const trait impl**，而不是 "const impl Trait"。它解决的是"trait 方法能不能在常量上下文里调用"的问题，和 `impl Trait` 没有直接关系。
 
+Rust 目前 nightly 上的语法长这样：
+
+```rust,ignore
+// ⚠️ 需要 nightly 编译器
 #![feature(const_trait_impl)]
 
-// 定义一个可以在编译期执行的 trait（需要加 const 修饰符）
+// ① 用 `const trait` 声明一个"可以在常量上下文使用"的 trait。
+//    旧版本用的是 `#[const_trait]` 属性，该属性已经被移除，
+//    网上残留的 `#[const_trait]` 写法已经过时。
 const trait ConstMath {
-    const fn square(self) -> Self;
+    fn square(self) -> Self;
 }
 
-// 在 const 上下文中使用 impl Trait
-const fn make_adder(n: i32) -> impl ConstMath {
-    // 返回一个实现了 ConstMath 的匿名类型
-    ConstAdder(n)
-}
-
-struct ConstAdder(i32);
-
-impl const ConstMath for ConstAdder {
-    const fn square(self) -> Self {
-        ConstAdder(self.0 * self.0)
-    }
-}
-
-// 让 i32 也实现 ConstMath，这样 double(5i32) 才能正常工作
+// ② 实现一侧写 `impl const Trait for Type`
 impl const ConstMath for i32 {
-    const fn square(self) -> Self {
+    fn square(self) -> Self {
         self * self
     }
 }
 
-// const fn 返回 impl Trait（泛型参数也需要 const 修饰符）
-const fn double<T: ConstMath>(val: T) -> impl ConstMath {
-    // 编译期计算！
-    DoubleWrapper(val)
-}
-
-struct DoubleWrapper<T: ConstMath>(T);
-
-impl<T: ConstMath> const ConstMath for DoubleWrapper<T> {
-    const fn square(self) -> Self {
-        // (2*x)^2 = 4*x^2
-        DoubleWrapper(DoubleWrapper(self.0).square())
-    }
-}
-
-// 应用场景：编译期计算的配置
-const CONFIG_SIZE: i32 = make_adder(10).square().0;
-const DOUBLE_FIVE: i32 = double(5i32).square().0;
+// ③ 因为实现是 const 的，所以可以在常量求值里调用 trait 方法
+const FOUR: i32 = 2i32.square();
 
 fn main() {
-    println!("编译期配置大小: {}", CONFIG_SIZE);  // 100 = (10)^2
-    println!("编译期双倍再平方: {}", DOUBLE_FIVE); // 100 = (5*2)^2
-
-    // 实际应用：const generics
-    println!("\n=== 编译期常量计算 ===");
-    println!("CONFIG_SIZE = {}", CONFIG_SIZE);
-    println!("DOUBLE_FIVE = {}", DOUBLE_FIVE);
+    println!("2 的平方（编译期算好）= {}", FOUR); // 4
 }
-// 输出: 编译期配置大小: 100
-// 输出: 编译期双倍再平方: 100
 ```
+
+> 关于这个特性，有几个容易被"野生教程"带偏的点，务必记牢：
+>
+> 1. 语法是 `const trait` + `impl const Trait`，**不是** `#[const_trait]`（已被移除），更没有 `const struct` 这种东西；
+> 2. `const fn` 目前**不能返回 `impl Trait`**，"const fn 返回 impl Trait"是不成立的；
+> 3. 没有 `impl Trait + const` 这种写法，const 约束写在泛型约束的位置（例如 `T: [const] Trait`）；
+> 4. 该特性仍在 nightly 打磨（tracking issue #143874），语法随时可能调整，不要用在生产代码里。
 
 **const trait 与 const impl（Nightly）：**
 
-```rust
-// ⚠️ 以下代码需要 Nightly Rust
-
+```rust,ignore
+// ⚠️ 以下代码需要 nightly 编译器（`#![feature(const_trait_impl)]`）
 #![feature(const_trait_impl)]
 
-trait Printable {
-    fn print(&self);
+// const trait：实现在 const 上下文里也能使用
+const trait Printable {
+    fn describe(self) -> u32;
 }
 
-// const struct（nightly 特性）
-const struct ConstPrint(i32);
+struct ConstPrint(u32);
+struct RuntimePrint(u32);
 
+// const 实现：满足 const trait 的要求，可用于常量求值
 impl const Printable for ConstPrint {
-    fn print(&self) {
-        println!("const print: {}", self.0);
+    fn describe(self) -> u32 {
+        self.0
     }
 }
 
-// 非 const 实现
-struct RuntimePrint(i32);
+// 普通的运行时 trait：只能在运行时调用
+trait RuntimePrintable {
+    fn print(&self);
+}
 
-impl Printable for RuntimePrint {
+impl RuntimePrintable for RuntimePrint {
     fn print(&self) {
         println!("runtime print: {}", self.0);
     }
 }
 
-// const 函数可以返回 impl Trait，但返回的类型必须实现了 const trait
-const fn create_printable(n: i32) -> impl Printable + const {
-    ConstPrint(n)  // 必须用 const impl
-}
+// 常量求值中使用 const trait 方法
+const VALUE: u32 = ConstPrint(42).describe();
 
 fn main() {
-    let p = create_printable(42);
-    p.print();
-
-    let r = RuntimePrint(99);
-    r.print();
+    println!("编译期算出的值 = {}", VALUE);
+    RuntimePrint(99).print();
 }
-// 输出: const print: 42
-// 输出: runtime print: 99
 ```
+
+> 在上面的例子里，`ConstPrint::describe` 是 const 方法，所以 `const VALUE: u32 = ConstPrint(42).describe();` 成立；而 `RuntimePrint::print` 内部调用了 `println!`，依赖运行时，就不具备 const 能力。**const trait 不是"让任意函数都能在编译期跑"，而是让满足 const 约束的实现参与常量求值。**
 
 > **注意：`const impl Trait` 目前仍是 Nightly 特性，需要开启 `#![feature(const_trait_impl)]`。Rust 团队正在积极推进其稳定化，预计在未来的版本中会登陆稳定版。**
 
@@ -841,89 +826,79 @@ fn old_way() {
 }
 ```
 
-**Rust 1.82+：更安全的 unsafe extern：**
+**Rust 1.82+：unsafe extern 与 `safe fn`：**
+
+> 先纠正一个流传很广的错误：网上（包括本教程的早期版本）出现过
+> `extern "C" safety(rust) { ... }` 这种写法，**它不是 Rust 语法，编译会直接报错**。
+> Rust 真正稳定的写法只有两种：把块标记为 `unsafe extern`，以及用 `safe fn` 声明块内某个条目的安全性。
 
 ```rust
-// Rust 1.82+：extern 块可以标记 safety
+// 现在两种正确写法
 
-// 新的语法：extern "C" safety(rust) { ... }
-// - safety(rust): 块内的函数默认是 safe 的
-// - safety(unsafe): 块内的函数默认是 unsafe 的
-extern "C" safety(rust) {
-    // 这个函数现在是 safe 的！
-    fn safe_c_function(x: i32) -> i32;
-
-    // 可以混用
-    unsafe fn actually_unsafe_c_function(x: *mut i32) -> i32 {
-        // 内部实现...
-        42
-    }
+// ② Rust 1.82+：块必须标记为 unsafe，块内条目默认 unsafe，调用时需要 unsafe 块
+unsafe extern "C" {
+    fn getpid() -> i32;
 }
 
-// 带 safety 注解的 extern 函数
-extern "C" safety(unsafe) {
-    static GLOBAL_COUNTER: i32;  // 默认 unsafe
-}
-
-// 安全抽象层：把 unsafe 包装在 safe 函数里
-fn safe_wrapper(x: i32) -> i32 {
-    // 编译期保证：只有这里能访问 unsafe
-    unsafe { safe_c_function(x) }
+// ③ 也可以在块内用 `safe fn` 把个别函数声明为"安全可调用"
+unsafe extern "C" {
+    safe fn abs(x: i32) -> i32;
 }
 
 fn main() {
-    let result = safe_c_function(100);  // 现在不需要 unsafe 了！
-    println!("安全 C 函数调用结果: {}", result);
-    // 输出: 安全 C 函数调用结果: 100
+    // safe fn 声明的函数：直接调用即可
+    println!("abs(-3) = {}", abs(-3));
 
-    let wrapped = safe_wrapper(200);
-    println!("包装后的调用: {}", wrapped);
-    // 输出: 包装后的调用: 200
+    // 默认 unsafe 的外部函数：需要 unsafe 块
+    let pid = unsafe { getpid() };
+    println!("当前进程 PID = {}", pid);
 }
 ```
 
-**extern "C" safety 属性详解：**
+> 在 Rust 2024 Edition 中，①那种不写 `unsafe` 的旧写法已经是**硬错误**（`extern blocks must be unsafe`），必须写成 ② 或 ③ 的形式。
 
-```rust
-// Rust 1.82+ 支持三种 safety 模式：
+**旧写法与新写法对照：**
 
-// 1. safety(rust) - 默认 safe，由 Rust 编译器保证安全
-extern "C" safety(rust) {
-    fn rust_safe_ffi();
-}
+```rust,ignore
+// ⚠️ 下面 ① 与 ③ 只是"接口声明"，没有对应的 C 实现，
+//    单独编译会在链接阶段报"找不到符号"，因此本块不参与编译检查。
 
-// 2. safety(unsafe) - 默认 unsafe，必须用 unsafe 块调用
-extern "C" safety(unsafe) {
-    fn c_ffi_unsafe();  // 每次调用都要 unsafe
-}
-
-// 3. 无 safety 注解（兼容旧代码）
+// ① 旧写法（Rust 1.82 之前）：extern 块本身不写 unsafe
+//    —— 在 Rust 2024 Edition 中这已经是硬错误
 extern "C" {
-    fn legacy_ffi();  // 行为同 safety(unsafe)
+    fn legacy_ffi();
 }
 
-// 带 safety 前缀的函数声明
-extern "C" safety(rust) {
-    // 安全函数，不需要 unsafe
-    fn get_system_time() -> u64;
+// ② unsafe extern：块内条目默认 unsafe，调用时必须包 unsafe
+unsafe extern "C" {
+    fn c_ffi_unsafe(x: i32) -> i32;
+}
 
-    // 显式标记为 unsafe
+// ③ unsafe extern + safe fn：显式声明某个外部函数满足 Rust 的安全约定
+unsafe extern "C" {
+    safe fn rust_safe_ffi() -> u32;
+
+    // 同一个块里可以混用：这个仍然需要 unsafe 才能调用
     unsafe fn manipulate_raw_memory(ptr: *mut u8, len: usize);
 }
 
 fn main() {
-    // safety(rust) 块内的函数 —— 直接调用！
-    let time = get_system_time();
-    println!("系统时间: {}", time);
+    // safe fn 声明的函数 —— 直接调用
+    let v = rust_safe_ffi();
+    println!("safe fn 返回值: {}", v);
 
-    // 显式 unsafe 的函数 —— 需要 unsafe 块
+    // 未声明为 safe 的外部函数 —— 需要 unsafe 块
     unsafe {
+        let r = c_ffi_unsafe(42);
         let mut data = 42u8;
         manipulate_raw_memory(&mut data as *mut u8, 1);
-        println!("原始内存操作后的数据: {}", data);
+        legacy_ffi();
+        println!("C 函数返回: {}，原始内存操作后的数据: {}", r, data);
     }
 }
 ```
+
+> 一句话总结：**`unsafe extern` 是"这个块里的东西来自外部、默认不可信"，`safe fn` 是"我作为声明者，保证这一个函数是安全的"。** 编译器只检查你有没有说清楚，不负责替你验证——保证 `safe fn` 真的安全，是写出声明的人的义务。
 
 > unsafe extern 改进的核心思想：**把 unsafe 的边界画清楚**。Rust 1.82+ 让你在 `extern` 块声明时就说清楚"这个块里的函数是 safe 还是 unsafe"，而不是在使用时才发现处处是坑。
 
@@ -933,64 +908,108 @@ Rust 的未来是光明的！让我们展望一下那些即将到来的"正在�
 
 ```mermaid
 timeline
-    title Rust 未来特性路线图
-    2024 Q4 : Gen 块进展
-           : async trait 完善 (✅ 已稳定于 1.75)
-    2025 Q1 : RPITIT 扩展
-           : const impl Trait 完善
-    2025 Q2 : "类型别名泛型<br/>(Type Alias Generic)"
-           : 泛型常量表达式
-    2025 Q3 : 异步闭包 (✅ 已稳定于 1.75)
-           : 更强大的宏
-    2025 Q4 : Rust 2028 Edition 预览
-           : 更多平台支持
+    title Rust 版本与特性稳定时间线（截至 2026 年）
+    2023-12 : Rust 1.75
+             : trait 中可以写 async fn（RPITIT）
+    2025-02 : Rust 1.85.0
+             : Rust 2024 Edition 正式发布
+             : 异步闭包（async closures）稳定
+    仍在 nightly : 协程 / gen 块（已更名为 Coroutine）
+                 : const trait impl（impl const Trait）
+                 : 泛型常量表达式（generic_const_exprs）
+                 : type alias impl trait（TAIT）
 ```
 
 **正在酝酿的明星特性：**
 
-1. **类型别名泛型（Type Alias Generic）** —— 类似 `type Pair<T> = (T, T);` 这样的泛型类型别名，让元组和结构体更易用。
+1. **泛型类型别名** —— 早就稳定了，不用等未来。
+
+> 常见错误：把 `type Pair<T> = (T, T);` 说成"未来特性"。**泛型类型别名从 Rust 1.0 起就已经稳定**，现在就能用。真正还在开发中的是 **type alias impl trait（TAIT）** 与 **惰性类型别名（lazy type aliases）**。
 
 ```rust
-// 未来的语法（假设）
+// 泛型类型别名：稳定特性，立即可用
 type Nullable<T> = Option<T>;
+type Pair<T> = (T, T);
 type IntPair = Pair<i32>;
 
 fn main() {
     let a: Nullable<i32> = Some(42);
     let b: IntPair = (1, 2);
     println!("{:?}, {:?}", a, b);
+    // 输出: Some(42), (1, 2)
 }
 ```
 
-2. **泛型常量表达式（Const Generics 2.0）** —— 未来的 const generics 将支持更复杂的计算，比如 `arr: [i32; N * 2 + 1]`。
+```rust,ignore
+// 还在 nightly 的 TAIT（type_alias_impl_trait）：类型别名可以直接等于 impl Trait
+#![feature(type_alias_impl_trait)]
 
-```rust
-// 未来的语法（假设）
-const fn double<N: const usize>() -> usize {
-    N * 2
+type Number = impl std::fmt::Debug;
+
+fn make() -> Number {
+    42i32
 }
 
 fn main() {
-    // 编译期常量表达式作为数组大小
-    // let arr = [0u8; double::<10>()];  // 数组大小是 20
-    println!("未来数组大小可能支持复杂计算！");
+    println!("{:?}", make());
 }
 ```
 
-3. **异步闭包（Async Closures）** —— 终于可以直接在闭包里写 `async {}` 了，不用再套一层 `async move {}`。
+2. **泛型常量表达式（Const Generics 2.0）** —— 一半稳定，一半还在 nightly。
+
+> 稳定版早就支持"const 泛型参数直接当数组长度"（const generics 自 Rust 1.51 起稳定）。**还没稳定的**是在长度中对泛型常量参数做算术，比如 `[u8; N * 2]`，那需要 nightly 的 `generic_const_exprs`。
 
 ```rust
-// 现在可以直接用 async 闭包了！
-async fn future_example() {
-    // 异步闭包 —— Rust 1.75+ 稳定支持
-    let fetch_data = async || {
-        // 异步操作...
-        "data".to_string()
-    };
+// 稳定版：const 泛型参数直接作为数组长度
+fn zeros<const N: usize>() -> [u8; N] {
+    [0u8; N]
+}
 
-    let result = fetch_data().await;
-    println!("{}", result);
-    // 输出: data
+// 稳定版：数组长度里可以调用 const fn，也可以使用 const 常量
+const fn double(n: usize) -> usize {
+    n * 2
+}
+const LEN: usize = double(10);
+
+fn main() {
+    println!("{:?}", zeros::<4>());
+    println!("数组长度 = {}", [0u8; LEN].len()); // 20
+}
+```
+
+```rust,ignore
+// 仍然需要 nightly：长度表达式中含"泛型常量参数的算术"
+#![feature(generic_const_exprs)]
+
+fn big<const N: usize>() -> [u8; N * 2 + 1] {
+    [0u8; N * 2 + 1]
+}
+
+fn main() {
+    println!("{}", big::<10>().len()); // 21
+}
+```
+
+3. **异步闭包（Async Closures）** —— 已经稳定，但版本号常被写错。
+
+> 时间线更正：异步闭包是在 **Rust 1.85.0（2025-02-20）** 与 Rust 2024 Edition 一起稳定的，**不是 1.75**。1.75 稳定的只是"trait 里可以写 `async fn`"。
+
+```rust
+// Rust 1.85+：闭包本身可以是 async 的，而且可以像普通闭包一样借用环境
+async fn future_example() {
+    let name = String::from("Rust");
+
+    // async 闭包：调用它得到 Future，再 .await
+    let greet = async || format!("hello, {}", name);
+
+    let msg = greet().await;
+    println!("{}", msg); // hello, Rust
+}
+
+fn main() {
+    // 真正执行 future_example 需要一个异步运行时；这里只是引用一下，避免 dead_code 警告
+    let _ = future_example;
+    println!("异步闭包已稳定（Rust 1.85+）");
 }
 ```
 
@@ -1015,14 +1034,14 @@ trait AsyncService {
 |------|------|------------|
 | **Edition 历史** | 21.1.1 | Rust 从 2015 到 2024，每代 Edition 都在"优雅地变强" |
 | **Edition 兼容性** | 21.1.2 | Edition 只是语法版本号，不同 Edition 可以和谐共处 |
-| **let 链** | 21.2.1 | 把 `if let` + guard + `&&` 串联成一行的语法糖 |
+| **let 链** | 21.2.1 | 把 `if let` + `&&` + 普通条件串联成一行的语法糖（Edition 2024 稳定） |
 | **if/match 改进** | 21.2.2 | guard 条件更强大，match 分支编排更清晰 |
-| **async trait** | 21.2.3 | trait 里终于可以直接写 `async fn` 了！ |
+| **async trait** | 21.2.3 | trait 里可以写 `async fn`（Rust 1.75 稳定），但它默认**不**是对象安全的 |
 | **RPITIT** | 21.2.4 | trait 返回位置可以用 `impl Trait`，泛型返回更自由 |
-| **gen 块** | 21.2.5 | 生成器语法糖，异步编程的底层砖块 |
-| **const impl Trait** | 21.3.1 | 编译期可以用 `impl Trait`，const fn 更强大 |
-| **unsafe extern 改进** | 21.3.2 | `extern` 块可以声明 safety 属性，unsafe 边界更清晰 |
-| **未来特性** | 21.3.3 | 类型别名泛型、泛型常量、异步闭包正在路上 |
+| **gen 块 / 协程** | 21.2.5 | 生成器语法糖（nightly，名字与语法均已变化：Coroutine） |
+| **const trait impl** | 21.3.1 | 让 trait 方法参与常量求值（nightly，特性名不叫 "const impl Trait"） |
+| **unsafe extern 改进** | 21.3.2 | `unsafe extern` 块 + `safe fn`，FFI 信任边界更清晰（Rust 1.82 / Edition 2024） |
+| **未来特性** | 21.3.3 | 泛型类型别名早已稳定；TAIT、泛型常量表达式、异步闭包的真实状态见正文 |
 
 **核心收获：**
 
@@ -1034,4 +1053,3 @@ trait AsyncService {
 > 如果 Rust 2024 Edition 是一部电影，那它绝对不是那种"爆炸特效满天飞"的爆米花片，而是一部"把所有细节都打磨到完美"的高分剧情片。**少即是多，优雅至上。**
 
 继续加油，Rustacean！下一章我们将探讨更深入的主题。 🚀
-

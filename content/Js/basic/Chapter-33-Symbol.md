@@ -30,6 +30,22 @@ console.log(s3 === s4); // 打印结果: false（描述相同，但值不同）
 console.log(s3.description); // 打印结果: mySymbol
 ```
 
+两个使用上的注意点：
+
+```javascript
+// ❌ Symbol 不是构造函数，不能用 new
+// new Symbol(); // TypeError: Symbol is not a constructor
+
+// ✅ 需要包装对象时用 Object()
+const boxed = Object(Symbol('s'));
+console.log(typeof boxed);      // 打印结果: object
+console.log(typeof Symbol('s')); // 打印结果: symbol（这才是常态）
+
+// Symbol 不能参与算术运算和隐式字符串拼接，会直接抛类型错误
+// Symbol('s') + '';  // TypeError: Cannot convert a Symbol value to a string
+console.log(String(Symbol('s'))); // 打印结果: Symbol(s)（显式转换可以）
+```
+
 ### Symbol.for / Symbol.keyFor：全局注册表
 
 Symbol.for 创建在全局注册表中的 Symbol，同一个 key 会返回同一个 Symbol。
@@ -50,7 +66,9 @@ const s3 = Symbol('notGlobal');
 console.log(Symbol.keyFor(s3)); // 打印结果: undefined
 ```
 
-### Symbol 不可枚举
+### Symbol 属性不会被常规遍历看到
+
+先澄清一个流传很广的错误说法：**Symbol 属性默认是可枚举的**，只是 `Object.keys`、`for...in`、`JSON.stringify` 这些「字符串键专用」的接口按规范跳过了它。
 
 ```javascript
 const obj = {
@@ -61,9 +79,34 @@ const obj = {
 const secret = Symbol('secret');
 obj[secret] = '隐藏的信息';
 
-console.log(Object.keys(obj)); // 打印结果: ['name', 'age']（Symbol 属性不可枚举）
+console.log(Object.keys(obj)); // 打印结果: ['name', 'age']（Symbol 键不在其中）
 console.log(Object.getOwnPropertySymbols(obj)); // 打印结果: [Symbol(secret)]
+
+// 它实际上是可枚举的
+console.log(Object.getOwnPropertyDescriptor(obj, secret).enumerable); // 打印结果: true
+
+// 想拿到全部键（字符串键 + Symbol 键），用 Reflect.ownKeys
+console.log(Reflect.ownKeys(obj)); // 打印结果: ['name', 'age', Symbol(secret)]
 ```
+
+这带来几个实用且常被忽略的行为差异：
+
+```javascript
+const id = Symbol('id');
+const source = { [id]: 1, name: 'A' };
+
+// JSON.stringify 会丢掉 Symbol 键
+console.log(JSON.stringify(source)); // 打印结果: {"name":"A"}
+
+// 但 Object.assign 和展开运算符会复制 Symbol 键
+console.log(Object.assign({}, source)[id]); // 打印结果: 1
+console.log({ ...source }[id]);             // 打印结果: 1
+
+// 深拷贝的经典坑：JSON.parse(JSON.stringify(x)) 会把 Symbol 键整个抹掉
+console.log(JSON.parse(JSON.stringify(source))[id]); // 打印结果: undefined
+```
+
+另一个常见误解是把 Symbol 当成「真正的私有属性」。它只是**不容易被误用**：拿不到这个 Symbol 就无法访问，但只要能拿到对象，就能用 `Object.getOwnPropertySymbols()` 把键全列出来。想要外部彻底访问不到，用 `#私有字段`。
 
 下一节，我们来学习内置 Symbol！
 
@@ -154,6 +197,34 @@ const replacer = {
 console.log('hello'.replace(replacer, 'Hi')); // 打印结果: Hi
 ```
 
+准确地说，`replace`、`replaceAll`、`match`、`matchAll`、`search`、`split` 这些字符串方法都会先检查参数上有没有对应的 Symbol 方法，有就交给它执行。这就是「实现协议来接管内置行为」。
+
+```javascript
+// 自定义替换：把每个 'HELLO' 换掉
+const asterisk = {
+    [Symbol.replace](target, replacement) {
+        return target.toUpperCase().split('HELLO').join(replacement);
+    }
+};
+console.log('hello hello'.replace(asterisk, 'Hi')); // 打印结果: Hi Hi
+
+// 自定义 split：逗号和分号都当作分隔符
+const splitWay = {
+    [Symbol.split](target) {
+        return target.split(/[,;]/);
+    }
+};
+console.log('a,b;c'.split(splitWay)); // 打印结果: ['a', 'b', 'c']
+
+// 自定义 search
+const onlyDigits = {
+    [Symbol.search](target) {
+        return target.search(/\d+/);
+    }
+};
+console.log('abc123'.search(onlyDigits)); // 打印结果: 3
+```
+
 ### Symbol.isConcatSpreadable：控制 concat 展开
 
 ```javascript
@@ -168,14 +239,60 @@ const likeArray = {
 console.log([].concat(array, likeArray)); // 打印结果: [1, 2, 'a', 'b']
 ```
 
+### 其他值得知道的内置 Symbol
+
+| 内置 Symbol | 作用 | 常见出现场景 |
+| --- | --- | --- |
+| `Symbol.asyncIterator` | 异步迭代协议 | `for await...of`、异步生成器 |
+| `Symbol.species` | 指定派生对象的构造函数 | 子类化 Array / Promise 时控制 `map`、`slice` 返回什么类型 |
+| `Symbol.unscopables` | 把某些属性从 `with` 作用域里排除 | 历史遗留，现代代码不要依赖 |
+| `Symbol.matchAll` | 自定义 `String.prototype.matchAll` 的行为 | 自定义匹配器 |
+
+```javascript
+// 异步迭代器：让对象可以用 for await...of 遍历
+const asyncNumbers = {
+    [Symbol.asyncIterator]() {
+        let i = 0;
+        return {
+            async next() {
+                if (i < 3) {
+                    await new Promise((r) => setTimeout(r, 10));
+                    return { value: i++, done: false };
+                }
+                return { done: true };
+            },
+        };
+    },
+};
+
+(async () => {
+    for await (const n of asyncNumbers) {
+        console.log(n); // 依次打印 0 1 2
+    }
+})();
+```
+
+### 跨环境的坑：Symbol.for 的「全局」是按环境算的
+
+`Symbol.for` 的注册表只在一个运行环境内共享：
+
+- 同一个页面的不同 iframe 之间不共享，各自的 `Symbol.for('x')` 互不相等；
+- 主线程与 Web Worker 不共享；
+- Node.js 里同一进程内的模块共享，不同进程（如 cluster 起的多个进程）之间不共享；
+- Symbol 本身不能跨环境传递，`postMessage` 传 Symbol 会抛错。
+
+所以 `Symbol.for` 适合「同一环境内多个库想共享同一个键」的场景，比如给 DOM 节点挂内部状态。跨进程通信要用字符串、数组等结构化克隆支持的类型。
+
 ---
 
 ## 本章小结
 
 本章我们学习了 Symbol：
 
-1. **Symbol 基础**：创建独一无二的值，Symbol.for/keyFor 全局注册表，不可枚举。
-2. **内置 Symbol**：Symbol.iterator、Symbol.toStringTag、Symbol.hasInstance、Symbol.toPrimitive 等，让对象具有特殊行为。
+1. **Symbol 基础**：`Symbol()` 创建独一无二的值，`Symbol.for` / `Symbol.keyFor` 使用全局注册表，Symbol 不能 `new`、不能隐式转字符串。
+2. **遍历差异**：Symbol 属性不会被 `Object.keys` / `for...in` / `JSON.stringify` 看到，但**默认是可枚举的**，`Object.assign`、展开运算符、`Reflect.ownKeys` 都会带上它。
+3. **内置 Symbol**：`iterator` / `asyncIterator` / `toStringTag` / `hasInstance` / `toPrimitive` / `replace` / `split` / `search` / `isConcatSpreadable` 等，通过实现协议改变对象与内置 API 的交互方式。
+4. **使用边界**：Symbol 不是真私有（可被反射），`Symbol.for` 的全局范围只限于当前运行环境。
 
 Symbol 是 JavaScript 的"秘密武器"，可以创建独一无二的属性名，避免属性名冲突，是实现协议和元编程的重要工具。
 

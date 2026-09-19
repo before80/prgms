@@ -449,12 +449,16 @@ fn main() {
     let p = Packed { a: 1, b: 2, c: 3 };
     
     // 访问 b 字段——可能触发未对齐访问！
-    println!("p.b = {}", p.b);
+    // 注意：println! 会为参数创建引用，所以要先复制到一个局部变量再打印。
+    let b = p.b;
+    println!("p.b = {}", b);
     
     // 获取字段地址
-    println!("a @ {:#x}", &p.a as *const u8 as usize);
-    println!("b @ {:#x}", &p.b as *const u64 as usize); // 可能不是 8 的倍数！
-    println!("c @ {:#x}", &p.c as *const u8 as usize);
+    // ⚠️ packed 结构体的字段不能直接取引用（&p.b 会报 E0793「unaligned reference」），
+    //    要用 std::ptr::addr_of! 拿到裸指针。
+    println!("a @ {:#x}", std::ptr::addr_of!(p.a) as usize);
+    println!("b @ {:#x}", std::ptr::addr_of!(p.b) as usize); // 可能不是 8 的倍数！
+    println!("c @ {:#x}", std::ptr::addr_of!(p.c) as usize);
     
     // ⚠️ 警告：在某些架构（如 ARM 的某些模式）上，访问未对齐的数据
     // 会导致硬件异常（SIGBUS）！x86/x64 通常能容忍，但性能会下降。
@@ -514,6 +518,7 @@ fn main() {
 ```rust
 use std::mem;
 
+#[derive(Debug)]
 #[repr(u8)]
 enum HttpMethod {
     Get = 0,
@@ -690,9 +695,10 @@ fn main() {
     println!("size_of::<usize>() = {}", mem::size_of::<usize>());
     println!("size_of::<usize>() × 8 = {} 位", mem::size_of::<usize>() * 8);
     
-    // max_align_t：这是标准库能保证的最大对齐值
-    // 在大多数 64 位系统上是 16 字节（128 位 SIMD 对齐）
-    println!("\nstd::mem::max_align_t() = {} 字节", mem::align_of::<std::mem::max_align_t>());
+    // ⚠️ 勘误：Rust 标准库并没有导出 max_align_t。
+    //    要观察「常见类型的最大对齐」，可以直接看 u128 / f64 等类型的 align_of。
+    println!("\nalign_of::<u64>() = {} 字节", mem::align_of::<u64>());
+    println!("align_of::<u128>() = {} 字节（x86-64 上通常是 16）", mem::align_of::<u128>());
     
     // 不同平台的行为差异：
     println!("\n平台差异说明:");
@@ -714,7 +720,8 @@ fn main() {
 // size_of::<usize>() = 8
 // size_of::<usize>() × 8 = 64 位
 // 
-// std::mem::max_align_t() = 16 字节
+// align_of::<u64>() = 8 字节
+// align_of::<u128>() = 16 字节（x86-64 上通常是 16）
 // 
 // 平台差异说明:
 //   x86/x64: 未对齐访问通常能工作，但性能受损
@@ -1061,7 +1068,9 @@ Rust 生态中，可以用 `pprof` crate：
 pprof = { version = "0.13", features = ["pgz128", "criterion"] }
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 依赖 pprof：Cargo.toml 里需要加 pprof = "0.13"（本块标记为 ignore）。
+
 use pprof::guard;
 use std::time::{Duration, Instant};
 
@@ -1196,7 +1205,9 @@ Arena 分配器（也叫 Bump Allocator）是一种"一次分配、大量使用"
 bumpalo = "3"
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 依赖 bumpalo：Cargo.toml 里需要加 bumpalo = "3"（本块标记为 ignore）。
+
 use bumpalo::Bump;
 
 fn main() {
@@ -1311,10 +1322,10 @@ fn main() {
     println!("借出 2 个对象: 可用={}, 活跃={}", 
         pool.stats().0, pool.stats().1);
     
-    // 使用对象
-    *obj1 += 1;
-    *obj2 *= 2;
-    println!("obj1 = {}, obj2 = {}", *obj1, *obj2);
+    // 使用对象（这里 T = i32，是值本身，不需要解引用）
+    obj1 += 1;
+    obj2 *= 2;
+    println!("obj1 = {}, obj2 = {}", obj1, obj2);
     
     // 归还对象
     pool.release(obj1);
@@ -1615,19 +1626,22 @@ fn main() {
     println!("常量折叠: 1+2+3+4+5 = {}", x);
     
     // 2. 死代码消除：无用的代码被删除
-    let _unused = expensive_computation(); // 不会被调用？
-    // 如果没人用 _unused，函数可能不会被真正执行
+    //    注意：expensive_computation 里有 println!（可观察的副作用），
+    //    所以编译器**不能**删掉这次调用，运行时仍会打印「计算中...」。
+    //    只有当函数没有副作用时，纯计算才会被消除。
+    let _unused = expensive_computation();
     
     // 3. 内联：小函数被展开
     let result = helper(100);
     println!("helper(100) = {}", result);
     
-    // 4. 循环优化：-invariant code motion (ICF)
+    // 4. 循环优化：loop-invariant code motion（循环不变代码外提，缩写 LICM）
     // 循环内不变的计算被移到循环外
     let v: Vec<i32> = (0..1000).collect();
     let mut sum = 0i64;
     for i in 0..v.len() {
-        sum += v[i] as i64 + CONSTANT; // CONSTANT 是常量，提到循环外
+        // 注意类型：v[i] 是 i32，CONSTANT 也是 i32，直接和 i64 相加会报类型不匹配
+        sum += v[i] as i64 + CONSTANT as i64; // CONSTANT 是常量，会被提到循环外
     }
     println!("sum = {}", sum);
 }

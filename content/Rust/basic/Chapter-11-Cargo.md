@@ -84,6 +84,8 @@ path = "src/bin/tool.rs"
 
 #### 11.1.1.3 [workspace] 完整字段
 
+workspace 的完整字段还包括 `resolver`、`default-members`、`exclude` 等，下面这份清单可以直接当模板用。
+
 ```toml
 [workspace]
 members = ["crate-a", "crate-b"]  # workspace 成员
@@ -120,27 +122,31 @@ fix-crate = { path = "./fixes/fix-crate" }
 `Cargo.lock` 是 Cargo 自动生成的文件，它记录了**每个依赖的精确版本**，确保每次构建结果一致。
 
 ```toml
-# Cargo.lock 示例（实际是 TOML 格式）
-version = 3
+# Cargo.lock 示例（实际是 TOML 格式，当前锁文件版本是 4）
+version = 4
 
 [[package]]
 name = "serde"
-version = "1.0.193"
+version = "1.0.229"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25dd9975e68d0cb5aa1120c288333fc98731bd1dd12bb1cf1f6e1002e22e803c"
 
 [[package]]
 name = "tokio"
-version = "1.32.0"
+version = "1.53.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
-    { name = "bytes" },
-    { name = "memchr" },
-    { name = "serde" },
+    "bytes",
+    "memchr",
+    "serde",
 ]
 ```
 
+> 两个容易记混的点：一是锁文件顶部那条 `version` 指的是**锁文件格式版本**（早期是 1/2/3，Cargo 1.78 之后默认用 4），和依赖的版本号无关；二是 `dependencies` 列表里现在只写**包名字符串**，老教程里那种 `{ name = "bytes" }` 的内联表写法属于更早的格式，手工照着抄会和真实锁文件对不上。
+
 #### 11.1.2.2 cargo update（更新依赖版本）
+
+`cargo update` 按 `Cargo.toml` 里的版本约束把依赖升到最新，并同步更新 `Cargo.lock`。
 
 ```bash
 # 更新所有依赖到符合 Cargo.toml 约束的最新版本
@@ -167,6 +173,8 @@ git checkout HEAD -- Cargo.lock
 ```
 
 > **为什么？** 因为 `Cargo.lock` 保证了团队成员和 CI/CD 构建使用**完全相同**的依赖版本。没有它，`cargo build` 可能会拉取不同的小版本，导致"在我机器上能跑"（Works On My Machine）的尴尬局面。
+
+> 📌 **老资料里的说法已经过时**：你可能见过"二进制项目才提交 `Cargo.lock`，库项目不要提交"这样的建议，那是很久以前的惯例。现在官方推荐**所有项目都提交**，`cargo new --lib` 生成的 `.gitignore` 里也只剩 `/target`，并不会再帮你忽略 `Cargo.lock`。
 
 ---
 
@@ -202,6 +210,8 @@ relaxed = "~1.0"
 
 #### 11.1.3.3 >= / <= / * 约束
 
+`>=`、`<=` 放宽了某一侧的边界，`*` 表示任意版本；它们都可能让构建在未来悄悄换版本，生产项目要慎用。
+
 ```toml
 [dependencies]
 # 允许任意版本（不推荐，可能有 breaking changes）
@@ -221,6 +231,8 @@ exact = "=1.0.0"
 ```
 
 #### 11.1.3.4 git 依赖：git = "..." / branch / tag / rev
+
+git 依赖可以指定 `branch`、`tag` 或 `rev`，其中 `rev`（具体提交号）最稳定。
 
 ```toml
 [dependencies]
@@ -261,6 +273,8 @@ configured-local = { path = "../my-lib", features = ["derive"] }
 
 #### 11.1.4.1 [dev-dependencies]（仅 cargo test 时编译）
 
+`[dev-dependencies]` 只在测试、示例和基准测试时编译，不会进入正式产物。
+
 ```toml
 [dev-dependencies]
 # 测试辅助
@@ -283,6 +297,8 @@ predicates = "3.0"         # 断言辅助
 ```
 
 #### 11.1.4.2 [build-dependencies]（仅 build.rs 编译）
+
+`[build-dependencies]` 只服务于 `build.rs`，不会被链接进最终二进制。
 
 ```toml
 [build-dependencies]
@@ -358,6 +374,8 @@ toml-support = ["dep:toml"]  # dep: 前缀是 Rust 1.60+ 语法
 
 #### 11.1.5.3 default feature（默认启用的特性）
 
+`default` 是默认打开的那一组特性；想让依赖默认不带任何特性，写 `default-features = false`。
+
 ```toml
 [dependencies]
 log = { version = "0.4", optional = true }
@@ -385,6 +403,8 @@ cargo build --no-default-features --features derive
 ```
 
 #### 11.1.5.4 依赖的 features（开启依赖的特定特性）
+
+既可以在依赖项上开启它提供的特性，也可以在 `[features]` 里把这些特性转发给自己的使用者。
 
 ```toml
 [dependencies]
@@ -427,6 +447,8 @@ no_std = []  # 互斥！启用此特性时不应启用 std
 
 #### 11.1.6.1 cargo build / cargo check / cargo rustc
 
+`cargo build` 产出可执行文件，`cargo check` 只做类型检查、速度更快，日常开发更常用。
+
 ```bash
 # 构建项目（生成 target/debug/ 可执行文件）
 cargo build
@@ -440,6 +462,8 @@ cargo rustc -- -C opt-level=3
 ```
 
 #### 11.1.6.2 cargo run（运行二进制）
+
+`cargo run` 先构建再运行；用 `--bin` 指定运行哪个二进制，`--` 之后的参数会传给程序本身。
 
 ```bash
 # 运行主二进制
@@ -457,6 +481,8 @@ cargo run --features "debug,ssl"
 ```
 
 #### 11.1.6.3 cargo test / cargo bench
+
+`cargo test` 跑测试，`cargo bench` 跑基准测试；两者都启用 `test` 配置，因此 `dev-dependencies` 在这时可用。
 
 ```bash
 # 运行所有测试
@@ -483,6 +509,8 @@ cargo bench
 
 #### 11.1.6.4 cargo doc / cargo doc --open
 
+`cargo doc` 依据文档注释生成 HTML 文档，加上 `--open` 会直接打开浏览器。
+
 ```bash
 # 生成文档（输出到 target/doc/）
 cargo doc
@@ -498,6 +526,8 @@ cargo doc --document-private-items
 ```
 
 #### 11.1.6.5 cargo clean / cargo fmt / cargo clippy
+
+`clean` 清掉构建产物，`fmt` 按标准风格格式化代码，`clippy` 跑静态检查并给出改进建议。
 
 ```bash
 # 清理构建产物
@@ -521,6 +551,8 @@ cargo clippy --fix --allow-dirty
 
 #### 11.1.6.6 cargo install（安装工具到 ~/.cargo/bin）
 
+`cargo install` 把二进制工具装到 `~/.cargo/bin`，之后就能像普通命令一样调用。
+
 ```bash
 # 安装二进制工具到 ~/.cargo/bin/
 cargo install cargo-watch     # 文件监控，自动重新编译
@@ -534,7 +566,9 @@ echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-#### 11.1.6.7 cargo search / cargo info（ crates.io 搜索）
+#### 11.1.6.7 cargo search / cargo info（crates.io 搜索）
+
+`cargo search` 在 crates.io 上搜索，`cargo info` 查看某个包的详细信息。
 
 ```bash
 # 搜索 crates.io
@@ -549,6 +583,8 @@ cargo info serde
 ```
 
 #### 11.1.6.8 cargo tree（依赖树可视化）
+
+`cargo tree` 打印依赖树，`-i` 用来查看反向依赖，即「谁依赖了它」。
 
 ```bash
 # 查看完整依赖树
@@ -577,6 +613,8 @@ cargo tree -p serde --features derive
 ### 11.2.1 Workspace 成员配置
 
 #### 11.2.1.1 members / exclude
+
+`members` 列出工作区里的包，`exclude` 用来把某些目录排除在外。
 
 ```toml
 [workspace]
@@ -612,6 +650,8 @@ resolver = "2"
 ### 11.2.2 跨 Crate 依赖
 
 #### 11.2.2.1 workspace 成员依赖（path = "../sibling"）
+
+同一个 workspace 内的包可以互相引用，用 `path` 写相对路径即可，不必先发布到 crates.io。
 
 ```toml
 # packages/core/Cargo.toml
@@ -651,6 +691,8 @@ serde = "1.0"
 ### 11.2.3 MSRV（Minimum Supported Rust Version）策略
 
 #### 11.2.3.1 rust-version 字段（package 级别）
+
+`rust-version` 声明项目所需的最低 Rust 版本（MSRV），版本过低时 cargo 会给出提示。
 
 ```toml
 [package]
@@ -703,6 +745,8 @@ jobs:
 
 #### 11.2.3.3 cargo-msrv（自动化 MSRV 测试）
 
+`cargo-msrv` 可以自动找出项目真正能用的最低版本，避免凭感觉填写 `rust-version`。
+
 ```bash
 # 安装
 cargo install cargo-msrv
@@ -727,6 +771,8 @@ cargo msrv search
 
 #### 11.3.1.1 cargo login（认证）
 
+发布前先在 crates.io 生成 API Token，再用 `cargo login` 保存到本地凭据文件。
+
 ```bash
 # 1. 去 https://crates.io/new 申请 API Token
 # 2. 登录
@@ -739,6 +785,8 @@ cargo login <your-api-token>
 ```
 
 #### 11.3.1.2 cargo publish（上传）
+
+`cargo publish` 把当前版本上传到 crates.io；已发布的版本号不能重复使用，所以发布前一定要确认版本号已更新。
 
 ```bash
 # 确认 Cargo.toml 信息正确
@@ -758,6 +806,8 @@ cargo publish --allow-dirty  # 允许 dirty 状态发布（不推荐）
 ```
 
 #### 11.3.1.3 cargo logout
+
+`cargo logout` 清除本地保存的 token，在公共机器上用完记得执行。
 
 ```bash
 # 登出，清除保存的 token
@@ -837,4 +887,3 @@ gh release create v0.2.0 \
 **记住**：Cargo 不仅仅是一个包管理器，它是 Rust 生态系统的核心。熟练掌握 Cargo，你就能在这个生态里游刃有余。从今天起，把 `cargo build` 练成肌肉记忆，把 `cargo test` 当成每日三省吾身，你会发现——原来写 Rust 代码可以这么爽！
 
 > "在 Rust 的世界里，Cargo 就是你的超级英雄披风。不会用它？你永远不知道自己能飞多高！"
-

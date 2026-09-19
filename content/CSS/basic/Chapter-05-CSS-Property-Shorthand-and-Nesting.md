@@ -152,6 +152,34 @@ margin-left: 25px;      /* 左 = 25px */
 | 3 个值 | `margin: 10px 20px 15px` | 上 10px，左右 20px，下 15px |
 | 4 个值 | `margin: 10px 20px 15px 25px` | 上 10px，右 20px，下 15px，左 25px |
 
+> ⚠️ 缩写会**重设所有被省略的长属性**，这是它最容易被忽视的副作用。写 `margin: 20px` 时，浏览器并不是只改上边距，而是把四个方向全设为 20px。所以下面这段代码是错的（顺序反了）：
+>
+> ```css
+> /* ✅ 正确：长属性写在缩写后面，左边距 16px，其余为 0 */
+> .box {
+>   margin: 0;
+>   margin-left: 16px;
+> }
+>
+> /* ❌ 错误：缩写在后面，会把前面设置好的左边距一起抹成 0 */
+> .box2 {
+>   margin-left: 16px;
+>   margin: 0;           /* 写在后面 = 覆盖，左边距变成 0 */
+> }
+> ```
+>
+> 结论：**长属性永远写在缩写后面**，否则会被缩写覆盖。
+
+> 💡 关于 `margin: 0 auto` 的常见误解：这行确实能水平居中，但前提是元素有确定的宽度（`width` 不为 `auto`）。块级元素默认宽度占满父容器，此时"自动"边距没有可分配的空间，等于 0，看起来就是"没居中"。
+>
+> ```css
+> .center { margin: 0 auto; }            /* 没效果：宽度是 auto（撑满） */
+> .center { width: 600px; margin: 0 auto; }   /* 有效 */
+> .auto-margin { max-width: 600px; margin: 0 auto; }  /* 更推荐：窄屏也不会溢出 */
+> ```
+>
+> 另外 `auto` 只在**水平方向**能居中，垂直方向（`margin-top/bottom: auto`）在普通文档流里会被算成 0；垂直居中要靠 Flexbox 的 `align-items: center`（见第 23 章）。
+
 ```mermaid
 graph TD
     A["margin/padding 缩写"] --> B["1 个值"]
@@ -249,6 +277,41 @@ h2 {
 }
 ```
 
+**两个必须知道的坑：**
+
+**坑一：`font` 缩写会重设所有没写的字体属性。** 这是它最容易伤人的地方：
+
+```css
+/* 想只改字号和字体，结果 font-weight 被重置为 normal，h1 不粗了 */
+h1 {
+  font-weight: bold;
+  font: 32px/1.2 "Microsoft YaHei", sans-serif;  /* ⚠️ bold 被抹掉 */
+}
+
+/* 正确：把该有的都写进缩写里 */
+h1 {
+  font: bold 32px/1.2 "Microsoft YaHei", sans-serif;
+}
+```
+
+最少也要记住：`font` 缩写会重设 `font-style`、`font-variant`、`font-weight`、`font-stretch`、`line-height`（以及 font-size、font-family）。**没写的都会被恢复成默认值**。
+
+**坑二：`line-height` 省略时会被重置为 `normal`，而不是继承父元素的行高。** 所以像 `body { line-height: 1.6 }` 配 `h2 { font: 600 24px ... }` 这样的写法，标题的行高会突然变成 `normal`，需要显式写成 `font: 600 24px/1.3 ...`。
+
+**还有一个语法陷阱：**
+
+```css
+/* ❌ 无效：font-size 和 font-family 是这个缩写的"必填项" */
+.bad  { font: bold "Microsoft YaHei"; }   /* 缺 font-size */
+.bad  { font: bold 16px; }                /* 缺 font-family */
+/* 以上两行的结果都是：整条声明被丢弃，字体设置完全没生效 */
+
+/* ✅ 有效 */
+.good { font: bold 16px "Microsoft YaHei"; }
+```
+
+正因为这么多坑，很多团队在项目里**只把 `font` 缩写用于 `body` 之类的一次性全局声明**，组件内部仍然拆开写 `font-size`、`font-weight`、`font-family`，避免无意中重置。
+
 
 
 ## 5.3 background 缩写
@@ -303,6 +366,39 @@ background 属性是所有背景相关属性的缩写。
     url("texture.png")         /* 纹理图片 */
     center;                    /* 居中 */
 }
+```
+
+**用 background 缩写前必须知道的事：它会重置所有省略的背景属性。**
+
+`background` 简写覆盖的不只是颜色、图片、位置，还包括 `background-repeat`、`background-attachment`、`background-size`、`background-origin`、`background-clip`（详见第 12 章）。没写的一律回到初始值。典型翻车现场：
+
+```css
+/* ❌ 想给卡片加个颜色，结果把之前设好的背景图删掉了 */
+.card {
+  background-image: url("pattern.png");
+  background-repeat: no-repeat;
+  /* ... 其他样式 ... */
+  background: #f5f5f5;      /* 这一行把 image 和 repeat 都重设为 none */
+}
+
+/* ✅ 想清楚了要重置，就一次写全；只想加颜色就用 background-color */
+.card {
+  background-image: url("pattern.png");
+  background-repeat: no-repeat;
+  background-color: #f5f5f5;   /* 只改颜色，不影响图片 */
+}
+```
+
+**关于位置和尺寸的语法：** `position` 和 `size` 之间必须用斜杠隔开，书写顺序是"先位置、后尺寸"：
+
+```css
+.a { background: url("bg.jpg") center / cover no-repeat; }
+/*                                       ↑ 位置 / 尺寸 */
+
+/* ❌ 无效：size 不能脱离 position 单独出现 */
+.b { background: url("bg.jpg") / cover; }
+/* ✅ 位置省略时要显式补上，否则被当成无效声明 */
+.c { background: url("bg.jpg") 0 0 / cover; }
 ```
 
 ## 5.4 border 缩写
@@ -360,6 +456,15 @@ border 属性可以同时设置宽度、样式和颜色。
   color: white;
 }
 ```
+
+> ⚠️ 一个和边框有关的经典坑：**只设置 `border-width` 是看不到边框的**。因为 `border-style` 的初始值是 `none`，只有把 style 设成 `solid`、`dashed` 之类的值，边框才会显示出来。
+>
+> ```css
+> .invisible { border-width: 2px; border-color: red; }  /* 看不到边框！style 还是 none */
+> .visible   { border: 2px solid red; }                 /* ✅ 正确 */
+> ```
+>
+> 另外记住：`border: 1px solid #333` 会一次设置四个方向。只想改一边就用 `border-top` 这类单边缩写。边框的更多细节（含和 `outline` 的区别）见第 13 章。
 
 ## 5.5 border-radius 缩写
 
@@ -836,7 +941,7 @@ grid 属性是多个 grid 相关属性的缩写。
 
 ## 5.10 CSS 嵌套（原生嵌套）
 
-CSS 原生嵌套是 2023 年的重磅新特性，让 CSS 可以像 Sass 一样嵌套选择器。
+CSS 原生嵌套是 2023 年落地的重磅新特性，让 CSS 可以像 Sass 一样嵌套选择器，无需预处理器就能写出层级感明确的样式。现在主流浏览器（Chrome 112+、Safari 16.5+、Firefox 117+）都已支持，属于可以直接在项目里使用的特性。
 
 ### 5.10.1 基本语法——父选择器内直接写子规则
 
@@ -878,17 +983,6 @@ CSS 原生嵌套是 2023 年的重磅新特性，让 CSS 可以像 Sass 一样�
     background: #444;
   }
 
-  /* &-item 等于 .nav-item */
-  &-item {
-    display: inline-block;
-    padding: 8px 16px;
-
-    /* 嵌套中再嵌套 */
-    &:last-child {
-      margin-right: 0;
-    }
-  }
-
   /* 组合选择器 */
   &.active {
     background: #3498db;
@@ -898,10 +992,30 @@ CSS 原生嵌套是 2023 年的重磅新特性，让 CSS 可以像 Sass 一样�
 /* 编译后等价于：*/
 .nav { background: #333; padding: 15px 30px; }
 .nav:hover { background: #444; }
-.nav-item { display: inline-block; padding: 8px 16px; }
-.nav-item:last-child { margin-right: 0; }
 .nav.active { background: #3498db; }
 ```
+
+> ⚠️ **`&` 不能像 Sass 那样"拼接后缀"**，这是从 Sass 迁移过来时最容易踩的坑：
+>
+> ```css
+> /* ❌ 无效！原生 CSS 不支持把 & 和标识符拼起来 */
+> .nav {
+>   &-item { }        /* 想得到 .nav-item，实际整条规则被丢弃 */
+>   &__title { }      /* 想得到 .nav__title，同样无效 */
+> }
+>
+> /* ✅ 要生成 .nav-item 这样的新类名，只能写完整的顶层规则 */
+> .nav-item { display: inline-block; padding: 8px 16px; }
+>
+> /* ✅ 或者用后代/组合方式表达从属关系（注意含义不同） */
+> .nav {
+>   .item { }         /* 结果是 .nav .item（后代），不是 .nav-item */
+> }
+> ```
+>
+> 规则背后的原因：没有写组合器时，嵌套的选择器会被当成一个**类型选择器**来处理，而复合选择器里类型选择器必须排在最前面，所以 `&Element` 这种写法（想拼成带元素名的复合选择器）也是无效的。真要表达"在某个元素上"的效果，得写成 `Element&`。
+>
+> 另外记住：`&` 只在**嵌套规则内部**才有意义，在样式表最外层单独使用 `&` 是无效的。
 
 ### 5.10.3 无父选择器的嵌套——直接写属性名
 
@@ -920,7 +1034,8 @@ CSS 原生嵌套是 2023 年的重磅新特性，让 CSS 可以像 Sass 一样�
   }
 }
 
-/* 注意：这种方式只能用于嵌套子选择器，不能用于伪类等 */
+/* 注意：不加 & 时，嵌套选择器一律被当成"后代选择器"。
+   所以想给父元素自己加伪类，必须写 &，不能直接写 :hover */
 .card {
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -930,9 +1045,20 @@ CSS 原生嵌套是 2023 年的重磅新特性，让 CSS 可以像 Sass 一样�
     margin-bottom: 0;
   }
 }
+
+/* ❌ 这两种写法含义完全不同，别写混了 */
+.bad {
+  :hover { color: red; }   /* 结果是 .bad :hover（.bad 内部任意元素的 hover） */
+}
+
+.good {
+  &:hover { color: red; }  /* 结果是 .bad:hover（.bad 自己被悬停） */
+}
 ```
 
-### 5.10.4 嵌套局限性——不支持 @media 查询、条件规则（@if/@else）等逻辑嵌套
+> 💡 **选择器特异性提醒**：嵌套里的 `&` 在计算特异性时，行为类似 `:is()`——取它所代表的选择器列表中**特异性最高**的那个。所以在 `.card, #panel { &:hover { ... } }` 这种写法里，嵌套规则会带上 `#panel` 那份"ID 级"的特异性，容易造成"为什么这条样式这么难覆盖"的困惑。需要精细控制特异性时，尽量让父选择器的特异性保持一致。
+
+### 5.10.4 嵌套的边界——支持 @media/@supports 嵌套，但依然没有 @if/@else 和循环
 
 ```css
 /* CSS 原生嵌套的限制：*/
@@ -990,7 +1116,7 @@ CSS 原生嵌套是 2023 年的重磅新特性，让 CSS 可以像 Sass 一样�
   }
 }
 
-/* ℹ️ @when 条件嵌套（来自 CSS 条件规则模块 Level 4，非嵌套模块 Level 1）*/
+/* ℹ️ @when 条件嵌套（来自 CSS 条件规则模块 Level 5，非嵌套模块 Level 1）*/
 /* 这是一个较新的语法，浏览器支持有限 */
 /*
 @when supports(display: grid) {
@@ -1016,12 +1142,51 @@ CSS 原生嵌套是 2023 年的重磅新特性，让 CSS 可以像 Sass 一样�
 | & 父选择器 | ✅ 支持 | ✅ 支持 |
 | @media 嵌套 | ✅ 支持 | ✅ 支持 |
 | @supports 嵌套 | ✅ 支持 | ✅ 支持 |
+| @when/@else 条件嵌套 | ⚠️ 规范在 CSS Conditional Rules Level 5，浏览器支持有限 | ❌ 不支持（Sass 用的是 @if/@else） |
 | @if/@else | ❌ 不支持 | ✅ 支持 |
 | @for/@each | ❌ 不支持 | ✅ 支持 |
 | @mixin/@include | ❌ 不支持 | ✅ 支持 |
-| @when 条件嵌套 | ⚠️ 需 Level 4 模块 | ✅ 支持 |
 
-> 💡 **注**：`@when` 条件嵌套来自 CSS 条件规则模块 Level 4（CSS Conditional Rules Module Level 4），不是 CSS 嵌套模块 Level 1，目前浏览器支持有限。
+> 💡 **注**：`@when`/`@else` 来自 CSS Conditional Rules Module Level 5，不是 CSS 嵌套模块，也不是 Sass 的语法（Sass 对应的是 `@if`/`@else`），目前浏览器支持有限，生产中建议先用构建工具或媒体查询实现。
+
+动手之前还有三个"行为细节"值得先记住。
+
+**一、嵌套规则后面的声明，依然属于父元素。**
+
+```css
+.foo {
+  background-color: silver;
+  @media screen {
+    color: tomato;
+  }
+  color: black;   /* 这条仍然是给 .foo 的，只是写在嵌套规则之后 */
+}
+```
+
+浏览器会按书写顺序解析（先 `background-color`、再媒体查询、最后 `color`）。不过这个行为依赖较新的 `CSSNestedDeclarations` 接口，**老版本浏览器可能把嵌套规则后面的声明乱序处理**，所以稳妥的写法是：把属于父元素的声明集中写在嵌套规则**之前**。
+
+**二、嵌套规则的顺序影响层叠。**
+
+```css
+.card {
+  .title { color: blue; }
+  .title { color: red; }   /* 后写的赢，最终是红色 */
+}
+```
+
+嵌套不会改变"后来者胜出"的规则，这一点和普通 CSS 一致。
+
+**三、整条嵌套规则无效时，只丢它自己。**
+
+```css
+.parent {
+  color: red;              /* ✅ 保留 */
+  & %invalid { }           /* ❌ 选择器无效：仅这条规则被忽略 */
+  & .valid { }             /* ✅ 保留 */
+}
+```
+
+写错了不会连累父元素，这让调试比想象中温和——但反过来说，"样式默默不生效"时也要记得去检查嵌套里那一条是否是无效选择器。
 
 ---
 
@@ -1173,6 +1338,3 @@ CSS 学习路线图：
 ### 祝你学习愉快！
 
 CSS 是前端开发的核心技能之一，掌握好这些基础知识，你已经具备了成为优秀前端工程师的基本功。继续加油，多写代码，多做项目，CSS 大师的称号在向你招手！🚀
-
-
-

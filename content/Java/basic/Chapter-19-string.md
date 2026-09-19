@@ -34,9 +34,9 @@ graph TD
         B["int hash<br/>缓存的 hashCode"]
     end
     subgraph "String 引用"
-        C["String s1 = \"hello\"<br/>引用1"]
-        D["String s2 = \"hello\"<br/>引用2"]
-        E["String s3 = new String(\"hello\")<br/>引用3（堆中独立对象）"]
+        C["String s1 = #quot;hello#quot;<br/>引用1"]
+        D["String s2 = #quot;hello#quot;<br/>引用2"]
+        E["String s3 = new String(#quot;hello#quot;)<br/>引用3（堆中独立对象）"]
     end
     
     C --> F["String Pool<br/>字符串常量池<br/>（方法区/堆）"]
@@ -99,7 +99,7 @@ public class StringImmutabilityDemo {
 
 从源码角度看，String 的不可变由以下几道防线守护：
 
-```java
+```java,ignore
 // String 类的核心字段（简化版）
 public final class String
     implements java.io.Serializable, Comparable<String>, CharSequence {
@@ -162,6 +162,8 @@ public class StringInfoMethods {
 ### 19.2.2 转换类方法
 
 ```java
+import java.util.Arrays;
+
 public class StringTransformMethods {
     public static void main(String[] args) {
         String str = "Hello, Java!";
@@ -245,6 +247,8 @@ public class String判断方法 {
 ### 19.2.4 拆分与格式化
 
 ```java
+import java.util.Arrays;
+
 public class StringSplitAndFormat {
     public static void main(String[] args) {
         // split：拆分字符串
@@ -502,6 +506,8 @@ public class StringJoinerPractical {
 对于简单场景，`String.join()` 更方便，它是 Java 8 新增的静态方法：
 
 ```java
+import java.util.Arrays;
+
 public class StringJoinVsStringJoiner {
     public static void main(String[] args) {
         String[] names = {"Alice", "Bob", "Charlie"};
@@ -519,187 +525,132 @@ public class StringJoinVsStringJoiner {
 
 ---
 
-## 19.5 String Templates（Java 21+ Preview → Java 26 Stable）
+## 19.5 String Templates：一个被撤回的设计（重要提醒）
 
-### 这是什么新玩意儿？
+### 先记住结论
 
-String Templates（字符串模板）是 Java 21 引入的一个**预览特性（Preview Feature）**，并在后续版本中持续改进。它提供了一种全新的、更直观的字符串拼接方式。
+网上大量文章说“String Templates 是 Java 21 的新特性，会在 Java 26 转正”，这是**不准确的**。真实的时间线是：
 
-**注意**：截至 Java 26，String Templates 已升级为**正式稳定特性（Stable）**，可以在生产环境中使用！
+| 版本 | JEP | 状态 |
+|------|-----|------|
+| Java 21 | JEP 430 | 首次预览（`STR."..."` 雏形） |
+| Java 22 | JEP 459 | 第二次预览 |
+| Java 23 | JEP 465 | **撤回（Withdrawn）** |
 
-### 基本语法
+也就是说，从 Java 23 起，`STR."..."` 这套语法**已经不在 JDK 里了**，JDK 25、26 里同样没有它，也没有进入任何正式版本。如果你看到有人写 `STR."Hello \{name}"`，那是**老预览版**的写法，今天的编译器会直接报错。
 
-String Templates 使用**反引号**（``` ```）和 **`\{}`** 插值语法，有点像 JavaScript 的模板字符串：
+### 它当初想解决什么问题？
+
+Java 的字符串拼接一直比较啰嗦：
 
 ```java
-public class StringTemplateBasic {
+String name = "小明";
+int age = 20;
+
+// 方式一：+ 拼接，满眼都是引号和加号
+String s1 = "姓名: " + name + ", 年龄: " + age;
+
+// 方式二：String.format，参数和占位符一旦错位就很难查
+String s2 = String.format("姓名: %s, 年龄: %d", name, age);
+```
+
+String Templates 的想法是引入一种**编译期可检查**的插值语法，既比 `+` 干净，又比 `format` 安全（占位符和参数一一对应）。
+
+### 历史语法长什么样（仅作考古，编译不过）
+
+下面这段代码**能看懂即可，不要照着写**——它只能在 Java 21/22 的预览版上编译，而且必须加 `--enable-preview`：
+
+```java,ignore
+// ⚠️ 已撤回的预览语法，Java 23 及以后无法编译
+String name = "Java";
+int version = 21;
+
+// STR 是内置的模板处理器，"\{...}" 是插值（注意是反斜杠，不是 $）
+String s1 = STR."Hello \{name}!";
+
+// FMT 处理器支持格式化
+String s2 = FMT."圆周率保留2位: \{3.1415926%.2f}";
+
+// 多行模板
+String s3 = STR."""
+    <h1>欢迎，\{name}！</h1>
+    """;
+```
+
+> ⚠️ **语法注意**：Java 的插值用 `\{...}`，不是 JavaScript/Python 的 `${...}`。这一点即使当作历史知识了解，也值得记一下。
+
+### 今天应该怎么写？
+
+下面的写法**在今天的 JDK 上都能正常编译运行**：
+
+```java
+// Chapter19StringAlternatives.java
+public class Chapter19StringAlternatives {
     public static void main(String[] args) {
         String name = "小明";
         int age = 20;
         double gpa = 3.85;
-        
-        // 模板字符串：用 STR."..." 而不是 "..."
-        // 插值用 \{表达式}（注意是反斜杠不是美元符）
-        String info = STR."姓名: \{name}, 年龄: \{age}, GPA: \{gpa}";
-        
-        System.out.println(info);
-        // 姓名: 小明, 年龄: 20, GPA: 3.85
-    }
-}
-```
 
-> ⚠️ **语法注意**：Java String Templates 使用 `\{}` 而非 `${}`！`${}` 是 JavaScript/Python 的语法，Java 用的是 `\{}`（反斜杠 + 大括号）。
+        // 1. + 拼接：少量变量时最直接
+        String s1 = "姓名: " + name + ", 年龄: " + age + ", GPA: " + gpa;
 
-### 与 String.format / StringBuilder 的对比
+        // 2. String.format / formatted：需要对齐、格式化时最合适
+        String s2 = String.format("姓名: %s, 年龄: %d, GPA: %.2f", name, age, gpa);
+        String s3 = "姓名: %s, 年龄: %d".formatted(name, age);
 
-```java
-public class TemplateVsTraditional {
-    public static void main(String[] args) {
-        String user = "admin";
-        int loginCount = 42;
-        
-        // 传统方式1：字符串拼接
-        String method1 = "用户 " + user + " 已登录 " + loginCount + " 次";
-        
-        // 传统方式2：String.format
-        String method2 = String.format("用户 %s 已登录 %d 次", user, loginCount);
-        
-        // String Template（Java 26+ 正式语法）
-        String method3 = STR."用户 \{user} 已登录 \{loginCount} 次";
-        
-        // 三种方式结果相同，但 Template 更易读
-        System.out.println(method1);
-        System.out.println(method2);
-        System.out.println(method3);
-    }
-}
-```
+        // 3. 文本块 + formatted：多行内容的首选
+        String s4 = """
+                <div>
+                    <h1>欢迎，%s！</h1>
+                    <p>GPA: %.2f</p>
+                </div>
+                """.formatted(name, gpa);
 
-### 模板处理器（Template Processors）
-
-这是 String Templates 最强大的部分！模板不是直接插值的，而是通过**模板处理器（Template Processor）**转换的。
-
-Java 内置了三种处理器：
-
-```java
-public class TemplateProcessors {
-    public static void main(String[] args) {
-        String name = "Java";
-        int version = 21;
-        
-        // STR - 标准字符串处理（最常用，等同于直接拼接）
-        String s1 = STR."Hello \{name}!";
-        System.out.println("STR: " + s1);
-        
-        // RAW - 原始模板，保留模板结构（调试用）
-        // String raw = RAW."Hello \{name}!";
-        
-        // FMT - 格式化模板（类似 String.format 的格式化能力）
-        double pi = 3.1415926;
-        String s2 = FMT."圆周率保留2位: \{pi%.2f}";
-        System.out.println("FMT: " + s2);
-        
-        // 插值表达式中还可以进行运算
-        String s3 = STR."2 + 3 = \{2 + 3}";
-        System.out.println("运算: " + s3); // 2 + 3 = 5
-        
-        // 支持多行字符串
-        String multiLine = STR."""
-            <div>
-                <h1>欢迎，\{name}！</h1>
-                <p>您正在使用 Java \{version}</p>
-            </div>
-            """;
-        System.out.println("多行模板:\n" + multiLine);
-    }
-}
-```
-
-### 自定义模板处理器
-
-这是真正发挥威力的地方！你可以创建自己的处理器来做各种转换：
-
-```java
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-// 自定义处理器：SQL 防注入处理
-public class CustomTemplateProcessor {
-    public static void main(String[] args) {
-        String table = "users";
-        String column = "name";
-        String value = "O'Reilly"; // 包含单引号的危险值！
-        
-        // 用传统方式拼接 SQL？危险！
-        // String sql = "SELECT * FROM " + table + " WHERE " + column + " = '" + value + "'";
-        // 结果：SELECT * FROM users WHERE name = 'O'Reilly' → SQL注入！
-        
-        // 自定义 SQL 处理器：自动转义单引号
-        String safeSql = SQL."SELECT * FROM \{table} WHERE \{column} = \{value}";
-        System.out.println("安全SQL: " + safeSql);
-        // SELECT * FROM users WHERE name = 'O''Reilly'（单引号被转义了）
-    }
-}
-
-// 自定义模板处理器示例
-class SQL {
-    // 这是一个简化版的 SQL 处理器思路
-    // 实际生产中需要更完善的实现
-    public static StringProcessor of(String template) {
-        return new StringProcessor(template);
-    }
-    
-    // 预处理：转义单引号
-    static String escape(String input) {
-        if (input instanceof String str) {
-            return str.replace("'", "''"); // SQL 标准转义
+        // 4. StringBuilder：循环里大量拼接时用它，避免反复创建 String
+        StringBuilder sb = new StringBuilder();
+        for (int i = 1; i <= 3; i++) {
+            sb.append("第 ").append(i).append(" 行\n");
         }
-        return String.valueOf(input);
-    }
-}
 
-// 简化的字符串处理器
-class StringProcessor {
-    private final String template;
-    
-    StringProcessor(String template) {
-        this.template = template;
-    }
-    
-    // 实现插值逻辑（实际由 JVM 处理，这里只是演示思路）
-    public String toString() {
-        // Java 26+ 中插值由 JVM 在运行时处理
-        // 这里仅作概念说明
-        return template;
+        System.out.println(s1);
+        System.out.println(s2);
+        System.out.println(s3);
+        System.out.print(s4);
+        System.out.print(sb);
     }
 }
 ```
 
-### String Templates 的优势
+输出：
 
-| 对比项 | 传统拼接 | String.format | String Template |
-|--------|---------|---------------|----------------|
-| **可读性** | 差（满眼 + 和 ""） | 较好 | **最好** |
-| **类型安全** | 运行时错误 | 运行时错误 | **编译时检查（部分）** |
-| **格式化能力** | 有限 | 强大 | **强大（FMT处理器）** |
-| **防注入** | 需手动 | 需手动 | **可自定义处理器** |
-| **多行字符串** | 需 + 连接 | 需 + 连接 | **原生支持** |
-
-### 使用注意事项
-
-1. **确保 JDK 版本**：Java 21-25 是预览版，需加 `--enable-preview` 启动参数；Java 26+ 是正式版
-2. **IDE 支持**：确保使用支持最新 Java 特性的 IDE（IntelliJ IDEA 2024.2+、VS Code Java 插件最新版）
-3. **性能**：模板处理在运行时完成，与传统拼接性能相当，但代码可读性大幅提升
-
-```bash
-# 运行预览版代码（Java 21-25）
-javac --enable-preview --release 21 MyTemplate.java
-java --enable-preview MyTemplate
-
-# 运行正式版代码（Java 26+）
-javac MyTemplate.java
-java MyTemplate
 ```
+姓名: 小明, 年龄: 20, GPA: 3.85
+姓名: 小明, 年龄: 20, GPA: 3.85
+姓名: 小明, 年龄: 20
+<div>
+    <h1>欢迎，小明！</h1>
+    <p>GPA: 3.85</p>
+</div>
+第 1 行
+第 2 行
+第 3 行
+```
+
+### 那“安全拼 SQL”怎么办？
+
+当年 String Templates 被宣传得最响的场景，是“自定义处理器自动转义 SQL 参数”。这个需求今天依然存在，标准答案是用**参数化查询**（PreparedStatement），而不是手动拼接字符串：
+
+```java
+// 反例：手动拼接，值里带单引号就会出问题
+String bad = "SELECT * FROM " + table + " WHERE name = '" + value + "'";
+
+// 正解：让 JDBC 负责转义，用 ? 占位
+String sql = "SELECT * FROM users WHERE name = ?";
+PreparedStatement ps = conn.prepareStatement(sql);
+ps.setString(1, value);   // 无论 value 里有什么字符，都安全
+```
+
+> 📌 **一句话总结**：String Templates 是一个**曾经存在、但已被撤回**的设计。写代码时请用 `+`、`String.format`/`formatted()`、文本块或 `StringBuilder`；拼 SQL 一律用 `PreparedStatement`。
 
 ---
 

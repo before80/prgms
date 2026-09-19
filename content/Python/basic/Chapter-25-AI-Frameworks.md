@@ -36,6 +36,8 @@ LangChain 诞生于 2022 年底，由 Harrison Chase 创建，在 ChatGPT 发布
 
 ### 25.1.2 安装 LangChain
 
+LangChain 现在按功能拆成了多个包：核心抽象留在 `langchain-core`，具体模型供应商的接入放在 `langchain-openai` 这类独立包中。安装时按需选择，别指望一个包装齐整片生态。
+
 ```bash
 pip install langchain langchain-openai langchain-community
 ```
@@ -215,6 +217,8 @@ Agent 的思考过程大概是这样的（`verbose=True` 时会打印）：
 
 ### 25.1.8 LangChain 生态全景
 
+这张全景图想说明的是：LangChain 不是一个包，而是一组包的集合——核心抽象、模型接入、工具、向量库、记忆、回调各占一块。初学时先盯住 `langchain-core` 和你要用的那个模型包就够了。
+
 ```
 ┌─────────────────────────────────────────────────┐
 │                  LangChain 生态                   │
@@ -252,6 +256,8 @@ LangGraph 的核心优势：
 - **多 Agent 协作**：多个 Agent 可以组成网络协同工作
 
 ### 25.2.2 安装 LangGraph
+
+LangGraph 是独立发布的包，可以单独使用。它把 Agent 的流程画成一张状态图：节点是函数，边是转移条件，执行过程就是在这张图上流转。
 
 ```bash
 pip install langgraph
@@ -484,11 +490,15 @@ print(f"第{result2['level']}关结束，得分：{result2['score']}")  # 第3�
 
 ### 25.3.2 安装 LlamaIndex
 
+LlamaIndex 的主包叫 `llama-index`（注意别拼成 `llamaindex`），模型接入同样拆成了独立小包；装好之后从 `llama_index.core` 导入核心类。
+
 ```bash
 pip install llama-index llama-index-llms-openai
 ```
 
 ### 25.3.3 快速上手：加载文档并查询
+
+RAG 的最小闭环就三步：加载文档 → 建索引（切块 + 向量化）→ 查询时先检索、再交给大模型组织答案。这段代码把三步压缩到了十几行。
 
 ```python
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
@@ -666,6 +676,8 @@ Hugging Face 的核心贡献：
 
 ### 25.4.2 安装 Transformers
 
+`transformers` 只是"前端"库，真正做计算的是后端框架（PyTorch 或 TensorFlow），所以必须一起安装。目前绝大多数模型和教程都以 PyTorch 为默认后端。
+
 ```bash
 pip install transformers torch
 ```
@@ -838,11 +850,15 @@ trainer.train()
 
 ### 25.5.2 安装 Gradio
 
+Gradio 只有一个包，前端页面和本地 Web 服务都是它自带的。跑起来后终端会打印一个本地地址，浏览器打开就是你的界面。
+
 ```bash
 pip install gradio
 ```
 
 ### 25.5.3 你的第一个 Gradio 应用
+
+Gradio 的核心抽象是"函数 + 输入输出组件"：把函数交给 `Interface`，说明输入用哪种控件、输出是什么类型，界面就拼好了。
 
 ```python
 import gradio as gr
@@ -1014,11 +1030,15 @@ if __name__ == "__main__":
 
 ### 25.6.2 安装 Streamlit
 
+装 Streamlit 同样只需一条命令。它和 Gradio 的定位略有差别：Gradio 偏向"演示模型"，Streamlit 更偏向"数据应用与仪表盘"。
+
 ```bash
 pip install streamlit
 ```
 
 ### 25.6.3 你的第一个 Streamlit 应用
+
+Streamlit 的写法是"从上往下执行、随时输出"：脚本每跑一遍页面就重新渲染一遍，`st.write`、`st.dataframe` 直接决定屏幕上出现什么。
 
 ```python
 import streamlit as st
@@ -1075,6 +1095,8 @@ Streamlit 会自动打开浏览器，显示一个漂亮的仪表盘界面。侧�
 > 😂 **笑点**：Streamlit 的实时更新既是优点也是"惊吓"。你想改个小参数，结果整个页面疯狂闪烁——别慌，这是 Streamlit 在"re-running"。就像你室友在你专注工作时突然问"你觉得我穿这件好看吗"——突然的打断，但结果往往还行。
 
 ### 25.6.4 页面布局：列和容器
+
+布局靠 `st.sidebar`、`st.columns`、`st.container` 这类上下文管理器组织，和写普通 Python 一样用缩进表达结构。
 
 ```python
 import streamlit as st

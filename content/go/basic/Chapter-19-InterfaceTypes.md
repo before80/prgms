@@ -15,6 +15,8 @@ draft = false
 
 ### 19.1.1 接口声明语法
 
+接口类型的声明形式和结构体类似，只是把字段换成方法签名。接口里写的是“方法长什么样”，不关心“谁来实现、怎么实现”：
+
 ```go
 package main
 
@@ -49,6 +51,8 @@ func main() {
 
 ### 19.2.1 interface{} 是什么
 
+`interface{}` 是**没有任何方法的接口**。因为任何类型都至少满足零个方法，所以它可以是任意类型的容器——代价是取出来时必须做类型断言或反射：
+
 ```go
 package main
 
@@ -73,6 +77,8 @@ func main() {
 
 ### 19.2.2 any 是 interface{} 的别名
 
+从 Go 1.18 起，`any` 就是 `interface{}` 的**别名**（`type any = interface{}`，注意有个等号）。两者完全等价，混用也不会报错——新代码建议统一写 `any`：
+
 ```go
 package main
 
@@ -85,6 +91,8 @@ func main() {
 ```
 
 ### 19.2.3 泛型容器
+
+用 `any` 做容器字段，可以装任何类型，但每次取用都要断言。Go 1.18 之后更好的选择是泛型——类型安全、没有装箱开销：
 
 ```go
 package main
@@ -125,6 +133,8 @@ func main() {
 ## 19.3 接口组合
 
 ### 19.3.1 接口嵌入
+
+接口可以嵌入另一个接口，把对方的方法并入自己的方法集。**嵌入 N 个接口，就要求实现方同时具备 N 个接口的全部方法**：
 
 ```go
 package main
@@ -188,6 +198,8 @@ func main() {
 
 ### 19.3.2 组合接口的方法集
 
+嵌入多个接口后，方法集是它们的**并集**。判断一个具体类型满不满足组合接口，就是看它有没有把并集里的方法一个不落地实现：
+
 ```go
 package main
 
@@ -228,6 +240,8 @@ func main() {
 ## 19.4 接口设计原则
 
 ### 19.4.1 接口隔离原则
+
+接口应该按**调用方的需要**来切分，而不是照着实现方的全部能力来定义。把大接口拆小，实现方要满足的方法更少，测试里也更容易造假实现：
 
 ```go
 package main
@@ -281,22 +295,30 @@ func main() {
 
 ### 19.4.2 小接口优于大接口
 
+标准库里的接口通常只有一两个方法，这不是巧合。接口越小，能被它匹配的类型就越多，复用面就越广：
+
 ```go
 package main
 
 import (
-    "bytes"
     "fmt"
     "io"
 )
 
 type MemoryBuffer struct {
     data []byte
+    off  int // 当前读到的位置，io.Reader 必须自己记住进度
 }
 
+// Read 实现 io.Reader 约定：最多把 len(p) 个字节写进 p，
+// 把实际读到的字节数作为 n 返回；读到结尾时返回 0, io.EOF。
 func (b *MemoryBuffer) Read(p []byte) (n int, err error) {
-    copy(p, b.data)
-    return len(b.data), nil
+    if b.off >= len(b.data) {
+        return 0, io.EOF
+    }
+    n = copy(p, b.data[b.off:])
+    b.off += n
+    return n, nil
 }
 
 func (b *MemoryBuffer) Write(p []byte) (n int, err error) {
@@ -310,13 +332,19 @@ func main() {
     var rw io.ReadWriter = buffer
     rw.Write([]byte("World!"))
 
-    buf := make([]byte, 100)
-    n, _ := rw.Read(buf)
-    fmt.Printf("读取内容: %s\n", string(buf[:n])) // 读取内容: Hello, World!
+    // io.ReadAll 会一直读到 Read 返回 io.EOF 为止
+    out, err := io.ReadAll(rw)
+    fmt.Printf("读取内容: %s (err=%v)\n", out, err) // 读取内容: Hello, World! (err=<nil>)
+
+    // 再读一次已经到末尾，会立刻拿到 io.EOF
+    n, err := rw.Read(make([]byte, 8))
+    fmt.Printf("末尾再读: n=%d, err=%v\n", n, err) // 末尾再读: n=0, err=EOF
 }
 ```
 
 ### 19.4.3 接口定义位置
+
+接口应该定义在**使用方**所在的包里，而不是实现方那里。这样依赖方向才是“调用者 → 接口 ← 实现者”，实现方不必反过来依赖调用方：
 
 ```go
 package main
@@ -374,6 +402,8 @@ func main() {
 
 #### io.Reader
 
+`io.Reader` 是 Go 里最经典的接口：一次读一些字节，读到末尾返回 `io.EOF`。它是流式读取一切数据的统一入口：
+
 ```go
 package main
 
@@ -400,6 +430,8 @@ func main() {
 
 #### io.Writer
 
+`io.Writer` 与 `io.Reader` 对称：把一段字节写出去。`n` 是实际写入的字节数，**小于 `len(p)` 时一定要当成错误处理**：
+
 ```go
 package main
 
@@ -425,6 +457,8 @@ func main() {
 
 #### io.Closer
 
+`io.Closer` 只有一个方法。它常和 Reader/Writer 组合使用，用于释放文件句柄、网络连接这类系统资源：
+
 ```go
 package main
 
@@ -435,8 +469,12 @@ import (
 )
 
 func main() {
+    // bytes.Buffer 没有 Close 方法，所以它并不满足 io.Closer！
     buffer := new(bytes.Buffer)
-    var closer io.Closer = buffer
+    // var closer io.Closer = buffer // ❌ 编译错误：*bytes.Buffer does not implement io.Closer (missing method Close)
+
+    // 标准库提供了 io.NopCloser：把任何 io.Reader 包一层，Close 时什么都不做
+    var closer io.Closer = io.NopCloser(buffer)
 
     err := closer.Close()
     fmt.Printf("Close err: %v\n", err) // Close err: <nil>
@@ -444,6 +482,8 @@ func main() {
 ```
 
 #### io.Seeker
+
+`io.Seeker` 表示“可以随机跳转定位”。普通的 socket、管道都不支持它，只有文件、`bytes.Reader`、`strings.Reader` 这类才算：
 
 ```go
 package main
@@ -456,25 +496,28 @@ import (
 
 func main() {
     data := []byte("0123456789")
-    buffer := bytes.NewBuffer(data)
+    reader := bytes.NewReader(data) // bytes.Reader 实现了 io.Seeker
 
-    var seeker io.Seeker = buffer
+    var seeker io.Seeker = reader
+    // 注意：bytes.Buffer 并没有实现 io.Seeker，因为它不支持随机定位
 
     p := make([]byte, 5)
-    n, _ := buffer.Read(p)
-    fmt.Printf("读取: %q, 剩余: %d 字节\n", string(p), buffer.Len()) // 读取: "01234", 剩余: 5 字节
+    n, _ := reader.Read(p)
+    fmt.Printf("读取: %q (n=%d), 剩余: %d 字节\n", string(p), n, reader.Len()) // 读取: "01234" (n=5), 剩余: 5 字节
 
     offset, err := seeker.Seek(-2, io.SeekCurrent)
     fmt.Printf("Seek -2: 位置=%d, err=%v\n", offset, err) // Seek -2: 位置=3, err=<nil>
 
-    n, _ = buffer.Read(p[:3])
-    fmt.Printf("再读取: %q\n", string(p[:3])) // 再读取: "345"
+    n, _ = reader.Read(p[:3])
+    fmt.Printf("再读取: %q (n=%d)\n", string(p[:3]), n) // 再读取: "345" (n=3)
 }
 ```
 
 ### 19.5.2 fmt 包接口
 
 #### fmt.Stringer
+
+实现了 `String() string` 的类型，在 `fmt` 打印时会被自动调用。这是给类型“定制默认输出格式”的标准做法：
 
 ```go
 package main
@@ -508,6 +551,8 @@ func main() {
 
 #### fmt.GoStringer
 
+`GoString() string` 是 `%#v` 格式调用的方法，用来输出**像 Go 源码一样的**表示形式，方便调试：
+
 ```go
 package main
 
@@ -534,6 +579,8 @@ func main() {
 ```
 
 ### 19.5.3 sort 包接口
+
+`sort` 包用 `sort.Interface` 抽象“可排序”这件事，只要实现三个方法，任何容器都能被排序。Go 1.21 之后更推荐用泛型的 `slices.SortFunc`，不再需要定义类型：
 
 ```go
 package main
@@ -591,6 +638,8 @@ func main() {
 
 ### 19.6.1 接口的内部结构
 
+接口值在运行时由类型信息和数据指针两部分组成。这一节用 `reflect` 把这两部分“看”出来：
+
 ```go
 package main
 
@@ -626,6 +675,8 @@ func main() {
 ```
 
 ### 19.6.2 接口缓存
+
+`fmt` 之类的库会缓存类型信息，避免每次调用都重新查表。这一节用一个小实验看看缓存的收益：
 
 ```go
 package main
@@ -665,6 +716,8 @@ func main() {
 
 ### 19.7.1 反射与空接口
 
+反射是“在运行时查看和操作类型信息”的能力，它的入口正是空接口。代价是慢、容易 panic、编译期检查不到：
+
 ```go
 package main
 
@@ -700,6 +753,8 @@ func main() {
 ```
 
 ### 19.7.2 any 类型演进
+
+从 `interface{}` 到 `any`，再到泛型，Go 处理“任意类型”的手段在十年里演进了三次。这一节对比它们的取舍：
 
 ```go
 package main
@@ -763,4 +818,3 @@ func main() {
 - `io.Reader/Writer/Closer`
 - `fmt.Stringer`
 - `sort.Interface`
-

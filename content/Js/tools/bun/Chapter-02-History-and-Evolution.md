@@ -75,11 +75,12 @@ v1.0 是 Bun 发展史上的重要里程碑，从此 Bun 正式从"尝鲜项目"
 
 ## 2.7 v1.1 - v1.x（持续优化，生态扩展）
 
-v1.1 之后，Bun 进入快速迭代期：
+v1.1 之后，Bun 进入快速迭代期（下面的发布日期以官方 GitHub Release 为准）：
 
-- **v1.1**：Windows 支持从零到有，首次正式支持 Windows 平台！之前 Bun 基本只能在 macOS 和 Linux 上跑，Windows 用户只能"望 Bun 兴叹"。v1.1 让 Windows 用户终于也能享受 Bun 的速度了
-- **v1.2.x**：引入了一系列重量级内置功能——内置 PostgreSQL 客户端（`Bun.sql`，SQLite 早在 v0.x 就已内置）、S3 对象存储（Bun.s3）、routes API。`Bun.cron` 和 `bun generate` 实际上在 v1.3 才引入（v1.2 blog 未提及）。MySQL 和 Redis 客户端当时仍在开发中——官方博客明确写道 *"MySQL coming soon"*。至此 Bun 的"一体化"拼图大幅扩展
-- **v1.3.x**：带来了全方位前端开发支持——内置全栈开发服务器（支持热模块替换 HMR 和浏览器控制台日志）、**内置 MySQL 客户端**（终于来了！与已有的 Postgres/SQLite 协同）、**内置 Redis 客户端**（终于来了！）、更好的路由/Cookies/WebSocket 体验，以及大量 Node.js API 兼容性改进。**注意**：截至本书编写时，Bun 最新稳定版已至 v1.4.x 系列，建议读者以官网实际版本为准
+- **v1.1（2024-04-01）**：Windows 支持从"能跑"走向"可用"，Bun 正式成为跨 macOS / Linux / Windows 三平台可用的运行时。在此之前 Windows 用户只能"望 Bun 兴叹"
+- **v1.2（2025-01-22）**：一批重量级内置能力落地——S3 对象存储（`Bun.s3`）、PostgreSQL 客户端（`Bun.sql`，SQLite 早在 v0.x 就已内置）、文本格式锁文件 `bun.lock`（取代二进制的 `bun.lockb`）、跨平台 `--compile` 单文件打包。MySQL 当时还在路上，官方博客明确写着 *"MySQL coming soon"*；HMR 也在这一代的 **1.2.3** 小版本里首次出现在内置开发服务器中
+- **v1.3（2025-10-10）**：多方位扩展——全栈开发服务器正式成为卖点（热模块替换 HMR、React Fast Refresh、浏览器控制台日志回传到终端）、**内置 MySQL 客户端**与 **内置 Redis 客户端**（同时支持 Valkey）、更好的路由 / Cookies / WebSocket 体验、workspace 隔离安装与 catalogs 等
+- **v1.4（2026-08-20）**：底层从 Zig 重写为 **Rust**；标准库大扩容，把 `sharp`、`puppeteer`、`marked`、`node-cron`、`node-pty`、`JSON5`、`tar` 等 15 个常见依赖直接内置为 `Bun.Image`、`Bun.WebView`、`Bun.markdown`、`Bun.cron`、`Bun.Terminal`、`Bun.JSON5`、`Bun.Archive` 等 API。**注意**：截至本书编写时最新稳定版为 1.4.2（2026-09-05），建议读者以官网实际版本为准
 
 ```mermaid
 timeline
@@ -87,16 +88,17 @@ timeline
     2022.07 : v0.1 首个公开版本
     2022 : v0.2-v0.5 早期迭代
     2023.09 : v1.0 正式版发布<br/>生产环境可用
-    2024.03 : v1.1 首次支持 Windows<br/>Bundler 持续完善
-    2024.10 : v1.2 内置 PostgreSQL(Bun.sql)/SQLite/S3<br/>MySQL & Redis 仍在开发中
-    2025.02 : v1.3 全栈前端开发服务器<br/>HMR + MySQL + Redis 客户端 + Bun.cron
+    2024.04 : v1.1 Windows 支持走向可用
+    2025.01 : v1.2 内置 Bun.s3 / Bun.sql(Postgres)<br/>文本锁文件 bun.lock
+    2025.10 : v1.3 全栈开发服务器(HMR) <br/>内置 MySQL + Redis 客户端
+    2026.08 : v1.4 底层改为 Rust<br/>内置 Bun.Image / Bun.WebView / Bun.cron 等
 ```
 
 ---
 
-## 2.8 里程碑：Bun 加入 Anthropic（2024 年）
+## 2.8 里程碑：Bun 加入 Anthropic（2025 年 12 月）
 
-2024 年，Bun 官方宣布**加入 Anthropic**（就是做 Claude 的那个公司）。这是 Bun 发展史上的重大里程碑，意味着 Bun 背后有了更强大的资源和团队支持。
+**2025 年 12 月**，Bun 官方宣布**加入 Anthropic**（就是做 Claude 的那个公司）。这是 Bun 发展史上的重大里程碑，意味着 Bun 背后有了更强大的资源和团队支持。
 
 Anthropic 为什么会看上 Bun？原因很简单：**Anthropic 的工程师自己也受不了 Node.js 的慢速度，他们想让 Claude 的周边工具也用上 Bun**。加上 Claude Code 本身就是用 Bun 打包成单文件可执行程序分发给数百万用户的——Claude Code 依赖 Bun，Bun 坏了 Claude Code 就坏了，Anthropic 自然有直接的动力把 Bun 维护好。
 
@@ -138,11 +140,11 @@ Bun 的内存管理是自己写的，不依赖现有的运行时，这意味着 
 ## 2.11 社区生态发展
 
 Bun 的社区发展非常迅速：
-- GitHub Stars 已超过 7 万（保守数字，实际可能更高）
+- GitHub Stars 已接近 **9.6 万**（2026-09 查询为 95,959，星标数随时间变化，请以仓库页面为准）
 - 大量框架开始官方支持 Bun（Hono、Elysia、Next.js、Tailwind CSS 等）
 - npm 上越来越多的包开始测试 Bun 兼容性
 - Discord 和 GitHub Discussions 活跃度极高
-- 一些知名公司已开始生产环境使用 Bun（X/Midjourney/Tailwind 等）
+- 一些知名项目与公司在生产环境使用 Bun（Anthropic 自己的 Claude Code 就是用 Bun 打包成单文件可执行程序分发的）
 
 ---
 
@@ -153,7 +155,7 @@ Bun 的终极目标是：**统一 JavaScript 工具链**。
 也就是说，未来你可能只需要一个工具：
 - 替代 Node.js ✅
 - 替代 Jest / Vitest ✅（Bun 内置测试运行器，兼容 Jest API）
-- 替代 webpack / Vite ✅（Bun 内置 bundler）
+- 替代 webpack / Vite ⚠️（Bun 内置 bundler 与开发服务器，中小型项目够用；大型项目、复杂插件链与深度定制场景仍以 Vite / Webpack 为主）
 - 替代 TypeScript 编译器 tsc ✅（Bun 内置转译器，TypeScript 开箱即用）
 - 替代 yarn / npm ✅（Bun 内置包管理器，速度领先）
 - 替代部分 PostCSS 场景 ✅（Bun 内置 CSS 转译与打包，对常见 PostCSS 插件功能有一定覆盖，但 PostCSS 生态中的部分高级插件仍需传统方案）
@@ -166,6 +168,6 @@ Bun 的终极目标是：**统一 JavaScript 工具链**。
 
 本章梳理了 Bun 的发展历史。Bun 由 Jarred Sumner 于 2022 年创立，Oven 公司维护，基于 JavaScriptCore + Zig（1.4 起为 Rust）从零重写，目标是统一 JavaScript 工具链。
 
-关键版本节点：v0.1（2022.07 首发）→ v1.0（2023.09 生产可用）→ v1.1（2024.03 Windows 支持）→ v1.2（2024.10 内置 PostgreSQL(Bun.sql)/SQLite/S3）→ v1.3（2025.02 全栈前端开发+HMR+MySQL+Redis 客户端+Bun.cron）→ v1.4（2026.08 底层改用 Rust，新增 Bun.Image、Bun.WebView、Bun.markdown 等内置能力）。2024 年 Bun 宣布加入 Anthropic，获得了更强大的资源支持。
+关键版本节点：v0.1（2022.07 首发）→ v1.0（2023.09 生产可用）→ v1.1（2024.04 Windows 支持走向可用）→ v1.2（2025.01 内置 S3(`Bun.s3`)/PostgreSQL(`Bun.sql`)、文本锁文件 `bun.lock`；1.2.3 起开发服务器支持 HMR）→ v1.3（2025.10 全栈开发服务器 + 内置 MySQL / Redis 客户端）→ v1.4（2026.08 底层改用 Rust，新增 `Bun.Image`、`Bun.WebView`、`Bun.markdown`、`Bun.cron` 等内置能力）。2025 年 12 月 Bun 团队加入 Anthropic，获得了更强大的资源支持。
 
 Bun 的技术选型：JavaScriptCore 引擎（启动快） + Rust 语言（当前底层，1.4+；早期为 Zig），这两个选择共同构成了 Bun"极速"的底层基础。

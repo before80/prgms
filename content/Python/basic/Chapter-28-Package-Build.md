@@ -32,7 +32,7 @@ pip 可能是你接触的第一个 Python 包管理工具，但你确定你真�
 
 这是你最熟悉的老朋友。但你知道吗？`pip install` 有多种打开方式：
 
-```python
+```bash
 # 安装指定版本的包（版本号用 == 分隔）
 pip install requests==2.28.0
 
@@ -68,7 +68,7 @@ pip install numpy -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 当你发现某个包是个坑，或者不需要了，就要用到卸载：
 
-```python
+```bash
 # 卸载一个包（会问你确认，-y 跳过确认）
 pip uninstall requests
 
@@ -84,7 +84,7 @@ pip uninstall -y requests pandas matplotlib
 
 这个命令超级有用！想象你要把项目分享给同事，或者部署到服务器，`pip freeze` 能帮你把所有安装过的包及其精确版本号都列出来：
 
-```python
+```bash
 # 导出到文件（标准操作！）
 pip freeze > requirements.txt
 
@@ -108,7 +108,7 @@ pip freeze --exclude-editable
 
 想知道某个包有没有安装、装在哪、版本多少、依赖谁？`pip show` 就是包的档案馆：
 
-```python
+```bash
 # 查看单个包的详细信息
 pip show requests
 
@@ -139,7 +139,7 @@ pip show -f requests
 
 想看看当前环境里装了哪些包？`pip list` 就是你的包清单：
 
-```python
+```bash
 # 列出所有包（按字母排序）
 pip list
 
@@ -160,7 +160,7 @@ pip list --format=freeze
 
 这个命令很多人不知道，但它超级实用！它会检查你当前环境里所有包的依赖是否都满足，有冲突就报警：
 
-```python
+```bash
 # 检查依赖完整性（不报任何消息就是没问题！）
 pip check
 
@@ -183,7 +183,7 @@ pip list --outdated
 
 这个命令会把包的 wheel 或源码包下载到本地，方便在没有网络的环境里安装：
 
-```python
+```bash
 # 下载某个包及其依赖到当前目录
 pip download requests
 
@@ -207,7 +207,7 @@ pip download -r requirements.txt --dest ./wheels
 
 pip 默认会缓存下载过的包，避免重复下载。但时间久了，缓存可能占用大量磁盘空间：
 
-```python
+```bash
 # 查看 pip 缓存目录在哪里
 pip cache dir
 # 输出：~\AppData\Local\pip\cache (Windows)
@@ -527,13 +527,13 @@ flowchart LR
 
 ---
 
-## 28.4 PDM——PEP 582 包管理（激进分子！）
+## 28.4 PDM——PEP 621 原生、可选 PEP 582 模式
 
-> 💡 **PDM 是什么？** PDM 是 "Python Development Master" 的缩写，是一个支持 PEP 582 规范的包管理器。PEP 582 是 Python 官方提出的一种"本地 site-packages"机制——项目依赖不装在全局 Python 环境里，而是装在项目根目录的 `__pypackages__/` 文件夹下。这样就**不需要手动创建虚拟环境**了，天然隔离！
-> 
-> 激进一点说：PDM 认为 `venv` 是一种历史遗留的妥协方案，PEP 582 才是未来。
+> 💡 **PDM 是什么？** PDM 是 "Python Development Master" 的缩写，是一个现代化包管理器，特点是**原生支持 PEP 621**（项目元数据统一写在 `pyproject.toml`）。它最有名的"本地 site-packages"方案来自 **PEP 582**：把依赖装在项目根目录的 `__pypackages__/` 里，像 Node.js 的 `node_modules`。
+>
+> ⚠️ **需要更正一个常见说法**：PEP 582 并不是"官方既定规范"，它的状态是 **Rejected**（已被否决），不会被 CPython 采纳。PDM 只是在工具层面**可选**地实现了这个模式：默认仍用虚拟环境，需要执行 `pdm config python.use_venv false` 才会切到 `__pypackages__`。
 
-PDM 的核心创新是 `__pypackages__` 目录。它的工作方式是这样的：
+开启 PEP 582 模式后，PDM 的目录结构是这样的：
 
 ```
 my-project/
@@ -629,6 +629,8 @@ build-backend = "setuptools.build_meta"
 
 ### build——构建你的包
 
+`python -m build` 是官方构建入口：它读取 `pyproject.toml`，产出 sdist 与 wheel。注意上传前**先清掉旧的 `dist/`**，否则 twine 会把上一轮的产物一并传上去。
+
 ```bash
 # 安装 build
 pip install build
@@ -667,6 +669,8 @@ flowchart LR
 ```
 
 ### twine——上传到 PyPI
+
+twine 只负责上传，不会替你重新构建——它传的就是 `dist/` 里已有的文件。上传前建议先跑 `twine check dist/*`，校验元数据和 README 是否能正确渲染。
 
 ```bash
 # 安装 twine
@@ -749,7 +753,7 @@ build-backend = "pdm.backend"
 | **pip** | 标准库外置包管理 | 安装/卸载/查看/冻结 | 慢 | 所有场景的起点 |
 | **uv** | 超极速新一代包管理 | Python 版本管理 + 包管理 + lock | 极快 | 追求效率、现代化团队 |
 | **Poetry** | 现代化依赖+打包管理 | 依赖锁定 + 虚拟环境 + 打包发布 | 中等 | 完整项目生命周期管理 |
-| **PDM** | PEP 582 实现者 | 本地 site-packages + 依赖管理 | 快 | 讨厌 venv 繁琐的人 |
+| **PDM** | PEP 621 原生支持者 | 依赖管理 + 可选 `__pypackages__`（PEP 582）模式 | 快 | 喜欢把配置集中在 `pyproject.toml` 的人 |
 | **build** | 构建前端 | 调用各后端生成 wheel/sdist | — | 打包时一次性使用 |
 | **twine** | PyPI 上传工具 | 安全上传到 PyPI | — | 发布时一次性使用 |
 
@@ -761,7 +765,7 @@ build-backend = "pdm.backend"
 4. **sdist（`.tar.gz`）**：Python 的源码分发格式，跨平台通用但需要编译。
 5. **PyPI**：Python Package Index，Python 包的官方仓库，全世界最大的 Python 包集散地。
 6. **build-system**：定义了"如何构建你的包"，常用的有 setuptools、flit_core、pdm_backend。
-7. **PEP 582**：一种实验性的本地包管理规范，PDM 是其主要实现者。
+7. **PEP 582**：一种"本地 `__pypackages__` 目录"提案，**已被官方否决（Rejected）**；PDM 仍以可选模式实现它，默认并不启用。
 
 ### 实战建议
 

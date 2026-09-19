@@ -87,8 +87,8 @@ Java 中最常用的 Map 实现类有五种：
 | HashMap | 哈希表（数组+链表/红黑树） | 否 | 否 | 通用场景，高性能需求 |
 | LinkedHashMap | 哈希表 + 双向链表 | 否 | 是（插入顺序） | 需要保持插入顺序 |
 | TreeMap | 红黑树 | 否 | 是（自然顺序/自定义顺序） | 需要按Key排序 |
-| Hashtable | 哈希表（ synchronized 修饰） | 是（古老） | 否 | 不推荐（新代码用 ConcurrentHashMap） |
-| ConcurrentHashMap | 分段锁/红黑树 | 是 | 否 | 高并发场景 |
+| Hashtable | 哈希表（所有方法用 synchronized 修饰） | 是（古老，全局锁） | 否 | 不推荐（新代码用 ConcurrentHashMap） |
+| ConcurrentHashMap | 数组 + 链表/红黑树（CAS + 桶级 synchronized） | 是 | 否 | 高并发场景 |
 
 > **小贴士**：Map 不是 Collection 家族的正式成员哦！Collection 主要关注单个元素，而 Map 关注键值对。不过 Java 还是把 Map 放在了 java.util 包下，地位相当稳固。
 
@@ -119,8 +119,8 @@ graph TD
         A7["[7]"]
     end
 
-    A2 -->|"同一位置多个元素"| N1["Node链表"]
-    A2 -->|"元素≥8个"| T1["红黑树"]
+    A2 -->|"同一位置多个元素"| N1["Node 链表"]
+    A2 -->|"链表长度≥8 且 容量≥64"| T1["红黑树"]
 
     style A2 fill:#ffcccc
     style N1 fill:#ccffcc
@@ -215,26 +215,45 @@ public class HashMapDemo {
 import java.util.HashMap;
 
 /**
- * 演示 HashMap 扩容过程
- * HashMap 默认初始容量是 16，加载因子是 0.75
- * 当元素数量超过 16 * 0.75 = 12 时，会触发扩容，容量翻倍
+ * 演示 HashMap 的扩容时机
+ *
+ * 规则：阈值 threshold = 容量 × 加载因子
+ *       当 size（元素个数）超过 threshold 时，容量翻倍
+ *
+ * 默认情况：容量 16、加载因子 0.75 → 阈值 12，put 第 13 个元素时扩容 16 → 32
+ * 本例手动把初始容量设为 8 → 阈值 6，put 第 7 个元素时扩容 8 → 16
  */
 public class HashMapResize {
     public static void main(String[] args) {
-        // 指定初始容量为 8（给个小一点的数，方便观察）
         HashMap<Integer, String> map = new HashMap<>(8);
+        System.out.println("初始容量 8，加载因子 0.75 → 阈值 = " + (int) (8 * 0.75));
 
-        // 不断添加元素，观察扩容
-        for (int i = 1; i <= 15; i++) {
+        for (int i = 1; i <= 9; i++) {
             map.put(i, "值" + i);
-            System.out.println("添加第 " + i + " 个元素后，容量=" + 16 + "（固定演示，实际需通过反射查看）");
+            String note = (i == 7) ? "   ← 超过阈值，触发扩容：8 → 16" : "";
+            System.out.println("put 第 " + i + " 个元素后：size = " + map.size() + note);
         }
 
-        System.out.println("\n最终Map：" + map);
-        System.out.println("大小：" + map.size());
+        System.out.println("\n最终 Map：" + map);
+        System.out.println("注意：这里 key 是小整数，恰好按顺序打印，但这是巧合——HashMap 不保证任何顺序。");
     }
 }
 ```
+
+> 💡 **想亲眼看到内部容量？** 得用反射去读 `HashMap` 的 `table` 字段长度。但 JDK 16 之后默认强封装（JEP 396），深反射访问 `java.base` 里的私有成员会被拒绝，必须显式授权：
+>
+> ```bash
+> java --add-opens java.base/java.util=ALL-UNNAMED HashMapResize
+> ```
+>
+> ```java
+> java.lang.reflect.Field f = HashMap.class.getDeclaredField("table");
+> f.setAccessible(true);
+> Object[] table = (Object[]) f.get(map);
+> System.out.println(table == null ? 0 : table.length);  // 第一次 put 之前 table 是 null，容量按 0 处理
+> ```
+>
+> 这里用到的"反射"我们会在第 32 章详细介绍。
 
 > **面试加分项**：HashMap 在 JDK 1.8 做了重大优化——引入了红黑树。在 1.8 之前，只用链表，碰撞过多时查询是 O(n)；现在升级为红黑树后，查询变成 O(log n)。这就是为什么面试官总爱问 HashMap 源码！
 
@@ -550,6 +569,8 @@ HashMap：非线程安全，需要外部同步或用 ConcurrentHashMap
 ### 为什么不推荐使用 Hashtable？
 
 ```java
+import java.util.Hashtable;
+
 /**
  * 性能对比：Hashtable vs ConcurrentHashMap
  * 

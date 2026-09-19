@@ -1666,7 +1666,7 @@ Reason: 因为变量不会被重新赋值，用const更安全
 
 **5. 给建议，不只是指问题**
 
-```
+````
 ❌ 只说问题：
 - "这段代码重复了"
 
@@ -1675,7 +1675,7 @@ Reason: 因为变量不会被重新赋值，用const更安全
    ```js
    function validateInput(input) { ... }
    ```"
-```
+````
 
 ### Review的检查清单
 
@@ -2090,6 +2090,5 @@ Fork → Clone → 修改 → Push → PR → Review → Merge
 ---
 
 *本章完 | Chapter 12 Complete*
-
 
 

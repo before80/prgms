@@ -42,12 +42,16 @@ draft = false
 * 新的命令行标志、选项和子命令要求同时带上 `-Z unstable-options` 这个 CLI 选项。例如，新的
   `--artifact-dir` 选项只在 nightly 上可用：
 
-  ```cargo +nightly build --artifact-dir=out -Z unstable-options```
+  ```console
+  cargo +nightly build --artifact-dir=out -Z unstable-options
+  ```
 
 * `-Z` 命令行标志用于启用那些可能还没有界面、或者界面尚未设计好的新功能，也用于启用那些会影响
   Cargo 多个部分的复杂特性。例如，[mtime-on-use](#mtime-on-use) 特性可以这样启用：
 
-  ```cargo +nightly build -Z mtime-on-use```
+  ```console
+  cargo +nightly build -Z mtime-on-use
+  ```
 
   运行 `cargo -Z help` 可以查看可用标志的列表。
 
@@ -2216,7 +2220,6 @@ timings 的输出格式选项
 
 ## warnings {#warnings}
 `build.warnings` 配置字段已在 Rust 1.97 中稳定化。
-
 
 
 

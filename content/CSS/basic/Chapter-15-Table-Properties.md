@@ -14,7 +14,7 @@ draft = false
 
 ## 15.1 表格布局属性
 
-### 15.1.1 border-collapse——collapse（合并相邻单元格的边框）/ separate（分开，默认），设置后 border-spacing 失效
+### 15.1.1 border-collapse——collapse（合并相邻单元格的边框）/ separate（分开，默认）；设为 collapse 后 border-spacing 会失效
 
 `border-collapse` 是表格样式化的基础属性之一。它决定了表格的边框是"合并"还是"分开"。这个属性听起来简单，但它直接影响表格的整体外观。
 
@@ -90,17 +90,20 @@ draft = false
 
 ```
 border-collapse: separate（分开）
-┌─────────────────────────────┐
-│  外边框                      │
-│  ┌───────┬───────┬───────┐  │
-│  │ 姓名  │ 年龄  │ 城市  │  │
-│  ├───────┼───────┼───────┤  │
-│  │ 张三  │  25   │ 北京  │  │
-│  ├───────┼───────┼───────┤  │
-│  │ 李四  │  30   │ 上海  │  │
-│  └───────┴───────┴───────┘  │
-│       每个单元格边框分开       │
-└─────────────────────────────┘
+每个单元格有自己的完整边框，格子之间还留着间距（border-spacing）：
+
+┌───────────────────────────────────┐
+│  ┌───────┐  ┌───────┐  ┌───────┐  │
+│  │ 姓名  │  │ 年龄  │  │ 城市  │  │
+│  └───────┘  └───────┘  └───────┘  │
+│      ↑          ↑          ↑      │  ← 这些空隙就是 border-spacing
+│  ┌───────┐  ┌───────┐  ┌───────┐  │
+│  │ 张三  │  │  25   │  │ 北京  │  │
+│  └───────┘  └───────┘  └───────┘  │
+│  ┌───────┐  ┌───────┐  ┌───────┐  │
+│  │ 李四  │  │  30   │  │ 上海  │  │
+│  └───────┘  └───────┘  └───────┘  │
+└───────────────────────────────────┘
 
 border-collapse: collapse（合并）
 ┌─────────────────────────────┐
@@ -154,6 +157,23 @@ border-collapse: collapse（合并）
 .rounded-corner-table {
   /* 注意：直接对 table 设置 overflow: hidden 在某些浏览器中无效
      圆角效果需要配合外层容器使用 */
+}
+
+/* 更稳的做法：把圆角直接加在"四个角上的单元格"上 */
+.rounded-corner-table th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.rounded-corner-table th:last-child {
+  border-top-right-radius: 12px;
+}
+
+.rounded-corner-table tr:last-child td:first-child {
+  border-bottom-left-radius: 12px;
+}
+
+.rounded-corner-table tr:last-child td:last-child {
+  border-bottom-right-radius: 12px;
 }
 
 .rounded-corner-table th,
@@ -404,16 +424,20 @@ border-collapse: collapse（合并）
 
 /* 3. 配合 text-overflow 实现单元格文字截断 */
 .truncate-cell {
-  table-layout: fixed;
+  table-layout: fixed;   /* 关键：固定布局，列宽由首行决定 */
   width: 100%;
 }
 
 .truncate-cell td {
-  max-width: 150px;          /* 最大宽度 */
+  /* ⚠️ 不要写 max-width！表格单元格上的 max-width 在多数浏览器里会被忽略 */
   overflow: hidden;
   text-overflow: ellipsis;   /* 超出显示省略号 */
   white-space: nowrap;        /* 不换行 */
 }
+
+/* 想让某一列变窄，正确做法是给"首行对应的单元格"设宽度 */
+.truncate-cell th:nth-child(1) { width: 150px; }
+.truncate-cell th:nth-child(2) { width: auto; }
 ```
 
 **`table-layout: auto` vs `fixed` 对比：**
@@ -469,6 +493,12 @@ border-collapse: collapse（合并）
 ```
 
 > 💡 **小技巧**：`table-layout: fixed` 是大型表格（几百行以上）的首选，因为它能显著提升渲染性能。但要注意，使用 fixed 模式时，列宽是由表格首行（thead 中的 th）或 width 属性定义的，所以要确保首行的宽度定义正确。
+
+> ⚠️ 用 `table-layout: fixed` 前先确认三件事，否则效果可能和预期差很远：
+>
+> 1. **列宽只看第一行**——哪怕第一行是 `<th>` 还是 `<td>`，浏览器都只用**第一个 `<tr>`** 里各单元格的宽度来定列宽，后面的行写宽度是无效的；
+> 2. **表格本身要有确定的宽度**（比如 `width: 100%`、`width: 600px`），否则各列宽度之和会被当作表格宽度，缩放的参考系就没了；
+> 3. **内容不会撑开列**——超出的内容会溢出或被 `overflow: hidden` 裁掉，所以长文本列记得配合省略号处理（见上文）。
 
 ### 15.1.4 empty-cells——show（显示空单元格边框）/ hide（隐藏空单元格边框），当 border-collapse: separate 时有效
 
@@ -615,6 +645,17 @@ border-collapse: collapse（合并）
 ```
 
 > 💡 **小技巧**：`empty-cells` 在现代 CSS 中使用得不多，因为大多数设计师会选择在数据层面处理"空数据"的显示（比如显示"-"或"N/A"）。但如果你的表格确实需要隐藏空单元格的边框，这个属性还是很有用的。
+
+> ⚠️ **`empty-cells` 里的"空"很严格**：只有**完全没有内容**的单元格才算空。下面这些都会被当成"非空"，边框照常显示：
+>
+> ```html
+> <td></td>          <!-- ✅ 空，边框会被隐藏 -->
+> <td> </td>         <!-- ❌ 有一个空格，算有内容 -->
+> <td>&nbsp;</td>    <!-- ❌ 不换行空格，算有内容 -->
+> <td><!-- 注释 --></td>  <!-- ✅ 注释不算内容，仍然算空 -->
+> ```
+>
+> 这和 `:empty` 的行为是一致的。所以写 HTML 时如果为了美观把空单元格写成 `<td>\n  </td>`，`empty-cells: hide` 就会失效——想真正生效，把它压成一行 `<td></td>`。
 
 ## 15.2 表格对齐
 
@@ -913,8 +954,9 @@ border-collapse: collapse（合并）
 }
 
 /* 4. 表格顶部对齐（常用）*/
-.top-align-table {
-  vertical-align: top;  /* 所有单元格内容靠上 */
+.top-align-table td,
+.top-align-table th {
+  vertical-align: top;  /* 注意要写在单元格上，写在 table 上无效 */
 }
 
 .top-align-table td {
@@ -1006,7 +1048,11 @@ border-collapse: collapse（合并）
 </table>
 ```
 
-> 💡 **小技巧**：`vertical-align: middle` 是表格中最常用的垂直对齐方式。但要注意，它只能让单行内容真正垂直居中。对于多行内容，可能需要配合 line-height 或者使用 Flexbox/Grid 来实现更精确的垂直居中。
+> 💡 **小技巧**：对**表格单元格**来说，`vertical-align: middle` 会把单元格里的整块内容（不管一行还是十行）垂直居中，可以放心使用——这里的"垂直居中"是真正的居中，不是行内对齐那种近似。
+>
+> 真正容易让人误会的是 `vertical-align` 用在**行内元素**上时（比如给 `<img>` 写 `vertical-align: middle`）：那里的 `middle` 是"与父元素基线加上半个 x-height 的位置对齐"，并不是把图片放在行盒正中间，观感上常常差一点点。这也是"`vertical-align: middle` 看起来没居中"这类抱怨的真正来源。
+>
+> 一句话区分：**表格单元格 = 真居中；行内元素 = 近似对齐**。需要精确控制时，改用 Flexbox 的 `align-items: center` 或 Grid 更省心。
 
 ---
 
@@ -1054,6 +1100,3 @@ graph TD
 ### 下章预告
 
 下一章我们将学习列表与计数器属性，看看如何用 CSS 来美化列表和创建高级计数效果！
-
-
-

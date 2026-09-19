@@ -498,7 +498,7 @@ vector: Vector = [3.0, 4.0]
 print(calculate_norm(vector))  # 5.0
 ```
 
-> 📝 **TypeAlias vs 变量**：在 Python 3.10 之前，TypeAlias 是显式的（需要 `TypeAlias`），之后可以用简单的 `=` 赋值。不过为了兼容性，推荐用 `TypeAlias`。
+> 📝 **TypeAlias vs 变量**：`X = list[int]` 这种写法**从 Python 3.6 起就能跑**，问题在于类型检查器常常分不清它是普通变量还是类型别名——所以 Python 3.10 加了 `typing.TypeAlias` 这个显式标注（PEP 613），Python 3.12 又加了更彻底的 `type X = list[int]` 语句（PEP 695，支持泛型别名与懒求值）。要兼容 3.10/3.11，用 `X: TypeAlias = ...`；只跑 3.12+ 的话，`type` 语句更干净。
 
 ---
 
@@ -539,6 +539,8 @@ print(renamed.grade)  # 3（类型检查器知道这是 Student）
 ---
 
 ### 15.1.14 类型提示最佳实践
+
+把上面这些工具真正用好，靠的是团队里的统一约定：什么时候必须标注、什么时候可以省略、联合类型写 `X | None` 还是 `Optional[X]`。下面这份清单可以直接抄进团队的编码规范。
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -978,6 +980,8 @@ print(check_access(adult, "profile"))
 
 #### HTTP 路由
 
+用 `match` 处理路由，本质上是拿 `(请求方法, 路径)` 这样的结构去对模式：字面量负责匹配固定部分，捕获模式负责把变量取出来。相比一长串 `if path == ... and method == ...`，它把"分支表"改成了"形状表"。
+
 ```python
 from dataclasses import dataclass
 
@@ -994,13 +998,18 @@ def route(request: Request) -> str:
             return "🏠 首页"
         case ("GET", "/users"):
             return "👥 用户列表"
-        case ("GET", "/users/" + str(user_id)):
+        case ("GET", path) if path.startswith("/users/"):
+            # ⚠️ 模式里不能写表达式，"/users/" + str(user_id) 是语法错误；
+            # 正确做法是用通配符捕获整个路径，再在守卫里判断、在函数体里解析
+            user_id = path.removeprefix("/users/")
             return f"👤 用户 {user_id} 的详情"
         case ("POST", "/users") if request.body:
             return f"➕ 创建用户：{request.body.get('name', '未知')}"
-        case ("PUT", "/users/" + str(user_id)) if request.body:
+        case ("PUT", path) if path.startswith("/users/"):
+            user_id = path.removeprefix("/users/")
             return f"✏️ 更新用户 {user_id}：{request.body}"
-        case ("DELETE", "/users/" + str(user_id)):
+        case ("DELETE", path) if path.startswith("/users/"):
+            user_id = path.removeprefix("/users/")
             return f"🗑️ 删除用户 {user_id}"
         case (method, path):
             return f"❌ 404 - {method} {path} 未找到"
@@ -1018,6 +1027,8 @@ for req in reqs:
 ```
 
 #### JSON 解析
+
+JSON 里的值天生"形态多变"，正是模式匹配的主场：`case None`、`case bool()`、`case int() | float()`、`case dict()` 一层层剥下去，比层层嵌套的 `isinstance` 判断清爽得多。
 
 ```python
 def parse_json_value(data) -> str:
@@ -1039,7 +1050,7 @@ def parse_json_value(data) -> str:
             return f"数组[{len(arr)}]：[{items}{suffix}]"
         case dict() as obj:
             keys = ", ".join(obj.keys())
-            return f"对象{{{len(obj)}}个键：{keys}}"
+            return f"对象{{{len(obj)}个键：{keys}}}"
         case _:
             return "未知类型"
 
@@ -1051,6 +1062,8 @@ print(parse_json_value(data))
 ```
 
 #### 命令行命令解析
+
+命令行参数同样可以"先拆成列表，再按形状匹配"：`case ["get", key]` 处理查询，`case ["set", key, value]` 处理写入，最后的 `case _` 负责给出用法提示。
 
 ```python
 from dataclasses import dataclass
@@ -1154,6 +1167,8 @@ with open("test.txt", "w") as file:
 ---
 
 ### 15.3.2 文件操作的 with 写法
+
+文件是典型的"必须关闭"资源，`with` 的价值就在于**不管中途是否抛异常都会关闭**：即使写到一半出错，退出 `with` 时文件也会被正确关闭并刷盘。
 
 ```python
 # 写入文件
@@ -1279,6 +1294,8 @@ with timer("查找元素"):
 
 #### closing - 为没有 close 方法的对象创建上下文管理器
 
+`closing` 是给"有 `close()` 方法、但不是上下文管理器"的旧式对象准备的——它只做一件事：退出时调用一次 `close()`。`urllib.request.urlopen` 返回的对象就是最典型的用例。
+
 ```python
 from contextlib import closing
 import urllib.request
@@ -1290,6 +1307,8 @@ with closing(urllib.request.urlopen("https://www.example.com")) as response:
 ```
 
 #### suppress - 忽略指定异常
+
+`suppress` 代替的是 `try: ... except SomeError: pass` 那种写法，把"这个异常我确实不关心"表达得更明确，也顺便避免把整个 `try` 块包得过大。
 
 ```python
 from contextlib import suppress
@@ -1310,6 +1329,8 @@ print("程序继续运行，没有崩溃！")
 ```
 
 #### redirect_stdout - 重定向标准输出
+
+重定向标准输出在测试和写日志时特别好用：把本来会打到终端的输出收进 `StringIO`，就能断言"这个函数到底打印了什么"。
 
 ```python
 import io
@@ -1334,6 +1355,8 @@ print(f"错误缓冲：{error_buffer.getvalue().strip()}")
 ```
 
 #### 组合使用
+
+多个上下文管理器可以在同一条 `with` 里用逗号并列（Python 3.10 起还支持加括号换行书写）。规则是**从左到右进入，从右到左退出**，这一点在依赖顺序时很关键。
 
 ```python
 from contextlib import suppress, redirect_stdout
@@ -1555,6 +1578,8 @@ async def parallel_tasks():
 
 ### 15.4.4 raise 语法（raise ValueError / raise ... from ...）
 
+`raise` 有两种用法：`raise 异常对象` 抛出新的异常；`raise`（不带参数）只在 `except` 块里合法，作用是把当前异常**原样再抛出去**。后者保留了完整 traceback，是"我要做点清理，但不打算吞掉错误"的标准写法。
+
 ```python
 # 基本 raise
 def validate_age(age: int) -> None:
@@ -1621,6 +1646,8 @@ level3()
 ---
 
 ### 15.4.5 自定义异常类
+
+自定义异常就是继承 `Exception` 的一个类，通常还会继承一个更具体的基类（比如 `ValueError`），让调用方能一条 `except` 抓住同类问题。真正让异常形成"体系"的是这套继承关系，而不是类名起得多花哨。
 
 ```python
 # 基本自定义异常
@@ -1770,6 +1797,8 @@ demo_errors()
 
 ### 15.4.7 异常处理的最佳实践
 
+异常处理最常见的三个坑：`except` 抓得太宽、把异常悄悄吞掉、把 `try` 块包得过大。下面这份清单把常见反例和改法对照列出，写业务代码时可以逐条自查。
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                   异常处理避坑指南 🧭                      │
@@ -1836,6 +1865,8 @@ else:
 ---
 
 ### 15.4.8 异常链与 __cause__ / __context__
+
+Python 会自动保留"处理某个异常时又抛出另一个异常"的上下文，放进 `__context__`；而 `raise ... from ...` 明确写下的因果，则放进 `__cause__`。前者是"顺手记下"，后者是"我明确告诉你这两件事有关"；`raise ... from None` 可以把这条链掐掉。
 
 ```python
 def demonstrate_exception_chaining():
@@ -1969,8 +2000,8 @@ print("\n前20个：", list(islice(fibonacci(), 20)))
 
 ```python
 # 列表推导式 - 立即生成所有元素
- squares_list = [x**2 for x in range(10)]
- print(squares_list)  # [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+squares_list = [x**2 for x in range(10)]
+print(squares_list)  # [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
 
 # 生成器表达式 - 惰性求值
 squares_gen = (x**2 for x in range(10))
@@ -2274,6 +2305,8 @@ if (n := 10) > 5:
 
 #### 场景1：while 循环读取数据
 
+"一直读，直到读不出东西"是海象运算符最经典的场景：把读取动作写进 `while` 条件里，循环体里直接使用结果，省掉一次赋值和一个 `break`。
+
 ```python
 # ❌ 传统写法：重复调用
 while True:
@@ -2297,6 +2330,8 @@ def find_target_line(filename: str, target: str) -> str | None:
 
 #### 场景2：列表推导式中的重复计算
 
+在推导式里，同一个表达式既要参与判断又要当作结果时，海象运算符能把它从"算两遍"变成"算一遍再复用"。数据量大时这不是审美问题，而是实打实的性能差别。
+
 ```python
 import re
 
@@ -2313,6 +2348,8 @@ if (longest := max(len(w) for w in re.findall(r'\w+', text))) > 5:
 ```
 
 #### 场景3：条件表达式中使用
+
+先算出来、再决定要不要用，用海象就能把两行并成一行：`if (result := compute()) and len(result) > 0:`。括号不能省，否则 `:=` 的优先级会带来意外。
 
 ```python
 data = [1, 2, 3, 4, 5]
@@ -2335,6 +2372,8 @@ if (result := compute_expensive(data)):
 
 #### 场景4：match...case 中使用
 
+在 `case` 的守卫条件里用海象运算符，可以"一边取缓存、一边判断有没有命中"，把取值、判断、使用三步压缩到一行。
+
 ```python
 def process_command(cmd: str) -> str:
     match cmd.split():
@@ -2355,6 +2394,8 @@ print(process_command("get foo"))
 ---
 
 ### 15.6.3 滥用危害与最佳实践
+
+海象运算符的争议不在于能不能用，而在于**该不该用**：把赋值藏进复杂表达式会明显增加阅读成本。这里的界限是——值后面还要用到、或者能明显减少重复计算时才用，否则老老实实写 `=`。
 
 ```
 ┌─────────────────────────────────────────────────────────┐

@@ -157,6 +157,8 @@ Python 从 3.3 版本开始内置了 `venv` 模块，这意味着你不需要安
 
 #### 5.2.1.1 python -m venv myenv（创建名为 myenv 的虚拟环境）
 
+`python -m venv` 是标准库自带的建环境方式，不需要额外安装任何工具。
+
 ```bash
 # 在当前目录下创建一个叫 myenv 的虚拟环境
 python -m venv myenv
@@ -187,6 +189,8 @@ myenv/
 
 #### 5.2.1.2 python -m venv .venv（创建名为 .venv 的虚拟环境，推荐）
 
+惯例是把虚拟环境放在项目根目录下并命名为 `.venv`，这样多数工具都能自动识别。
+
 ```bash
 # 创建名为 .venv 的虚拟环境（注意前面有个点）
 python -m venv .venv
@@ -202,6 +206,8 @@ python -m venv .venv
 > 💡 **最佳实践**：很多现代工具（如 VS Code、PyCharm、uv）都默认 `.venv` 作为标准命名。如果你用的是 Python 生态的主流工具链，用 `.venv` 可以少踩很多坑。
 
 #### 5.2.1.3 `python -m venv myenv --system-site-packages`（继承全局包，不推荐）
+
+`--system-site-packages` 会让新环境继承全局包，隔离性下降，一般不推荐。
 
 ```bash
 # 继承全局 site-packages 的虚拟环境
@@ -231,6 +237,8 @@ python -m venv myenv --system-site-packages
 
 #### 5.2.2.1 Windows CMD: myenv\Scripts\activate
 
+Windows 的 CMD 下用批处理脚本激活。
+
 ```bash
 # CMD 用户
 myenv\Scripts\activate
@@ -239,6 +247,8 @@ myenv\Scripts\activate
 > 注意：在 Windows 上，如果你用的是 CMD（命令提示符），直接运行 `activate` 脚本就行。但如果脚本报错，可能需要先运行 `myenv\Scripts\activate.bat`
 
 #### 5.2.2.2 Windows PowerShell: myenv\Scripts\Activate.ps1
+
+PowerShell 的执行策略可能阻止脚本运行，必要时先调整 `Set-ExecutionPolicy`。
 
 ```powershell
 # PowerShell 用户
@@ -252,6 +262,8 @@ myenv\Scripts\Activate.ps1
 > 然后再激活。这个操作只需要做一次。
 
 #### 5.2.2.3 Linux/macOS: source myenv/bin/activate
+
+Linux 与 macOS 用 `source` 执行激活脚本。
 
 ```bash
 # Linux / macOS 用户
@@ -293,6 +305,8 @@ C:\Users\longx\project>
 
 #### 5.2.3.2 which python（Linux/macOS）指向虚拟环境
 
+激活后 `which python` 应指向虚拟环境里的解释器，这是确认激活是否成功最直接的办法。
+
 ```bash
 # 激活前
 $ which python
@@ -306,6 +320,8 @@ $ which python
 `which` 命令会告诉你"当你输入 python 时，实际执行的是哪个文件"。激活虚拟环境后，它指向了虚拟环境目录里的 Python，而不是全局的。
 
 #### 5.2.3.3 where python（Windows）指向虚拟环境
+
+Windows 上用 `where python` 查看解释器的解析顺序。
 
 ```powershell
 # 激活前
@@ -321,6 +337,8 @@ C:\Python311\python.exe    # 旧的还在，但优先级变了
 `where` 是 Windows 版的 `which`。
 
 #### 5.2.3.4 pip list 只显示当前环境的包
+
+`pip list` 只列出当前环境装的包，激活前后各看一次就能确认隔离是否生效。
 
 ```bash
 # 激活前（全局环境）
@@ -351,6 +369,8 @@ wheel      0.41.0
 ### 5.2.4 停用虚拟环境
 
 #### 5.2.4.1 deactivate 命令
+
+`deactivate` 退出虚拟环境，回到系统 Python。
 
 ```bash
 # 退出虚拟环境，回到全局
@@ -547,6 +567,8 @@ Add Interpreter
 
 ### 5.3.1 安装 virtualenv
 
+`virtualenv` 是 venv 之前的主流方案，支持更老的 Python 版本，创建速度也更快。
+
 ```bash
 # 用 pip 安装
 pip install virtualenv
@@ -561,6 +583,8 @@ virtualenv --version
 ### 5.3.2 基本用法
 
 #### 5.3.2.1 virtualenv myenv
+
+基本用法与 `python -m venv` 类似。
 
 ```bash
 # 创建一个叫 myenv 的虚拟环境
@@ -588,6 +612,8 @@ virtualenv -p /usr/bin/python3.11 myenv
 
 #### 5.3.2.3 `virtualenv --system-site-packages myenv`（访问全局包）
 
+同样可以继承全局包，同样不建议常用。
+
 ```bash
 # 继承全局 site-packages
 virtualenv --system-site-packages myenv
@@ -612,6 +638,8 @@ virtualenv --relocatable myenv
 
 #### 5.3.4.1 安装
 
+`virtualenvwrapper` 把虚拟环境集中存放，并提供一组短命令来管理。
+
 ```bash
 # 安装 virtualenvwrapper
 pip install virtualenvwrapper
@@ -621,6 +649,8 @@ pip install virtualenvwrapper-win
 ```
 
 #### 5.3.4.2 配置 .bashrc / .zshrc
+
+先配置 `WORKON_HOME`，让所有环境集中放在同一个目录里。
 
 ```bash
 # 在 ~/.bashrc 或 ~/.zshrc 中添加
@@ -638,6 +668,8 @@ source ~/.bashrc   # 或 source ~/.zshrc
 
 #### 5.3.4.3 创建：mkvirtualenv myenv
 
+`mkvirtualenv` 创建环境并自动激活，还可以用 `-p` 指定解释器。
+
 ```bash
 # 创建虚拟环境（会自动放到 WORKON_HOME 目录）
 mkvirtualenv myenv
@@ -653,6 +685,8 @@ pip install django flask
 
 #### 5.3.4.4 切换：workon myenv
 
+`workon` 用于在不同环境之间切换。
+
 ```bash
 # 切换到指定虚拟环境
 workon myenv
@@ -665,6 +699,8 @@ workon another_env
 
 #### 5.3.4.5 停用：deactivate
 
+`deactivate` 退出当前环境，之后就能 `workon` 另一个。
+
 ```bash
 # 退出当前虚拟环境
 deactivate
@@ -674,6 +710,8 @@ workon other_env
 ```
 
 #### 5.3.4.6 列出：lsvirtualenv
+
+`lsvirtualenv` 列出全部虚拟环境。
 
 ```bash
 # 列出所有虚拟环境
@@ -687,6 +725,8 @@ lsvirtualenv
 ```
 
 #### 5.3.4.7 删除：rmvirtualenv myenv
+
+`rmvirtualenv` 会直接删掉整个环境目录，操作前最好先 `deactivate`。
 
 ```bash
 # 删除虚拟环境（会彻底删除目录）
@@ -711,6 +751,8 @@ rmvirtualenv myenv
 
 #### 5.4.1.1 `conda create -n myenv python=3.14`
 
+`conda create -n` 创建独立环境，并可同时指定 Python 版本。
+
 ```bash
 # 创建一个名为 myenv 的新环境，Python 版本为 3.14
 conda create -n myenv python=3.14
@@ -720,6 +762,8 @@ conda activate myenv
 ```
 
 #### 5.4.1.2 `conda create -n myenv python=3.14 numpy pandas`
+
+创建环境时顺手把常用包装上，conda 会一并解决依赖。
 
 ```bash
 # 创建环境时直接安装一些常用包
@@ -735,6 +779,8 @@ conda create -n myenv python=3.14 numpy pandas
 
 #### 5.4.2.1 conda activate myenv
 
+conda 环境的激活命令是 `conda activate`。
+
 ```bash
 # 激活名为 myenv 的环境
 conda activate myenv
@@ -745,6 +791,8 @@ conda activate myenv
 ```
 
 #### 5.4.2.2 conda deactivate
+
+`conda deactivate` 退回 base 环境。
 
 ```bash
 # 退出当前环境，回到基础环境
@@ -759,6 +807,8 @@ conda activate another_env
 这是 conda 最强大的功能之一——**环境可复现性**。
 
 #### 5.4.3.1 `conda env export > environment.yml`
+
+把环境导出成 `environment.yml`，方便别人复现。
 
 ```bash
 # 激活要导出的环境
@@ -787,6 +837,8 @@ dependencies:
 
 #### 5.4.3.2 conda env create -f environment.yml
 
+根据 yml 文件重建环境，依赖版本会尽量保持一致。
+
 ```bash
 # 根据 environment.yml 创建新环境
 conda env create -f environment.yml
@@ -812,6 +864,8 @@ conda env create -f environment.yml
 
 #### 5.5.1.1 uv venv（创建 .venv）
 
+`uv venv` 创建虚拟环境，速度比标准库方案快很多。
+
 ```bash
 # 在当前目录创建 .venv 虚拟环境（使用默认 Python 版本）
 uv venv
@@ -820,6 +874,8 @@ uv venv
 uv 会自动选择合适的 Python 版本，并创建 `.venv` 目录。
 
 #### 5.5.1.2 uv venv myenv
+
+uv 不会自动激活环境，创建之后仍要手动激活。
 
 ```bash
 # 创建名为 myenv 的虚拟环境
@@ -830,6 +886,8 @@ source myenv/bin/activate
 ```
 
 #### 5.5.1.3 uv venv .venv --python 3.14
+
+用 `--python` 指定解释器版本或具体路径。
 
 ```bash
 # 指定 Python 版本创建虚拟环境
@@ -922,6 +980,8 @@ pip install django==4.2
 
 #### 5.6.2.1 .venv（标准，推荐）
 
+`.venv` 是当前最通行的命名，多数工具会自动忽略、自动识别它。
+
 ```bash
 # 在项目根目录创建
 python -m venv .venv
@@ -934,6 +994,8 @@ python -m venv .venv
 
 #### 5.6.2.2 venv/
 
+`venv/` 是另一种常见命名，记得写进 `.gitignore`。
+
 ```bash
 # 在项目根目录创建
 python -m venv venv
@@ -944,6 +1006,8 @@ python -m venv venv
 - 可能会被 IDE 当作项目代码（需要配置忽略）
 
 #### 5.6.2.3 myproject-env
+
+把环境集中放在 `~/.virtualenvs` 这类位置，适合一个人管理很多项目。
 
 ```bash
 # 在项目外某处集中管理时使用
@@ -960,6 +1024,8 @@ python -m venv myproject-env
 `requirements.txt` 是 pip 的依赖清单文件，记录了项目需要哪些包和版本。它是虚拟环境最重要的配套文件。
 
 #### 5.6.3.1 pip freeze > requirements.txt
+
+`pip freeze` 导出的是当前环境的精确版本清单。
 
 ```bash
 # 激活虚拟环境后，导出当前所有安装的包
@@ -979,9 +1045,11 @@ urllib3==2.0.3
 wheel==0.41.0
 ```
 
-> 💡 **小技巧**：加 `pip freeze` 之前先 `pip install pip==最新版本`，确保 pip 本身也是最新的。
+> 💡 **小技巧**：`pip freeze` 会把当前环境里**所有**包（包括 pip、setuptools、wheel 这些工具）都写进清单。如果只想导出项目真正依赖的包，先升级一下打包工具再冻结，或者用 `pip list --not-required` 之类的方式过滤；升级 pip 本身应写成 `python -m pip install --upgrade pip`（`pip==最新版本` 并不是合法写法）。
 
 #### 5.6.3.2 pip install -r requirements.txt
+
+在新机器上按清单安装，就能得到基本一致的环境。
 
 ```bash
 #在新机器或新环境上，一行命令安装所有依赖
@@ -1069,6 +1137,8 @@ ENV/
 
 #### 5.6.4.3 注意保留 requirements.txt（不要排除）
 
+虚拟环境目录要排除在版本控制之外，但 `requirements.txt` 必须提交。
+
 ```gitignore
 # .gitignore 示例
 
@@ -1099,6 +1169,8 @@ environment.yml     # conda 环境配置
 
 #### 5.6.5.1 删除旧的：rm -rf .venv
 
+环境坏掉时最省事的办法是删掉整个目录重来，而不是在里面修修补补。
+
 ```bash
 # 删除整个虚拟环境目录
 rm -rf .venv
@@ -1112,12 +1184,16 @@ rd /s /q .venv
 
 #### 5.6.5.2 重建：python -m venv .venv
 
+重新创建一个干净的环境。
+
 ```bash
 # 重新创建虚拟环境
 python -m venv .venv
 ```
 
 #### 5.6.5.3 安装依赖：pip install -r requirements.txt
+
+再按清单把依赖装回来，环境就恢复如初了。
 
 ```bash
 # 激活新环境

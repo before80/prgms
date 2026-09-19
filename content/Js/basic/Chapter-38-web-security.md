@@ -329,7 +329,7 @@ CSRF 的全称是 **Cross-Site Request Forgery**（跨站请求伪造）。跟 X
 graph LR
     A["用户登录网站A"] -->|"获得Cookie"| B["浏览器"]
     B -->|"1. 访问恶意网站B"| C["网站B页面"]
-    C -->|"2. 自动发起请求|自动携带Cookie"| D["网站A"]
+    C -->|"2. 自动发起请求<br/>自动携带Cookie"| D["网站A"]
     D -->|"3. 以为是用户本人"| E["执行非法操作"]
     style C fill:#ff6b6b
     style E fill:#ff6b6b
@@ -534,7 +534,7 @@ res.cookie("sessionId", "abc123", {
 graph LR
     A["用户从外部链接"] -->|"点击链接"| B{"SameSite 设置"}
     B -->|"Strict"| C["不携带Cookie"]
-    B -->|"Lax"| D{"是GET请求?"]
+    B -->|"Lax"| D{"是GET请求?"}
     D -->|"是"| E["携带Cookie"]
     D -->|"否"| F["不携带Cookie"]
     B -->|"None"| G["携带Cookie<br/>(需HTTPS)"]
@@ -628,7 +628,7 @@ graph TD
     A2 -->|"覆盖"| A3
     V1 -->|"点击"| A3
     A3 -->|"实际触发了"| B["银行转账"]
-    style A2 fill:rgba(0,0,0,0)
+    style A2 fill:#00000000,stroke:#999
 ```
 
 **攻击示例**：
@@ -844,7 +844,7 @@ graph TD
 
 ```mermaid
 graph LR
-    A["用户输入"] -->|"正常输入|admin"| B["SELECT * FROM users WHERE name='admin'"]
+    A["用户输入"] -->|"正常输入<br/>admin"| B["SELECT * FROM users WHERE name='admin'"]
     A2["攻击者输入"] -->|"' OR '1'='1"| C["SELECT * FROM users WHERE name='' OR '1'='1'"]
     C --> D["绕过认证，获取所有数据"]
     style A2 fill:#ff6b6b
@@ -1234,8 +1234,8 @@ fetch("https://other-domain.com/api/data") // ❌ 跨域被阻止
 ```mermaid
 graph LR
     A["前端"] -->|"1. 注册全局回调函数"| B["window.getData"]
-    A -->|"2. 创建script标签|src=?callback=getData"| C["第三方服务器"]
-    C -->|"3. 返回回调调用|getData({data})"| D["浏览器执行脚本"]
+    A -->|"2. 创建script标签<br/>src=?callback=getData"| C["第三方服务器"]
+    C -->|"3. 返回回调调用<br/>getData({data})"| D["浏览器执行脚本"]
     D -->|"4. 调用全局函数"| E["处理数据"]
 ```
 
@@ -1277,7 +1277,7 @@ JSONP 存在严重的安全漏洞——**JSONP 劫持**。
 ```mermaid
 graph LR
     A["用户已登录A网站"] -->|"访问恶意网站B"| B["恶意页面"]
-    B -->|"自动加载JSONP|携带Cookie"| C["A网站的API"]
+    B -->|"自动加载JSONP<br/>携带Cookie"| C["A网站的API"]
     C -->|"返回用户数据"| D["恶意脚本执行"]
     D -->|"发送数据到攻击者服务器"| E["数据泄露！"]
     style B fill:#ff6b6b
@@ -1507,8 +1507,8 @@ graph LR
 graph TD
     A["浏览器"] -->|"OPTIONS 预检请求<br/>Access-Control-Request-Method: PUT<br/>Access-Control-Request-Headers: Content-Type"| B["服务器"]
     B -->|"响应头<br/>Access-Control-Allow-Origin: https://mysite.com<br/>Access-Control-Allow-Methods: GET, POST, PUT<br/>Access-Control-Allow-Headers: Content-Type<br/>Access-Control-Max-Age: 3600"| A
-    A -->|"实际 PUT 请求|带 Cookie"| B
-    B -->|"PUT 响应|数据"| A
+    A -->|"实际 PUT 请求<br/>带 Cookie"| B
+    B -->|"PUT 响应<br/>数据"| A
 ```
 
 ```javascript
@@ -1666,7 +1666,7 @@ graph TD
     C --> D{"检查ACAO响应头"}
     D -->|"匹配"| E["成功"]
     D -->|"不匹配"| F["被浏览器拦截"]
-    B -->|"否|预检"| G["OPTIONS预检请求"]
+    B -->|"否<br/>预检"| G["OPTIONS预检请求"]
     G --> H{"检查预检响应头"}
     H -->|"通过"| I["发送实际请求"]
     H -->|"不通过"| J["阻止请求"]
@@ -1703,12 +1703,12 @@ CORS 是现代跨域方案的核心：
 ```mermaid
 graph LR
     subgraph HTTP["❌ HTTP 明文传输"]
-        A1["浏览器"] -->|"原始数据|用户名、密码"| B["中间人"]
+        A1["浏览器"] -->|"原始数据<br/>用户名、密码"| B["中间人"]
         B -->|"原始数据"| C["服务器"]
         B -->|"窃听/篡改"| D["危险！"]
     end
     subgraph HTTPS["✅ HTTPS 加密传输"]
-        A2["浏览器"] -->|"加密数据| ciphertext"| E["加密通道"]
+        A2["浏览器"] -->|"加密数据<br/> ciphertext"| E["加密通道"]
         E -->|"加密数据"| F["服务器"]
         E -->|"无法窃听"| G["安全！"]
     end
@@ -1849,7 +1849,7 @@ graph LR
     A["浏览器"] -->|"1. 生成会话密钥(对称)"| B["使用公钥加密会话密钥"]
     B -->|"2. 发送加密的会话密钥"| C["服务器"]
     C -->|"3. 用私钥解密获取会话密钥"| C
-    A & C -->|"4. 双方使用会话密钥通信|对称加密"| D["安全通信"]
+    A & C -->|"4. 双方使用会话密钥通信<br/>对称加密"| D["安全通信"]
 ```
 
 **实际工作流程**：
@@ -1890,8 +1890,8 @@ const decryptedPremaster = crypto.privateDecrypt(
 ```mermaid
 graph LR
     A["网站申请证书"] --> B["CA 验证身份"]
-    B -->|"验证域名所有权|企业信息"| C["颁发证书"]
-    C -->|"证书包含|公钥+域名+CA签名"| D["浏览器访问网站"]
+    B -->|"验证域名所有权<br/>企业信息"| C["颁发证书"]
+    C -->|"证书包含<br/>公钥+域名+CA签名"| D["浏览器访问网站"]
     D -->|"验证 CA 签名"| E{"证书有效?"}
     E -->|"是"| F["信任连接"]
     E -->|"否"| G["拒绝访问"]
@@ -2079,7 +2079,7 @@ graph LR
     A["用户登录"] -->|"1. 验证密码"| B["服务器"]
     B -->|"2. 生成JWT Token"| C["返回Token给前端"]
     C -->|"3. 前端存储Token"| D["localStorage/Cookie"]
-    D -->|"4. 请求携带Token|Authorization: Bearer xxx"| B
+    D -->|"4. 请求携带Token<br/>Authorization: Bearer xxx"| B
     B -->|"5. 验证Token签名"| B
 ```
 
@@ -2274,7 +2274,7 @@ const tokens = {
 graph LR
     A["登录"] -->|"返回access+refresh"| B["前端存储"]
     B -->|"使用accessToken"| C["请求API"]
-    C -->|"access过期|401"| D["前端"]
+    C -->|"access过期<br/>401"| D["前端"]
     D -->|"用refreshToken换取新accessToken"| E["刷新接口"]
     E -->|"返回新accessToken"| B
 ```
@@ -2824,8 +2824,8 @@ app.use((req, res, next) => {
 
 ```mermaid
 graph LR
-    A["客户端"] -->|"1. 基本验证|格式、长度"| B["用户体验好"]
-    A2["攻击者"] -->|"2. 绕过客户端|直接发请求"| C["服务端必须再验证"]
+    A["客户端"] -->|"1. 基本验证<br/>格式、长度"| B["用户体验好"]
+    A2["攻击者"] -->|"2. 绕过客户端<br/>直接发请求"| C["服务端必须再验证"]
     style A2 fill:#ff6b6b
 ```
 
@@ -3296,4 +3296,3 @@ jobs:
 | 依赖安全 | 定期 audit，使用 Snyk |
 
 **安全是一个系统工程，需要前后端共同努力！**
-

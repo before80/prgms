@@ -24,7 +24,7 @@ Flask 是一位**极简主义建筑师**，它的核心理念是"保持核心功
 pip install flask
 ```
 
-> 💬 **小知识**：Flask 由 Armin Ronacher 于 2010 年创建，最初只是一个愚人节玩笑（开个玩笑）。实际上它确实诞生于一个叫 Pocoo 的团队，最初是为了满足一个简单需求——做一个够用的 Web 微框架。
+> 💬 **小知识**：Flask 由 Armin Ronacher 在 2010 年创建，和 Werkzeug、Jinja2 一起出自 Pocoo 团队。它的"前身"确实有点玩笑意味——Armin 在那年愚人节发布了一个叫 Denied 的微框架玩笑，没想到反响热烈，于是半年后他把它做成了真的，也就是 Flask。
 
 **第一个 Flask 应用**，仅需 7 行代码就能跑起来：
 
@@ -61,6 +61,8 @@ Hello, World!
 Flask 的路由系统就像**餐厅的菜单系统**，告诉服务器"如果客人点这道菜，就做这个"。路由决定哪个 URL 调用哪个函数。
 
 #### 基础路由：`@app.route`
+
+`@app.route()` 是 Flask 里最基础的绑定方式：装饰器把一个 URL 规则挂到视图函数上，函数返回什么，浏览器就收到什么。默认只接受 GET（以及 HEAD、OPTIONS），视图函数的名字会被用作 URL 反向生成时的端点名，所以别随手重名。
 
 ```python
 from flask import Flask
@@ -302,6 +304,8 @@ def error_response():
 Flask 默认使用 **Jinja2** 作为模板引擎。模板引擎就是让你在 HTML 里写 Python 代码的神器——就像是在 HTML 中插入"魔法变量"，自动变成动态内容。
 
 #### 基础模板渲染
+
+模板渲染的核心是把"数据"和"页面结构"分开：视图函数只管准备数据，`render_template()` 负责把数据交给 Jinja2。Flask 默认到应用同级目录下的 `templates/` 里找模板，文件名写错会直接抛 `TemplateNotFound`。
 
 ```python
 from flask import Flask, render_template
@@ -714,6 +718,8 @@ http://127.0.0.1:5000/blog/42      → 文章详情：42
 
 #### 蓝图静态文件和 URL 构建
 
+蓝图可以各自带一套静态文件目录和 URL 前缀，这对"后台管理""用户中心"这类模块化场景特别方便。要在模板或视图里生成这类带前缀的 URL，用 `url_for('蓝图名.端点名', ...)`，不要手写路径字符串。
+
 ```python
 # 创建蓝图时指定静态文件目录
 admin_bp = Blueprint('admin', __name__,
@@ -726,9 +732,11 @@ admin_bp = Blueprint('admin', __name__,
 
 ### 22.1.7 Flask-RESTful（RESTful API）
 
-**RESTful API** 是一种设计风格，让 API 遵循"名词而非动词"的约定。Flask-RESTful 是 Flask 官方推荐的 REST API 扩展。
+**RESTful API** 是一种设计风格，让 API 遵循"名词而非动词"的约定。Flask-RESTful 是 Twilio 维护的第三方扩展（**不是 Flask 官方项目**），如今基本处于维护模式；Flask-RESTful 自己的文档也建议新项目考虑 Marshmallow 这类校验库，或者干脆用 Flask 原生的 MethodView。
 
 #### 安装与基础使用
+
+Flask-RESTful 的核心抽象是 Resource：把 HTTP 方法写成同名方法（`get`/`post`/`put`/`delete`），再由 `Api` 对象注册到 URL 上。它比手写一长串 `if request.method == ...` 干净得多，不过这个项目已经多年处于维护模式，新项目更常见的是 Flask-RESTX、Flask-Smorest，或者直接用 Flask 原生的方法视图。
 
 ```bash
 pip install flask-restful
@@ -798,6 +806,8 @@ curl -X POST http://127.0.0.1:5000/hello \
 ```
 
 #### RESTful 完整示例：Todo API
+
+下面这个 Todo API 把前面几节的知识串了起来：URL 规则、Resource 类、请求参数解析、状态码，一样不少。要注意 `reqparse` 是 Flask-RESTful 自带的校验工具，库自己的文档也建议新项目改用 Marshmallow 之类的方案。
 
 ```python
 from flask import Flask, request
@@ -1000,6 +1010,8 @@ def list_posts():
 ```
 
 > 🎭 **为什么用 ORM 而不是直接写 SQL？**
+>
+> 顺便提一句：上面出现的 `User.query.get(user_id)` 属于 Flask-SQLAlchemy 的**旧式接口**。在 SQLAlchemy 2.0 体系下它仍然能用，但会触发 `LegacyAPIWarning`；官方推荐的写法是 `db.session.get(User, user_id)`（按主键取值）或 `db.session.execute(db.select(User).where(...))`（按条件查询）。新代码建议直接用新接口。
 > 想象你要查"所有文章及其作者"：
 > - **原生 SQL**：`SELECT posts.title, users.username FROM posts JOIN users ON posts.user_id = users.id`
 > - **ORM**：`Post.query.join(User).all()` 简直优雅到哭！
@@ -1038,6 +1050,8 @@ class User(db.Model):
 ```
 
 #### Flask-Login（用户认证）
+
+Flask-Login 负责"把用户会话管起来"：它提供 `login_user`/`logout_user`、`@login_required` 装饰器和 `current_user` 代理。最关键的是 `user_loader` 这个钩子——框架靠它把 cookie 里的用户 ID 还原成真正的用户对象，没有它，`current_user` 永远拿不到东西。
 
 ```bash
 pip install flask-login
@@ -1137,6 +1151,8 @@ flowchart LR
 
 #### 安装依赖
 
+线上跑 Flask 需要两件套：一个真正的 WSGI 服务器来托住 Python 应用（Gunicorn、uWSGI、Waitress 等），再加一个反向代理处理 TLS、静态文件和访问控制。`flask run` 自带的开发服务器是单进程、带调试器，只能本地用，绝不能直接对外。
+
 ```bash
 # 服务器端安装
 pip install gunicorn flask
@@ -1147,6 +1163,8 @@ pip install gunicorn flask
 ```
 
 #### Gunicorn 配置
+
+Gunicorn 的配置就是一个普通 Python 文件，变量名对应命令行参数。最关键的是三个：`bind`（监听地址）、`workers`（工作进程数，常用 `2 × CPU + 1` 这个经验值）和 `timeout`（超时时间）——进程数和超时配错，是线上出现 502 的两大常见原因。
 
 ```ini
 # gunicorn_config.py
@@ -1199,6 +1217,8 @@ gunicorn -c gunicorn_config.py app:app
 ```
 
 #### Nginx 配置
+
+Nginx 在这里干三件事：把 80/443 上的请求转给 Gunicorn、直接托管静态文件（省掉 Python 进程的开销）、顺手加一层超时与缓冲。`proxy_set_header` 那几行不能省，否则 Flask 里拿到的客户端 IP 和协议头全是错的。
 
 ```nginx
 # /etc/nginx/sites-available/myflaskapp
@@ -1264,7 +1284,7 @@ sudo systemctl restart nginx
 ```
 
 > 📝 **生产环境检查清单**：
-> 1. ✅ 使用 `gunicorn -D` 或 systemd 后台运行
+> 1. ✅ 交给 systemd（或容器编排）托管进程；gunicorn 自己的 `-D` 守护进程模式已不推荐使用
 > 2. ✅ 设置 `SECRET_KEY` 为随机值
 > 3. ✅ 生产数据库用 PostgreSQL/MySQL，不要用 SQLite
 > 4. ✅ 开启 HTTPS（Let's Encrypt 免费证书）
@@ -1314,6 +1334,8 @@ flowchart TB
 > 💡 **MTV vs MVC**：MTV 的 View 对应 MVC 的 Controller，MTV 的 Template 对应 MVC 的 View。本质上是一样的，只是名字不同。
 
 #### 创建 Django 项目
+
+Django 的脚手架命令会一次性生成整套骨架：`manage.py`、项目配置包（`settings.py`/`urls.py`/`wsgi.py`/`asgi.py`），之后再按功能模块用 `startapp` 生成应用。读懂这套目录结构，是读懂后面所有代码的前提。
 
 ```bash
 # 安装 Django
@@ -1469,6 +1491,8 @@ Django ORM 是 Python Web 框架中最强大的数据库抽象层，让你用 Py
 
 #### 字段类型详解
 
+Django 的字段类型直接对应数据库列类型，而且自带校验语义：`CharField` 必须给 `max_length`，`EmailField`/`URLField` 会在表单层检查格式，`DateField` 还有 `auto_now_add` 这类便捷参数。选字段时要想的不只是"存得下"，还有"以后查得快不快"。
+
 ```python
 from django.db import models
 
@@ -1524,6 +1548,8 @@ class Publisher(models.Model):
 > - `auto_now`：每次保存时自动更新时间
 
 #### ForeignKey（外键）详解
+
+外键用 `ForeignKey` 声明，其中 `on_delete` 是**必填**参数——Django 强迫你明确回答"被引用的对象被删掉之后，这条记录怎么办"（级联删除、置空、禁止删除等）。`related_name` 指定反向查询的名字，不写的话默认是 `模型名_set`。
 
 ```python
 class Comment(models.Model):
@@ -1676,6 +1702,8 @@ unique_books = Book.objects.filter(tags__name__in=['Python', 'Django']).distinct
 
 #### 增删改操作
 
+写入数据有三条路：`save()`（创建或整体更新）、`create()`（一步创建）、`update()`（批量更新，**不触发 `save()` 和信号**）。最后一条最容易踩坑：用 `update()` 改字段时，`auto_now` 以及你在自定义 `save()` 里写的逻辑都不会执行。
+
 ```python
 # ===== 创建记录 =====
 
@@ -1796,6 +1824,8 @@ python manage.py createsuperuser
 ```
 
 #### Admin 进阶配置
+
+`@admin.register` 装饰器等价于 `admin.site.register`，但更适合配合 `ModelAdmin` 类做定制：列表页显示哪些列、能不能搜索、能不能批量操作、表单里哪些字段只读，全在这一个类里声明。
 
 ```python
 @admin.register(Article)
@@ -1919,6 +1949,8 @@ def contact(request):
 
 #### 表单渲染方式
 
+Django 的表单既能全自动渲染，也能手工渲染：`as_p`/`as_table`/`as_ul` 是最省事的三条捷径，想要完全掌控 HTML 就逐个字段渲染。两种方式都会保留校验和错误提示，区别只在"长什么样"。
+
 ```html
 <!-- 方式1：as_p 每个字段一个段落 -->
 {{ form.as_p }}
@@ -2010,6 +2042,8 @@ MIDDLEWARE = [
 
 #### 自定义中间件
 
+现代 Django 中间件就是一个可调用对象：`__init__` 收下 `get_response`，`__call__` 里"先处理请求、再处理响应"。需要更细的时机（请求到达视图前、异常抛出时、模板渲染前），就额外实现 `process_view`/`process_exception`/`process_template_response` 这些钩子。
+
 ```python
 # mysite/middleware.py
 
@@ -2078,6 +2112,8 @@ Django 内置了完整的用户认证系统，开箱即用！
 
 #### 内置 User 模型
 
+`django.contrib.auth.models.User` 就是 Django 自带的用户表：用户名、密码（哈希后存储）、邮箱、姓名，加上 `is_staff`/`is_active`/`is_superuser` 这几个权限开关。密码永远不会明文落库——`set_password()` 会顺手完成哈希。
+
 ```python
 from django.contrib.auth.models import User
 
@@ -2090,7 +2126,8 @@ from django.contrib.auth.models import User
 user = User.objects.create_user('zhangsan', 'zhang@example.com', 'password123')
 
 # 创建超级用户
-python manage.py createsuperuser
+# 创建超级用户（这是一条命令行命令，不是 Python 代码）
+# python manage.py createsuperuser
 
 # 设置密码
 user.set_password('newpassword')
@@ -2106,6 +2143,8 @@ else:
 ```
 
 #### 登录/登出/权限装饰器
+
+认证的核心就三个函数：`authenticate()` 验密码，`login()` 写会话，`logout()` 清会话。视图层里 `@login_required` 管的是"有没有登录"，`@permission_required` 管的是"有没有某项权限"，两者经常需要配合使用。
 
 ```python
 # views.py
@@ -2200,6 +2239,8 @@ REST_FRAMEWORK = {
 
 #### Serializer（序列化器）
 
+序列化器是 DRF 的"翻译层"：出方向把模型对象翻译成字典/JSON，入方向把请求数据校验后翻译成可保存的对象。它的思路和 Django 的 Form 很像，区别在于它处理的是 Python 原生类型，而不是 HTML 表单。
+
 ```python
 # blog/serializers.py
 from rest_framework import serializers
@@ -2236,6 +2277,8 @@ class ArticleSerializerDeep(serializers.ModelSerializer):
 
 #### ViewSet 和路由
 
+ViewSet 把一组相关操作打包进一个类（`list`/`retrieve`/`create`/`update`/`destroy`），再交给 Router 自动生成 URL——这正是 DRF 让人"少写一半样板代码"的地方。`ModelViewSet` 更是把标准 CRUD 全部内置好了。
+
 ```python
 # blog/views.py
 from rest_framework import viewsets, permissions
@@ -2267,6 +2310,8 @@ class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
 ```
 
 #### URL 配置
+
+Router 负责把 ViewSet 翻译成 URL：`DefaultRouter` 除标准 CRUD 路由外，还会额外提供 API 根视图和可选的格式后缀。挂到项目里只需要 `include(router.urls)` 接一下。
 
 ```python
 # blog/urls.py
@@ -2311,6 +2356,8 @@ flowchart LR
 ```
 
 #### 内置信号示例
+
+内置信号覆盖了模型生命周期的关键节点：`pre_save`/`post_save`、`pre_delete`/`post_delete`、`m2m_changed` 等等。`@receiver` 把回调函数和信号绑在一起，`sender` 参数用来限定"我只关心哪个模型"。
 
 ```python
 # blog/signals.py
@@ -2368,6 +2415,8 @@ class BlogConfig(AppConfig):
 
 #### 自定义信号
 
+自定义信号就是 `Signal()` 的一个实例：定义好之后，用 `signal.send(sender=..., **kwargs)` 触发，用 `@receiver` 或 `signal.connect()` 订阅。`send()` 会让订阅者的异常向上冒泡，`send_robust()` 则会捕获并记录异常——订阅者出问题不该拖垮发布者时，就用后者。
+
 ```python
 from django.dispatch import Signal, receiver
 
@@ -2386,9 +2435,11 @@ order_completed.send(sender=None, order=my_order)
 
 ### 22.2.9 部署（uWSGI + Nginx + Docker）
 
-生产环境部署 Django 推荐组合：**uWSGI + Nginx + Docker**。
+生产环境的经典组合是 **应用服务器 + Nginx + 容器**。这里用 uWSGI 演示，但要知道 uWSGI 项目本身已经多年处于维护模式；如果今天新建项目，Gunicorn（配 `--workers`）或 Uvicorn（异步）是更常见的选择。下面这套配置和 Docker 用法照样适用于它们，只是进程管理参数不同。
 
 #### uWSGI 配置
+
+uWSGI 用 ini 文件描述"怎么跑这个 Django 项目"：`module` 指向 WSGI 入口，`master`/`processes` 控制进程模型，`socket` 决定与 Nginx 的通信方式。需要知道的是，uWSGI 项目本身已多年处于维护模式，今天新建项目更多用 Gunicorn 或 Uvicorn；下面这套结构照样适用，只是进程参数不同。
 
 ```ini
 # uwsgi.ini
@@ -2421,6 +2472,8 @@ lazy-apps = true
 ```
 
 #### Nginx 配置
+
+这份配置和 Flask 那份结构一致：一个 upstream 指向应用服务器，一个 server 块负责静态文件和转发。Django 这边要多留意两点——把 `static/`、`media/` 交给 Nginx 直接发（生产环境别让 Django 服务静态文件），以及正确传递 `X-Forwarded-Proto`，否则 `request.is_secure()` 永远返回 False。
 
 ```nginx
 upstream django_app {
@@ -2551,6 +2604,8 @@ FastAPI 的设计哲学是：**开发者体验第一，性能第二，类型安�
 
 #### 同步 vs 异步代码
 
+同步函数"一条路走到黑"，遇到 I/O 就原地阻塞；异步函数在 `await` 处让出控制权，让事件循环去处理别的任务。关键差别不在写法，而在**什么时候让出**：一个阻塞调用塞进协程里，整个事件循环都会被它卡住。
+
 ```python
 # 同步函数（普通函数）
 def sync_function():
@@ -2571,6 +2626,8 @@ async def main():
 ```
 
 #### FastAPI 异步基础
+
+FastAPI 同时支持 `def` 和 `async def` 两种视图：`async def` 直接跑在事件循环里（所以里面**不能**有阻塞调用），普通 `def` 则会被丢进线程池执行。该选哪种，取决于你调用的库本身是不是异步的。
 
 ```bash
 pip install fastapi uvicorn
@@ -2681,6 +2738,8 @@ curl "http://127.0.0.1:8000/search?q=Python&limit=5"
 ```
 
 #### 请求体（Request Body）
+
+请求体用 Pydantic 模型声明：参数类型写成 `Item`，FastAPI 就自动完成"解析 JSON → 校验 → 变成对象 → 出错返回 422"这一整套流程，顺便把这些信息写进 OpenAPI 文档。这是它相对其他框架最省事的地方。
 
 ```python
 from pydantic import BaseModel
@@ -3148,7 +3207,7 @@ pip install python-jose[cryptography] passlib[bcrypt] python-multipart
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from typing import Optional
@@ -3216,10 +3275,13 @@ def authenticate_user(fake_db, username: str, password: str):
 # ===== JWT 工具函数 =====
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
+    # ⚠️ 别再用 datetime.utcnow()，它在 Python 3.12 起已被标记为废弃（计划移除）。
+    #    而且它返回的是"没有时区的 naive 时间"，语义上并不等于"UTC 时间"。
+    #    正确写法是带时区的 datetime.now(timezone.utc)。
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -3369,8 +3431,8 @@ async def create_item(item: Item):
 | **适用场景** | 微服务、API、小型应用 | 大型全栈应用 | 高性能 API、微服务 |
 | **数据库 ORM** | 需扩展（Flask-SQLAlchemy） | 内置强大 ORM | 需扩展（SQLAlchemy） |
 | **Admin 后台** | 需扩展 | 内置神器 | 需自行开发 |
-| **异步支持** | 可选（需扩展） | 有限（3.0+ 改进） | 原生异步，性能优异 |
-| **API 文档** | 需扩展（flask-restful） | 可扩展（DRF） | 自动生成 Swagger/ReDoc |
+| **异步支持** | 需借助 ASGI 生态（Quart 等） | 视图自 3.1 起支持 `async`，ORM 的异步接口自 4.1 起提供 | 原生异步，性能优异 |
+| **API 文档** | 需额外扩展（flask-smorest / flask-restx） | 可扩展（DRF + drf-spectacular） | 自动生成 Swagger/ReDoc |
 
 ### 📌 Flask 核心要点
 

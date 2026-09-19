@@ -317,7 +317,7 @@ flowchart LR
         E[你的电脑]
         F[Vite 开发服务器]
         G[vite]
-        H[@vitejs/plugin-vue]
+        H["@vitejs/plugin-vue"]
         I[Sass 编译器]
     end
     

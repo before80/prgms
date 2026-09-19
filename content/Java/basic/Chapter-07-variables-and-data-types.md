@@ -221,17 +221,19 @@ Java 支持四种进制的整数字面量：
 public class NumberBases {
     public static void main(String[] args) {
         int decimal  = 42;        // 十进制（默认）
-        int binary   = 0b101010;  // 二进制（0b 开头）
-        int octal    = 0o52;      // 八进制（0o 开头，字母 o 大小写均可）
+        int binary   = 0b101010;  // 二进制（0b / 0B 开头）
+        int octal    = 052;       // 八进制（只写一个前导 0，注意不是 0o！）
         int hex      = 0x2A;      // 十六进制（0x 开头）
 
-        System.out.println("十进制 42 = " + decimal);
-        System.out.println("二进制 0b101010 = " + decimal);  // 输出 42
-        System.out.println("八进制 0o52 = " + decimal);     // 输出 42
-        System.out.println("十六进制 0x2A = " + decimal);   // 输出 42
+        System.out.println("十进制 42 = " + decimal);        // 42
+        System.out.println("二进制 0b101010 = " + binary);   // 42
+        System.out.println("八进制 052 = " + octal);         // 42
+        System.out.println("十六进制 0x2A = " + hex);        // 42
     }
 }
 ```
+
+> ⚠️ **易错点**：Java 的八进制字面量是**前导零**（`052`），**没有 `0o` 前缀**——`0o52` 是 C++/Python 的写法，在 Java 里会直接编译报错。另外，`0b` 二进制前缀是 Java 7 才加入的，老代码里看不到它。
 
 ### 7.2.2 浮点家族：float、double
 
@@ -287,26 +289,33 @@ public class BigDecimalDemo {
 
 ### 7.2.3 字符类型：char
 
-`char`（Character，字符）用于存储**单个字符**，占 16 位（2 字节），使用的是 **Unicode 字符集**。这意味着它可以表示中文、英文、日文、emoji 等各种字符——从各国的文字到各种符号统统拿下。
+`char`（Character，字符）用于存储**单个 UTF-16 码元（code unit）**，占 16 位（2 字节）。它用 `'\uXXXX'` 的形式存放 Unicode 码元，所以常见的字母、中文、日文等 BMP 字符都能直接放进去。
+
+> ⚠️ **一个常见误解**：`char` 存的是 UTF-16 **码元**，不是完整的**码点（code point）**。像 emoji 这种超出 BMP 的字符需要**两个** `char`（一个代理对）才能表示，所以要放 emoji 时请用 `String`，不要用 `char`。
 
 ```java
 public class CharType {
     public static void main(String[] args) {
         // 用单引号声明字符
+        // BMP 内的字符，一个 char 就能表示
         char letterA = 'A';
         char chinese = '中';
-        char emoji = '\uD83D\uDE00'; // Unicode 表示法：😊
+        char tab = '\t';                  // 转义字符
+        char unicode = '\u4E2D';          // 转义形式，正好是 '中'
 
         System.out.println("英文字符：" + letterA);
-        System.out.println("中文字符：" + chinese);
-        System.out.println("emoji：" + emoji);
-        System.out.println("char 默认值：" + Character.MIN_VALUE + "（空字符）");
+        System.out.println("中文字符：" + chinese + "（" + unicode + "）");
 
-        // char 本质上存的是 Unicode 码点（整数）
-        char c1 = 65;  // ASCII 65 = 'A'
-        char c2 = 20013; // 中文 Unicode 码点："中"
-        System.out.println("Unicode 65 对应字符：" + c1);
-        System.out.println("Unicode 20013 对应字符：" + c2);
+        // char 也可以直接写成整数（对应 Unicode 码元值）
+        char c1 = 65;     // ASCII 65 = 'A'
+        char c2 = 20013;  // 20013 = 0x4E2D = '中'
+        System.out.println("65 对应字符：" + c1);      // A
+        System.out.println("20013 对应字符：" + c2);   // 中
+
+        // ⚠️ emoji 超出 BMP，必须用 String（两个 char 组成的代理对）
+        String emoji = "\uD83D\uDE00";    // 😊
+        System.out.println("emoji：" + emoji);
+        System.out.println("它的长度是 " + emoji.length() + " 个 char（代理对）");
     }
 }
 ```
@@ -348,8 +357,8 @@ graph LR
         A1["int age = 25;"] --> A2["变量 age<br/>值：25（直接存储在栈中）"]
     end
     subgraph 引用类型
-        B1["String name = "阿花";"] --> B2["变量 name<br/>值：0x7B3A（对象的地址）"]
-        B3["对象在堆中<br/>"阿花""] --> B2
+        B1["String name = '阿花';"] --> B2["变量 name<br/>值：0x7B3A（对象的地址）"]
+        B3["对象在堆中<br/>'阿花'"] --> B2
     end
 ```
 

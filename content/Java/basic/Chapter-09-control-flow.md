@@ -174,15 +174,23 @@ public class IfPitfalls {
             System.out.println("带伞");
         }
 
-        // ❌ 错误示范：在 if 条件中赋值
-        // if (isRaining = false) { ... }  // 这是赋值，不是比较！
+        // ❌ 错误示范：在 if 条件中赋值（把 == 写成 =）
+        // if (isRaining = false) { ... }   // 这是赋值表达式，不是比较！
 
-        // ✅ 正确写法
-        if (isRaining == false) { ... }  // 或者
-        if (!isRaining) { ... }
+        // ✅ 正确写法：取"非"
+        if (!isRaining) {
+            System.out.println("不带伞");
+        }
+
+        // ✅ 和 false 比较也能编译通过，但纯属多余，可读性还更差
+        if (isRaining == false) {
+            System.out.println("不带伞");
+        }
     }
 }
 ```
+
+> 💡 **小技巧**：正因为 `=` 和 `==` 长得像，主流 IDE 和静态检查工具都会对"条件里出现赋值"给出黄色警告。真正的 `boolean` 变量直接用 `if (flag)` / `if (!flag)` 就好；如果你怕把 `==` 打错成 `=`，把布尔变量命名成 `isXxx`、`hasXxx` 这类问题式名字，能明显减少笔误。
 
 ---
 

@@ -107,9 +107,9 @@ words := []string{"hello", "world"}
 printAll(words...)  // 把切片展开成 "hello", "world"
 ```
 
-##### 17.1.1.3 结果列表
+#### 17.1.1.3 结果列表
 
-###### 17.1.1.3.1 无名结果
+##### 17.1.1.3.1 无名结果
 
 函数可以返回多个值，类型直接写在签名里：
 
@@ -119,7 +119,7 @@ func divide(a, b int) (int, int) {
 }
 ```
 
-###### 17.1.1.3.2 命名结果
+##### 17.1.1.3.2 命名结果
 
 Go 允许给返回值命名（named return values），这些变量在函数开头就已经存在，函数体可以直接使用：
 
@@ -132,7 +132,7 @@ func divide(a, b int) (quotient, remainder int) {
 
 > 裸 return（bare return）只适合短函数。长函数里用裸 return 会降低可读性，因为阅读者需要去括号里找返回值名字。建议在长函数中明确写 `return quotient, remainder`。
 
-###### 17.1.1.3.3 裸 return
+##### 17.1.1.3.3 裸 return
 
 裸 return 出现在有命名返回值的函数中，返回当前命名变量的值：
 
@@ -297,41 +297,66 @@ fmt.Println(c1())  // 4 — c1 的 count 继续增长
 
 #### 17.3.2.2 捕获语义
 
-Go 闭包捕获变量的规则：
-- 对于**值类型**变量，闭包捕获的是变量的引用（实际上是变量的指针，Go 编译器自动处理）
-- 对于**指针**、**切片**、**map**、**channel**等引用类型，捕获的是引用本身
+Go 闭包捕获的是**变量本身**，不是变量在那一刻的值。规则可以概括成：
+
+- 闭包捕获的是变量的**引用**（编译器内部实现为指向该变量的指针），所以闭包内外看到的是同一个变量
+- 对指针、切片、map、channel 这类引用类型，捕获的同样是那个变量，而变量本身指向底层数据
+- **循环变量**比较特殊：Go 1.22 起，`for` 循环的每次迭代都有自己的一份循环变量（详见下面示例）
 
 ```go
+package main
+
+import "fmt"
+
 func main() {
-    funcs := make([]func(), 3)
+    // 场景一：Go 1.22 及以后，每次迭代都有独立的 i
+    funcs := make([]func() int, 3)
     for i := 0; i < 3; i++ {
-        // 错误写法：i 是外层变量，所有闭包捕获的都是同一个 i
         funcs[i] = func() int {
-            return i
+            return i // 每个闭包捕获的是"本次迭代"的 i
         }
     }
     for _, f := range funcs {
-        fmt.Println(f())  // 3 3 3 — 所有闭包都看到了最终的 i=3
+        fmt.Println(f()) // 0 1 2
     }
 
-    funcs2 := make([]func(), 3)
+    // 场景二：Go 1.21 及更早的行为
+    // 那时整个循环只有一个 i，所有闭包都会看到最终的 i == 3，
+    // 所以这段代码在旧版本上会打印 3 3 3。
+    // 想在旧版本上拿到 0 1 2，需要显式地"复制一份"：
+    funcsOld := make([]func() int, 3)
     for i := 0; i < 3; i++ {
-        v := i  // 正确做法：每次循环创建新的局部变量 v
-        funcs2[v] = func() int {
+        v := i // 每次迭代新建一个局部变量 v
+        funcsOld[i] = func() int {
             return v
         }
     }
-    for _, f := range funcs2 {
-        fmt.Println(f())  // 0 1 2 — 每个闭包捕获了各自的 v
+    for _, f := range funcsOld {
+        fmt.Println(f()) // 0 1 2
     }
+
+    // 场景三：闭包共享同一个变量时，修改会互相影响
+    count := 0
+    inc := func() { count++ }
+    dec := func() { count-- }
+    inc()
+    inc()
+    dec()
+    fmt.Println("count =", count) // count = 1
 }
 ```
+
+> **版本提醒**：本文档基于 Go 1.22 及以后的行为。Go 1.22 修改了 `for` 循环变量的作用域规则——每次迭代都会新建一份循环变量，因此"闭包捕获循环变量"这个经典陷阱在新版本里已经不再是陷阱了。如果你维护的是 `go.mod` 里写着 `go 1.21` 或更早版本的老项目，仍然需要按场景二的写法显式复制变量。
 
 #### 17.3.2.3 生命周期陷阱
 
 闭包可能导致被捕获变量的生命周期超出预期，造成内存泄漏或意外行为：
 
 ```go
+package main
+
+import "fmt"
+
 func main() {
     // 错误的写法：addToCache 返回的闭包引用了 cache，
     // 导致 cache 永远无法被 GC 回收
@@ -403,6 +428,8 @@ fmt.Println(isEven(7))    // false
 `defer` 是 Go 里一个独特且强大的特性——用 `defer` 声明的函数调用会在**外层函数返回之前**执行，常用于资源清理、锁释放、文件关闭等场景。
 
 ### 17.5.1 defer 机制
+
+`defer` 用来注册一个“函数返回前执行”的调用。最典型的用法是：打开资源的同时就把释放语句写好，这样无论后面从哪条分支返回（甚至中途 panic），资源都不会被漏掉。
 
 ```go
 func readFile(path string) error {
@@ -588,6 +615,8 @@ func safeCall() {
 
 #### 17.5.5.1 资源释放
 
+文件、数据库连接、`*sql.Rows` 这类资源都应该“拿到手就 defer 关闭”。注意 `defer` 是函数级的，循环里 defer 会一直攒到函数结束——需要每轮就关的场景要包一层匿名函数。
+
 ```go
 import "database/sql"
 
@@ -602,6 +631,8 @@ func queryDB(db *sql.DB, query string) (*sql.Rows, error) {
 ```
 
 #### 17.5.5.2 锁释放
+
+加锁之后立刻 `defer` 解锁，可以彻底避免“某条提前 return 的分支忘记解锁”造成的死锁：
 
 ```go
 import "sync"
@@ -873,6 +904,8 @@ fmt.Println(newOne)   // [2 3 4] — 新切片是加了1的版本
 
 ### 17.8.5 函数组合
 
+把多个 `func(string) string` 首尾相接拼成一个新函数，这是函数式编程里 `pipe` / `compose` 的 Go 版本：
+
 ```go
 import "strings"
 
@@ -1049,6 +1082,8 @@ func process() {
 
 ### 17.10.1 可选参数实现
 
+Go 没有默认参数，也不支持函数重载。参数量一多，惯用的解法是**功能选项（functional options）**：先用结构体接住全部默认值，再让每个可选项去修改它。
+
 ```go
 import "time"
 
@@ -1118,6 +1153,8 @@ fmt.Printf("Server defaults: %+v\n", NewServer("localhost"))
 
 ### 17.10.3 链式配置
 
+选项攒成切片再一次性传入，可以按条件拼装配置——比如“配置文件里写了 TLS 才追加 `WithTLS()`”：
+
 ```go
 // 组合多个选项
 options := []Option{
@@ -1165,4 +1202,3 @@ Go 的函数是真正的一等公民——函数本身可以赋值给变量、�
 11. **性能**：Go 编译器会自动内联小函数，栈上分配比堆上分配快。逃逸分析决定变量是否需要逃逸到堆，滥用返回局部变量指针会影响性能。
 
 12. **函数式编程**：纯函数（无副作用）、不可变性（返回新数据而非修改）、函数组合（pipe/compose）都是 Go 可以轻松实现的函数式范式。
-

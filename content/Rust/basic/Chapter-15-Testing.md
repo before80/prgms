@@ -568,7 +568,7 @@ tests/
     └── baz.stderr
 ```
 
-```rust
+```rust,compile_fail
 // tests/ui/divide_by_zero.rs
 // 这段代码故意写错，预期编译器会报错
 
@@ -597,7 +597,7 @@ UI 测试特别适合验证以下场景：
 - 错误信息是否对开发者友好
 - 某种错误用法是否被正确阻止
 
-```rust
+```rust,compile_fail
 // tests/ui/private_field_access.rs
 // 测试：尝试直接访问私有字段应该导致编译错误
 
@@ -2132,6 +2132,8 @@ insta = { version = "0.16", features = ["yaml"] }
 
 #### 15.3.3.2 assert_snapshot!（快照断言）
 
+`assert_snapshot!`（insta crate）把实际输出与快照文件比对：首次运行生成快照，之后由你审阅差异。
+
 ```rust
 // src/lib.rs
 
@@ -2241,6 +2243,8 @@ proptest = "1.0"
 ```
 
 #### 15.3.4.2 proptest! 宏（生成任意值）
+
+`proptest!` 自动生成大量随机输入来验证属性，失败时会给出可复现的最小用例。
 
 ```rust
 // 使用 proptest 进行属性测试

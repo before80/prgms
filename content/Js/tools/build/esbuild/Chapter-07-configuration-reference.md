@@ -854,16 +854,36 @@ await esbuild.build({
 });
 ```
 
-### 7.9.4 browserslist 格式支持（如 `"> 0.5%, last 2 versions"`）
+### 7.9.4 esbuild **不**支持 browserslist 查询语法
+
+> ⚠️ **纠错**：很多教程（包括本文档的早期版本）写着"把 browserslist 查询串直接丢给 `target` 就行"，这是**错的**。把 `target: '> 0.5%, last 2 versions, not dead'` 交给 esbuild 会直接报错：`Invalid target`。
+
+原因是 `target` 的取值集合是**白名单**，只认下面两类写法：
+
+- **环境名 + 版本号**：`chrome`、`deno`、`edge`、`firefox`、`hermes`、`ie`、`ios`、`node`、`opera`、`rhino`、`safari`（版本号可以写细，如 `node18.12.0`）；
+- **JavaScript 语言版本**：`es5`、`es2015`、`es2020`、`esnext` 等。
 
 ```javascript
-// 直接用字符串作为 target，esbuild 会识别为 browserslist
+// 正确写法：直接列环境
 await esbuild.build({
   entryPoints: ['src/index.js'],
   outfile: 'dist/index.js',
-  target: '> 0.5%, last 2 versions, not dead',
+  target: ['chrome100', 'firefox102', 'safari15', 'node18'],
 });
 ```
+
+如果你确实已经在 `.browserslistrc` / `package.json` 里维护了一份 browserslist 配置，需要**自己把它翻译成 esbuild 能懂的目标列表**：
+
+```javascript
+import browserslist from 'browserslist';
+import { browserslistToTargets } from 'lightningcss'; // 或使用 browserslist-to-esbuild 之类的工具
+
+// 思路：先读出 browserslist 命中的浏览器，再折算成 esbuild 的 target 数组
+const targets = browserslist('> 0.5%, last 2 versions, not dead');
+console.log(targets); // 例如 ['chrome 120', 'firefox 121', ...] —— 需要映射成 esbuild 的写法
+```
+
+有两种主流做法：一是**手工折算成环境列表**（简单项目够用），二是**用插件自动折算**（社区有 `esbuild-plugin-browserslist`、`browserslist-to-esbuild` 等）。后者的好处是"browserslist 是唯一事实来源"，代价是多一个依赖。另外提醒一句：esbuild **不会**去读 `package.json` 里的 `browserslist` 字段，也不会读 `.browserslistrc`。
 
 ### 7.9.5 target 与转译的关系
 
@@ -871,7 +891,8 @@ await esbuild.build({
 
 - `target: 'es2020'`：几乎不做降级，因为主流浏览器都支持了
 - `target: 'es2015'`：把 ES2020 的 `?.`、`??`、`BigInt` 等降级
-- `target: 'es5'`：大量降级，几乎所有现代语法都会被转换（基本上是"新语法"→"远古语法"的翻译工作）
+- `target: 'es5'`：⚠️ **别指望它**。esbuild 只支持把大多数新语法降到 **es6（ES2015）**，设成 `es5` 后遇到无法转换的语法（`class`、`async/await`、生成器等）会**直接报错**，而不是降级。要兼容 IE11 这类环境请配合 Babel 之类的工具
+- `target: 'esnext'`：不做任何降级，原样保留最新语法（这是**默认值**）
 
 ---
 
@@ -923,14 +944,18 @@ await esbuild.build({
 | `error` | 只显示错误 |
 | `silent` | 静默模式，什么都不输出 |
 
-### 7.11.2 logLimit（错误信息行数限制）
+### 7.11.2 logLimit（日志消息条数上限，默认 10）
+
+> 📌 **先纠正名称带来的误会**：`logLimit` 限制的是**日志消息的条数**，不是"每个错误显示几行代码上下文"。官方默认值是 **10**——超过 10 条日志后 esbuild 就不再继续打印，以免刷爆终端（Windows 命令提示符那类终端尤其怕刷屏）。
 
 ```javascript
 await esbuild.build({
   entryPoints: ['src/index.js'],
   outfile: 'dist/index.js',
-  logLimit: 5,  // 每个错误最多显示 5 行代码上下文
+  logLimit: 5,   // 最多报告 5 条日志消息
 });
+
+// 想看全部日志就设为 0（0 表示不限制）
 ```
 
 ### 7.11.3 logOverride（按错误代码覆盖特定日志级别）
@@ -1021,7 +1046,7 @@ const myPlugin = {
 };
 ```
 
-### 7.13.2 插件钩子执行顺序（onStart → onResolve → onLoad → onEnd）
+### 7.13.2 插件钩子执行顺序（onStart → onResolve → onLoad → onEnd，另有 onDispose）
 
 esbuild 的插件钩子按以下顺序执行：
 
@@ -1036,7 +1061,19 @@ graph TD
     style D fill:#ff6b6b
 ```
 
-> ⚠️ 注意：有些初次接触插件的同学可能会误以为 esbuild 也有 `onDispose` 钩子（隔壁 Rollup 就有），但 esbuild 的插件生命周期里确实没有 `onDispose`——它只在 `PluginBuild` 对象上提供 `onDispose` 回调，用于在 context dispose 时触发清理逻辑，不属于插件钩子范畴。onResolve 和 onLoad 会循环往复，直到所有模块都解析完毕——就像两个永不知疲倦的审核员。
+> ⚠️ **补一个容易漏掉的钩子**：esbuild 从 0.17.0 起还提供了 `build.onDispose(callback)`。它和上面四个钩子不同，**不参与构建流水线的顺序**，而是在"这个插件不再被使用"时触发——具体时机是：每次 `build()` 调用结束后（无论成功还是失败），以及某个构建上下文第一次调用 `dispose()` 之后。典型用途是关闭插件自己打开的文件句柄、数据库连接、子进程等。示例：
+
+```javascript
+let plugin = {
+  name: 'cleanup-demo',
+  setup(build) {
+    const handle = openSomething();          // 插件自己申请的资源
+    build.onDispose(() => closeSomething(handle));  // 插件不再使用时释放
+  },
+};
+```
+
+> 另外提醒：`onResolve` 和 `onLoad` 会**循环往复**，直到所有模块都解析完毕——就像两个永不知疲倦的审核员。
 
 ### 7.13.3 onStart 钩子（构建开始时触发）
 

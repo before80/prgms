@@ -254,6 +254,8 @@ def test_netease_homepage():
 
 ### 三剑客对比——我该怎么选？
 
+这三者的定位其实不重叠：pytest 管"单元测试怎么写"，Selenium 和 Playwright 管"浏览器怎么自动操作"。真实项目里最常见的组合是 pytest 当测试框架、Playwright 当浏览器驱动。
+
 ```
 ┌─────────────┬───────────────┬───────────────┬───────────────┐
 │    特性     │    pytest     │    Selenium   │   Playwright  │
@@ -942,6 +944,8 @@ sys.exit(app.exec())  # 注意：PySide6 用 exec() 而不是 exec_()
 
 ### 四大家族对比
 
+选 GUI 库时，"许可证"往往比功能更能决定选型：PyQt 是 GPL/商业双许可，PySide6 是 Qt 官方的 LGPL 绑定，Tkinter 则随 Python 一起装好。团队要闭源分发的话，这个差别是硬约束。
+
 ```
 ┌─────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
 │    框架     │    Tkinter    │    PyQt5      │    PyQt6      │    PySide6    │
@@ -1214,6 +1218,8 @@ if __name__ == "__main__":
 
 ### asyncio 服务器——高性能 HTTP 服务器
 
+用 asyncio 写 TCP 服务器和用线程池写有本质区别：这里**没有线程**，所有连接都跑在同一个事件循环里，靠 `await` 在读写之间切换。哪怕上万个连接，也不会产生上万个线程的开销。
+
 ```python
 # asyncio TCP 服务器 —— 异步处理连接
 import asyncio
@@ -1270,6 +1276,8 @@ if __name__ == "__main__":
 ```
 
 ### 同步 vs 异步——什么时候用什么？
+
+判断标准其实只有一条：**瓶颈在不在等待**。CPU 密集型任务（大量计算）适合同步 + 多进程；I/O 密集型任务（网络、磁盘）用异步或线程池，收益才明显。
 
 ```
 ┌─────────────┬─────────────────────┬─────────────────────┐
@@ -1615,6 +1623,8 @@ if __name__ == "__main__":
 
 ### ORM vs 原生 SQL——谁更好？
 
+ORM 的优势是类型安全、可组合、天然防注入；原生 SQL 的优势是能精确控制执行计划、写复杂聚合更直接。真实项目通常是两者混用，而不是二选一。
+
 ```
 ┌─────────────┬─────────────────────┬─────────────────────┐
 │    方面     │      SQLAlchemy     │      原生 SQL       │
@@ -1955,6 +1965,8 @@ if __name__ == "__main__":
 
 ### 三剑客对比
 
+requests 是事实标准，但只支持同步；httpx 同时提供同步与异步接口，风格接近 requests；aiohttp 是更早的异步方案，客户端和服务器都能写。需要异步时，httpx 通常是最省心的那个。
+
 ```
 ┌─────────────┬───────────────┬───────────────┬───────────────┐
 │    库名     │    requests   │     httpx     │    aiohttp    │
@@ -1962,19 +1974,19 @@ if __name__ == "__main__":
 │   诞生日    │   2011 年     │   2019 年     │   2016 年     │
 │   （古老度）│  （老前辈）   │  （小鲜肉）   │  （正当壮年） │
 ├─────────────┼───────────────┼───────────────┼───────────────┤
-│ 同步/异步  │   仅同步      │  两者都行     │   仅异步      │
+│ 同步/异步  │   仅同步      │  两者都行     │   仅异步       │
 ├─────────────┼───────────────┼───────────────┼───────────────┤
 │   API 风格  │   极度简洁   │   很像 requests│   稍复杂      │
 ├─────────────┼───────────────┼───────────────┼───────────────┤
-│   适用场景  │   简单脚本   │   现代项目    │   高性能服务  │
+│   适用场景  │   简单脚本   │   现代项目    │   高性能服务   │
 │             │  同步优先   │  需要异步时   │   爬虫/API客户端│
-│             │              │  快速切换     │               │
+│             │              │  快速切换     │                │
 ├─────────────┼───────────────┼───────────────┼───────────────┤
-│   性能      │   一般       │   异步模式    │   最高        │
+│   性能      │   一般       │   异步模式    │   最高         │
 │             │              │   性能优秀    │   （专为异步） │
 ├─────────────┼───────────────┼───────────────┼───────────────┤
-│   生态      │   超成熟     │   快速发展中  │   成熟        │
-│             │  插件极多    │  生态在追赶   │               │
+│   生态      │   超成熟     │   快速发展中  │   成熟         │
+│             │  插件极多    │  生态在追赶   │                │
 └─────────────┴───────────────┴───────────────┴───────────────┘
 ```
 
@@ -2029,8 +2041,10 @@ def jwt_basic_demo():
         "user_id": 12345,
         "username": "张三",
         "role": "admin",
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=2),  # 过期时间
-        "iat": datetime.datetime.utcnow()  # 签发时间
+        # ⚠️ datetime.utcnow() 在 Python 3.12 起已废弃，改用带时区的 now(timezone.utc)，
+        #    否则算出来的 exp/iat 是"没有时区的 naive 时间"，容易和别的时区混在一起出错。
+        "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=2),  # 过期时间
+        "iat": datetime.datetime.now(datetime.timezone.utc)  # 签发时间
     }
 
     token = jwt.encode(payload, secret_key, algorithm=algorithm)
@@ -2063,9 +2077,10 @@ def jwt_with_claims_demo():
         "sub": "user_001",           # subject（用户标识）
         "name": "李四",               # 自定义声明
         "admin": True,               # 自定义声明
-        "iat": datetime.datetime.utcnow(),                          # 签发时间
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),  # 过期
-        "nbf": datetime.datetime.utcnow() + datetime.timedelta(seconds=5),  # 不早于此时间生效
+        # 时间声明统一用带时区的 datetime.now(timezone.utc)，utcnow() 已废弃
+        "iat": datetime.datetime.now(datetime.timezone.utc),                          # 签发时间
+        "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1),  # 过期
+        "nbf": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=5),  # 不早于此时间生效
         "iss": "my-app-server",      # issuer（签发者）
         "aud": "my-app-client"       # audience（受众）
     }
@@ -2104,6 +2119,8 @@ if __name__ == "__main__":
 
 ### JWT 在 Flask 中的实战
 
+JWT 的典型用法就是"登录换票、后续验票"：服务端不保存会话，只校验签名和过期时间。示例用 `pyjwt` 完成签发与验证，密钥记得放环境变量。
+
 ```python
 # JWT + Flask 实战 —— 带认证的 API
 # 安装：pip install flask pyjwt
@@ -2127,7 +2144,8 @@ def create_token(username):
     """生成 JWT Token"""
     payload = {
         "username": username,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        # utcnow() 已废弃，改用带 UTC 时区的时间
+        "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24)
     }
     return jwt.encode(payload, app.config["SECRET_KEY"], algorithm="HS256")
 
@@ -2226,15 +2244,15 @@ if __name__ == "__main__":
 
 ### python-jose——另一种 JWT 实现
 
-`python-jose` 是另一个 JWT 实现库，和 PyJWT 功能类似，但 API 稍有不同。它还支持更多加密算法（RSA、EC 等），适合需要**公私钥签名**的场景。
+`python-jose` 是另一个 JWT 实现库，API 和 PyJWT 略有差别。它比 PyJWT 多出的是 **JWE（加密而不只是签名）** 的支持，以及 `jwk` 密钥管理等配套工具——RSA/EC 这类非对称签名 PyJWT 同样支持。需要注意 `python-jose` 的发布节奏相当缓慢，若只需要签名验证，PyJWT + `cryptography` 通常是更稳的选择。
 
 ```python
 # python-jose —— PyJWT 的另一个选择
 # 安装：pip install python-jose
 from jose import jwt, JWTError
 
-# 功能和 PyJWT 几乎一样
-# 支持 RSA/EC 等非对称算法（PyJWT 也支持，但 python-jose 更纯粹）
+# 功能和 PyJWT 高度重合：签名、验证、各类算法
+# python-jose 额外提供 JWE（加密）与 JWK 支持
 
 secret_key = "my-secret-key"
 token = jwt.encode({"user": "test"}, secret_key, algorithm="HS256")
@@ -2351,6 +2369,8 @@ if __name__ == "__main__":
 
 ### 认证方案对比
 
+Session 适合"服务端能保存会话状态"的单体应用；JWT 适合无状态、跨服务调用的场景；OAuth 2 则是授权框架，解决的是"让第三方代表用户访问资源"。它们不在同一个层面上，没法简单比高下。
+
 ```
 ┌─────────────┬───────────────┬───────────────┬───────────────┐
 │    方案     │    Session    │      JWT      │    OAuth 2    │
@@ -2398,6 +2418,8 @@ if __name__ == "__main__":
 7. **认证机制**：`PyJWT` 是生成和验证 Token 的首选，Token 是无状态认证的核心；`authlib` 则负责处理 OAuth 第三方登录，让用户可以"用微信登录"。
 
 ### 框架选择决策树
+
+这张决策树给的是"从需求出发"的提问顺序：先问做页面还是做 API，再问要不要异步、要不要自带后台，最后才落到具体框架上。
 
 ```
 ┌─────────────────────────────────────────┐

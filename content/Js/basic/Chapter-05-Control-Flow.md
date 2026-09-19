@@ -50,6 +50,35 @@ checkAge(20); // 成年人，可以买酒
 checkAge(-5); // 年龄不能为负数！
 ```
 
+```javascript
+// if 的条件会被自动转成布尔值，下面是全部 8 个 falsy 值
+if (false) {} // 不执行
+if (0) {}     // 不执行
+if (-0) {}    // 不执行
+if (0n) {}    // 不执行
+if ("") {}    // 不执行
+if (null) {}  // 不执行
+if (undefined) {} // 不执行
+if (NaN) {}   // 不执行
+
+// 除此之外一切都是真。注意这一条和 Python 等语言不同：
+if ([]) {
+    console.log("空数组是 truthy"); // 会打印
+}
+if ({}) {
+    console.log("空对象是 truthy"); // 会打印
+}
+if ("0") {
+    console.log("字符串 '0' 是 truthy"); // 会打印，别把字符串 "0" 当成假
+}
+
+// 想判断数组是否为空，要显式检查长度
+const list = [];
+if (list.length === 0) {
+    console.log("空数组");
+}
+```
+
 ### if...else 语句
 
 二选一：满足条件执行这个，不满足执行那个。
@@ -78,6 +107,8 @@ function login(username, password) {
 login("admin", "123456"); // 欢迎，admin！
 login("admin", "wrong");   // 密码错误！
 ```
+
+> 这里只是演示分支写法。真实项目里密码绝不能这样明文比较或打印，必须交给服务端做哈希校验（见第 38 章安全专题）。
 
 ### if...else if...else：多条件分支
 
@@ -156,6 +187,46 @@ switch (day) {
 }
 
 // 输出：今天是星期三
+```
+
+```javascript
+// 关键规则：switch 用「严格相等 ===」比较，不做任何类型转换
+let code = "1"; // 注意是字符串
+
+switch (code) {
+    case 1:
+        console.log("匹配到数字 1"); // 不执行（"1" !== 1）
+        break;
+    case "1":
+        console.log("匹配到字符串 \"1\""); // 执行
+        break;
+    default:
+        console.log("都没匹配上");
+}
+
+// 同理，NaN 永远匹配不到自己
+// switch (NaN) { case NaN: /* 永远进不来 */ }
+
+// case 后面的表达式是从上往下依次求值的，命中的第一个就停
+// 所以 case 里最好只写常量，别塞函数调用或赋值
+```
+
+```javascript
+// default 不一定非要写在最后，它只在「所有 case 都没命中」时执行
+let animal = "dog";
+
+switch (animal) {
+    default:
+        console.log("未知动物");
+        break; // 即使 default 在开头，也建议加 break
+    case "cat":
+        console.log("猫");
+        break;
+    case "dog":
+        console.log("狗"); // 命中这里，default 不会执行
+        break;
+}
+// 输出：狗
 ```
 
 ```javascript
@@ -282,6 +353,8 @@ console.log(getGrade(95)); // A
 console.log(getGrade(82)); // B
 console.log(getGrade(45)); // F
 ```
+
+> 关于 `switch (true)` 这个技巧：它确实能跑通，原理是每个 `case` 表达式求值后与 `true` 做严格比较。但绝大多数情况下，同样的逻辑用 `if...else if` 写出来更直观，也更符合阅读习惯，建议只在团队已有约定时使用。
 
 ### switch 的 default：默认分支
 
@@ -456,6 +529,135 @@ for (let i = 1; i <= 9; i++) {
 // ...以此类推到 9×9=81
 ```
 
+### for...of：直接遍历「值」（ES6）
+
+普通 `for` 循环要自己管下标，写起来啰嗦还容易越界。`for...of` 直接给你每一个值，适用于所有可迭代对象（数组、字符串、Map、Set、NodeList、生成器……）。
+
+```javascript
+// 遍历数组：比下标循环清爽得多
+const fruits = ["苹果", "香蕉", "橙子"];
+
+for (const fruit of fruits) {
+    console.log(fruit);
+}
+// 苹果
+// 香蕉
+// 橙子
+
+// 遍历字符串：按「字符」切分（注意 emoji 等代理对的处理，见下）
+for (const ch of "abc") {
+    console.log(ch); // a b c
+}
+
+// 遍历 Set / Map
+const uniqued = new Set([1, 2, 2, 3]);
+for (const v of uniqued) {
+    console.log(v); // 1 2 3
+}
+
+const scores = new Map([["语文", 90], ["数学", 95]]);
+for (const [subject, score] of scores) {
+    console.log(subject, score); // 语文 90 / 数学 95
+}
+```
+
+```javascript
+// 需要下标时，用 entries()，别退回去写下标循环
+const letters = ["a", "b", "c"];
+
+for (const [index, value] of letters.entries()) {
+    console.log(index, value); // 0 "a" / 1 "b" / 2 "c"
+}
+
+// for...of 同样支持 break / continue
+for (const n of [1, 2, 3, 4, 5]) {
+    if (n === 2) continue;
+    if (n === 4) break;
+    console.log(n); // 1 3
+}
+
+// 想要「中途改数组」要格外小心：迭代过程中增删元素，行为不好预测
+const mutable = [1, 2, 3];
+for (const v of mutable) {
+    if (v === 2) mutable.push(99); // 勉强能跑，但属于危险操作
+}
+```
+
+```javascript
+// for...of 的两个常见报错
+// 1. 普通对象不是可迭代对象，直接用会抛错
+const person = { name: "张三", age: 25 };
+// for (const v of person) {} // TypeError: person is not iterable
+
+// 想遍历对象，请显式选择要遍历什么
+for (const key of Object.keys(person)) console.log(key);       // name age
+for (const val of Object.values(person)) console.log(val);     // 张三 25
+for (const [k, v] of Object.entries(person)) console.log(k, v); // name 张三 / age 25
+
+// 2. 对 null / undefined 迭代也会抛错
+// for (const v of null) {} // TypeError
+// 需要容错时先兜底
+for (const v of person.hobbies ?? []) {
+    console.log(v); // 没有 hobbies 就什么都不做
+}
+```
+
+### for...in：遍历「键名」（主要用于对象）
+
+`for...in` 遍历的是对象的**可枚举属性名**（字符串），而且**会沿着原型链往上找**，这一点极易踩坑。
+
+```javascript
+// 遍历对象的键
+const user = { name: "张三", age: 25, city: "北京" };
+
+for (const key in user) {
+    console.log(key, "=", user[key]); // name = 张三 / age = 25 / city = 北京
+}
+
+// 陷阱：原型链上被「可枚举」的属性也会被遍历到
+Object.prototype.hacked = "我是原型上的属性"; // 教学演示，实际项目中绝不要这么写
+for (const key in user) {
+    console.log(key); // name age city hacked ← 多出来一个！
+}
+delete Object.prototype.hacked; // 用完清理掉
+
+// 正确姿势：用 Object.hasOwn 过滤掉继承来的属性
+for (const key in user) {
+    if (!Object.hasOwn(user, key)) continue;
+    console.log(key); // name age city
+}
+```
+
+```javascript
+// 千万别用 for...in 遍历数组
+const arr = ["a", "b", "c"];
+arr.extra = "我是挂上去的额外属性"; // 数组也是对象，可以挂属性
+
+for (const key in arr) {
+    console.log(key); // "0" "1" "2" "extra" —— 键是字符串，还混进了额外属性
+}
+
+// 也别指望顺序一定是你想象的那样；数组请用 for...of 或 forEach
+for (const value of arr) {
+    console.log(value); // "a" "b" "c"
+}
+
+// 如果只是想拿到下标和值，entries() 更明确
+arr.forEach((value, index) => console.log(index, value));
+```
+
+什么时候用哪个，一张表说清楚：
+
+| 需求 | 推荐写法 |
+|------|----------|
+| 遍历数组 / 字符串 / Set / Map 的**值** | `for...of` |
+| 遍历对象自身的**键值对** | `Object.entries()` + `for...of`，或 `for...in` 配合 `Object.hasOwn` 过滤 |
+| 需要下标 | `arr.entries()` 配 `for...of`，或直接 `forEach` |
+| 需要 `break` / `continue` / `await` | 只能用 `for...of`（`forEach` 里做不到） |
+| 遍历数组的**下标** | 不要用 `for...in`（键是字符串，还会带上额外属性） |
+
+> 关于 emoji：`for...of` 按「码点」拆分，比下标循环更正确地处理了代理对，但组合字符（如带修饰符的 emoji）仍可能被拆散，需要按「字素簇」处理时要上 `Intl.Segmenter`。
+
 ### while 循环：条件循环
 
 `while` 循环在条件为 `true` 时重复执行，适合不确定循环次数的场景。
@@ -498,13 +700,14 @@ function guessNumber() {
 ```
 
 ```javascript
-// while 的注意事项：确保条件最终会变为 false
-// 错误的例子：无限循环！
-// while (true) {
-//     console.log("这会一直执行，直到浏览器崩溃！");
+// while 的注意事项：循环变量必须有机会让条件变成 false，否则就是死循环
+// 下面这段忘了写 i++，条件永远是 true，页面会直接卡死
+// let bad = 0;
+// while (bad < 10) {
+//     console.log(bad);
 // }
 
-// 正确做法：确保有退出条件
+// 正确做法：确保每一步都在靠近退出条件
 let i = 0;
 while (i < 10) {
     if (i === 5) {
@@ -513,6 +716,14 @@ while (i < 10) {
     }
     i++;
 }
+
+// while (true) 本身没有错，只要循环体里有可靠的退出路径
+let n = 0;
+while (true) {
+    n++;
+    if (n >= 3) break; // 一定会到达
+}
+console.log(n); // 3
 ```
 
 ### do...while：保证至少执行一次
@@ -814,20 +1025,77 @@ console.log(result);
 // 验证：1*5+2*7=19, 1*6+2*8=22, 3*5+4*7=43, 3*6+4*8=50
 ```
 
+### 标签语句：一次跳出多层循环
+
+`break` 默认只跳出「离它最近的那一层」。如果想在内层循环里一次性跳出外层，可以给循环贴一个标签。
+
+```javascript
+// 给外层循环贴标签，break 时指到标签上
+outer:
+for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+        if (i === 1 && j === 1) {
+            console.log(`在 i=${i}, j=${j} 处跳出外层`);
+            break outer; // 直接结束外层循环
+        }
+        console.log(`i=${i}, j=${j}`);
+    }
+}
+// 输出：
+// i=0, j=0
+// i=0, j=1
+// i=0, j=2
+// i=1, j=0
+// 在 i=1, j=1 处跳出外层
+```
+
+```javascript
+// continue + 标签：跳过外层循环的「本次迭代」，直接进入外层的下一轮
+outer:
+for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+        if (j === 1) {
+            continue outer; // 内层剩下的 j 全部不跑了
+        }
+        console.log(`i=${i}, j=${j}`);
+    }
+    console.log("这行永远执行不到");
+}
+// 输出：
+// i=0, j=0
+// i=1, j=0
+// i=2, j=0
+```
+
+> 标签语法属于「能用但不必常用」的特性。如果发现自己需要三层以上的标签跳转，通常说明这段逻辑该拆成函数了——在函数里直接 `return` 往往更清晰。
+
+### 循环选择速查
+
+| 场景 | 推荐写法 |
+|------|----------|
+| 次数已知，或需要下标控制步长 | `for (let i = 0; ...)` |
+| 条件驱动、次数不确定 | `while` |
+| 至少要执行一次（如菜单、输入校验） | `do...while` |
+| 遍历数组 / Set / Map / 字符串的值 | `for...of` |
+| 遍历对象的键值对 | `Object.entries()` / `Object.keys()` |
+| 只想对每个元素做一件事、不需要中断 | `forEach`、`map` 等数组方法（见第 7 章） |
+
 ---
 
 ## 本章小结
 
 本章我们学习了 JavaScript 的控制流：
 
-1. **条件语句**：`if` 基础单分支，`if...else` 二选一，`if...else if...else` 多条件分支，`switch` 多值匹配（注意 `break` 的穿透效应和 `default` 默认分支）。
+1. **条件语句**：`if` 基础单分支，`if...else` 二选一，`if...else if...else` 多条件分支。`if` 的判断依据是「真值/假值」，只有 8 个 falsy 值（`false 0 -0 0n "" null undefined NaN`），空数组和空对象都是真。
 
-2. **循环语句**：`for` 计数循环（已知次数），`while` 条件循环（未知次数），`do...while` 至少执行一次。
+2. **`switch`**：用**严格相等**比较，不做类型转换，所以 `"1"` 匹配不到 `case 1`；`break` 缺失会「穿透」到下一个 `case`（也可以刻意利用穿透让多个 `case` 共用逻辑）；`default` 可以写在任意位置。
 
-3. **循环控制**：`break` 立即退出循环，`continue` 跳过本次迭代。
+3. **循环语句**：`for` 计数循环（已知次数），`while` 条件循环（未知次数），`do...while` 至少执行一次。写 `while` 时务必确保循环变量在靠近退出条件，否则就是死循环；`while (true)` 配合可靠的 `break` 是合法写法。
 
-4. **嵌套循环**：外层循环控制行，内层循环控制列，常用于处理二维数据（矩阵、表格等）。
+4. **遍历循环**：`for...of` 遍历「值」，适用于数组、字符串、Map、Set 等可迭代对象，支持 `break`/`continue`/`await`；普通对象不是可迭代对象，要用 `Object.keys/values/entries`。`for...in` 遍历「键名」，会带上原型链上的可枚举属性，需要 `Object.hasOwn` 过滤，尤其不要拿它遍历数组。
 
-5. **性能注意**：避免在循环内进行重复计算（把不变的值提到循环外），避免不必要的嵌套循环。
+5. **循环控制**：`break` 立即退出，`continue` 跳过本次迭代；给循环贴标签（`outer:`）后，可以一次跳出多层循环，但真需要多层跳转时，通常拆成函数用 `return` 更清晰。
 
-下一章我们将进入数据结构篇，学习 JavaScript 的数组。准备好了吗？继续冲！
+6. **嵌套循环**：外层控制行、内层控制列，常用于二维数据和矩阵运算；能提前满足条件就 `break`，别做无谓的遍历。
+
+下一章我们会把运算符里那些容易忽略的细节再补一遍。准备好了吗？继续冲！

@@ -1,4 +1,4 @@
-+++
+﻿+++
 title = "第38章 创建型模式"
 weight = 380
 date = "2026-03-23T08:39:00+08:00"
@@ -513,7 +513,6 @@ func main() {
 
     fmt.Printf("构建的用户: %+v\n", user) // &{Name:张三 Age:25 Email:zhang@example.com Phone:13800138000 Address:北京市朝阳区}
 }
-}
 ```
 
 ---
@@ -792,7 +791,8 @@ type GenericPool struct {
 }
 
 // NewGenericPool 创建通用对象池
-func NewGenericPool(newFunc, resetFunc func(interface{})) *GenericPool {
+// newFunc 必须返回一个新对象，所以类型是 func() interface{}
+func NewGenericPool(newFunc func() interface{}, resetFunc func(interface{})) *GenericPool {
     return &GenericPool{
         list:  list.New(),
         New:   newFunc,
@@ -855,11 +855,9 @@ func main() {
 
     // 释放回池
     bufferPool.Release(buf1)
-
     // 再次获取
     buf2 := bufferPool.Acquire().([]byte)
     fmt.Printf("再次获取缓冲区: 前10字节=%v (已被清零)\n", buf2[:10]) // [0 0 0 0 0 0 0 0 0 0]
-}
 }
 ```
 
@@ -873,7 +871,6 @@ package main
 import (
     "fmt"
     "sync"
-    "time"
 )
 
 // PoolStrategy 池策略接口
@@ -981,7 +978,8 @@ func main() {
 
     // buf2 会被优先复用（因为是最后放入的）
     buf3 := lifoPool.Acquire().([]byte)
-    fmt.Printf("LIFO: 复用了最后放入的对象\n")
+    buf3[0] = 'Z'
+    fmt.Printf("LIFO: 复用了最后放入的对象，buf3[0]=%c\n", buf3[0]) // LIFO: 复用了最后放入的对象，buf3[0]=Z
 
     // 自适应池
     adaptivePool := NewAdaptivePool(2, 10, func() interface{} {
@@ -1071,6 +1069,21 @@ package main
 
 import "fmt"
 
+// 说明：Logger / ConsoleLogger 在 38.6.1 已经定义过，
+// 这里再写一遍是为了让本示例可以独立运行。
+
+// Logger 日志接口
+type Logger interface {
+    Log(msg string)
+}
+
+// ConsoleLogger 控制台日志
+type ConsoleLogger struct{}
+
+func (l *ConsoleLogger) Log(msg string) {
+    fmt.Printf("[控制台] %s\n", msg)
+}
+
 // Cache 缓存接口
 type Cache interface {
     Get(key string) string
@@ -1133,6 +1146,20 @@ package main
 
 import "fmt"
 
+// 说明：Logger / ConsoleLogger 在 38.6.1 已经定义过，这里再写一遍以便独立运行。
+
+// Logger 日志接口
+type Logger interface {
+    Log(msg string)
+}
+
+// ConsoleLogger 控制台日志
+type ConsoleLogger struct{}
+
+func (l *ConsoleLogger) Log(msg string) {
+    fmt.Printf("[控制台] %s\n", msg)
+}
+
 // Injectable 可注入接口
 type Injectable interface {
     InjectLogger(Logger)
@@ -1176,6 +1203,8 @@ func main() {
 | rsms-service/di | 轻量级 |
 
 **使用 uber-go/dig 示例**：
+
+> ⚠️ `go.uber.org/dig` 是第三方库，需要先 `go get go.uber.org/dig` 才能编译运行。
 
 ```go
 package main
@@ -1262,4 +1291,3 @@ func main() {
 | DI | 解耦组件依赖 | 构造函数注入 / wire |
 
 > 💡 **最后一句话**：设计模式是经验总结，不是银弹。选择哪种模式，要根据实际场景来决定。在 Go 中，很多传统模式都有更简洁的实现方式（如用 `sync.Once` 代替懒加载单例）。理解模式的本质，而不是死记硬背代码结构。
-

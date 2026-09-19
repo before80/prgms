@@ -20,16 +20,11 @@ draft = false
 ```mermaid
 timeline
     title Java 8~17 新特性演进史
-    2014年3月: Java 8 发布
-        : Lambda表达式 : Stream API : Optional : 新的Date/Time API
-    2017年9月: Java 9 发布
-        : 模块化系统 : 集合工厂方法 : 私有接口方法
-    2018年3月: Java 10 发布
-        :局部变量类型推断 : 应用程序类数据共享
-    2018年9月: Java 11 发布
-        : HTTP Client API : 单文件程序 : String底层改进
-    2019年3月: Java 12~17 发布
-        : Switch表达式 : Records : Pattern Matching : Sealed Classes : 文本块
+    2014年3月 : Java 8 发布 : Lambda 表达式 : Stream API : Optional : 新的 Date/Time API
+    2017年9月 : Java 9 发布 : 模块化系统 : 集合工厂方法 : 私有接口方法
+    2018年3月 : Java 10 发布 : 局部变量类型推断 : 应用程序类数据共享
+    2018年9月 : Java 11 发布 : HTTP Client API : 单文件程序 : String 底层改进
+    2019年3月 : Java 12~17 发布 : Switch 表达式 : Records : Pattern Matching : Sealed Classes : 文本块
 ```
 
 ---
@@ -157,7 +152,7 @@ boolean anyMatch = stream.anyMatch(s -> s.startsWith("a")); // 任意匹配
 
 ```java
 // Java 8 之前的接口：只能声明，不能有实现
-interface Animal {
+interface OldAnimal {
     void speak();  // 必须实现
 }
 
@@ -421,7 +416,8 @@ for (var name : names) {  // 不用写 Iterator<String>
 
 **使用 var 的注意事项**：
 
-```java
+```java,ignore
+// ❌ 下面每一条都编译不过，请把它们当作"var 使用禁区"清单
 // ❌ 错误1：var 不能用于声明字段（只能用于局部变量）
 class Example {
     var field = "error";  // 编译错误！
@@ -433,8 +429,10 @@ var noInit;  // 编译错误！编译器无法推断类型
 // ❌ 错误3：var 不能用于 lambda 表达式（需要目标类型）
 var lambda = (x, y) -> x + y;  // 编译错误！
 
-// ❌ 错误4：var 不是关键字，是保留类型名（实际上 Java 10-16 中 var 不是关键字，但 Java 17 中它仍然是保留类型名）
-// 这意味着你不能创建名为 var 的类或接口
+// ❌ 错误4：var 不是关键字，而是「保留类型名」（reserved type name）
+// 从 Java 10 起，你不能声明名为 var 的类、接口、枚举——它被当作类型名保留起来了。
+// 但把它当普通变量名用是可以的：
+// int var = 10;   // 合法！var 只是不能作为类型的名字
 ```
 
 > **最佳实践**：`var` 适合类型名很长但从右侧明显可推断的场景。对于局部变量，特别是循环变量、try-with-resources 资源声明等场景，使用 `var` 能显著提升可读性。但不要滥用——如果类型不明确或者会影响可读性，还是写清楚类型名为好。
@@ -863,25 +861,33 @@ String formatted = """
 
 ### 34.3.6 新GC与性能提升：看不见的进化
 
-虽然 Java 12~17 没有像 Java 8 那样革命性的语法变化，但在**垃圾回收器**和**性能**方面持续进化：
+虽然 Java 11~17 没有像 Java 8 那样革命性的语法变化，但在**垃圾回收器**和**性能**方面持续进化：
 
 | 版本 | GC 特性 |
 |------|---------|
-| Java 12 | **Shenandoah GC**（低暂停时间GC，与堆大小无关） |
-| Java 14 | **JFR (Java Flight Recorder)** 开放为正式API |
-| Java 15 | **Shenandoah** 成为正式特性；**ZGC**（可扩展低延迟GC）正式生产可用 |
-| Java 17 | **ZGC** 支持并发类卸载；**Flighting GC** 概念提出 |
+| Java 11 | **ZGC** 以实验特性登场（JEP 333）；**JFR** 在 OpenJDK 中开源（JEP 328） |
+| Java 12 | **Shenandoah** 以实验特性引入（JEP 189），低暂停时间且停顿与堆大小基本无关 |
+| Java 14 | 新增 **JFR 事件流 API**（JEP 349），可以边跑边消费 JFR 数据；JFR 本身前面已在 JDK 11 开源 |
+| Java 15 | **Shenandoah 转正**（JEP 379）、**ZGC 转正**（JEP 377），两者正式可用于生产；同时废弃偏向锁（JEP 374） |
+| Java 16 | **ZGC 支持并发栈处理**（JEP 376），停顿进一步缩短 |
+| Java 17 | **LTS 版本**；ZGC、Shenandoah 继续打磨，G1 仍是默认 GC |
+
+> 💡 **后续发展**（后面第 35 章会细讲）：**分代 ZGC** 在 JDK 21 作为实验特性加入（JEP 439），到 **JDK 23 成为默认**（JEP 474）。所以今天（2026 年）谈"ZGC"，默认语境已经是分代模式了。
 
 ```java
 // 启用特定的 GC（命令行参数）
 // -XX:+UseShenandoahGC  启用 Shenandoah
 // -XX:+UseZGC            启用 ZGC
 
-// Java 16+ 默认 G1 GC 进一步优化，延迟更低
+// 从 JDK 9 起 G1 就是默认 GC，JDK 16/17 又对它做了持续优化
 public class GCDemo {
     public static void main(String[] args) {
-        // 运行时获取 GC 信息
-        System.out.println("默认GC: " + System.getProperty("java.vm.version"));
+        // 运行时获取当前 JVM 实际启用的垃圾回收器
+        // 注意：System.getProperty("java.vm.version") 拿到的是 JVM 版本号，不是 GC 名字！
+        for (java.lang.management.GarbageCollectorMXBean gc
+                : java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()) {
+            System.out.println("GC: " + gc.getName());
+        }
 
         // 推荐使用 ZGC 的场景：需要极低暂停时间（<10ms）的大内存应用
         // 推荐使用 Shenandoah 的场景：需要低暂停时间但堆内存相对较小的应用

@@ -1102,6 +1102,8 @@ Java 传统的同步阻塞 I/O 模型中，当线程等待 I/O（如网络请求
 ### 创建虚拟线程
 
 ```java
+import java.util.concurrent.ThreadFactory;
+
 /**
  * 创建虚拟线程的三种方式
  */
@@ -1149,6 +1151,10 @@ public class VirtualThreadDemo {
 这是使用虚拟线程最重要的一条规则。虚拟线程设计为"用完即弃"，它们是廉价的，不需要复用。如果把虚拟线程放进线程池，它会永远停留在 `WAITING` 状态，无法被回收。
 
 ```java
+import java.time.Duration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * 虚拟线程的错误用法 vs 正确用法
  */
@@ -1188,6 +1194,13 @@ public class VirtualThreadPoolMistake {
 当虚拟线程执行阻塞操作（如 `Thread.sleep()`、`LockSupport.park()`、I/O 操作）时，JVM 会自动挂起这个虚拟线程，释放底层平台线程去执行其他虚拟线程。当阻塞结束后，JVM 会恢复这个虚拟线程继续执行。
 
 ```java
+import java.time.Duration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * 演示虚拟线程的挂起特性
+ */
 /**
  * 演示虚拟线程的挂起特性
  */

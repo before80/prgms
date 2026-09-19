@@ -9,7 +9,7 @@ draft = false
 +++
 
 
-﻿# 第十六章：用户组管理
+# 第十六章：用户组管理
 
 上一章我们讲了用户管理，用户就像是每个学生。那么问题来了——学生多了，要不要搞个"兴趣小组"？
 
@@ -140,8 +140,8 @@ grep developers /etc/group
 # 方法2：getent查看（更可靠）
 getent group developers
 
-# 方法3：group命令（某些发行版有）
-cat /etc/group | grep developers
+# 方法3：直接看文件（也可以用 awk 只看组名）
+cut -d: -f1 /etc/group | grep -x developers
 ```
 
 ---
@@ -339,14 +339,13 @@ sudo gpasswd developers
 
 ```bash
 # Ubuntu/Debian
-sudo users-admin
-
-# 或者
 gnome-control-center user-accounts
 
-# Fedora/RHEL
-sudo system-config-users
+# Fedora/RHEL：桌面环境用「设置 → 用户」，
+# 服务器可用 Cockpit（sudo dnf install cockpit && sudo systemctl enable --now cockpit.socket）
 ```
+
+> **老教程里的图形工具别照抄**：`users-admin`（gnome-system-tools）和 `system-config-users` 都早已停止维护、从新发行版中移除，运行会直接报"命令不存在"。桌面环境直接用「设置 → 用户」；服务器上更推荐命令行或浏览器界的 Cockpit。
 
 ---
 
@@ -415,6 +414,14 @@ newgrp longx
 
 > [!NOTE]
 > `newgrp`会启动一个新的shell，而且需要用户属于目标组才能切换（或者知道组密码）。切换回原来的组用`exit`命令。
+>
+> **只想临时用某个组跑一条命令**，可以不用 `newgrp` 开新 shell，而是用 `sg`：
+>
+> ```bash
+> sg docker -c "docker ps"     # 以 docker 组的身份执行这一条命令
+> ```
+>
+> 注意 `newgrp`/`sg` 都只影响**当前终端会话**，而且只对"你本来就属于的组"有效。真正持久的组关系还是要靠 `usermod -aG`。
 
 ---
 
@@ -451,6 +458,18 @@ ls -ld /data/webproject
 # 其他用户无法访问该目录
 # root用户无视权限，依然可以访问（root是上帝）
 ```
+
+> **⚠️ 只做到这一步还有个大坑**：上面虽然把所有人放进了 `webproject` 组，但成员**新建的文件默认属于各自的主组**（不是 `webproject`）。结果就是：zhangsan 建的文件 lisi 只能读、不能改，协作出问题。
+>
+> 解决办法是给共享目录加上 **SGID 位**。加上之后，目录里**新建的文件和子目录会自动继承这个目录的属组**：
+>
+> ```bash
+> sudo chmod 2770 /data/webproject
+> ls -ld /data/webproject
+> # drwxrws--- 2 root webproject ... /data/webproject   ← 组权限位变成 s
+> ```
+>
+> 另外，新建文件的权限还受 `umask` 影响（默认 `022` 会去掉"组可写"），所以团队共享目录通常还要配合 `umask 002` 或默认 ACL。做完这一步，才是真正的"组内人人可读写"。
 
 ### 场景：把用户从组中移除
 
@@ -520,8 +539,3 @@ graph LR
 ### 💡 记住这个原则
 
 > **主组是户口本，附加组是兴趣小组。** 一个用户只能有一个户口本，但可以参加无数个兴趣小组。创建文件时，文件默认属于创建者的主组。
-
----
-
-**当前时间：2026年3月23日 20:21:03**
-**已完成"第十六章"，目前处理"第十七章"**

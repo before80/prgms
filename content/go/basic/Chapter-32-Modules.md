@@ -418,28 +418,42 @@ graph LR
 
 | go 指令版本 | 对应 Go 发布版本 | 特性亮点 |
 |-----------|----------------|---------|
-| go 1.17 | Go 1.17 | generics（泛型）正式登场 |
-| go 1.18 | Go 1.18 | workspace 模式完善 |
-| go 1.21 | Go 1.21 | loopvar 语义改进 |
-| go 1.22 | Go 1.22 | range 循环支持整数、math/rand/v2 |
-| go 1.23 | Go 1.23 | iter 包、range over func |
+| go 1.17 | Go 1.17 | 编译器开始接受类型参数语法（仅限实验，泛型还不能正式使用） |
+| go 1.18 | Go 1.18 | **泛型（generics）正式登场**、工作区模式 `go work` 引入 |
+| go 1.21 | Go 1.21 | `for` 循环变量（loopvar）语义改进、`min` / `max` / `clear` 内置函数 |
+| go 1.22 | Go 1.22 | `for range` 支持整数、`math/rand/v2` |
+| go 1.23 | Go 1.23 | `iter` 包、`range over func`、泛型类型别名（实验开关） |
+| go 1.24 | Go 1.24 | 泛型类型别名正式可用、`go.mod` 的 `tool` 指令、Swiss Table 版 map |
+| go 1.25 | Go 1.25 | 容器感知的 `GOMAXPROCS`、`testing/synctest` 转正、`go.mod` 的 `ignore` 指令 |
+| go 1.27 | Go 1.27 | 方法级泛型（方法可以声明自己的类型参数） |
 
 **go 指令的"生存潜规则"**：
 
 1. **向上兼容**：如果你声明 `go 1.21`，但用 Go 1.20 编译，编译器会说："你的身份证写的是21岁，但我看你像20岁的人！"然后报错。
 
-2. **向下不兼容**：如果你声明 `go 1.21`，但用 Go 1.22 编译，通常没问题。但如果用了Go 1.22新增的特性而没更新go指令，编译器会警告你。
+2. **向下兼容**：如果你声明 `go 1.21`，但用 Go 1.22 编译，通常没问题——新工具链照样能编译旧模块。但如果代码里用了 Go 1.22 才有的特性而 go 指令还停在 `1.21`，编译器会直接报错，提示你升级 go 指令。
 
-3. **必须 >= 1.13**：Go modules 是从 1.13 开始支持的，所以 go 指令的最小值就是 1.13（再小的话，Go会认为你还在用"旧社会"）。
+3. **版本号写多少**：go 指令从 Go modules 落地时（1.11）就有，写 `1.11`、`1.16` 这类老版本号工具链也照单全收，并不会强迫你改成 1.13 以上。真正要留意的是它决定了语言特性的开关：写在 1.21 就没法用 1.22 的语法。日常新建项目直接写当前工具链版本即可（本文档对应 Go 1.27）。
 
-**go 指令的"自动升级"**：
+**go 指令的"手动升级"**：
+
+`go mod tidy` **不会**替你偷偷抬高 go 指令——它只会重排/补齐依赖。如果你的代码用了新语法而 go 指令太旧，编译会直接失败：
+
+```text
+./main.go:4:8: predeclared any requires go1.18 or later (-lang was set to go1.15; check go.mod)
+```
+
+要改版本号得自己动手（`-go` 参数或直接编辑 `go.mod`）：
 
 ```bash
-# 当你使用 go mod tidy 时，Go会自动帮你更新go指令
-# 前提是你用了更高版本的特性
+# 把 go 指令升到 1.21
+go mod tidy -go=1.21
 
-# 场景：
-go mod tidy -go=1.21  # 强制指定版本
+# 或者用 edit 子命令，效果一样
+go mod edit -go=1.21
+
+# 用较新的工具链统一升级所有依赖的版本要求
+go get -u ./...
 ```
 
 **go 指令与依赖的关系**：
@@ -1071,7 +1085,7 @@ graph LR
     style A fill:#FFD700
 ```
 
-### 32.3.1.1 添加依赖
+#### 32.3.1.1 添加依赖
 
 **添加依赖——让Go帮你"进货"！**
 
@@ -1145,6 +1159,8 @@ go 1.21
 
 require github.com/gin-gonic/gin v1.9.1  // 自动添加了这一行
 ```
+
+> 提示：这段代码需要先 `go get github.com/gin-gonic/gin` 把依赖下载下来，否则 `go build` 会报 `no required module provides package`。
 
 ```go
 // 第四步：在代码里使用
@@ -1242,7 +1258,7 @@ go get -m github.com/gin-gonic/gin@v1.9.1  # -m显示依赖链
 
 
 
-### 32.3.1.2 更新依赖
+#### 32.3.1.2 更新依赖
 
 **更新依赖——让你的代码"更新换代"！**
 
@@ -1449,7 +1465,7 @@ jobs:
 
 
 
-### 32.3.1.3 指定版本
+#### 32.3.1.3 指定版本
 
 **指定版本——给依赖发一张"专属身份证"！**
 
@@ -2288,7 +2304,7 @@ git diff vendor/  # 检查差异
 
 **语义化版本（Semantic Versioning）**——听起来很高大上对吧？其实它就是一套给版本号排队的规则。就像我们说"衣服M码比S码大，L码比M码大"一样，语义化版本让版本号的大小关系变得有意义。
 
-### 32.4.1.1 主版本
+#### 32.4.1.1 主版本
 
 主版本号（Major Version）——版本号中最"霸道"的那个位置，因为它代表着"重大变革"！
 
@@ -2419,7 +2435,7 @@ go get github.com/funnycode/utils@v2.0.0  # 先评估风险
 
 
 
-### 32.4.1.2 次版本
+#### 32.4.1.2 次版本
 
 次版本号（Minor Version）——版本号中的"暖男"，它代表着新增功能，而且通常不会破坏你的现有代码！
 
@@ -2475,30 +2491,27 @@ graph TD
 
 **次版本号的新功能示例**：
 
-```go
+```text
 // v1.2.0 版本
 package utils
 
 // 一些基础功能...
 
 // v1.3.0 版本（次版本增加）
-package utils
-
 // 原有功能保持不变！
-
 // 新增功能：
-func NewAdvancedFeature() {  // ← 新增的API
+func NewAdvancedFeature() {  // ← 新增的 API
     // ...
 }
 
 // v1.4.0 版本（继续增加次版本）
-package utils
-
 // 新增更多功能：
-func AnotherNewFeature() {  // ← 又新增的API
+func AnotherNewFeature() {  // ← 又新增的 API
     // ...
 }
 ```
+
+> ⚠️ 这里只是用注释展示"同一个包在三个版本里的样子"，所以标成了 `text`。真正的 Go 文件里，一个 `.go` 文件只能有一个 `package` 声明——上面这种写法直接编译会报 `syntax error: non-declaration statement outside function body`。
 
 **次版本号与API兼容性**：
 
@@ -2578,7 +2591,7 @@ go get github.com/gin-gonic/gin@v1.9   # 任意补丁版本
 
 
 
-### 32.4.1.3 补丁版本
+#### 32.4.1.3 补丁版本
 
 补丁版本号（Patch Version）——版本号中的"急救员"，专门修复各种bug和问题！
 
@@ -6593,7 +6606,7 @@ graph TD
 
 **README.md——模块的"门面"**：
 
-```markdown
+````markdown
 # MyModule
 
 [![Go Version](https://img.shields.io/badge/go-1.21-blue)](https://github.com/bigboss/mymodule)
@@ -6608,12 +6621,14 @@ graph TD
 - 特性3
 
 ## 安装
+通过 `go get` 拉取并安装这个模块：
 
 ```bash
 go get github.com/bigboss/mymodule
 ```
 
 ## 快速开始
+下面是一个最小可用的使用示例：
 
 ```go
 package main
@@ -6632,52 +6647,61 @@ func main() {
 ## 许可证
 
 MIT License
-```
+````
 
 **API文档——用代码说话**：
 
 ```go
-// Package mymodule provides XXX功能
+// Package mymodule 提供一套演示用的模块 API。
 //
-// 示例:
+// 基本用法：
 //
-//  basic usage:
+//	import "github.com/bigboss/mymodule"
 //
-//  import "github.com/bigboss/mymodule"
-//
-//  func main() {
-//      m := mymodule.New()
-//      m.DoSomething()
-//  }
+//	func main() {
+//		m := mymodule.New(&mymodule.Config{Host: "localhost", Port: 8080})
+//		m.DoSomething()
+//	}
 package mymodule
 
 // Config 是配置结构体
 type Config struct {
     // Host 是服务器地址
     Host string
-    
+
     // Port 是服务器端口
     Port int
 }
 
-// New 创建新的实例
-// 
-// 示例:
+// Module 是模块的主类型。
+type Module struct {
+    cfg *Config
+}
+
+// New 用给定配置创建新的 Module 实例。
 //
-//  cfg := &Config{Host: "localhost", Port: 8080}
-//  m := New(cfg)
+// 示例：
+//
+//	m := New(&Config{Host: "localhost", Port: 8080})
 func New(cfg *Config) *Module {
-    // ...
+    return &Module{cfg: cfg}
+}
+
+// DoSomething 执行模块的主要工作。
+func (m *Module) DoSomething() {
+    // 真实实现略
 }
 ```
+
+> 上面的注释块里用的是 **Go 1.19 之后推荐的文档注释格式**：代码示例用制表符缩进（`go doc` 和 pkg.go.dev 会把它渲染成代码块），标题用 `# 标题`。旧式的"一行 `//` 加两个空格"写法虽然还能看，但新工具链不再把它当作代码块处理。
 
 **godoc.org / pkg.go.dev 的自动生成**：
 
 ```mermaid
 graph LR
-    A["推送到GitHub"] --> B["自动同步到"]
+    A["推送到GitHub"] --> B["自动同步"]
     B --> C["pkg.go.dev"]
-    B --> D["godoc.org"]
+    B --> D["godoc.org（已重定向到 pkg.go.dev）"]
     
     style B fill:#87CEEB
     style C fill:#90EE90
@@ -7428,42 +7452,3 @@ graph LR
 恭喜你完成了第32章的学习！现在你对Go的模块系统有了全面的了解。从模块的概念、依赖管理、到版本选择、再到安全性和发布流程，这些都是现代Go开发者的必备技能。
 
 **下一个小节预告**：第33章 泛型——Go的革命性特性！
-
----
-
-*第32章 模块 Module 内容已完成*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

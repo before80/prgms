@@ -1,4 +1,4 @@
-+++
+﻿+++
 title = "第35章 不安全编程 Unsafe"
 weight = 350
 date = "2026-03-20T08:39:00+08:00"
@@ -123,6 +123,7 @@ func main() {
 package main
 
 import (
+    "fmt"
     "runtime"
     "unsafe"
 )
@@ -138,8 +139,9 @@ func main() {
             data[i] = i
         }
 
-        // 错误做法：把指针转成 uintptr，变量可能被 GC 回收后继续使用
-        addr := uintptr(unsafe.Pointer(&data[0])) + uintptr(unsafe.Sizeof(data[0]))*5
+        // 错误做法：把指针转成 uintptr 之后，这个地址不再是"活引用"，
+        // GC 不知道还有人惦记着它，随时可能把 data 回收掉。
+        addr := uintptr(unsafe.Pointer(&data[0])) + unsafe.Sizeof(data[0])*5
 
         // 模拟上下文切换，此时 goroutine 可能被暂停
         runtime.Gosched() // 主动让出 CPU
@@ -147,6 +149,9 @@ func main() {
         // 危险！data 指向的底层数组可能已经被 GC 回收
         ptr := (*int)(unsafe.Pointer(addr))
         fmt.Println(*ptr) // 可能读取到无效内存，导致程序崩溃或读到垃圾数据
+        // ✅ 正确做法：始终保持 `p := &data[0]` 这样的真指针，
+        //    需要计算时用 `unsafe.Add(unsafe.Pointer(p), offset)`，
+        //    中间不要把它存成 uintptr。
 
         done <- true
     }()
@@ -351,18 +356,16 @@ void free_buffer(void* ptr) {
 }
 */
 import "C"
-import (
-    "fmt"
-    "unsafe"
-)
+
+import "fmt"
 
 func main() {
     // 调用 C 函数获取内存地址
     size := 64
-    cBuffer := C.create_buffer(C.int(size))
+    cBuffer := C.create_buffer(C.int(size)) // cgo 把 void* 映射成 unsafe.Pointer
 
-    // 将 C 的 void* 转换成 Go 的 *byte
-    // C 分配的内存是连续的字节流，所以用 *byte 来解释最合适
+    // 将 C 的 void* 转换成 Go 的 *[64]byte
+    // C 分配的内存是连续的字节流，所以用字节数组来解释最合适
     goBuffer := (*[64]byte)(cBuffer)
 
     // 写入一些数据
@@ -371,7 +374,7 @@ func main() {
     }
 
     // 读取数据
-    fmt.Printf("buffer[0] = %d\n", goBuffer[0]) // 0
+    fmt.Printf("buffer[0] = %d\n", goBuffer[0])   // 0
     fmt.Printf("buffer[10] = %d\n", goBuffer[10]) // 10
     fmt.Printf("buffer[63] = %d\n", goBuffer[63]) // 63
 
@@ -671,14 +674,18 @@ func main() {
     // 注意：这是平台相关的，大小端的差异会导致结果不同
     num := *(*uint64)(unsafe.Pointer(&bytes))
     fmt.Printf("转换后的 uint64: %d (十六进制: 0x%016x)\n", num, num)
-    // 在小端机器上输出: 578437695352307000 (0x0807060504030201)
-    // 在大端机器上输出: 72623859790382856 (0x0102030405060708)
+    // 小端机器（x86/ARM 的常见模式）输出: 0x0807060504030201
+    // 大端机器输出:                 0x0102030405060708
 
     // 示例2：bool 和 byte 的转换
     // Go 不允许直接这样写: b := bool(byte(1))
     // 但用 unsafe 可以做到！
-    b := *(*bool)(unsafe.Pointer(&byte(1)))
+    one := byte(1) // 必须先有变量，才能取地址（不能对常量 byte(1) 取地址）
+    b := *(*bool)(unsafe.Pointer(&one))
     fmt.Printf("byte(1) 转 bool: %v\n", b) // true
+
+    // ⚠️ bool 的内存表示并没有被 Go 规范固定，这么做只是为了演示 unsafe 的能力，
+    //    生产代码里不要依赖它。
 }
 ```
 
@@ -840,80 +847,57 @@ func main() {
     }
 
     // 示例4：获取环境变量
-    path := syscall.Getenv("PATH")
-    fmt.Printf("PATH 环境变量: %s\n", path) // /usr/local/bin:/usr/bin:/bin
+    // 注意 syscall.Getenv 返回两个值：值本身，以及"是否存在"的布尔值
+    path, ok := syscall.Getenv("PATH")
+    fmt.Printf("PATH 环境变量存在: %t\n", ok) // true
+    fmt.Printf("PATH 环境变量: %s\n", path)  // /usr/local/bin:/usr/bin:/bin
 }
 ```
 
 ### 35.6.2 平台差异处理
 
-`syscall` 包的调用方式在不同的操作系统上有很大差异。Linux、macOS 和 Windows 的系统调用号、参数顺序甚至调用约定都不同。这就是为什么 Go 提供了 `GOOS` 和 `GOARCH` 这样的构建标签来处理平台差异。
+同一段系统调用在不同平台上可能完全不一样：Linux 有 `epoll`，macOS 有 `kqueue`，Windows 有 IOCP。处理方式是用 `runtime.GOOS` 在运行时分支，或者用构建约束在编译期分文件：
 
 ```go
 package main
 
 import (
     "fmt"
+    "os"
     "runtime"
-    "syscall"
 )
 
 func main() {
     fmt.Println("=== 平台差异处理 ===")
     fmt.Printf("当前操作系统: %s\n", runtime.GOOS)   // linux / darwin / windows
-    fmt.Printf("当前架构: %s\n", runtime.GOARCH)   // amd64 / arm64 / etc.
+    fmt.Printf("当前架构: %s\n", runtime.GOARCH)     // amd64 / arm64 / ...
 
-    fmt.Println("\n--- Linux/macOS 系统调用 ---")
-    printSystemInfoUnix()
-
-    fmt.Println("\n--- Windows 系统调用 ---")
-    printSystemInfoWindows()
-}
-
-func printSystemInfoUnix() {
-    // 在 Unix 系统上获取进程信息
-    var utsname syscall.Utsname
-    err := syscall.Uname(&utsname)
+    // 用标准库拿到跨平台一致的"系统信息"
+    host, err := os.Hostname()
     if err != nil {
-        fmt.Printf("Uname 失败: %v\n", err)
-        return
+        fmt.Println("获取主机名失败:", err)
+    } else {
+        fmt.Printf("主机名: %s\n", host)
     }
 
-    // 将 C 风格的数组转换成 Go 字符串
-    fmt.Printf("系统名称: %s\n", byteSliceToString(utsname.Sysname[:]))
-    fmt.Printf("节点名称: %s\n", byteSliceToString(utsname.Nodename[:]))
-    fmt.Printf("发布版本: %s\n", byteSliceToString(utsname.Release[:]))
-    fmt.Printf("版本号: %s\n", byteSliceToString(utsname.Version[:]))
-    fmt.Printf("机器类型: %s\n", byteSliceToString(utsname.Machine[:]))
-}
-
-func printSystemInfoWindows() {
-    // Windows 上的系统调用示例
-    // 在 Windows 上，我们使用不同的 API
-
-    // 获取系统目录
-    buf := make([]uint16, syscall.MAX_PATH)
-    n, err := syscall.GetSystemDirectory(&buf[0], uint32(len(buf)))
-    if err != nil {
-        fmt.Printf("获取系统目录失败: %v\n", err)
-        return
+    // runtime.GOOS 最常见的用途就是"按平台分支"
+    switch runtime.GOOS {
+    case "linux":
+        fmt.Println("Linux：可以直接用 syscall.* / golang.org/x/sys/unix")
+    case "darwin":
+        fmt.Println("macOS：同样用 unix 系列，但部分符号名与 Linux 不同")
+    case "windows":
+        fmt.Println("Windows：要用 golang.org/x/sys/windows")
     }
-    fmt.Printf("系统目录: %s\n", syscall.UTF16ToString(buf[:n]))
-}
 
-func byteSliceToString(b []byte) string {
-    // 找到第一个空字符
-    n := 0
-    for i, v := range b {
-        if v == 0 {
-            n = i
-            break
-        }
-        n = i + 1
-    }
-    return string(b[:n])
+    // 真正的"平台差异"通常不写在 if 里，而是分文件 + 构建标签：
+    //   sysinfo_linux.go   //go:build linux
+    //   sysinfo_windows.go //go:build windows
+    // 这样每个平台只会编译自己那份实现。
 }
 ```
+
+> ⚠️ 原文这里用 `syscall.Utsname`、`syscall.GetSystemDirectory` 演示平台差异，但这两个符号一个只在 Unix 上存在、另一个只在 Windows 上存在，写在同一个文件里在**任何平台都编译不过**。上面的写法用 `runtime.GOOS` + 跨平台的 `os.Hostname` 达到了同样的教学效果。要读 `uname` 这类信息，请按平台分文件，或直接用 `golang.org/x/sys/unix`（见 35.10.2 节）。
 
 > 💡 **Mermaid 图：系统调用流程**
 >
@@ -935,21 +919,23 @@ func byteSliceToString(b []byte) string {
 
 ### 35.6.3 golang.org/x/sys 包
 
-标准库的 `syscall` 包已经 frozen（不再添加新功能），Go 团队推荐使用 `golang.org/x/sys` 包来获取最新的系统调用支持。这个包是标准库 `syscall` 的上游，包含了更多的平台支持和最新的系统调用。
+标准库的 `syscall` 包已经冻结、不再跟进新系统调用，跨平台差异也让人头疼。官方的替代品是 `golang.org/x/sys`，它为每个平台提供了类型安全的薄封装：
+
+> ⚠️ 下面这个例子带 `//go:build windows` 构建约束，只能在 Windows 上编译；在 macOS/Linux 上执行 `go build` 会提示 “build constraints exclude all Go files”，这是正常现象。
 
 ```go
+//go:build windows
+
 package main
 
 import (
     "fmt"
+
     "golang.org/x/sys/windows"
 )
 
 func main() {
-    fmt.Println("=== golang.org/x/sys 示例 ===")
-
-    // 在 Windows 上使用 x/sys
-    // 这个包提供了更现代的 API
+    fmt.Println("=== golang.org/x/sys 示例（仅 Windows）===")
 
     // 获取当前进程的工作目录
     cwd, err := windows.GetCurrentDirectory()
@@ -974,6 +960,8 @@ func main() {
     }
 }
 ```
+
+> ⚠️ 这段代码以 `//go:build windows` 开头，只能在 Windows 上编译（在 macOS/Linux 上会报 `build constraints exclude all Go files`，属正常现象）。
 
 > 📝 **注意**：`golang.org/x/sys` 是一个外部模块，你需要先安装它：
 > ```bash
@@ -1409,7 +1397,6 @@ import (
     "fmt"
     "sync"
     "sync/atomic"
-    "unsafe"
 )
 
 func main() {
@@ -1463,14 +1450,12 @@ func manualAtomicSwap() {
 
 **内存屏障（Memory Barrier）**是 CPU 和编译器用来保证内存访问顺序的技术。你可以把内存屏障想象成一道"栅栏"——它左边的内存操作必须在它右边的操作之前完成。
 
-```go
 package main
 
 import (
     "fmt"
     "runtime"
     "sync/atomic"
-    "unsafe"
     "time"
 )
 
@@ -1527,20 +1512,30 @@ func (l *SpinLock) Lock() {
 func (l *SpinLock) Unlock() {
     atomic.StoreInt32(&l.state, 0)
 }
+
+func main() {
+    InitWithBarrier()
+    demonstrateMemoryBarrier()
+
+    var lock SpinLock
+    lock.Lock()
+    fmt.Println("自旋锁获取成功")
+    lock.Unlock()
+    fmt.Println("自旋锁已释放")
+}
 ```
 
 ### 35.9.3 乱序执行控制
 
 现代 CPU 会**乱序执行（Out-of-Order Execution）**指令来提高性能。编译器也会进行**编译器优化重排序**。如果没有适当的同步措施，你看到的代码执行顺序可能和 CPU 实际执行的顺序完全不同。
 
-```go
 package main
 
 import (
     "fmt"
     "runtime"
+    "sync"
     "sync/atomic"
-    "time"
 )
 
 var (
@@ -1577,6 +1572,10 @@ func demonstrateStoreLoadReordering() {
 
     wg.Wait()
 }
+
+func main() {
+    demonstrateStoreLoadReordering()
+}
 ```
 
 > 🎯 **Mermaid 图：Release-Acquire 同步**
@@ -1612,11 +1611,11 @@ package main
 
 import (
     "fmt"
-    "syscall"
+    "os"
 )
 
 func main() {
-    fmt.Println("=== syscall 包详解 ===")
+    fmt.Println("=== 文件与进程操作 ===")
 
     demonstrateFileOperations()
     demonstrateProcessOperations()
@@ -1626,90 +1625,81 @@ func demonstrateFileOperations() {
     fmt.Println("\n--- 文件操作 ---")
 
     filename := "testfile.txt"
-    fd, err := syscall.Creat(filename, 0644)
+    // 注意：syscall.Creat / syscall.Open 这些"裸系统调用"只在部分平台存在，
+    // 可移植的写法是用 os 包（它内部就是系统调用 + 正确的平台适配）。
+    f, err := os.Create(filename)
     if err != nil {
         fmt.Printf("创建文件失败: %v\n", err)
         return
     }
-    fmt.Printf("文件描述符: %d\n", fd)
+    fmt.Printf("文件描述符: %d\n", f.Fd())
 
     content := []byte("Hello from syscall!")
-    n, err := syscall.Write(fd, content)
+    n, err := f.Write(content)
     if err != nil {
         fmt.Printf("写入失败: %v\n", err)
     } else {
         fmt.Printf("写入 %d 字节\n", n)
     }
+    f.Close()
 
-    syscall.Close(fd)
-
-    fd, err = syscall.Open(filename, syscall.O_RDONLY, 0)
-    if err != nil {
-        fmt.Printf("打开文件失败: %v\n", err)
-        return
-    }
-
-    buf := make([]byte, 100)
-    n, err = syscall.Read(fd, buf)
+    data, err := os.ReadFile(filename)
     if err != nil {
         fmt.Printf("读取失败: %v\n", err)
-    } else {
-        fmt.Printf("读取 %d 字节: %s\n", n, string(buf[:n]))
+        return
     }
+    fmt.Printf("读取 %d 字节: %s\n", len(data), string(data))
 
-    syscall.Close(fd)
-    syscall.Unlink(filename)
+    os.Remove(filename)
 }
 
 func demonstrateProcessOperations() {
     fmt.Println("\n--- 进程操作 ---")
 
-    pid := syscall.Getpid()
-    ppid := syscall.Getppid()
-    uid := syscall.Getuid()
-    gid := syscall.Getgid()
-
-    fmt.Printf("进程 ID: %d\n", pid)
-    fmt.Printf("父进程 ID: %d\n", ppid)
-    fmt.Printf("用户 ID: %d\n", uid)
-    fmt.Printf("组 ID: %d\n", gid)
+    fmt.Printf("进程 ID: %d\n", os.Getpid())
+    fmt.Printf("父进程 ID: %d\n", os.Getppid())
+    fmt.Printf("用户 ID: %d\n", os.Getuid())
+    fmt.Printf("组 ID: %d\n", os.Getgid())
 }
 ```
+
+> ⚠️ 原文用的是 `syscall.Creat`、`syscall.Open`、`syscall.Read` 这些"裸系统调用"。它们**只在 Unix 平台（且部分只在 Linux）上存在**，直接复制到 macOS/Windows 会报 `undefined: syscall.Creat`。日常开发请优先用 `os` 包（跨平台），只有在确实需要直接调系统调用时才用 `syscall` 或 `golang.org/x/sys/unix`。
 
 ### 35.10.2 golang.org/x/sys
 
 `golang.org/x/sys` 是 `syscall` 的现代替代品，提供了更好的跨平台支持和更全面的功能。
 
 ```go
+//go:build unix
+
 package main
 
 import (
     "fmt"
+
     "golang.org/x/sys/unix"
 )
 
 func main() {
-    fmt.Println("=== golang.org/x/sys 示例 ===")
-
-    hostname := make([]byte, 64)
-    n, err := unix.Gethostname(hostname)
-    if err != nil {
-        fmt.Printf("获取主机名失败: %v\n", err)
-        return
-    }
-    fmt.Printf("主机名: %s\n", string(hostname[:n]))
+    fmt.Println("=== golang.org/x/sys/unix 示例 ===")
 
     var utsname unix.Utsname
-    err = unix.Uname(&utsname)
-    if err != nil {
+    if err := unix.Uname(&utsname); err != nil {
         fmt.Printf("获取系统信息失败: %v\n", err)
         return
     }
     fmt.Printf("系统: %s\n", unix.ByteSliceToString(utsname.Sysname[:]))
     fmt.Printf("节点名: %s\n", unix.ByteSliceToString(utsname.Nodename[:]))
     fmt.Printf("版本: %s\n", unix.ByteSliceToString(utsname.Version[:]))
+    fmt.Printf("机器类型: %s\n", unix.ByteSliceToString(utsname.Machine[:]))
+
+    // 注意：unix 包里的函数并非所有平台都有。
+    // 例如 unix.Gethostname() 只存在于 Solaris；
+    // 想跨平台取主机名，用标准库的 os.Hostname()。
 }
 ```
+
+> 使用前记得安装依赖：`go get golang.org/x/sys/unix`。`//go:build unix` 约束让这段代码只在 Unix 系（Linux/macOS/BSD）编译。
 
 ### 35.10.3 平台差异处理
 
@@ -1732,10 +1722,10 @@ func main() {
     fmt.Printf("Go 版本: %s\n", runtime.Version())
 
     fmt.Println("\n--- 常见平台组合 ---")
-    fmt.Println("linux/am64   - Linux x86-64")
-    fmt.Println("linux/arm64  - Linux ARM64")
-    fmt.Println("darwin/amd64 - macOS x86-64")
-    fmt.Println("darwin/arm64 - macOS ARM64 (Apple Silicon)")
+    fmt.Println("linux/amd64   - Linux x86-64")
+    fmt.Println("linux/arm64   - Linux ARM64")
+    fmt.Println("darwin/amd64  - macOS x86-64")
+    fmt.Println("darwin/arm64  - macOS ARM64 (Apple Silicon)")
     fmt.Println("windows/amd64 - Windows x86-64")
 
     switch runtime.GOOS {
@@ -1749,6 +1739,8 @@ func main() {
 }
 ```
 
+> 实际写跨平台代码时，很少在 `switch runtime.GOOS` 里堆逻辑，更常见的做法是**按平台分文件 + 构建标签**，例如 `stat_linux.go` 顶部写 `//go:build linux`，`stat_windows.go` 顶部写 `//go:build windows`，它们提供同名函数，编译时只会挑当前平台的那一份。
+
 ### 35.10.4 系统调用开销
 
 系统调用是"昂贵"的操作，因为它需要从用户态切换到内核态（称为**上下文切换**）。了解这些开销对于编写高性能程序至关重要。
@@ -1758,14 +1750,14 @@ package main
 
 import (
     "fmt"
-    "syscall"
+    "os"
     "time"
 )
 
 func main() {
     fmt.Println("=== 系统调用开销分析 ===")
 
-    iterations := 1000000
+    iterations := 200000
     start := time.Now()
     for i := 0; i < iterations; i++ {
         _ = simpleFunction()
@@ -1775,17 +1767,17 @@ func main() {
 
     start = time.Now()
     for i := 0; i < iterations; i++ {
-        _ = syscall.Gettimeofday(nil)
+        _, _ = os.Getwd() // 每次都会陷入内核
     }
     elapsedSyscall := time.Since(start)
     fmt.Printf("系统调用 (%d 次): %v\n", iterations, elapsedSyscall)
 
     ratio := float64(elapsedSyscall) / float64(elapsedFunc)
-    fmt.Printf("系统调用开销是普通调用的 %.0f 倍\n", ratio)
+    fmt.Printf("系统调用开销是普通调用的 %.0f 倍左右\n", ratio)
 
     fmt.Println("\n--- 优化建议 ---")
     fmt.Println("1. 批量处理：多次小操作合并成一次大操作")
-    fmt.Println("2. 缓冲：使用缓冲区减少系统调用次数")
+    fmt.Println("2. 缓冲：使用缓冲区减少系统调用次数（bufio）")
     fmt.Println("3. 异步 I/O：使用非阻塞 I/O 减少等待时间")
     fmt.Println("4. mmap：内存映射文件减少 read/write 调用")
 }
@@ -1856,4 +1848,3 @@ func simpleFunction() int {
 - 📚 了解目标平台的内存布局和对齐规则
 
 > 💡 **最后一句话**：`unsafe` 是 Go 赠予你的一把双刃剑。用得好，它是你登顶性能巅峰的阶梯；用不好，它是你程序的掘墓人。除非真的必要，否则请保持"安全"——毕竟，活着最重要！
-

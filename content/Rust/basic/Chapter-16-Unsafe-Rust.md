@@ -139,12 +139,13 @@ unsafe fn pop_unchecked<T>(slice: &mut [T]) -> T
 where
     T: Copy, // T 必须可以拷贝，因为我们会把值从 slice 里"偷"出来
 {
-    let len = slice.len();
-    let last_index = len - 1;
+    let _len = slice.len();
 
     // 从最后一个位置读取值（不检查边界！）
     // 调用者必须确保 slice 不为空！
-    slice.last().unwrap_unchecked().read()
+    // 注意：last() 返回 &T，不是裸指针，所以是解引用而不是 .read()。
+    // （.read() 是 *const T / *mut T 上的方法。）
+    *slice.last().unwrap_unchecked()
     // 注意：这里并没有真正移除元素，纯粹是演示
 }
 
@@ -167,7 +168,7 @@ fn main() {
 
 ---
 
-### 16.2 Unsafe 的超能力
+## 16.2 Unsafe 的超能力
 
 当你踏入 `unsafe` 的世界，Rust 给了你五把"超能力钥匙"。这些能力在 safe Rust 中是完全被禁止的，因为它们太危险了——稍有不慎就会打开潘多拉的盒子。但有了这几把钥匙，你就可以和底层硬件、C 代码、以及各种"不讲武德"的系统资源直接对话了。
 
@@ -194,7 +195,7 @@ mindmap
       FFI 互操作
 ```
 
-#### 16.2.1 解引用裸指针（*const T / *mut T）
+### 16.2.1 解引用裸指针（*const T / *mut T）
 
 在 Rust 的安全世界里，引用 `&T` 和 `&mut T` 是被严格管理的——一个要 mut 就不能有其他引用，这在编译期就给你卡死了。但是裸指针 `*const T` 和 `*mut T` 完全不受这些规则的约束！
 
@@ -236,7 +237,7 @@ fn main() {
 
 > **冷知识**： 裸指针的大小在 64 位系统上是 8 字节，在 32 位系统上是 4 字节。它们只是一个地址，仅此而已。相比之下，Rust 的引用 `&T` 实际上是一个胖指针（fat pointer），包含了地址和长度信息（所以是 16 字节）。
 
-#### 16.2.2 调用 unsafe 函数（FFI / 汇编）
+### 16.2.2 调用 unsafe 函数（FFI / 汇编）
 
 有时候，你需要调用一些 Rust 编译器根本看不到源码的函数——比如 C 语言写的库、系统调用、或者手写的汇编代码。这些函数的"签名"只有你知道，你需要亲口告诉 Rust："这个函数的参数是什么、返回值是什么，我来担保它！"
 
@@ -245,7 +246,8 @@ use std::ffi::c_char; // 需要导入 c_char 类型
 
 // 声明一个外部 C 函数
 // "C" 表示使用 C 语言的调用约定（ABI）
-extern "C" {
+// ⚠️ Rust 2024：extern 块必须写成 unsafe extern，否则会报错。
+unsafe extern "C" {
     // 假设这个函数存在于某个 C 库中
     // Rust 不知道它做什么，只知道它的签名
     #[link_name = "strlen"] // 指定在链接时找的符号名
@@ -274,7 +276,7 @@ fn main() {
 
 > **FFI（Foreign Function Interface）**： 外部函数接口，是让一种编程语言调用另一种编程语言写的函数的一种机制。Rust 的 `extern "C"` 块就是 FFI 的入口。它就像一个翻译官，把 C 语言的"方言"翻译成 Rust 能理解的"普通话"。
 
-#### 16.2.3 访问或修改可变静态变量（static mut）
+### 16.2.3 访问或修改可变静态变量（static mut）
 
 在正常 Rust 中，`static` 变量是不可变的。要修改全局状态，你得用 `RefCell`、`Mutex` 或者 `Arc` 这些手段。但是在 `unsafe` 的世界里，你可以直接用 `static mut` 声明一个全局可变变量，然后直接读写它。
 
@@ -283,19 +285,22 @@ fn main() {
 ```rust
 // 声明一个全局可变静态变量
 // 这是"危险行为"的灯塔！
-#[allow(static_mut)]
+// ⚠️ Rust 2024 起，直接读写 static mut 会产生共享引用，属于错误；
+//    正确做法是通过裸指针（addr_of! / addr_of_mut!）访问。
 static mut COUNTER: i32 = 0;
 
 fn increment_counter() {
     unsafe {
-        COUNTER += 1;
-        println!("计数器加 1，现在的值: {}", COUNTER);
+        let p = std::ptr::addr_of_mut!(COUNTER);
+        let v = p.read() + 1;
+        p.write(v);
+        println!("计数器加 1，现在的值: {}", v);
     }
 }
 
 fn read_counter() {
     unsafe {
-        println!("当前计数器的值: {}", COUNTER);
+        println!("当前计数器的值: {}", std::ptr::addr_of!(COUNTER).read());
     }
 }
 
@@ -319,7 +324,7 @@ fn main() {
 
 > **警告**： 直接修改 `static mut` 是非常危险的！如果多个线程同时修改这个变量，你就会遇到数据竞争（data race），程序可能会出现诡异的行为甚至崩溃。在真实项目中，请优先使用 `Mutex` 或 `std::sync::atomic` 里的原子操作类型。
 
-#### 16.2.4 实现 unsafe trait
+### 16.2.4 实现 unsafe trait
 
 有些 trait 带有特殊的"契约"，这些契约无法由编译器自动验证——需要你来保证。比如 `Send` 和 `Sync`：
 
@@ -360,11 +365,11 @@ fn main() {
 
 ---
 
-### 16.3 Unsafe 的编写规范
+## 16.3 Unsafe 的编写规范
 
 写 Unsafe 代码就像高空走钢丝——技术很重要，但更重要的是你知道自己在干什么，以及万一掉下去会发生什么。下面这些规范，是无数前人用血泪教训总结出来的经验教训。
 
-#### 16.3.1 文档说明安全性要求（前置条件 / 不变量）
+### 16.3.1 文档说明安全性要求（前置条件 / 不变量）
 
 每一个 `unsafe` 函数都应该像一个药品说明书一样，清晰地写出它的"成分"、"用法用量"和"禁忌"。具体来说，你需要明确写出：
 
@@ -581,6 +586,8 @@ fn main() {
 
 #### 16.4.2.3 ptr::copy() / ptr::copy_nonoverlapping() / ptr::swap()
 
+`ptr::copy` 允许源和目标重叠，`copy_nonoverlapping` 要求不重叠但更快，`swap` 交换两块内存。
+
 ```rust
 use std::ptr;
 
@@ -688,7 +695,8 @@ use std::ffi::c_char; // c_char 是 Rust 标准库中的类型
 // 声明标准 C 库中的 strlen 函数
 // 注意：Rust 标准库本身不包含 C 库绑定，如果需要其他 C 类型，
 // 需要在 Cargo.toml 中添加 libc crate（如 libc = "0.2"）
-extern "C" {
+// ⚠️ Rust 2024：extern 块必须写成 unsafe extern。
+unsafe extern "C" {
     // strlen 计算字符串长度（不包括结尾的 \0）
     // C 的 strlen 签名是：size_t strlen(const char *s)
     // 对应 Rust 的返回类型是 usize（在 64 位系统上等于 c_ulong）
@@ -716,14 +724,15 @@ fn main() {
 
 ```rust
 // 这个函数可以被外部 C 代码直接调用！
-#[no_mangle]
+// ⚠️ Rust 2024：no_mangle 等属性必须包在 unsafe(...) 里。
+#[unsafe(no_mangle)]
 pub extern "C" fn rust_add(a: i32, b: i32) -> i32 {
     a + b
 }
 
 fn main() {
-    // 在同一个程序里直接调用
-    let result = unsafe { rust_add(10, 20) };
+    // rust_add 本身是「安全函数」，直接调用即可，不需要 unsafe 块。
+    let result = rust_add(10, 20);
     println!("rust_add(10, 20) = {}", result);
 }
 ```
@@ -1020,6 +1029,7 @@ Safety Argument 应该包含：
 /// - **前提**: 传入的 `raw` 值在 `i32` 范围内
 /// - **推理**: `i32::MIN <= raw <= i32::MAX` 时，该值是合法的
 /// - **不变量**: `value` 永远是有效的 `i32`
+#[derive(Debug)]
 struct SafeInteger {
     value: i32,
 }
@@ -1154,6 +1164,8 @@ cargo +nightly miri run
 
 #### 16.6.4.2 cargo miri run
 
+Miri 是一个解释执行的检查器，专门抓未定义行为，用 `cargo miri run` 就能跑。
+
 ```bash
 # 假设你有一个程序
 # src/main.rs
@@ -1182,6 +1194,8 @@ Miri 会详细报告它发现的每一个 UB，包括：
 
 #### 16.7.1.1 std::mem::transmute（重新解释类型）
 
+`transmute` 按位重新解释类型，是 `unsafe` 里最容易出错的操作之一。
+
 ```rust
 use std::mem;
 
@@ -1194,7 +1208,9 @@ fn main() {
     println!("-42 的 i32 位模式: 0x{:08X}", bits);
 
     // 把 [u8; 4] 转成 u32（数组到整数的转换）
-    let bytes = [0x12, 0x34, 0x56, 0x78];
+    // ⚠️ 必须显式标注成 [u8; 4]：否则字面量会被推断为 [i32; 4]，
+    //    长度 16 字节，transmute 到 u32 会报 E0512。
+    let bytes: [u8; 4] = [0x12, 0x34, 0x56, 0x78];
     let word: u32 = unsafe { mem::transmute(bytes) };
     println!("字节数组 [0x12, 0x34, 0x56, 0x78] -> u32: 0x{:08X}", word);
 
@@ -1222,6 +1238,8 @@ fn main() {
 
 #### 16.7.2.1 MaybeUninit::uninit（未初始化的内存）
 
+`MaybeUninit` 表示「可能还没初始化」的内存，读取之前必须先确认它已初始化。
+
 ```rust
 use std::mem;
 
@@ -1237,6 +1255,8 @@ fn main() {
 ```
 
 #### 16.7.2.2 write / assume_init（写入 / 假定已初始化）
+
+先用 `write` 写入值，再用 `assume_init` 取出；顺序写反就是未定义行为。
 
 ```rust
 use std::mem;
@@ -1327,6 +1347,8 @@ fn main() {
 ```
 
 #### 16.7.3.2 NonNull::as_ptr（获取裸指针）
+
+`NonNull` 是不会为空的裸指针，`as_ptr` 把它还原成 `*mut T` 交给底层 API 使用。
 
 ```rust
 use std::ptr;

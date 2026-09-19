@@ -212,8 +212,11 @@ _count = 0         # 合法
 
 #### 11.3.2.2 不能以数字开头
 
+标识符不能以数字开头，数字只能出现在后面。
+
 ```python
-2nd_place = "第二名"  # 语法错误！
+# 2nd_place = "第二名"  # ❌ 编译不过：变量名不能以数字开头
+name2 = "小明"        # ✅ 合法，数字只要不在开头就行
 name2 = "小明"        # 合法，数字不在开头
 ```
 
@@ -234,6 +237,8 @@ Python 保留了一些单词作为"关键字"，这些词有特殊含义，不�
 > 关键字就是 Python 的"官方称呼"——你不能给自己孩子取名叫"警察"一样，虽然法律不一定管，但大家会觉得你很离谱。
 
 #### 11.3.2.4 区分大小写
+
+Python 区分大小写：`Name` 和 `name` 是两个互不相干的变量。
 
 ```python
 Name = "小明"
@@ -404,6 +409,8 @@ print(5 % -2)    # -1
 
 #### 11.5.2.1 == != > < >= <=
 
+比较运算符返回布尔值，注意 `==` 是比较、`=` 是赋值。
+
 ```python
 print(3 == 3)    # True
 print(3 != 4)    # True
@@ -432,6 +439,8 @@ print(x > 0 and x < 3) # False，链式写法更直观
 
 #### 11.5.3.1 `= += -= *= /= //= %= **=`
 
+复合赋值运算符把「运算」和「赋值」合并成一步。
+
 ```python
 a = 10
 
@@ -459,6 +468,8 @@ print(a)  # 16.0
 ### 11.5.4 逻辑运算符
 
 #### 11.5.4.1 and / or / not
+
+逻辑运算符 `and`/`or`/`not` 作用于布尔表达式，并且会短路求值。
 
 ```python
 print(True and False)   # False
@@ -533,6 +544,8 @@ print(~a)      # -6 (按位取反)
 
 #### 11.5.5.2 <<（左移）、>>（右移）
 
+左移一位相当于乘 2，右移一位相当于整除 2（对整数而言）。
+
 ```python
 x = 5   # 二进制: 0101
 
@@ -543,6 +556,8 @@ print(x >> 2)   # 1  (0001) —— 右移两位，相当于除 4 取整
 ```
 
 #### 11.5.5.3 实战：快速乘除 2，判断奇偶
+
+用位运算可以快速判断奇偶、做乘除 2 的运算，在底层代码里很常见。
 
 ```python
 # 判断奇偶
@@ -563,6 +578,8 @@ print(n >> 1)   # 8
 ### 11.5.6 身份运算符
 
 #### 11.5.6.1 is / is not
+
+`is` 比较的是「是不是同一个对象」，`==` 比较的是「值是否相等」，两者不要混用。
 
 ```python
 a = [1, 2, 3]
@@ -601,6 +618,8 @@ print(l1 == l2)    # True
 
 #### 11.5.7.1 in / not in
 
+`in` / `not in` 判断成员是否存在，对字符串、列表、字典（看键）都适用。
+
 ```python
 fruits = ["苹果", "香蕉", "橙子"]
 
@@ -617,6 +636,8 @@ print("python" in text)       # False（区分大小写）
 ### 11.5.8 运算符优先级
 
 #### 11.5.8.1 完整优先级表（从高到低）
+
+运算符优先级决定了没有括号时的计算顺序；不确定时，加括号永远是最省心的做法。
 
 ```
 优先级（高 → 低）:
@@ -665,12 +686,16 @@ result = a + (b * c) - (d / (e ** f))
 
 #### 11.6.1.1 单引号：'Hello'
 
+单引号和双引号完全等价，选一种风格统一即可。
+
 ```python
 name = 'Hello'
 print(name)  # Hello
 ```
 
 #### 11.6.1.2 双引号："Hello"
+
+字符串内部含有单引号时，用双引号包起来就不必转义。
 
 ```python
 name = "Hello"
@@ -680,6 +705,8 @@ print(name)  # Hello
 > 单引号和双引号在 Python 中完全等价，选择哪一个纯属个人审美。我一般用双引号，因为按起来省力（不用按 Shift）。
 
 #### 11.6.1.3 三引号："""多行字符串"""
+
+三引号可以跨行书写，常用于多行文本和文档字符串。
 
 ```python
 poem = """
@@ -748,6 +775,8 @@ print(data[0])       # 104（第一个字符的 ASCII 码）
 ```
 
 #### 11.6.3.2 编码转换
+
+字符串与字节序列之间靠 `encode()` / `decode()` 转换，编码方案要写明确。
 
 ```python
 # 字符串 → 字节
@@ -819,6 +848,8 @@ graph LR
 
 #### 11.6.5.1 + 运算符
 
+`+` 拼接字符串会创建新对象，大量拼接时应改用 `join` 或 f-string。
+
 ```python
 first = "Hello"
 second = "World"
@@ -842,6 +873,8 @@ print(csv)  # apple,banana,orange
 
 #### 11.6.5.3 f-string 格式化
 
+f-string 是当前推荐的格式化方式：可读性好，执行也快。
+
 ```python
 name = "小明"
 age = 18
@@ -850,6 +883,8 @@ print(f"我叫{name}，今年{age}岁")
 ```
 
 #### 11.6.5.4 format() 方法
+
+`format()` 支持位置参数和关键字参数，比 `%` 更灵活。
 
 ```python
 # 位置参数
@@ -863,6 +898,8 @@ print("{0} + {1} = {2}".format(1, 2, 3))
 ```
 
 #### 11.6.5.5 % 格式化（Python 2 风格，了解即可）
+
+`%` 是 Python 2 时代留下的格式化方式，新代码里了解即可。
 
 ```python
 name = "小明"
@@ -880,6 +917,8 @@ print("我叫%s，这次考了%.1f分" % (name, score))
 f-string 是 Python 最强大的字符串格式化工具，读作 "f-string" 或者 "format string"。
 
 #### 11.6.6.1 基本语法
+
+f-string 的写法是给字符串加 `f` 前缀，在花括号里直接写表达式。
 
 ```python
 name = "Python"
@@ -909,6 +948,8 @@ print(f"π 约等于 {math.pi:.2f}")  # π 约等于 3.14
 
 #### 11.6.6.3 调试格式：f"{x=}"（Python 3.8+）
 
+`f"{x=}"` 会把变量名和值一起打印出来，调试时非常省事。
+
 ```python
 x = 42
 y = 3.14
@@ -924,6 +965,8 @@ print(f"{x + y = }")  # x + y = 45.14
 格式：`{value:spec}`
 
 ##### 11.6.6.4.1 保留小数位数：:.2f
+
+浮点数可以用 `:.2f` 控制保留几位小数（会四舍五入）。
 
 ```python
 import math
@@ -950,6 +993,8 @@ print(f"{name:*^10}")  # ****小明***
 
 ##### 11.6.6.4.3 千分位分隔：:,
 
+千分位分隔用 `:,`，还可以和精度组合使用。
+
 ```python
 population = 1400000000
 print(f"{population:,}")    # 1,400,000,000
@@ -958,6 +1003,8 @@ print(f"{population:,.2f}") # 1,400,000,000.00
 
 ##### 11.6.6.4.4 百分比格式：:%
 
+`:%` 把小数转成百分比显示，精度控制小数点后的位数。
+
 ```python
 ratio = 0.756
 print(f"{ratio:.1%}")    # 75.6%
@@ -965,6 +1012,8 @@ print(f"{ratio:.2%}")    # 75.60%
 ```
 
 ##### 11.6.6.4.5 进制转换：:b、:o、:x
+
+`b`、`o`、`x` 分别输出二进制、八进制和十六进制。
 
 ```python
 num = 255
@@ -976,6 +1025,8 @@ print(f"{num:#x}")   # 0xff（带前缀）
 
 ##### 11.6.6.4.6 零填充：:08d
 
+`0Nd` 用零把数字补齐到 N 位，常用于生成固定宽度的编号。
+
 ```python
 num = 42
 print(f"{num:08d}")    # 00000042
@@ -983,6 +1034,8 @@ print(f"{num:8d}")     #     42（空格填充）
 ```
 
 #### 11.6.6.5 类型转换：!r（repr）、!s（str）、!a（ascii）
+
+`!r` 使用 `repr()`、`!s` 使用 `str()`、`!a` 使用 `ascii()`，默认是 `!s`。
 
 ```python
 name = "小明"
@@ -1018,6 +1071,8 @@ print(f"He said: '{name}'")  # 3.12+ 正常工作，3.11 会报 SyntaxError
 
 #### 11.6.7.1 位置参数
 
+`format()` 可以用下标指定参数顺序，同一个参数也可以重复使用。
+
 ```python
 print("{} + {} = {}".format(1, 2, 3))     # 1 + 2 = 3
 print("{0} {1} {0}".format("A", "B"))     # A B A
@@ -1025,6 +1080,8 @@ print("{2} {0} {1}".format("X", "Y", "Z")) # Z X Y
 ```
 
 #### 11.6.7.2 关键字参数
+
+关键字参数让占位符与实际值一一对应，可读性更好；字典可以用 `**` 解包传入。
 
 ```python
 print("{name} is {age} years old".format(name="小明", age=18))
@@ -1052,6 +1109,8 @@ Python 字符串自带大量方法，用起来非常方便。
 
 #### 11.6.8.1 s.split()：分割
 
+`split()` 按分隔符切分字符串，不传参数时按空白切分。
+
 ```python
 text = "apple,banana,orange"
 print(text.split(","))       # ['apple', 'banana', 'orange']
@@ -1063,6 +1122,8 @@ print(sentence.split())      # ['Hello', 'Python', 'World']
 
 #### 11.6.8.2 s.join()：拼接
 
+`join()` 把可迭代对象里的字符串用指定分隔符连起来，是拼接的首选方式。
+
 ```python
 words = ["Python", "is", "fun"]
 print(" ".join(words))       # Python is fun
@@ -1070,6 +1131,8 @@ print("-".join(words))       # Python-is-fun
 ```
 
 #### 11.6.8.3 s.strip()：去除空白
+
+`strip()` 去掉两端的空白（或指定字符），中间的字符不受影响。
 
 ```python
 text = "   hello   "
@@ -1085,6 +1148,8 @@ print(text.rstrip("#"))      # ###hello
 
 #### 11.6.8.4 s.replace()：替换
 
+`replace()` 默认替换全部匹配；字符串不可变，所以它返回新字符串。
+
 ```python
 text = "Hello World"
 print(text.replace("World", "Python"))  # Hello Python
@@ -1095,6 +1160,8 @@ print(text.replace("o", "O", 1))        # HellO World
 ```
 
 #### 11.6.8.5 s.find()：查找（返回 -1）
+
+`find()` 找不到时返回 `-1`，不会抛异常。
 
 ```python
 text = "Hello Python"
@@ -1107,6 +1174,8 @@ print(text.find("o", 5, 10))  # 在指定范围内查找
 
 #### 11.6.8.6 s.index()：查找（不存在抛异常）
 
+`index()` 与 `find()` 的区别在于找不到时会抛 `ValueError`。
+
 ```python
 text = "Hello Python"
 print(text.index("Python"))   # 6
@@ -1118,6 +1187,8 @@ print(text.rindex("o"))       # 11
 
 #### 11.6.8.7 s.startswith()：判断前缀
 
+`startswith()` / `endswith()` 判断前后缀，可以传入元组一次判断多种可能。
+
 ```python
 text = "Hello Python"
 print(text.startswith("Hello"))     # True
@@ -1127,6 +1198,8 @@ print(text.startswith(("Hello", "Hi")))  # True（任一匹配即可）
 
 #### 11.6.8.8 s.endswith()：判断后缀
 
+这两个方法用于判断内容类型，注意 `isdigit()` 对中文数字返回 `False`。
+
 ```python
 filename = "document.pdf"
 print(filename.endswith(".pdf"))    # True
@@ -1135,12 +1208,16 @@ print(filename.endswith(".txt"))    # False
 
 #### 11.6.8.9 s.upper()：转大写
 
+`upper()` 返回新字符串，中文等无大小写概念的字符原样保留。
+
 ```python
 text = "Hello"
 print(text.upper())     # HELLO
 ```
 
 #### 11.6.8.10 s.lower()：转小写
+
+`lower()` 常用于做不区分大小写的比较。
 
 ```python
 text = "HELLO"
@@ -1149,12 +1226,16 @@ print(text.lower())     # hello
 
 #### 11.6.8.11 s.title()：首字母大写
 
+`title()` 会把每个单词的首字母大写，注意它按空格分词。
+
 ```python
 text = "hello python world"
 print(text.title())     # Hello Python World
 ```
 
 #### 11.6.8.12 s.capitalize()：首字母大写其余小写
+
+`capitalize()` 只把整串的首字母大写，其余全部转小写。
 
 ```python
 text = "hELLO pYTHON"
@@ -1163,12 +1244,16 @@ print(text.capitalize())  # Hello python
 
 #### 11.6.8.13 s.swapcase()：大小写互换
 
+`swapcase()` 把大写变小写、小写变大写。
+
 ```python
 text = "HeLLo"
 print(text.swapcase())  # hEllO
 ```
 
 #### 11.6.8.14 s.isdigit()：是否为数字
+
+`isdigit()` 判断是否全为数字字符，小数点和负号不算。
 
 ```python
 print("123".isdigit())    # True
@@ -1178,6 +1263,8 @@ print("一二三".isdigit())  # False
 
 #### 11.6.8.15 s.isalpha()：是否为字母
 
+`isalpha()` 判断是否全为字母，汉字也算字母。
+
 ```python
 print("abc".isalpha())    # True
 print("abc123".isalpha()) # False
@@ -1185,6 +1272,8 @@ print("小明".isalpha())   # True
 ```
 
 #### 11.6.8.16 s.isalnum()：是否为字母或数字
+
+`isalnum()` 要求所有字符都是字母或数字，空格和连字符都不行。
 
 ```python
 print("abc123".isalnum()) # True
@@ -1194,6 +1283,8 @@ print("abc-123".isalnum())# False（有连字符）
 
 #### 11.6.8.17 s.isupper()：是否全大写
 
+`isupper()` 只要求「存在大写字母且没有小写字母」，数字不影响判断。
+
 ```python
 print("ABC".isupper())    # True
 print("ABC123".isupper()) # True
@@ -1202,6 +1293,8 @@ print("Abc".isupper())    # False
 
 #### 11.6.8.18 s.islower()：是否全小写
 
+`islower()` 与 `isupper()` 逻辑对称。
+
 ```python
 print("abc".islower())    # True
 print("abc123".islower()) # True
@@ -1209,6 +1302,8 @@ print("Abc".islower())    # False
 ```
 
 #### 11.6.8.19 s.isspace()：是否全空白
+
+`isspace()` 判断是否全为空白字符；空字符串返回 `False`。
 
 ```python
 print("   ".isspace())    # True
@@ -1219,6 +1314,8 @@ print(" a ".isspace())    # False
 
 #### 11.6.8.20 s.count()：计数
 
+`count()` 统计子串出现的次数，也可以限定起止范围。
+
 ```python
 text = "hello python, hello world"
 print(text.count("hello"))      # 2
@@ -1228,12 +1325,16 @@ print(text.count("l", 0, 5))    # 2（限定范围）
 
 #### 11.6.8.21 s.splitlines()：按行分割
 
+`splitlines()` 按行切分，并且不会在结果里保留换行符。
+
 ```python
 text = "line1\nline2\nline3"
 print(text.splitlines())  # ['line1', 'line2', 'line3']
 ```
 
 #### 11.6.8.22 s.center()：居中对齐
+
+`center()` 把字符串居中，默认用空格填充。
 
 ```python
 text = "Hi"
@@ -1243,6 +1344,8 @@ print(text.center(10, "*")) # "****Hi****"
 
 #### 11.6.8.23 s.ljust()：左对齐
 
+`ljust()` 左对齐并在右侧填充。
+
 ```python
 text = "Hi"
 print(text.ljust(10))      # "Hi        "
@@ -1250,6 +1353,8 @@ print(text.ljust(10, "-")) # "Hi--------"
 ```
 
 #### 11.6.8.24 s.rjust()：右对齐
+
+`rjust()` 右对齐并在左侧填充。
 
 ```python
 text = "Hi"
@@ -1259,6 +1364,8 @@ print(text.rjust(10, "0")) # "000000000Hi"
 
 #### 11.6.8.25 s.zfill()：零填充
 
+`zfill()` 用 `0` 补齐宽度，并且能正确把负号留在最前面。
+
 ```python
 text = "42"
 print(text.zfill(8))   # "00000042"
@@ -1266,6 +1373,8 @@ print("-42".zfill(6))  # "-00042"
 ```
 
 #### 11.6.8.26 s.partition()：分割为三部分
+
+`partition()` 从左找到第一个分隔符，切成「前、分隔符、后」三段。
 
 ```python
 text = "hello-world-python"
@@ -1277,6 +1386,8 @@ print(text.partition("."))
 
 #### 11.6.8.27 s.rpartition()：从右分割为三部分
 
+`rpartition()` 从右侧找分隔符，切分方向相反。
+
 ```python
 text = "hello-world-python"
 print(text.rpartition("-"))
@@ -1285,6 +1396,8 @@ print(text.rpartition("-"))
 
 #### 11.6.8.28 s.expandtabs()：制表符展开
 
+`expandtabs()` 把制表符换成空格，可指定一个 tab 的宽度。
+
 ```python
 text = "a\tb\tc"
 print(text.expandtabs())      # a       b       c
@@ -1292,6 +1405,8 @@ print(text.expandtabs(4))     # a   b   c
 ```
 
 #### 11.6.8.29 s.translate()：字符映射转换
+
+`translate()` 按映射表逐字符替换，配合 `str.maketrans()` 使用。
 
 ```python
 # 删除所有元音
@@ -1306,6 +1421,8 @@ print(text.translate(table))  # H2ll4 Pyth6n
 
 #### 11.6.8.30 s.encode()：编码为 bytes
 
+`encode()` 把字符串变成字节序列，是写文件、走网络前的必要步骤。
+
 ```python
 text = "你好"
 encoded = text.encode("utf-8")
@@ -1317,6 +1434,8 @@ print(encoded_gbk)  # b'\xc4\xe3\xba\xc3'
 ```
 
 #### 11.6.8.31 s.casefold()：大小写折叠（用于不区分大小写比较）
+
+做大小写无关比较时，`casefold()` 比 `lower()` 更彻底（能处理 ß 之类的特殊字符）。
 
 ```python
 text1 = "HELLO"
@@ -1330,6 +1449,8 @@ print("ß".casefold()) # ss（转换为 ss）
 ```
 
 #### 11.6.8.32 s.format_map()：类似 format 但不拷贝字典
+
+`format_map()` 直接使用映射对象取值，不必先把字典解包。
 
 ```python
 data = {"name": "小明", "age": 18}
@@ -1370,6 +1491,8 @@ graph LR
 
 #### 11.6.9.2 encode()：str → bytes
 
+`encode()` 把 str 转成 bytes，编码方式建议总是显式写出 `utf-8`。
+
 ```python
 text = "你好"
 encoded = text.encode("utf-8")
@@ -1378,6 +1501,8 @@ print(encoded)  # b'\xe4\xbd\xa0\xe5\xa5\xbd'
 
 #### 11.6.9.3 decode()：bytes → str
 
+`decode()` 是 `encode()` 的逆操作，编码方式必须与写入时一致。
+
 ```python
 data = b'\xe4\xbd\xa0\xe5\xa5\xbd'
 text = data.decode("utf-8")
@@ -1385,6 +1510,8 @@ print(text)  # 你好
 ```
 
 #### 11.6.9.4 常见编码错误与解决
+
+编码错误的两大典型场景：用错编码方案，以及把不可编码的字符强行编码。
 
 ```python
 # 场景一：编码错误
@@ -1412,6 +1539,8 @@ print(b'\xe4\xbd\xa0'.decode("gbk", errors="replace")) # 用 ? 替换无法解�
 
 #### 11.6.10.1 字符串切片赋值报错
 
+字符串是不可变对象，因此不能按下标赋值。
+
 ```python
 s = "hello"
 # s[0] = "H"  # TypeError: 'str' object does not support item assignment
@@ -1420,6 +1549,8 @@ s = "hello"
 > 想象成刻在石头上的字——你不能修改，只能重新刻一块新的石头。
 
 #### 11.6.10.2 正确做法：s = s[:5] + "xxx" + s[5:]
+
+想「修改」字符串，就拼接出新字符串再重新赋值。
 
 ```python
 s = "hello"
@@ -1444,6 +1575,8 @@ print(s)  # helo
 布尔值只有两个：`True`（真）和 `False`（假）。
 
 ### 11.7.1 True / False
+
+`True` 和 `False` 是布尔值；它们参与数值运算时分别相当于 1 和 0。
 
 ```python
 print(True)   # True
@@ -1525,6 +1658,8 @@ print(result)  # hello
 
 #### 11.8.1.1 基本语法
 
+`if` 语句按条件决定是否执行代码块，缩进决定代码块的范围。
+
 ```python
 score = 85
 
@@ -1542,6 +1677,8 @@ else:
 
 #### 11.8.1.2 条件表达式（三元运算符）：x if condition else y
 
+条件表达式可以把简单的 if-else 写成一行。
+
 ```python
 age = 20
 status = "成年" if age >= 18 else "未成年"
@@ -1553,6 +1690,8 @@ print(status)  # 成年
 match...case 是 Python 3.10 引入的模式匹配，类似于其他语言的 switch。
 
 #### 11.8.2.1 基本 match 用法
+
+`match` 是 Python 3.10 引入的结构化模式匹配，比一长串 `elif` 更清晰。
 
 ```python
 def http_status(status):
@@ -1571,6 +1710,8 @@ print(http_status(404))   # Not Found
 ```
 
 #### 11.8.2.2 多种 case 模式
+
+`case` 可以一次匹配多个模式，包括序列、映射和类实例。
 
 ```python
 def describe_point(point):
@@ -1629,6 +1770,8 @@ for i in range(0, 10, 2):
 
 #### 11.8.3.3 enumerate()：同时获取索引和值
 
+`enumerate()` 同时给出下标和元素，不必自己维护计数器。
+
 ```python
 fruits = ["苹果", "香蕉", "橙子"]
 for index, fruit in enumerate(fruits):
@@ -1646,6 +1789,8 @@ for i, fruit in enumerate(fruits, start=1):
 
 #### 11.8.3.4 zip()：并行遍历多个序列
 
+`zip()` 把多个序列按位置配对，长度以最短的为准。
+
 ```python
 names = ["Alice", "Bob", "Charlie"]
 ages = [25, 30, 35]
@@ -1662,6 +1807,8 @@ for name, age, city in zip(names, ages, cities):
 
 #### 11.8.3.5 reversed()：反向遍历
 
+`reversed()` 返回反向迭代器，不复制原序列。
+
 ```python
 fruits = ["苹果", "香蕉", "橙子"]
 for fruit in reversed(fruits):
@@ -1674,6 +1821,8 @@ for fruit in reversed(fruits):
 ```
 
 #### 11.8.3.6 sorted()：排序遍历
+
+`sorted()` 返回排好序的新列表，原序列不受影响。
 
 ```python
 fruits = ["香蕉", "苹果", "橙子"]
@@ -1692,6 +1841,8 @@ for fruit in sorted(fruits):
 
 #### 11.8.4.1 while condition
 
+`while` 在条件为真时反复执行，务必确认循环条件最终会变为假。
+
 ```python
 count = 0
 while count < 5:
@@ -1700,6 +1851,8 @@ while count < 5:
 ```
 
 #### 11.8.4.2 while True + break
+
+`while True` 配合 `break` 是「不确定循环次数」时的常用写法。
 
 ```python
 while True:
@@ -1715,6 +1868,8 @@ while True:
 
 #### 11.8.5.1 break：跳出整个循环
 
+`break` 立即结束整个循环。
+
 ```python
 for i in range(10):
     if i == 5:
@@ -1724,6 +1879,8 @@ for i in range(10):
 
 #### 11.8.5.2 continue：跳过本次迭代
 
+`continue` 跳过后面的语句，直接进入下一轮。
+
 ```python
 for i in range(10):
     if i % 2 == 0:
@@ -1732,6 +1889,8 @@ for i in range(10):
 ```
 
 #### 11.8.5.3 pass：空语句（占位符）
+
+`pass` 是空语句，用来占位，让语法上必须存在的代码块保持合法。
 
 ```python
 for i in range(5):
@@ -1752,6 +1911,8 @@ def TODO():
 ### 11.8.6 循环 else 子句
 
 #### 11.8.6.1 for...else：当循环正常结束时执行 else
+
+`for...else` 的 `else` 只在循环「没有 break」时执行，非常适合做查找类逻辑。
 
 ```python
 # 场景：查找质数
@@ -1774,6 +1935,8 @@ for n in range(2, 10):
 
 #### 11.8.7.1 列表推导式
 
+列表推导式把「循环 + 追加」压缩成一行。
+
 ```python
 # 传统写法
 squares = []
@@ -1791,6 +1954,8 @@ print(even_squares)  # [0, 4, 16, 36, 64]
 
 #### 11.8.7.2 集合推导式
 
+集合推导式用花括号，结果自动去重。
+
 ```python
 squares_set = {i ** 2 for i in range(10)}
 print(squares_set)  # {0, 1, 4, 9, 16, 25, 36, 49, 64, 81}
@@ -1798,12 +1963,16 @@ print(squares_set)  # {0, 1, 4, 9, 16, 25, 36, 49, 64, 81}
 
 #### 11.8.7.3 字典推导式
 
+字典推导式用 `键: 值` 的形式生成字典。
+
 ```python
 squares_dict = {i: i ** 2 for i in range(5)}
 print(squares_dict)  # {0: 0, 1: 1, 2: 4, 3: 9, 4: 16}
 ```
 
 #### 11.8.7.4 生成器表达式
+
+生成器表达式用圆括号，惰性求值，适合数据量大的场景。
 
 ```python
 # 和列表推导式类似，但用圆括号
@@ -1861,6 +2030,8 @@ print(f"身高是 {height:.2f} 米")
 
 #### 11.9.2.1 sep：分隔符（默认空格）
 
+`sep` 指定多个参数之间的分隔符，默认是空格。
+
 ```python
 print("A", "B", "C")           # A B C
 print("A", "B", "C", sep="-")  # A-B-C
@@ -1868,6 +2039,8 @@ print("2024", "01", "01", sep="-")  # 2024-01-01
 ```
 
 #### 11.9.2.2 end：结尾字符（默认换行）
+
+`end` 指定打印结束时的字符，默认是换行；配合 `flush=True` 可以做进度输出。
 
 ```python
 print("Loading", end="")
@@ -1882,12 +2055,16 @@ print("\n完成！")
 
 #### 11.9.2.3 file：输出到文件
 
+`file` 参数可以把输出重定向到文件对象。
+
 ```python
 with open("output.txt", "w", encoding="utf-8") as f:
     print("写入文件的内容", file=f)
 ```
 
 #### 11.9.2.4 flush：强制刷新输出
+
+`flush=True` 强制立即写出缓冲区，交互式程序里常需要它。
 
 ```python
 import time
@@ -1903,6 +2080,8 @@ print("完成！")
 
 #### 11.9.3.1 f-string
 
+最直观的输出方式还是 f-string 加格式说明符。
+
 ```python
 name = "小明"
 score = 95.5
@@ -1911,11 +2090,15 @@ print(f"姓名: {name}, 成绩: {score:.1f}")
 
 #### 11.9.3.2 format()
 
+`format()` 在做模板复用或动态拼装格式串时更方便。
+
 ```python
 print("姓名: {}, 成绩: {:.1f}".format("小明", 95.5))
 ```
 
 #### 11.9.3.3 格式化输出表格
+
+用格式说明符的宽度与对齐可以打印出整齐的表格。
 
 ```python
 # 用 f-string 对齐

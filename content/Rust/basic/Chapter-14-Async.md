@@ -29,6 +29,19 @@ Rust 的 async/await 语法就是让你用同步的写法，写出异步的程�
 
 这一章，我们来揭开 Rust 异步编程的神秘面纱！
 
+> **关于本章的代码示例**
+>
+> Rust 标准库只提供 async/await 的语法和 `Future` trait，**并不自带异步运行时**。本章绝大多数示例都依赖第三方运行时（最常见的是 [tokio](https://tokio.rs)）。
+>
+> 请先在 `Cargo.toml` 里加上依赖：
+>
+> ```toml
+> [dependencies]
+> tokio = { version = "1", features = ["full"] }
+> ```
+>
+> 这些示例在本书中标注为 `rust,ignore`，意思是「需要配合运行时依赖才能编译运行」。直接用 `rustc` 单独编译会报 `unresolved import tokio` 之类的错误，这是正常的。
+
 ---
 
 ## 14.1 异步编程基础
@@ -52,6 +65,8 @@ fn fetch_data() -> Data /* Data 为假设的类型 */ {
 
 #### 14.1.1.2 非阻塞 I/O（I/O 操作立即返回，轮询状态）
 
+非阻塞 I/O 的做法是调用后立刻返回、由程序反复询问是否就绪，逻辑简单但容易空转。
+
 ```rust
 // 非阻塞 I/O 的伪代码
 fn fetch_data() -> Option<Data> {
@@ -71,6 +86,8 @@ fn fetch_data() -> Option<Data> {
 > **问题**：轮询会消耗 CPU，而且代码会变得很丑陋（回调炼狱）。
 
 #### 14.1.1.3 事件驱动 / 回调（JavaScript / Node.js）
+
+事件驱动模型把「等数据」变成「注册回调」，Node.js 正是靠它在单线程里撑起高并发。
 
 ```javascript
 // JavaScript 风格的回调
@@ -139,6 +156,8 @@ pub enum Poll<T> {
 
 #### 14.1.2.2 Poll<T> 枚举：Ready(T)（已完成）/ Pending（未完成）
 
+`Poll` 是异步世界的开关：`Ready(T)` 表示算完了，`Pending` 表示稍后再问一次。
+
 ```rust
 use std::task::{Poll, Context};
 use std::pin::Pin;
@@ -169,6 +188,8 @@ Future 的工作方式：
 
 #### 14.1.3.1 async fn 函数（返回 impl Future）
 
+`async fn` 的返回类型是一个实现了 `Future` 的匿名类型；调用它只是创建 Future，并不会立刻执行。
+
 ```rust
 // async fn 返回一个 Future
 async fn hello() -> String {
@@ -183,6 +204,8 @@ fn hello() -> impl Future<Output = String> {
 
 #### 14.1.3.2 .await 语法（等待 Future 完成）
 
+`.await` 把推进 Future 的工作交给执行器，直到它返回 `Ready` 才继续往下走。
+
 ```rust
 // 注意：以下为示意代码，Data、fetch_from_network、parse 需自行定义
 async fn get_data() -> Data /* Data 为假设的业务数据类型 */ {
@@ -194,6 +217,8 @@ async fn get_data() -> Data /* Data 为假设的业务数据类型 */ {
 **注意**：`.await` 只能在 `async fn` 或 async 块中使用。
 
 #### 14.1.3.3 async 块：async { ... } / async move { ... }（获取环境变量的所有权）
+
+`async` 块同样返回 Future；加上 `move` 会把用到的变量所有权搬进这个块里。
 
 ```rust
 use std::future::Future;
@@ -243,7 +268,7 @@ fn main() {
 
 需要一个**执行器（Executor）**来驱动 Future：
 
-```rust
+```rust,ignore
 use tokio;
 
 #[tokio::main]
@@ -259,6 +284,8 @@ async fn main() {
 ```
 
 #### 14.1.4.3 Waker 唤醒机制（I/O 完成后调用 wake）
+
+`Waker` 是执行器与 Future 之间的通知渠道：I/O 就绪后调用 `wake`，执行器就会回来再 poll 一次。
 
 ```rust
 use std::task::{Context, Poll};
@@ -314,6 +341,8 @@ fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output>
 
 #### 14.1.5.2 Waker::wake / wake_by_ref（唤醒等待的任务）
 
+`wake` 会消耗 `Waker` 自身，`wake_by_ref` 则保留它，可以重复唤醒。
+
 ```rust
 use std::task::{Context, Poll, Waker};
 
@@ -331,6 +360,8 @@ fn main() {
 
 #### 14.1.5.3 Waker 的克隆与存储（跨线程传递）
 
+`Waker` 是 `Send + Sync` 的，可以克隆一份交给别的线程保存，等事件到达时再唤醒。
+
 ```rust
 use std::task::{Context, Waker};
 use std::sync::Arc;
@@ -345,7 +376,9 @@ fn main() {
     let waker_for_thread = Arc::clone(&waker_arc);
     
     std::thread::spawn(move || {
-        waker_for_thread.wake();
+        // 注意：Waker::wake(self) 按值接收，不能从 Arc 里移出来，
+        // 所以这里用 wake_by_ref。
+        waker_for_thread.wake_by_ref();
     });
 }
 ```
@@ -395,6 +428,8 @@ fn main() {
 
 #### 14.1.6.2 Unpin marker trait（可Pin任意位置）
 
+`Unpin` 表示类型可以安全移动；绝大多数类型自动实现它，因此普通 Future 不受 `Pin` 约束。
+
 ```rust
 fn main() {
     // 大部分类型都是 Unpin，可以随意移动
@@ -415,8 +450,10 @@ fn main() {
 
 #### 14.1.6.3 Pin<&mut T>（固定在内存位置的自引用安全）
 
+`Pin<&mut T>` 保证 `T` 不再被移动，这是自引用结构（例如被 `await` 跨过的局部变量）能安全存在的前提；`PhantomPinned` 用来主动放弃 `Unpin`。
+
 ```rust
-use std::pin::{Pin, Pin::*};
+use std::pin::Pin;   // 注意：不能写成 use std::pin::{Pin, Pin::*}; 这不是合法语法
 use std::marker::PhantomPinned;
 
 struct SelfReferential {
@@ -442,13 +479,16 @@ impl SelfReferential {
 
 fn main() {
     // 自引用结构用 Box::pin 固定，这是 !Unpin 类型正确的方式
-    let sr = SelfReferential::new(String::from("hello"));
-    let mut pinned_sr = Box::pin(sr);
-    
-    // 使用 Pin::get_unchecked 获取 &mut T（需要 unsafe）
+    let mut pinned_sr = Box::pin(SelfReferential::new(String::from("hello")));
+
+    // 安全地读取（Pin<&Self> 上的方法）
+    println!("name: {}", pinned_sr.as_ref().get_name()); // name: hello
+
+    // 需要 &mut T 时用 unsafe 的 get_unchecked_mut（稳定版可用）
     unsafe {
-        let sr_mut = Pin::get_unchecked(pinned_sr.as_mut());
-        println!("name: {}", sr_mut.get_name()); // name: hello
+        let sr_mut = Pin::get_unchecked_mut(pinned_sr.as_mut());
+        sr_mut.name.push_str(" world");
+        println!("name: {}", sr_mut.name); // name: hello world
     }
 }
 ```
@@ -496,7 +536,7 @@ impl AsyncData {
 
 **Tokio** 是 Rust 最流行的异步运行时：
 
-```rust
+```rust,ignore
 #[tokio::main]
 async fn main() {
     println!("Tokio 运行时启动了！");
@@ -515,7 +555,9 @@ async fn main() {
 
 #### 14.2.1.2 multi_thread vs single_thread（多线程/单线程运行时）
 
-```rust
+tokio 默认是多线程运行时，任务可以分散到多个工作线程；`single_thread` 则全部在一个线程里跑，适合要求 `!Send` 的场合。
+
+```rust,ignore
 // 多线程运行时（默认）
 #[tokio::main(flavor = "multi_thread")]
 async fn main() {
@@ -531,7 +573,9 @@ async fn main() {
 
 #### 14.2.1.3 Runtime 配置（work-stealing 调度器）
 
-```rust
+`Builder` 可以精确配置运行时：工作线程数量、调度方式、线程名等。
+
+```rust,ignore
 use tokio::runtime::Builder;
 
 fn main() {
@@ -551,7 +595,10 @@ fn main() {
 
 #### 14.2.1.4 任务本地存储：tokio::task::LocalKey
 
-```rust
+`task_local!` 给每个任务准备一份独立数据，用法类似线程局部存储，但作用域是任务。
+
+```rust,ignore
+// ⚠️ 依赖 tokio：Cargo.toml 里需要加 tokio = { version = "1", features = ["full"] }
 use tokio::task_local;
 
 task_local! {
@@ -560,17 +607,23 @@ task_local! {
 
 #[tokio::main]
 async fn main() {
-    REQUEST_ID.with(|&id| {
-        println!("初始: {}", id); // 0
-    });
-    
-    let handle = tokio::spawn(async {
-        REQUEST_ID.with(|&id| {
-            println!("spawned 任务中: {}", id);
-        });
-    });
-    
-    handle.await.unwrap();
+    // ⚠️ 无初始值的 task-local 变量只能在 scope() 内部访问。
+    // 直接用 .with() 会报「cannot find value REQUEST_ID」。
+    REQUEST_ID
+        .scope(42, async {
+            REQUEST_ID.with(|id| println!("当前任务中的 REQUEST_ID: {}", *id));
+
+            let handle = tokio::spawn(async {
+                // 注意：tokio::spawn 出来的新任务不会继承 task-local，
+                // 所以这里要用 try_with，它返回 Result 而不是 panic。
+                REQUEST_ID
+                    .try_with(|id| println!("spawned 任务中: {}", *id))
+                    .ok();
+            });
+
+            handle.await.unwrap();
+        })
+        .await;
 }
 ```
 
@@ -582,7 +635,7 @@ async fn main() {
 
 **async-std** 是另一个流行的异步运行时，设计上与标准库 API 对齐：
 
-```rust
+```rust,ignore
 use async_std::task;
 
 fn main() {
@@ -602,7 +655,7 @@ fn main() {
 
 async-std 的设计哲学是"让 async 代码看起来像 sync 代码"：
 
-```rust
+```rust,ignore
 // async-std 的 fs 模块跟 std::fs 很像
 use async_std::fs;
 
@@ -619,7 +672,7 @@ async fn read_file() -> std::io::Result<String> {
 
 **smol** 是一个极简的异步运行时，设计用于嵌入式系统：
 
-```rust
+```rust,ignore
 use smol::Timer;
 use std::time::Duration;
 
@@ -642,7 +695,9 @@ fn main() {
 
 #### 14.3.1.1 JoinHandle<T> 返回值（可等待任务完成）
 
-```rust
+`tokio::spawn` 返回 `JoinHandle`，`.await` 它就能拿到任务返回值。
+
+```rust,ignore
 #[tokio::main]
 async fn main() {
     let handle = tokio::spawn(async {
@@ -658,7 +713,9 @@ async fn main() {
 
 #### 14.3.1.2 任务的生命周期（spawned 任务独立执行）
 
-```rust
+被 spawn 出去的任务独立于当前 Future 运行，因此它不能借用栈上的局部变量。
+
+```rust,ignore
 #[tokio::main]
 async fn main() {
     let handle = tokio::spawn(async {
@@ -682,7 +739,9 @@ async fn main() {
 
 #### 14.3.2.1 join!（并发执行多个 Future，全部完成后返回结果元组）
 
-```rust
+`join!` 让多个 Future 并发推进，全部结束后按顺序返回结果元组。
+
+```rust,ignore
 #[tokio::main]
 async fn main() {
     let (a, b, c) = tokio::join! {
@@ -697,7 +756,9 @@ async fn main() {
 
 #### 14.3.2.2 try_join!（任一 Future 返回 Err 则整体立即返回 Err）
 
-```rust
+`try_join!` 在任意一个 Future 返回 `Err` 时立刻返回该错误，不再等待剩下的。
+
+```rust,ignore
 #[tokio::main]
 async fn main() {
     async fn may_fail(succeed: bool) -> Result<i32, &'static str> {
@@ -734,7 +795,9 @@ async fn main() {
 
 #### 14.3.3.1 select! 基本语法（等待多个 Future 任意一个完成）
 
-```rust
+`select!` 同时等待多个分支，谁先就绪就执行谁，其余分支被取消。
+
+```rust,ignore
 #[tokio::main]
 async fn main() {
     tokio::select! {
@@ -753,7 +816,9 @@ async fn main() {
 
 #### 14.3.3.2 biased（按定义顺序而非随机）
 
-```rust
+默认情况下 `select!` 随机挑选就绪分支；加上 `biased` 后改为按书写顺序检查。
+
+```rust,ignore
 #[tokio::main]
 async fn main() {
     tokio::select! {
@@ -768,7 +833,9 @@ async fn main() {
 
 #### 14.3.3.3 loop { select! { ... } }（持续多路复用）
 
-```rust
+把 `select!` 放进 `loop` 就是经典的事件循环：反复等待并处理最先到达的事件。
+
+```rust,ignore
 #[tokio::main]
 async fn main() {
     let mut counter = 0;
@@ -791,7 +858,9 @@ async fn main() {
 
 #### 14.3.3.4 返回值处理
 
-```rust
+`select!` 本身也是表达式，各分支返回值类型一致时可以直接把结果接出来。
+
+```rust,ignore
 #[tokio::main]
 async fn main() {
     let result = tokio::select! {
@@ -809,7 +878,9 @@ async fn main() {
 
 #### 14.3.4.1 CancellationToken（协作式取消，tokio_util::sync::CancellationToken）
 
-```rust
+`CancellationToken` 提供协作式取消：一处 `cancel()`，所有监听它的任务都会收到通知。
+
+```rust,ignore
 use tokio_util::sync::CancellationToken;
 
 #[tokio::main]
@@ -837,7 +908,9 @@ async fn main() {
 
 #### 14.3.4.2 select! 中的取消分支
 
-```rust
+把 token 的 `cancelled()` 写进 `select!` 分支，就能在等待业务 Future 的同时响应取消。
+
+```rust,ignore
 #[tokio::main]
 async fn main() {
     let operation = tokio::time::sleep(std::time::Duration::from_secs(10));
@@ -853,12 +926,31 @@ async fn main() {
 
 #### 14.3.4.3 资源清理（Drop / guard）
 
-```rust
+任务被取消或 panic 时，栈上变量的 `Drop` 照常执行，因此 RAII 风格的清理依然可靠。
+
+```rust,ignore
+// ⚠️ 依赖 tokio：Cargo.toml 里需要加 tokio 依赖。
+// 假设有一个需要显式释放的资源类型（RAII 风格）
+struct SomeResource;
+
+impl SomeResource {
+    fn acquire() -> Self {
+        println!("获取资源");
+        SomeResource
+    }
+}
+
+impl Drop for SomeResource {
+    fn drop(&mut self) {
+        println!("释放资源");
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let guard = SomeResource::acquire();
     
-    // 如果这里发生 panic，guard 会自动释放
+    // 如果这里发生 panic，guard 会在栈展开时自动释放（Drop）
     tokio::time::sleep(std::time::Duration::from_millis(1)).await;
     
     drop(guard); // 显式释放
@@ -873,7 +965,7 @@ async fn main() {
 
 **结构化并发**的核心思想：子任务的生命周期不应该超过父任务的生命周期。
 
-```rust
+```rust,ignore
 #[tokio::main]
 async fn main() {
     // 所有子任务在这个作用域内完成
@@ -893,7 +985,9 @@ async fn main() {
 
 #### 14.3.5.2 JoinSet / AbortHandle（批量任务管理）
 
-```rust
+`JoinSet` 把一批任务收在一起统一等待，`AbortHandle` 则用来单独取消某个任务。
+
+```rust,ignore
 use tokio::task::JoinSet;
 
 #[tokio::main]
@@ -919,7 +1013,7 @@ async fn main() {
 
 > ⚠️ **警告**：这是 async 编程中的经典"坑"，很多人第一次写 tokio::spawn 时都会踩到。嵌套 spawn 会让任务的生命周期变得像流浪猫一样——生出来容易，收回去难。
 
-```rust
+```rust,ignore
 #[tokio::main]
 async fn main() {
     // 危险：不结构化的 spawn
@@ -944,7 +1038,9 @@ async fn main() {
 
 #### 14.4.1.1 tokio::fs 模块（异步文件系统操作）
 
-```rust
+`tokio::fs` 把阻塞的文件操作交给线程池执行，接口与 `std::fs` 基本一致。
+
+```rust,ignore
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     // 读取文件
@@ -967,7 +1063,9 @@ async fn main() -> std::io::Result<()> {
 
 #### 14.4.1.2 AsyncRead / AsyncWrite trait
 
-```rust
+`AsyncRead`/`AsyncWrite` 是 tokio 的异步读写抽象，扩展 trait 提供了 `read`、`write` 等方法。
+
+```rust,ignore
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[tokio::main]
@@ -993,7 +1091,9 @@ async fn main() -> std::io::Result<()> {
 
 #### 14.4.1.3 BufReader / BufWriter（缓冲 I/O）
 
-```rust
+`BufReader`/`BufWriter` 通过缓冲减少系统调用次数，`read_line`、`lines` 这类逐行方法都依赖它。
+
+```rust,ignore
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::fs::File;
 
@@ -1021,7 +1121,9 @@ async fn main() -> std::io::Result<()> {
 
 #### 14.4.2.1 tokio::net::TcpStream / TcpListener
 
-```rust
+tokio 的 TCP 套接字用法与标准库相似，但读写方法都是 `async` 的。
+
+```rust,ignore
 use tokio::net::{TcpListener, TcpStream};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
@@ -1048,7 +1150,9 @@ async fn main() -> std::io::Result<()> {
 
 #### 14.4.2.2 tokio::net::UdpSocket
 
-```rust
+`UdpSocket` 面向数据报：一次 `recv_from` 拿到一个完整的包，不会出现 TCP 那样的粘包问题。
+
+```rust,ignore
 use tokio::net::UdpSocket;
 
 #[tokio::main]
@@ -1072,7 +1176,9 @@ async fn main() -> std::io::Result<()> {
 
 #### 14.4.2.3 Unix Domain Socket（Unix only）
 
-```rust
+Unix 域套接字只在类 Unix 系统上可用，所以要用 `#[cfg(unix)]` 包起来。
+
+```rust,ignore
 #[cfg(unix)]
 use tokio::net::UnixStream;
 
@@ -1098,7 +1204,9 @@ async fn main() -> std::io::Result<()> {
 
 #### 14.4.3.1 tokio::time::timeout
 
-```rust
+`timeout` 给任意 Future 加上时限，超时返回 `Err(Elapsed)`。
+
+```rust,ignore
 use tokio::time::{timeout, Duration};
 
 #[tokio::main]
@@ -1117,7 +1225,9 @@ async fn main() {
 
 #### 14.4.3.2 tokio::time::sleep（延迟）
 
-```rust
+`sleep` 不会阻塞线程，它只把当前任务挂起，让出执行权给别的任务。
+
+```rust,ignore
 #[tokio::main]
 async fn main() {
     println!("开始");
@@ -1133,7 +1243,9 @@ async fn main() {
 
 #### 14.4.3.3 interval（周期定时器）
 
-```rust
+`interval` 按固定周期反复触发；第一次 tick 会立即完成，需要延后起始时刻可以用 `interval_at`。
+
+```rust,ignore
 use tokio::time::{interval, Duration};
 
 #[tokio::main]
@@ -1153,7 +1265,9 @@ async fn main() {
 
 #### 14.4.4.1 tokio::signal::ctrl_c（SIGINT 信号）
 
-```rust
+`ctrl_c()` 返回一个 Future，按下 `Ctrl+C` 才完成，常与 `select!` 搭配做优雅退出。
+
+```rust,ignore
 use tokio::signal;
 
 #[tokio::main]
@@ -1174,6 +1288,8 @@ async fn main() {
 ### 14.5.1 异步 trait（Rust 1.75+ 稳定化）
 
 #### 14.5.1.1 async fn in traits（trait 中的异步方法）
+
+Rust 1.75 起 trait 里可以直接写 `async fn`，不必再依赖 `async-trait`（代价是默认不支持动态分发）。
 
 ```rust
 trait AsyncIterator {
@@ -1202,6 +1318,8 @@ impl AsyncIterator for Counter {
 
 #### 14.5.1.2 dyn AsyncIterator（dyn Future 支持）
 
+带 `async fn` 的 trait 默认不是 dyn 兼容的，想用 `dyn` 需要额外处理，例如让方法返回装箱 Future。
+
 ```rust
 // 动态分发
 trait AsyncIterator {
@@ -1219,6 +1337,8 @@ fn collect_all<I>(iter: &mut dyn AsyncIterator<Item = i32>) -> Vec<i32> {
 ```
 
 #### 14.5.1.3 异步 trait 的对象安全
+
+`async fn` 能不能当 trait 对象，取决于方法是否满足对象安全的要求。
 
 ```rust
 // 异步方法默认是对象安全的
@@ -1258,7 +1378,9 @@ impl MyTrait for MyStruct {
 
 #### 14.5.2.2 async_trait 性能开销（Box 存储 Future）
 
-```rust
+`async-trait` 把 `async fn` 改写成返回 `Pin<Box<dyn Future>>`，换来对象安全，代价是每次调用多一次堆分配。
+
+```rust,ignore
 use async_trait::async_trait;
 
 #[async_trait]
@@ -1292,7 +1414,9 @@ async fn main() {
 
 #### 14.5.3.1 tokio::sync::Mutex（async 上下文的互斥锁）
 
-```rust
+`tokio::sync::Mutex` 是异步锁：等待锁时挂起任务而不是阻塞线程，因此可以跨 `await` 持有。
+
+```rust,ignore
 #[tokio::main]
 async fn main() {
     let mutex = tokio::sync::Mutex::new(0);
@@ -1309,7 +1433,9 @@ async fn main() {
 
 #### 14.5.3.2 tokio::sync::RwLock（异步读写锁）
 
-```rust
+异步读写锁允许多个读者并发、写者独占，用法与标准库的 `RwLock` 类似。
+
+```rust,ignore
 #[tokio::main]
 async fn main() {
     let rwlock = tokio::sync::RwLock::new(5);
@@ -1332,7 +1458,9 @@ async fn main() {
 
 #### 14.5.3.3 同步锁 vs 异步锁（不要跨 await 持有同步锁）
 
-```rust
+同步锁不能跨 `await` 持有，否则可能把整个工作线程挡住，这种场合要用异步版本的锁。
+
+```rust,ignore
 use std::sync::Mutex as SyncMutex;
 use tokio::sync::Mutex as AsyncMutex;
 
@@ -1380,7 +1508,9 @@ trait Stream {
 
 #### 14.5.4.2 StreamExt trait（Stream 的方法扩展）
 
-```rust
+`StreamExt` 给 `Stream` 补上了 `next`、`map`、`filter` 等一大批方法，相当于异步版的迭代器工具。
+
+```rust,ignore
 use tokio_stream::StreamExt;
 
 #[tokio::main]
@@ -1400,7 +1530,9 @@ async fn main() {
 
 #### 14.5.4.3 for_each_concurrent / buffer_unordered
 
-```rust
+`for_each_concurrent` 与 `buffer_unordered` 用来限制并发度，避免一次打开过多任务。
+
+```rust,ignore
 use tokio_stream::StreamExt;
 
 #[tokio::main]
@@ -1426,7 +1558,9 @@ async fn main() {
 
 #### 14.5.5.2 channel 缓冲大小控制
 
-```rust
+channel 的缓冲区大小决定生产者能领先消费者多少，`0` 表示必须逐一同步交接。
+
+```rust,ignore
 use tokio::sync::mpsc;
 
 #[tokio::main]
@@ -1445,7 +1579,9 @@ async fn main() {
 
 #### 14.5.5.3 throttle / rate limiting
 
-```rust
+限流靠的是在任务之间插入 `sleep`，把单位时间内的请求数量压到阈值以下。
+
+```rust,ignore
 use tokio::time::{sleep, Duration};
 
 async fn rate_limited_request(id: u32) {
@@ -1464,13 +1600,13 @@ async fn main() {
 
 ---
 
-### 14.5.6 Async Closures（异步闭包，需要 nightly Rust）
+### 14.5.6 Async Closures（异步闭包，Rust 1.85+）
 
 #### 14.5.6.1 async || { ... } closure 语法（async + 闭包参数 + 块体；async || expr 或 async move || expr；块体是必需的；需要 nightly）
 
 > ⚠️ **nightly 提示**：`async ||` 和 `async move ||` 语法需要 Rust nightly 并开启 `#[feature(async_closure)]`，尚未稳定。本节代码在 stable Rust 上无法编译。
 
-```rust
+```rust,ignore
 #[tokio::main]
 async fn main() {
     // 异步闭包：async || body
@@ -1485,106 +1621,136 @@ async fn main() {
 }
 ```
 
-#### 14.5.6.2 async 闭包 vs async fn（何时必须用闭包而非函数；需要 nightly）
+#### 14.5.6.2 async 闭包 vs async fn（何时必须用闭包而非函数）
 
-```rust
+async 闭包 `async || { ... }` 自 **Rust 1.85**（2025-02-20）起已经稳定，不再需要 nightly。它与 `async fn` 的最大区别是能捕获环境变量：
+
+```rust,ignore
+// 依赖 tokio，Cargo.toml 里加 tokio = { version = "1", features = ["full"] }
 #[tokio::main]
 async fn main() {
-    // async fn 是命名函数
+    // async fn 是命名函数，无法捕获外部变量
     async fn named() -> i32 {
         42
     }
-    
+
     // async 闭包可以捕获环境变量
     let captured = 10;
-    let closure = async move || {
-        captured + 32
-    };
-    
-    let result = closure().await;
-    println!("闭包结果: {}", result); // 42
+    let closure = async move || captured + 32;
+
+    println!("named: {}", named().await);      // 42
+    println!("闭包结果: {}", closure().await); // 42
 }
 ```
 
-#### 14.5.6.3 async 闭包与 Fn / FnMut / FnOnce trait（async 闭包实现哪个 trait；`async Fn`/`dyn async Fn` trait bound 需要 nightly）
+（这里标 `ignore` 只是因为示例依赖 tokio；语言层面的 async 闭包在稳定版直接可用。）
 
-```rust
+#### 14.5.6.3 async 闭包实现哪套 trait：AsyncFn / AsyncFnMut / AsyncFnOnce
+
+async 闭包实现的是 `AsyncFnOnce`、`AsyncFnMut`、`AsyncFn` 这三个 trait（自 Rust 1.85 稳定），而不是普通的 `Fn` 系列。写约束时要用脱糖后的名字：
+
+```rust,ignore
+// 依赖 tokio
+use std::ops::AsyncFn;
+
+async fn call_twice<F: AsyncFn() -> i32>(f: F) -> i32 {
+    f().await + f().await
+}
+
 #[tokio::main]
 async fn main() {
-    // async || {} 实现 async FnOnce() -> T
-    // async move || {} 实现 async FnOnce() -> T
-    
-    let closure: (impl async Fn() -> i32) = async || 42;
-    
-    // 注意：async 闭包默认是 FnOnce（因为只能调用一次）
-    // 但你可以用 async || {} 然后再调用多次
-    
-    // ⚠️ `async Fn` trait bound 也是 nightly-only，stable Rust 不可用
+    let outer = 1;
+    // 只捕获 &outer，属于 AsyncFn，可以重复调用
+    println!("{}", call_twice(async || outer + 41).await); // 84
+
+    // 用 async move 捕获所有权后只能调用一次，属于 AsyncFnOnce
+    let owned = String::from("hi");
+    let once = async move || owned.len();
+    println!("{}", once().await); // 2
 }
 ```
 
-#### 14.5.6.4 dyn AsyncFn* trait（dyn async fn 的函数 trait；需要 nightly）
+三种写法的稳定性并不相同：
+
+| 写法 | 状态 |
+| --- | --- |
+| `async \|\| { ... }`（async 闭包） | 稳定（Rust 1.85+） |
+| `F: AsyncFn() -> T`（脱糖名） | 稳定（Rust 1.85+） |
+| `F: async Fn() -> T`（语法糖） | **仍不稳定**（E0658，跟踪 issue #62290） |
+
+#### 14.5.6.4 为什么不能写成 Box<dyn AsyncFn()>
+
+`AsyncFn` 系列 trait 不是 dyn 兼容的：`call` 返回 `impl Future`，其大小在编译期未知，因此 `Box<dyn AsyncFn() -> i32>` 这样的类型会直接报 E0038。想做动态分发，只能自己定义一个返回装箱 Future 的类型：
 
 ```rust
 use std::future::Future;
+use std::pin::Pin;
 
-trait AsyncFn<T> {
-    type Output: Future<Output = T>;
-    fn call(&self, arg: T) -> Self::Output;
-}
+// 把「返回装箱 Future 的闭包」收进一个类型别名里
+type BoxFuture<T> = Pin<Box<dyn Future<Output = T> + Send>>;
 ```
 
-#### 14.5.6.5 async 闭包作为 trait 对象（Box<dyn AsyncFn()>；需要 nightly）
+#### 14.5.6.5 async 闭包做 trait 对象的替代方案（Box<dyn Fn() -> BoxFuture<T>>）
 
-```rust
+既然 `dyn AsyncFn` 用不了，就手工装箱。下面这段用 `Box<dyn Fn() -> BoxFuture<i32>>` 存下若干个「可以 `.await` 的闭包」：
+
+```rust,ignore
+// 依赖 tokio
+use std::future::Future;
+use std::pin::Pin;
+
+type BoxFuture<T> = Pin<Box<dyn Future<Output = T> + Send>>;
+
 #[tokio::main]
 async fn main() {
-    // 存储为 trait 对象
-    let closures: Vec<Box<dyn async Fn() -> i32 + Send>> = vec![
-        Box::new(async || 1),
-        Box::new(async || 2),
-        Box::new(async || 3),
+    let closures: Vec<Box<dyn Fn() -> BoxFuture<i32> + Send + Sync>> = vec![
+        Box::new(|| Box::pin(async { 1 })),
+        Box::new(|| Box::pin(async { 2 })),
+        Box::new(|| Box::pin(async { 3 })),
     ];
-    
-    for (i, c) in closures.into_iter().enumerate() {
-        let result = c().await;
-        println!("closure {}: {}", i, result);
+
+    for (i, c) in closures.iter().enumerate() {
+        println!("closure {}: {}", i, c().await); // closure 0: 1 ...
     }
 }
 ```
 
-#### 14.5.6.6 async 闭包与捕获环境（move async ||；需要 nightly）
+#### 14.5.6.6 async 闭包与捕获环境（move async ||）
 
-```rust
+`async move ||` 会把捕获到的变量移动进闭包，闭包创建之后外部就不能再使用这些变量：
+
+```rust,ignore
+// 依赖 tokio
 #[tokio::main]
 async fn main() {
     let data = vec![1, 2, 3];
-    
-    // async move 闭包获取数据的所有权
+
+    // async move 闭包取得数据的所有权
     let closure = async move || {
         println!("data: {:?}", data);
-        // data 被移入闭包，外面不能再用
     };
-    
+
     closure().await;
-    // println!("{:?}", data); // 编译错误！data 已被移走
+    // println!("{:?}", data); // 编译错误：data 已被移入闭包
 }
 ```
 
-#### 14.5.6.7 async 闭包在 trait 对象懒求值场景的应用（需要 nightly）
+#### 14.5.6.7 async 闭包做懒求值（创建时不执行）
 
-```rust
+闭包创建时不会执行内部代码，只有它返回的 Future 被 `.await` 时才真正开始运行，所以「把耗时任务推迟到需要时再执行」变得很自然：
+
+```rust,ignore
+// 依赖 tokio
 #[tokio::main]
 async fn main() {
-    // 懒求值：闭包本身不执行，调用才执行
     let expensive_computation = async || {
         println!("执行耗时计算...");
         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         42
     };
-    
+
     println!("闭包创建了，还没执行");
-    
+
     // 实际需要时才调用
     let result = expensive_computation().await;
     println!("结果: {}", result);
@@ -1607,7 +1773,7 @@ async fn main() {
 8. **异步锁**：tokio::sync::Mutex/RwLock，区别于同步锁
 9. **Stream**：异步迭代器，StreamExt 提供丰富的方法
 10. **背压**：channel 缓冲、rate limiting
-11. **Async Closures（需要 nightly Rust）**：async || {} 语法（尚未稳定）
+11. **Async 闭包**：`async || {}` 以及 `AsyncFn`/`AsyncFnMut`/`AsyncFnOnce` 自 Rust 1.85 起稳定；只有 `async Fn()` 这种语法糖写法仍不稳定
 
 **记住**：async/await 是 Rust 里的"魔法棒"，它让你用最少的代码写出高效的异步程序。但记住：**Future 是惰性的，不驱动就不执行**。你需要 Tokio 或其他运行时来驱动它。
 
@@ -1620,4 +1786,3 @@ async fn main() {
 从所有权到生命周期，从模块系统到宏，从并发到异步——你已经掌握了 Rust 编程的核心知识。现在，是时候把这些知识付诸实践了。写代码、造轮子、踩坑、再爬起来……这就是成为一个 Rust 程序员必经之路。
 
 祝你在 Rust 的世界里玩得开心！
-

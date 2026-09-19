@@ -239,9 +239,13 @@ draft = false
 
 /* text: 背景只保留在文字下方（超酷炫的文字填充效果！）*/
 .clip-text {
+  /* ⚠️ 顺序很重要：background 简写会把 background-clip 重置回 border-box！
+     所以必须"先用简写画背景，再声明 clip"，反过来写的话背景会被裁回整个盒子，
+     文字填充效果直接失效。这是文字渐变最常踩的坑。 */
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  -webkit-background-clip: text;   /* Safari / 老版 Chrome 需要前缀 */
   background-clip: text;
   color: transparent;              /* 文字要透明才能看见背景 */
-  background: linear-gradient(90deg, #667eea, #764ba2);
 }
 ```
 
@@ -289,6 +293,15 @@ draft = false
     center                     /* 位置 */
     / cover;                   /* 尺寸 */
 }
+
+/* 说明：
+   1. 位置和尺寸必须挨在一起写成 position / size，中间那个斜杠不能省；
+      只写尺寸是无效的（background: url(x.jpg) / cover 会被整条丢弃）。
+   2. 颜色可以放在任意位置，但习惯上写在最前面或最后面。
+   3. 简写会把这些子属性**全部重置**：没写到的（比如 background-attachment）
+      都会被恢复成初始值。所以"先在别处设了 background-color，再用简写加图片"，
+      颜色会被清掉——要放在同一条简写里，或把颜色声明写在简写之后。
+   4. background-clip: text 这种非盒子关键字没法写进简写里，必须单独声明。 */
 ```
 
 ---
@@ -317,5 +330,3 @@ draft = false
 ### 下章预告
 
 下一章我们将学习边框属性，让你的网页元素更有轮廓感！
-
-

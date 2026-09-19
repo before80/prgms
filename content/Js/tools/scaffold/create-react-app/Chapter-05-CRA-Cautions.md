@@ -436,10 +436,10 @@ build/
 
 ```mermaid
 flowchart TD
-    A["没有配置 homepage"] --> B["资源路径是绝对路径<br/><link href=\"/static/js/main.js\">"]
+    A["没有配置 homepage"] --> B["资源路径是绝对路径<br/>&lt;link href=/static/js/main.js&gt;"]
     B --> C["部署到子目录<br/>❌ 浏览器请求 /static/js/main.js<br/>（根路径，找不到文件，404）"]
-    
-    D["配置 homepage 后"] --> E["资源路径变成相对路径<br/><script src=\"./static/js/main.js\">"]
+
+    D["配置 homepage 后"] --> E["资源路径变成相对路径<br/>&lt;script src=./static/js/main.js&gt;"]
     E --> F["部署到子目录<br/>✅ 浏览器请求 ./static/js/main.js<br/>（相对于当前路径，正确！）"]
     
     style B fill:#ffcccc

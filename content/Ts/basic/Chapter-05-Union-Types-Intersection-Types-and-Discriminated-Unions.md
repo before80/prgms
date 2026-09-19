@@ -619,13 +619,13 @@ type Shape =
 
 ```mermaid
 graph TD
-    A[AppEvent 联合类型] --> B[SuccessEvent<br/>type: "success"]
-    A --> C[ErrorEvent<br/>type: "error"]
-    A --> D[LoadingEvent<br/>type: "loading"]
-    
-    B --> E[通过 type === 'success'<br/>识别为SuccessEvent]
-    C --> F[通过 type === 'error'<br/>识别为ErrorEvent]
-    D --> G[通过 type === 'loading'<br/>识别为LoadingEvent]
+    A["AppEvent 联合类型"] --> B["SuccessEvent<br/>type: 'success'"]
+    A --> C["ErrorEvent<br/>type: 'error'"]
+    A --> D["LoadingEvent<br/>type: 'loading'"]
+
+    B --> E["通过 type === 'success'<br/>识别为 SuccessEvent"]
+    C --> F["通过 type === 'error'<br/>识别为 ErrorEvent"]
+    D --> G["通过 type === 'loading'<br/>识别为 LoadingEvent"]
 ```
 
 这个概念来自**代数数据类型（Algebraic Data Types，ADT）**，在Haskell、F#、Rust等语言中很常见。TypeScript的可辨识联合是ADT思想在JavaScript生态中的实现。
@@ -726,7 +726,6 @@ for (let i = 0; i < 3; i++) {
 恭喜你完成了TypeScript核心类型的全部内容！从原始类型到特殊类型，从接口到类型别名，从联合类型到可辨识联合——你已经具备了TypeScript类型系统的坚实基础。
 
 下一阶段的内容将是更高级的TypeScript特性，包括泛型、类型操作符、条件类型、映射类型等。继续保持这个学习节奏，你正在成为一个TypeScript高手！
-
 
 
 

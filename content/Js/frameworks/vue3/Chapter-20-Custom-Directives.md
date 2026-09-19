@@ -29,7 +29,7 @@ graph LR
     
     I[自定义需求] --> J{是否涉及DOM操作?}
     J -->|是| K[自定义指令 ✓]
-    J -->|否| L[Composable (逻辑复用)]
+    J -->|否| L["Composable（逻辑复用）"]
 ```
 
 **什么时候用自定义指令：**
@@ -865,8 +865,6 @@ export const vLoading: Directive = {
 自定义指令擅长"直接操作 DOM"，Composable 擅长"逻辑复用"。把两者结合，就能让指令拥有 Composable 的所有逻辑能力，同时保持 DOM 操作的便捷性。
 
 **使用场景**：比如懒加载指令（图片进入视口才加载），这个功能既需要 `IntersectionObserver` 的 DOM 检测逻辑（适合抽成 Composable），又需要操作 DOM（适合用指令）。把 `useIntersectionObserver` 逻辑注入指令，就能写出既简洁又功能强大的懒加载指令：
-
-```typescript
 
 ```typescript
 // composables/useIntersectionObserver.ts

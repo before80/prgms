@@ -107,7 +107,7 @@ scrapy crawl quotes
 
 你将看到控制台疯狂滚动输出抓取到的名言数据，格式大概是：
 
-```python
+```text
 {'text': '"The world as we have created it...", 'author': 'Albert Einstein', 'tags': ['change', 'deep-thoughts']}
 {'text': '"It is our choices...', 'author': 'J.K. Rowling', 'tags': ['abilities', 'choices']}
 ```
@@ -284,12 +284,15 @@ class DetailSpider(scrapy.Spider):
 **POST 请求：**
 
 ```python
-# 模拟表单提交
-yield scrapy.FormRequest(
-    url="https://example.com/login",
-    formdata={"username": "admin", "password": "123456"},
-    callback=self.after_login,
-)
+# 下面几行是 Scrapy 爬虫方法的片段，为了能单独运行，这里补上了外壳：
+# 在真实的爬虫里，它们通常写在 Spider 类的 parse / 回调方法中
+def parse(self, response):
+    # 模拟表单提交
+    yield scrapy.FormRequest(
+        url="https://example.com/login",
+        formdata={"username": "admin", "password": "123456"},
+        callback=self.after_login,
+    )
 
 def after_login(self, response):
     # 登录后检查是否成功
@@ -322,7 +325,7 @@ graph LR
     E --> D2[Downloader Middleware<br/>出]
     D2 --> C2[Scheduler]
     C2 --> B2[Spider Middleware<br/>出]
-    B2 --> F[Spider parse()]
+    B2 --> F["Spider parse()"]
 ```
 
 **下载器中间件实战：随机User-Agent**
@@ -507,18 +510,21 @@ r.rpush("myproject:start_urls", "https://example.com/page3")
 **常用反反爬技巧：**
 
 ```python
-# 1. 随机延时，假装人类在思考
 import random
 import time
 
 def human_delay():
-    time.sleep(random.uniform(1.0, 3.5))  # 1到3.5秒之间随机等
+    time.sleep(random.uniform(1.0, 3.5))  # 1 到 3.5 秒之间随机等
 
-# 2. 伪造 Referer（防盗链检测）
-yield scrapy.Request(
-    url=image_url,
-    headers={"Referer": "https://target-site.com/"},
-)
+def parse(self, response):
+    # 1. 随机延时，假装人类在思考
+    human_delay()
+
+    # 2. 伪造 Referer（防盗链检测）
+    yield scrapy.Request(
+        url=image_url,
+        headers={"Referer": "https://target-site.com/"},
+    )
 
 # 3. 使用代理IP池（示例，需要真实代理服务）
 class ProxyMiddleware:
@@ -872,6 +878,8 @@ Playwright 是微软出品的新一代浏览器自动化框架（2020年发布�
 > 🏎️ **Playwright vs Selenium 怎么选？** Selenium 历史久，资料多；Playwright 速度更快、API 更优雅、内置等待更智能。如果是从头开始新项目，建议优先考虑 Playwright。如果要维护老项目，那还是 Selenium 吧。
 
 ### 24.3.1 安装与配置
+
+Playwright 要装两步：`pip install playwright` 装 Python 包，`playwright install` 下载浏览器二进制（Chromium、Firefox、WebKit）。两步都不能省，否则一运行就报找不到浏览器。
 
 ```bash
 # 安装 Playwright

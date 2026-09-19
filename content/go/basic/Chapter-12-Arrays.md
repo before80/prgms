@@ -164,12 +164,12 @@ func printArray(arr [5]int) {
 }
 
 func main() {
-
     arr5 := [5]int{1, 2, 3, 4, 5}
     arr10 := [10]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
-    printArray(arr5)   // 正确：类型是 [5]int
-    // printArray(arr10) // 错误：类型是 [10]int，不能传给 [5]int 的参数
+    printArray(arr5) // 正确：类型是 [5]int
+    _ = arr10        // arr10 是 [10]int 类型，和 [5]int 不是一回事，这里只是让它被"用到"
+    // printArray(arr10) // 错误：cannot use arr10 (variable of type [10]int) as [5]int value
 }
 ```
 
@@ -421,7 +421,6 @@ package main
 import "fmt"
 
 func main() {
-
     // 定义数组
     arr1 := [3]int{10, 20, 30}
     arr2 := [3]int{100, 200, 300}
@@ -437,10 +436,9 @@ func main() {
     fmt.Println("arr1:", arr1) // arr1: [10 20 30]
     fmt.Println("arr2:", arr2) // arr2: [10 20 30]
 
-    // 修改 arr1
+    // 修改 arr1，arr2 不受影响
     arr1[0] = 999
-
-    fmt.Println("修改 arr1 后:"
+    fmt.Println("修改 arr1 后:")
     fmt.Println("arr1:", arr1) // arr1: [999 20 30]
     fmt.Println("arr2:", arr2) // arr2: [10 20 30]（没变！）
 }
@@ -535,16 +533,17 @@ package main
 import "fmt"
 
 func main() {
-
     // 数组（值语义）
     arr := [3]int{1, 2, 3}
-    copy := arr // 拷贝整个数组
-    fmt.Println("数组赋值，拷贝了", len(arr), "个元素") // 数组赋值，拷贝了 3 个元素
+    arrCopy := arr // 拷贝整个数组
+    arrCopy[0] = 100
+    fmt.Println("数组赋值后，改副本不影响原数组:", arr, arrCopy) // [1 2 3] [100 2 3]
 
     // 切片（引用语义）
     slice := []int{1, 2, 3}
-    sliceCopy := slice // 只拷贝了指针（8字节），没拷贝数据
-    fmt.Println("切片赋值，只拷贝了指针")
+    sliceCopy := slice // 只拷贝了切片头（指针 + 长度 + 容量），没拷贝数据
+    sliceCopy[0] = 100
+    fmt.Println("切片赋值后，改副本会影响原切片:", slice, sliceCopy) // [100 2 3] [100 2 3]
 }
 ```
 
@@ -583,15 +582,16 @@ func badReturn() [1000000]int {
     return arr // 拷贝 100 万个元素！
 }
 
-// GOOD：返回切片（只拷贝指针）
+// GOOD：返回切片（只拷贝切片头）
 func goodReturn() []int {
     slice := make([]int, 1000000)
     slice[0] = 42
-    return slice // 只拷贝 8 字节的指针！
+    return slice // 只拷贝切片头，底层数组原地不动
 }
 
 func main() {
-    // ...
+    fmt.Println("大数组返回:", badReturn()[0])  // 大数组返回: 42
+    fmt.Println("切片返回:", goodReturn()[0])    // 切片返回: 42
 }
 ```
 
@@ -1116,14 +1116,15 @@ package main
 import "fmt"
 
 func main() {
-
     arr := [5]int{1, 2, 3, 4, 5}
 
     fmt.Println("arr[4]:", arr[4]) // arr[4]: 5
 
     // 越界访问！数组只有 5 个元素，索引最大是 4
-    // arr[5] 会 panic！
-    fmt.Println("arr[5]:", arr[5]) // panic: index out of bounds [5] with length 5
+    // 注意：如果写下常量下标 arr[5]，那是**编译期**错误；
+    // 想看到运行时的 panic，就得用变量下标：
+    idx := 5
+    fmt.Println("arr[5]:", arr[idx]) // panic: index out of range [5] with length 5
 }
 ```
 
@@ -1364,14 +1365,15 @@ package main
 import "fmt"
 
 func main() {
-
     // 切片不可比较，所以包含切片的数组也不可比较
-    // sliceArr := [2][]int{{1, 2}, {3, 4}}
-    // fmt.Println(sliceArr) // 编译错误：invalid operation: sliceArr == sliceArr2 (cannot compare slice)
+    sliceArr := [2][]int{{1, 2}, {3, 4}}
+    fmt.Println("sliceArr:", sliceArr) // sliceArr: [[1 2] [3 4]]
+    // sliceArr == sliceArr // 编译错误：invalid operation: slice can only be compared to nil
 
-    // map 也不可比较
-    // mapArr := [2]map[string]int{}
-    // fmt.Println(mapArr) // 编译错误
+    // map 同样不可比较
+    mapArr := [2]map[string]int{{"a": 1}, {"b": 2}}
+    fmt.Println("mapArr:", mapArr) // mapArr: [map[a:1] map[b:2]]
+    // mapArr == mapArr // 编译错误：invalid operation: map can only be compared to nil
 }
 ```
 
@@ -1426,11 +1428,11 @@ package main
 import "fmt"
 
 func main() {
-
     arr3 := [3]int{1, 2, 3}
     arr5 := [5]int{1, 2, 3, 4, 5}
 
-    // arr3 == arr5 // 编译错误！不同类型不能比较
+    fmt.Println("arr3:", arr3, "arr5:", arr5) // arr3: [1 2 3] arr5: [1 2 3 4 5]
+    // arr3 == arr5 // 编译错误！[3]int 和 [5]int 是不同类型，不能比较
 }
 ```
 
@@ -1778,8 +1780,8 @@ func main() {
 
     // 方式二：for range 循环
     fmt.Println("=== for range 循环 ===")
-    for i, row := range matrix {
-        for j, val := range row {
+    for _, row := range matrix {
+        for _, val := range row {
             fmt.Printf("%4d", val)
         }
         fmt.Println()
@@ -2175,7 +2177,6 @@ package main
 import "fmt"
 
 func main() {
-
     // 一个缓存行通常能存 8 个 int64（8 * 8 = 64 字节）
     // 所以访问 arr[0] 时，arr[1] ~ arr[7] 可能已经被预取到缓存了
 
@@ -2185,17 +2186,19 @@ func main() {
     }
 
     // 顺序访问：快（利用缓存预取）
+    sum := int64(0)
     for i := 0; i < 1000; i++ {
-        _ = arr[i]
+        sum += arr[i]
     }
 
     // 跳着访问：慢（缓存预取失效）
     for i := 0; i < 1000; i += 100 {
-        _ = arr[i]
+        sum += arr[i]
     }
+
+    fmt.Println("校验和:", sum) // 校验和: 4995000
 }
 ```
-
 ### 12.7.2 数组 vs 切片选择
 
 **什么时候用数组？**
@@ -2261,20 +2264,24 @@ func main() {
 ```go
 package main
 
-import "fmt"
+import (
+    "fmt"
+    "slices"
+)
 
 func main() {
-
-    // 数组：用 == 比较
+    // 数组：用 == 比较（逐元素比较）
     arr1 := [3]int{1, 2, 3}
     arr2 := [3]int{1, 2, 3}
     arr3 := [3]int{1, 2, 4}
-    fmt.Println("arr1 == arr2:", arr1 == arr2) // true
-    fmt.Println("arr1 == arr3:", arr1 == arr3) // false
+    fmt.Println("arr1 == arr2:", arr1 == arr2) // arr1 == arr2: true
+    fmt.Println("arr1 == arr3:", arr1 == arr3) // arr1 == arr3: false
 
-    // 切片：不能用 == 比较
+    // 切片：不能用 == 比较，只能和 nil 比
     s1 := []int{1, 2, 3}
     s2 := []int{1, 2, 3}
+    fmt.Println("s1 == nil:", s1 == nil)                        // s1 == nil: false
+    fmt.Println("slices.Equal(s1, s2):", slices.Equal(s1, s2)) // slices.Equal(s1, s2): true
     // fmt.Println(s1 == s2) // 错误！invalid operation: s1 == s2 (slice can only be compared to nil)
 }
 ```
@@ -2345,5 +2352,3 @@ func main() {
 - 数组越界访问会发生什么？
 
 如果能回答上来，说明你已经掌握了 Go 数组的精髓！
-
-

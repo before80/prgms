@@ -89,11 +89,21 @@ htop
 
 ```bash
 # 常用选项
-htop -d 10              # 10秒刷新
+htop -d 10              # ⚠️ 刷新间隔 1 秒（htop 的 -d 单位是"十分之一秒"！）
+htop -d 50              # 真正想要的"5 秒刷新"
 htop -u www-data         # 只显示某用户
 htop -p 1234,5678        # 显示特定进程
 htop --tree             # 显示进程树
 ```
+
+> ⚠️ **这里有个特别容易踩的坑**：`top` 的 `-d` 单位是**秒**，而 `htop` 的 `-d` 单位是**十分之一秒**。所以：
+>
+> | 想达到的效果 | top 写法 | htop 写法 |
+> |--------------|----------|-----------|
+> | 每 1 秒刷新 | `top -d 1` | `htop -d 10` |
+> | 每 5 秒刷新 | `top -d 5` | `htop -d 50` |
+>
+> 两个命令同名参数单位不同，是新手常见的困惑来源。htop 里也可以按 `F2` → Display options 直接改刷新间隔，不用记这个换算。
 
 htop 界面特色：
 - 可视化 CPU/内存/交换分区使用条
@@ -501,17 +511,22 @@ Grafana 是最流行的可视化平台，与 Prometheus 配合堪称完美。
 ### 安装 Grafana
 
 ```bash
-# Ubuntu/Debian
-sudo apt install -y apt-transport-https software-properties-common
-wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
-echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
-sudo apt update
-sudo apt install grafana
+# Ubuntu/Debian（现代做法：把 GPG 公钥放进独立 keyring，别再用 apt-key）
+sudo mkdir -p /etc/apt/keyrings
+sudo wget -q -O /etc/apt/keyrings/grafana.asc https://apt.grafana.com/gpg.key
+sudo chmod 644 /etc/apt/keyrings/grafana.asc
+echo "deb [signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main" \
+  | sudo tee /etc/apt/sources.list.d/grafana.list
+sudo apt update && sudo apt install -y grafana
 
 # 启动
-sudo systemctl start grafana-server
-sudo systemctl enable grafana-server
+sudo systemctl enable --now grafana-server
+
+# 验证（默认监听 3000 端口，首次登录 admin/admin，务必立刻改密码）
+sudo ss -lntp | grep 3000
 ```
+
+> ⚠️ 老教程里那句 `wget ... | sudo apt-key add -` **已经不能再用了**：`apt-key` 在 Debian 12 / Ubuntu 24.04 起被移除，而且它把公钥加进全局信任链的做法本身就不安全。现在一律用上面这种 `signed-by=` 的写法，每个软件源只信任自己的那把钥匙。
 
 ### 访问 Grafana
 

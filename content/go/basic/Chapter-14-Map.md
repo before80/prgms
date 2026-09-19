@@ -29,7 +29,7 @@ map 的类型声明长这样：
 var m map[K]V
 ```
 
-其中 `K` 是键的类型，`V` 是值的类型。`K` 必须是一个**可比较（comparable）**的类型——说白了就是可以用 `==` 和 `!=` 来比较的类型，因为 map 内部用哈希来组织键，你需要能比较两个键是否相等。
+其中 `K` 是键的类型，`V` 是值的类型。`K` 必须是一个**可比较（comparable）**的类型——说白了就是可以用 `==` 和 `!=` 来比较的类型，因为 map 内部既要对键做哈希，又要在桶里做相等比较。
 
 ```go
 var ages map[string]int      // 键是 string，值是 int
@@ -48,7 +48,7 @@ map 的键不能随便选，Go 对键类型有严格要求。
 以下类型可以作为 map 的键：
 
 - 所有整数类型（`int`、`int64`、`uint8` 等）
-- 浮点数类型（`float64`、`float32`）——注意：`NaN` 不能作为键，因为它不等于自身
+- 浮点数类型（`float64`、`float32`）——注意：`NaN` 可以当键**写进去**，但它不等于自身，所以**永远查不出来**，遍历时也只能看到一个 `NaN` 键。别拿 `NaN` 当键。
 - 字符串类型
 - 布尔类型
 - 复数类型
@@ -184,21 +184,23 @@ ages := map[string]int{
 fmt.Println(ages)  // map[Alice:30 Bob:25 Carol:35]
 ```
 
-#### 14.2.2.2 省略键类型
+#### 14.2.2.2 键类型能不能省略
 
-在 map 字面量中，如果上下文能推断出类型，键的类型可以省略（但这要求编译器能从右侧推断出完整的 map 类型）：
+很多初学者以为 map 字面量可以像复合字面量那样省类型，答案是不能：map 的**键类型必须显式写出来**。字面量里能省的是**值的复合字面量类型**。
 
 ```go
-// 完整写法
+// 键类型必须写出来
 m1 := map[string]int{"a": 1, "b": 2}
 
-// 省略类型（仅在短变量声明中有效）
-m2 := map[string]int{
-    "x": 10,  // 仍然需要键类型！
+// 能省的是“值的类型”：下面 Point 被省略了
+type Point struct{ X, Y int }
+m2 := map[string]Point{
+    "origin": {0, 0},
+    "unit":   {1, 1},
 }
 ```
 
-> 实际上 map 字面量的键类型不能完全省略——你必须写 `string` 在那里。这是因为 Go 的类型推断是从整体推断，而不是从键值对内容分着推断。
+> 一句话记住：map 字面量里键类型必须有，值的复合字面量类型可以省。
 
 ---
 
@@ -248,25 +250,26 @@ fmt.Println(m["Unknown"]) // 0 — string 键不存在，返回 int 的零值 0
 当查询一个不存在的键时，返回值的零值，但不报错。这有时候会导致意料之外的结果：
 
 ```go
-m := map[string]int{"Alice": 0}
+m := map[string]int{"Alice": 0, "Bob": 25}
 
-if v, ok := m["Alice"]; ok {
-    fmt.Println("Alice exists:", v)  // 如果键存在但值恰好是0，这里打印的是 0
-} else {
-    fmt.Println("Alice not found")
+// ❌ 危险写法：只看值，判断不出键到底在不在
+if m["Alice"] == 0 {
+    fmt.Println("以为 Alice 不存在")  // 会执行，但 Alice 明明存在，值就是 0
 }
-// 上面这段代码有问题！Alice 存在且值为 0，但 if 条件为 false（因为 ok 被赋值了...）
-// 实际上 ok 是 true，所以会打印 "Alice exists: 0"
-// 这里只是演示：值是零值不代表键不存在
 
-fmt.Println(m["Bob"]) // 0 — Bob 不存在，返回 int 零值 0
+// ✅ 正确写法：用 comma ok 判断
+if v, ok := m["Alice"]; ok {
+    fmt.Println("Alice 存在，值 =", v)  // Alice 存在，值 = 0
+}
+
+fmt.Println(m["Bob"]) // 25
 ```
 
 ### 14.3.2 存在检测
 
 #### 14.3.2.1 comma ok 惯用法
 
-Go 的 map 查询可以返回两个值：`**value, ok**`。`ok` 是一个布尔值，表示键是否真的存在：
+Go 的 map 查询可以返回两个值：`value, ok`。`ok` 是一个布尔值，表示键是否真的存在：
 
 ```go
 m := map[string]int{"Alice": 30, "Bob": 0}  // Bob 的值恰好是零值
@@ -350,10 +353,6 @@ fmt.Println(len(m))  // 2
 
 ---
 
-
-
----
-
 ## 14.4 map 遍历
 
 ### 14.4.1 range 遍历
@@ -372,7 +371,9 @@ for key, value := range m {
 // Carol -> 35
 ```
 
-### 14.4.1.1 键值遍历
+#### 14.4.1.1 同时拿键和值
+
+`range` 后面跟两个变量时，第一个是**键**，第二个是**值**（位置对应数组、切片的“下标, 元素”）：
 
 ```go
 m := map[string]int{"Alice": 30, "Bob": 25}
@@ -381,14 +382,22 @@ for key, value := range m {
 }
 ```
 
-### 14.4.1.2 键遍历
+#### 14.4.1.2 只要键，或者只要值
 
-如果你只需要键：
+只写一个变量时，拿到的是**键**而不是值——这一点常常和初学者的直觉相反：
 
 ```go
 m := map[string]int{"Alice": 30, "Bob": 25}
 for key := range m {
     fmt.Println(key)
+}
+```
+
+只要值，就把键用下划线丢掉：
+
+```go
+for _, value := range m {
+    fmt.Println(value)
 }
 ```
 
@@ -428,9 +437,9 @@ for k, v := range m {
 fmt.Println(m)  // map[a:1 c:3]
 ```
 
-**在遍历中插入元素是安全的（但行为有特殊性）：**
+**在遍历中插入元素不会 panic，但结果不确定：**
 
-在遍历中插入新键，Go 规范没有规定这些行为，且新键可能在当前遍历中出现也可能不出现：
+Go 规范对此的表述是：迭代过程中新增的键值对，**可能被遍历到、也可能不被遍历到**；删除的键值对，**可能被产出、也可能不被产出**。能跑出结果不代表结果可预期：
 
 ```go
 m := map[string]int{"a": 1}
@@ -558,9 +567,13 @@ flowchart LR
     C --> D["完成迁移<br/>新键值对写入新桶"]
 ```
 
-### 14.6.3 迭代稳定性
+### 14.6.3 迭代期间修改 map 有什么保证
 
-在 map 扩容过程中，迭代器会保证"每条键值对**恰好被访问一次**"，但可能会访问到一些键值对的旧位置和新位置。这是 Go 迭代器的设计保证。
+这里**没有**“每个元素恰好被访问一次”这种保证。
+
+如果扩容正好发生在遍历期间，同一个键甚至可能被你看到两次：迭代器从旧桶扫到新桶时，某个键可能既在旧桶里被扫到，又已经迁移到了新桶。所以实践中的结论只有一条——
+
+> **遍历时不要增删键。** 如果确实需要边遍历边删，先记下要删的键，遍历结束后再统一 `delete`。
 
 ---
 
@@ -623,6 +636,7 @@ fmt.Println(m)  // map[Alice:1 Bob:2 Carol:3]
 ### 14.7.2 更新模式
 
 #### 14.7.2.1 直接更新
+直接给已存在的键赋新值即可完成更新；键不存在时会顺带新建它：
 
 ```go
 m := map[string]int{"score": 10}
@@ -631,6 +645,7 @@ fmt.Println(m["score"]) // 20
 ```
 
 #### 14.7.2.2 条件更新（存在才更新）
+先判断键是否存在，再决定要不要更新，避免不小心创建出新的键：
 
 ```go
 m := map[string]int{"score": 10}
@@ -667,6 +682,7 @@ func addScore(key string, delta int) {
 ### 14.7.3 删除模式
 
 #### 14.7.3.1 单键删除
+用内置的 `delete` 函数删除指定键；删除一个不存在的键不会报错：
 
 ```go
 m := map[string]int{"Alice": 30, "Bob": 25}
@@ -705,6 +721,7 @@ fmt.Println(m)  // map[a:1 c:3]
 ### 14.7.4 查询模式
 
 #### 14.7.4.1 存在查询
+用「逗号 ok」惯用法判断键是否存在，这是 Go 里最常用的查询写法：
 
 ```go
 m := map[string]int{"Alice": 30, "Bob": 0}
@@ -722,13 +739,23 @@ if v, ok := m["Alice"]; ok {
 
 ```go
 m := map[string]int{"score": 100}
-defaultScore := 0
+const defaultScore = -1
 
-score := m["score"]     // 存在: 100
-missing := m["unknown"]  // 不存在: 0（零值）
-_ = defaultScore         // 未使用的变量演示
-fmt.Println(score, missing)  // 100 0
+// 想要“自己的默认值”而不是零值，就必须先判断键是否存在
+score := defaultScore
+if v, ok := m["score"]; ok {
+    score = v
+}
+fmt.Println(score) // 100
+
+missing := defaultScore
+if v, ok := m["missing"]; ok {
+    missing = v
+}
+fmt.Println(missing) // -1
 ```
+
+> 只有当“零值”恰好就是你要的默认值时，才可以偷懒直接写 `score := m[key]`。
 
 #### 14.7.4.3 多键查询
 
@@ -754,6 +781,7 @@ fmt.Println(result)  // map[Alice:30 Carol:35] — David 不存在，自动过�
 ### 14.7.5 遍历模式
 
 #### 14.7.5.1 全量遍历
+`for range` 是遍历 map 的标准写法，注意每次遍历的顺序都是随机的：
 
 ```go
 m := map[string]int{"Alice": 30, "Bob": 25}
@@ -827,6 +855,7 @@ func main() {
 ### 14.7.6 转换模式
 
 #### 14.7.6.1 map 转 slice（键提取）
+把 map 的所有键收集成一个切片：
 
 ```go
 m := map[string]int{"Alice": 30, "Bob": 25}
@@ -839,6 +868,7 @@ fmt.Println(keys)  // [Alice Bob]（顺序随机）
 ```
 
 #### 14.7.6.2 map 转 slice（值提取）
+把 map 的所有值收集成一个切片：
 
 ```go
 m := map[string]int{"Alice": 30, "Bob": 25}
@@ -851,6 +881,7 @@ fmt.Println(values)  // [30 25]（顺序随机）
 ```
 
 #### 14.7.6.3 map 转 slice（键值对提取）
+如果需要同时保留键和值，可以把它们装进一个结构体切片：
 
 ```go
 m := map[string]int{"Alice": 30, "Bob": 25}
@@ -859,10 +890,11 @@ pairs := make([][2]any, 0, len(m))
 for k, v := range m {
     pairs = append(pairs, [2]any{k, v})
 }
-fmt.Println(pairs)  // [Alice 30] [Bob 25]（顺序随机）
+fmt.Println(pairs)  // [[Alice 30] [Bob 25]]（元素顺序随机）
 ```
 
 #### 14.7.6.4 slice 转 map
+把切片按某个字段转成 map，通常用于按名字快速查找：
 
 ```go
 names := []string{"Alice", "Bob", "Carol"}
@@ -1092,16 +1124,16 @@ for group, members := range groups {
 和切片一样，预分配容量可以减少 map 扩容的次数：
 
 ```go
-// 不预分配
+// 不预分配：插入过程中会反复触发扩容
 m := make(map[string]int)
 for i := 0; i < 10000; i++ {
-    m[string(rune(i))] = i
+    m[strconv.Itoa(i)] = i
 }
 
-// 预分配
+// 预分配：告诉运行时“我大概要放 10000 个键值对”，避免中途多次扩容
 m2 := make(map[string]int, 10000)
 for i := 0; i < 10000; i++ {
-    m2[string(rune(i))] = i
+    m2[strconv.Itoa(i)] = i
 }
 ```
 
@@ -1123,7 +1155,7 @@ strMap := make(map[string]string, 1000)
 
 ### 14.9.3 避免装箱
 
-用空接口 `interface{}` 或泛型 `any` 作为键时，会发生**装箱（boxing）**——把具体类型包装成 interface，这会引入额外的内存分配和哈希计算开销：
+用空接口 `interface{}`（也就是 `any`）作为键时，具体类型要先进接口值里，这通常会带来额外的内存分配和一层间接的哈希计算，一般比直接用具体类型慢：
 
 ```go
 // 装箱：有额外开销
@@ -1208,36 +1240,37 @@ fmt.Println(result)  // a:1b:2c:3 — 每次都相同！
 Go 的 map 底层是一个**哈希表（Hash Table）**，每个 map 的底层结构大致如下：
 
 ```go
-// runtime.hmap 的简化版本
+// runtime.hmap 的简化版本（字段顺序与含义都和源码一致）
 type hmap struct {
-    count     int         // 键值对数量
-    flags     uint8      // 状态标志
-    B         uint8       // 桶数量的对数，即 2^B = 桶数量
-    nbuckets  uintptr     // 桶数量
-    keysize   uint8       // 键的大小
-    valuesize uint8       // 值的大小
-    buckets   unsafe.Pointer  // 指向桶数组的指针
-    oldbuckets unsafe.Pointer // 扩容时指向旧桶数组
+    count      int             // 当前键值对数量，len(m) 直接返回它
+    flags      uint8           // 状态标志：是否正在写、是否正在扩容等
+    B          uint8           // 桶数量的对数，即桶数量 = 2^B
+    noverflow  uint16          // 溢出桶的大致数量
+    hash0      uint32          // 哈希种子，每个 map 随机生成
+    buckets    unsafe.Pointer  // 指向桶数组（2^B 个桶）
+    oldbuckets unsafe.Pointer  // 扩容期间指向旧桶数组，大小是 buckets 的一半
+    nevacuate  uintptr         // 已迁移的桶数——增量扩容的进度
+    extra      *mapextra       // 溢出桶等可选信息，多数 map 为 nil
 }
 ```
+
+> 注意：源码里**没有** `nbuckets` 字段，桶数量由 `1<<hmap.B` 算出来；键和值的大小也不存在这里，而是由编译器为每个具体 map 类型生成。
 
 ### 14.11.2 桶结构
 
 map 的底层桶（bucket）是一个固定大小的数组，每个桶可以存储 8 个键值对：
 
 ```go
-// 桶的结构（简化）
+// 桶在内存中的实际布局（简化；keytype/valuetype 由编译器按具体 map 类型填充）
 type bmap struct {
-    // 8个键
-    keys     [8]keytype
-    // 8个值
-    values   [8]valuetype
-    // 溢出指针，指向下一个溢出桶
-    overflow unsafe.Pointer
-    // 8个键的哈希值的高8位，用于快速查找
-    tophash  [8]uint8
+    tophash  [8]uint8      // 先放 8 个键的哈希高 8 位，用于快速筛查
+    keys     [8]keytype    // 再放 8 个键
+    values   [8]valuetype  // 再放 8 个值
+    // 最后跟一个溢出指针 *bmap，由编译器隐式添加
 }
 ```
+
+> 顺序很关键：`tophash` 在最前面，键在值之前。运行时先扫 `tophash` 就能一次性排除大半槽位，不必逐个比较完整的键。
 
 > 为什么要存 tophash？因为比较两个键是否相等需要完整比较键内容（可能很大），但比较 tophash（一个字节）很快。如果 tophash 不相等，键肯定不相等，跳过这个槽位。只有 tophash 相同时，才真正比较键内容。
 
@@ -1263,11 +1296,15 @@ flowchart LR
 
 ### 14.11.5 哈希函数
 
-Go 使用 **AeroSpace 的 hash**（也叫.goarchHash），这是一个高质量的哈希函数，对各种类型的键都有良好的分布特性。Go 的哈希函数是**编译器为每种类型自动选择的**，不需要手动指定。
+Go 的哈希函数实现在运行时中（`runtime.memhash`、`runtime.strhash`、`runtime.f32hash` 等），由**编译器按键的具体类型自动选择**，使用者既不需要也无法手动指定。几个值得记住的点：
+
+- 在 amd64 上，它使用基于 AES 指令的算法（通常称为 aeshash）；arm64 上也有对应的硬件加速实现。
+- 从 Go 1.19 起，没有硬件加速可用的平台改用类 wyhash 的算法，比旧实现更快、分布也更好。
+- 每个 map 都带有一个**随机哈希种子**（`hmap.hash0`）。这正是同一个程序每次运行、map 遍历顺序都不一样的根本原因：种子变了，哈希分布就变了，桶的排列自然也变了。
 
 ### 14.11.6 冲突解决
 
-Go 的 map 使用**链地址法（separate chaining）**解决哈希冲突——同一个桶内的多个键值对通过链表（实际上是溢出桶链）组织在一起。
+Go 的 map 用的是“桶内开放寻址 + 桶外溢出链”的混合策略：每个桶只有 8 个槽位，发生冲突时先占用本桶的空槽；8 个槽位都满了，才挂一个新的溢出桶，形成链表。所以它既不是纯粹的开放寻址，也不是教科书里那种“每个桶挂一条链表”的链地址法。
 
 ---
 
@@ -1288,7 +1325,15 @@ Go 的 map 使用**链地址法（separate chaining）**解决哈希冲突——
 
 ### 14.12.2 性能对比
 
-`sync.Map` 在高并发读场景下比加锁的普通 map 更快，因为它使用了**分段锁（sharding）**的技术——把数据分成多个 shard，每个 shard 有自己的锁，读操作大多时候不需要加锁。
+`sync.Map` 在高并发读场景下比加锁的普通 map 更快，但它**不是**靠分段锁做到的（分段锁是 Java `ConcurrentHashMap` 那一派的做法）。它的真实结构是：
+
+- 一份只读的 `read` map，通过 `atomic.Pointer` 原子读取，读操作**完全不加锁**；
+- 一份可写的 `dirty` map，由一把普通的 `Mutex` 保护；
+- 当只读视图连续未命中达到一定次数，就把 `dirty` 整体提升为新的 `read`（写时复制）。
+
+代价是写操作往往要同时维护两份结构，所以写多的时候它反而比“普通 map + 锁”更慢。
+
+> ⚠️ 下面这段只是**粗略的计时演示**，用来感受两者的量级差异，它不是严谨的基准测试。真正的性能测试应该写成 `_test.go` 里的 `func BenchmarkXxx(b *testing.B)`，用 `go test -bench . -benchmem` 运行，并用 `-count` 多次取样。
 
 ```go
 import (
@@ -1297,8 +1342,8 @@ import (
     "time"
 )
 
-// BenchmarkMap 普通 map + Mutex 的并发性能测试
-func BenchmarkMap() {
+// timeMutexMap 普通 map + Mutex 的并发计时演示
+func timeMutexMap() {
     var mux sync.Mutex
     m := make(map[string]int)
 
@@ -1321,8 +1366,8 @@ func BenchmarkMap() {
     fmt.Printf("Mutex map: %v\n", time.Since(start))
 }
 
-// BenchmarkSyncMap sync.Map 的并发性能测试
-func BenchmarkSyncMap() {
+// timeSyncMap sync.Map 的并发计时演示
+func timeSyncMap() {
     var m sync.Map
 
     var wg sync.WaitGroup
@@ -1347,9 +1392,9 @@ func BenchmarkSyncMap() {
 }
 
 func main() {
-    fmt.Println("Running benchmarks...")
-    BenchmarkMap()
-    BenchmarkSyncMap()
+    fmt.Println("运行计时演示...")
+    timeMutexMap()
+    timeSyncMap()
 }
 ```
 
@@ -1362,11 +1407,7 @@ func main() {
 
 ---
 
-
-
----
-
-# 本章小结
+## 本章小结
 
 map 是 Go 语言的哈希表实现，它用键值对的方式存储数据，提供了近似 O(1) 的查找、插入、删除性能。map 是引用类型，和切片一样，赋值和传参都只是复制了 map 的"头部指针"，底层数据结构是共享的。
 
@@ -1378,10 +1419,10 @@ map 是 Go 语言的哈希表实现，它用键值对的方式存储数据，提
 
 3. **基本操作**：插入/更新用 `m[k]=v`，查询用 `m[k]`（返回零值），存在性检测用 `value, ok := m[k]` 这个 comma ok 惯用法，删除用 `delete(m, k)`，长度用 `len(m)`。
 
-4. **遍历顺序**：map 的遍历顺序是随机的，每次运行都可能不同。如需有序输出，先用 `sort.Strings` 对键排序再遍历：
+4. **遍历顺序**：map 的遍历顺序是随机的，每次运行都可能不同。如需有序输出，先把键取出来排序再遍历（Go 1.21+ 用 `slices.Sort`，更早的版本用 `sort.Strings`）：
 
 ```go
-import "sort"
+import "slices"
 
 m := map[string]int{"c": 3, "a": 1, "b": 2}
 
@@ -1396,7 +1437,7 @@ keys := make([]string, 0, len(m))
 for k := range m {
     keys = append(keys, k)
 }
-sort.Strings(keys)
+slices.Sort(keys)
 for _, k := range keys {
     fmt.Print(k, m[k])  // a1b2c3 — 每次都相同
 }
@@ -1414,4 +1455,3 @@ fmt.Println()
 9. **高级用法**：用 `map[T]struct{}` 模拟 Set、缓存模式、计数器模式、分组模式。map 和 slice 之间可以相互转换（提取键、值、键值对）。
 
 10. **sync.Map 选择**：读多写少的并发场景用 `sync.Map`，否则优先用普通 map + mutex。
-

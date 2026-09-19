@@ -412,13 +412,28 @@ graph LR
 ID 选择器的最大特点就是**唯一性**——每个 ID 在整个页面中只能出现一次。这就像身份证号，全中国14亿人，没有两个人的身份证号是一样的。
 
 ```css
-/* ⚠️ 错误示范：一个页面出现多个相同的 id */
+/* 注意区分两件事：
+   1. CSS 里写两条同名的 #header 规则是合法的，后写的会覆盖先写的（这是正常的层叠） */
 #header { background: blue; }
-#header { background: red; }  /* 浏览器会一脸懵，不知道该听谁的 */
+#header { background: red; }   /* 合法：最终是红色 */
 
-/* ✅ 正确做法：一个 id 只出现一次 */
-/* #header { background: blue; } */
+/* 2. 真正违规的是 HTML 里给多个元素写了同一个 id */
+#header { background: red; }
 ```
+
+```html
+<!-- ❌ 错误：同一个页面里 id 重复了 -->
+<header id="header">主导航</header>
+<div id="header">侧边栏</div>
+<!-- 浏览器不会报错，但 getElementById('header') 只会拿到第一个，
+     CSS 也会同时命中这两个元素，页面行为变得难以预测 -->
+
+<!-- ✅ 正确：id 唯一，需要复用的用 class -->
+<header id="header" class="site-header">主导航</header>
+<div class="site-header">侧边栏</div>
+```
+
+> 📌 记住这个区别：**"id 必须唯一"约束的是 HTML 文档**，而不是 CSS 里规则写了几条。ID 用重复了，浏览器既不报错也不"懵"，它只会默默按自己的规则来（选中所有匹配元素、`getElementById` 返回第一个），这正是它危险的地方——错误不会当场暴露。
 
 **ID 选择器的优先级是最高的（仅次于内联样式）：**
 
@@ -743,6 +758,23 @@ img[src^="image/"] {
 }
 ```
 
+> ⚠️ **`[class^="..."]` 的陷阱**：`^=` 比较的是**整个 `class` 属性值**的开头，而不是"是否含有某个以它开头的类"。所以：
+>
+> ```html
+> <button class="btn-primary">✅ 匹配</button>
+> <button class="btn-primary btn-large">✅ 匹配（字符串开头就是 btn-）</button>
+> <button class="btn btn-primary">❌ 不匹配！class 值是以 "btn " 开头的</button>
+> ```
+>
+> 也就是说，只要元素**先写了别的类**，`[class^="btn-"]` 就失效了。这类"按类名前缀批量选元素"的写法非常脆弱，实际项目中更推荐直接写成多个显式选择器：
+>
+> ```css
+> /* 更稳妥：明确列出每个类 */
+> .btn-primary,
+> .btn-danger,
+> .btn-success { /* 公共样式 */ }
+> ```
+
 ### 6.5.4 [attr$=value]——属性值以指定值结尾
 
 ```css
@@ -803,6 +835,9 @@ img[src*="avatar"] {
   border-left: 3px solid #3498db;
 }
 
+/* ⚠️ 注意 * 的副作用：它匹配的是"子串"，
+   所以 .interactive、.reactive、.deactivate 这类类名也会被误命中 */
+
 /* 选中所有 title 中包含 "重要" 的元素 */
 [title*="重要"] {
   color: #e74c3c;
@@ -836,16 +871,68 @@ input[type="text" s] {
 }
 ```
 
+> 📌 **关于默认的大小写敏感性，有一个容易搞错的细节**：
+>
+> - `i` / `s` 是选择器层面的"强制开关"，写在属性值后面，只影响这一条选择器；
+> - 不加修饰符时，**比较规则由文档语言决定**。在 HTML 文档里，一批"遗留属性"（包括 `type`、`rel`、`dir`、`lang`、`target`、`method`、`media` 等）默认就是**大小写不敏感**的，所以 `input[type="text"]` 其实也能匹配 `type="TEXT"`；
+> - 而绝大多数自定义属性（如 `data-status`）和你自己写的 `class` 值是**大小写敏感**的，这时才需要 `i`。
+>
+> 结论：`i` 最实用的场景是自己的 `data-*`、`class`、`id` 属性，而 `type="text"` 这类可以不写——写了也无害，只是更加明确。
+
 **属性选择器汇总表：**
 
 | 选择器 | 说明 | 示例 |
 |--------|------|------|
 | `[attr]` | 具有该属性的元素 | `a[href]` |
 | `[attr=value]` | 属性值完全等于 | `input[type="text"]` |
+| `[attr~=value]` | 属性值中**有一个空格分隔的词**等于 value | `[class~="btn"]` |
+| `[attr|=value]` | 属性值等于 value，或以 `value-` 开头 | `[lang|="en"]` |
 | `[attr^=value]` | 属性值以...开头 | `a[href^="http"]` |
 | `[attr$=value]` | 属性值以...结尾 | `a[href$=".pdf"]` |
 | `[attr*=value]` | 属性值包含... | `a[href*="google"]` |
 | `[attr=value i]` | 大小写不敏感 | `div[class="btn" i]` |
+
+### 6.5.7 [attr~=value] 与 [attr|=value]——两个更"聪明"的匹配方式
+
+这两个选择器常被忽略，但在处理空格分隔的属性和语言标记时非常有用。
+
+```css
+/* ========== [attr~=value]：匹配"其中一个完整的词" ========== */
+
+/* 选中 class 属性里含有独立单词 "btn" 的元素 */
+[class~="btn"] {
+  cursor: pointer;
+}
+/* class="btn"           → ✅ 匹配
+   class="btn btn-lg"     → ✅ 匹配（有独立的 btn 这个词）
+   class="btn-primary"    → ❌ 不匹配（"btn-primary" 是一个词，不是 "btn"）*/
+
+/* 这和 [class*="btn"] 的区别很关键：
+   [class*="btn"] 会误命中 btn-primary、my-btn，因为它只看子串 */
+
+/* 类似的还有 rel 属性（rel="noopener noreferrer" 这种多关键词写法）*/
+a[rel~="noopener"] {
+  /* ... */
+}
+
+/* ========== [attr|=value]：精确值或"值-后缀" ========== */
+
+/* 选中英语内容（en、en-US、en-GB 都会命中）*/
+[lang|="en"] {
+  quotes: "“" "”" "‘" "’";
+}
+/* lang="en"      → ✅ 匹配
+   lang="en-US"   → ✅ 匹配
+   lang="enlive"  → ❌ 不匹配（连字符后必须还有内容）
+   lang="zh-CN"   → ❌ 不匹配 */
+
+/* 另一种经典用法：区分不同语言的字体 */
+:lang(zh) {
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+```
+
+> 💡 小提示：`[lang|="en"]` 和伪类 `:lang(en)` 都能处理语言，但 `:lang()` **更准确**——它会考虑继承（父元素写 `lang="en"` 时，子元素也匹配），而属性选择器只匹配元素自身的属性。
 
 **属性选择器实战应用：**
 
@@ -927,7 +1014,7 @@ graph LR
 | 类选择器 | `.btn` | 选中所有该类，可复用 |
 | ID 选择器 | `#header` | 页面唯一，权重最高 |
 | 通用选择器 | `*` | 选中所有元素 |
-| 属性选择器 | `[href]`, `[type="text"]` | 按属性筛选 |
+| 属性选择器 | `[href]`, `[type="text"]`, `[class~="btn"]`, `[lang\|="en"]` | 按属性筛选 |
 
 ### 选择器权重速查
 
@@ -939,6 +1026,8 @@ graph LR
   1000（内联）> 100（ID）> 10（类）> 1（标签）> 0（通用）
 ```
 
+> 📌 这里的数字是便于记忆的简化写法。规范其实用 `(A, B, C)` 三个计数器比较：A 数 ID、B 数类/属性/伪类、C 数元素/伪元素，比较时从左往右逐位比大小，不存在"10 个类顶 1 个 ID"的进位。属性选择器 `[type="text"]` 和伪类 `:hover` 都算 B 那一档（相当于 10 分）。特殊的是 `:not()`、`:is()`、`:where()` 这类函数式伪类：`:not()`/`:is()` 取括号内**最高**的特异性，`:where()` 则**整个为 0**。
+
 ### 实战建议
 
 1. **样式用类，定位用 ID**：日常样式开发以类选择器为主
@@ -949,8 +1038,3 @@ graph LR
 ### 下章预告
 
 下一章我们将学习组合选择器与伪类，这是 CSS 选择器的"高级玩法"。通过组合选择器，你可以选中那些"嵌套在某个元素里面的某个元素"；通过伪类，你可以选中那些"第一个""最后一个""鼠标悬停的"元素。准备好了吗？
-
-
-
-
-

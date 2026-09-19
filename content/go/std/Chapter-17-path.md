@@ -632,12 +632,6 @@ func main() {
 
 **Match 语法速查表：**
 
-```mermaid
-table
-左列["通配符"]
-右列["含义"]
-```
-
 | 模式 | 含义 | 示例 |
 |------|------|------|
 | `*` | 匹配任意字符（包括空） | `*.txt` 匹配 `a.txt`、`file.txt` |
@@ -1683,12 +1677,6 @@ filepath.Join: home\user\file.txt
 ```
 
 **Separator 在不同系统：**
-
-```mermaid
-table
-左列["操作系统"]
-右列["Separator 值"]
-```
 
 | 操作系统 | Separator | ASCII |
 |---------|-----------|-------|

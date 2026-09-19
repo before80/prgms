@@ -65,23 +65,19 @@ function Level5({ user }) {
 
 ```mermaid
 flowchart TD
-    A["App（数据源头）\n提供 Theme / User"] --> B["Level1（路过）"]
-    B --> C["Level2（路过）"]
-    C --> D["Level3（路过）"]
-    D --> E["DeepChild（直接拿到数据）"]
-
-    subgraph "Props Drilling 模式"
-        A -.->|"props.user| user"| B
-        B -.->|"props.user| user"| C
-        C -.->|"props.user| user"| D
-        D -.->|"props.user| user"| E
+    subgraph drill[Props Drilling：一层一层手动传]
+        A1["App（数据源头）"] -->|"props.user = user"| B1["Level1"]
+        B1 -->|"props.user = user"| C1["Level2"]
+        C1 -->|"props.user = user"| D1["Level3"]
+        D1 -->|"props.user = user"| E1["DeepChild"]
     end
 
-    subgraph "Context 模式"
-        A --"ThemeContext.Provider\nUserContext.Provider"--> B
-        B --"直接路过，不需要传"| C
-        C --"直接路过，不需要传"| D
-        D --"直接路过，不需要传"| E
+    subgraph ctx[Context：跨层直达]
+        A2["App（数据源头）"] --> B2["Level1（不用 props）"]
+        B2 --> C2["Level2（不用 props）"]
+        C2 --> D2["Level3（不用 props）"]
+        D2 --> E2["DeepChild<br/>useContext 直接取"]
+        A2 -.->|"ThemeContext / UserContext"| E2
     end
 ```
 

@@ -169,15 +169,11 @@ func main() {
 
 ```mermaid
 graph TD
-    A[Source 底层] --> B[Rand 上层]
-    A:---|"Seed + 算法<br/>确定性"|A
-    B:---|"便捷方法<br/>线程不安全"|B
-    A -->|Int()|B
-    B -->|用户调用|B
-    A1[rand.Source] -->|接口|A
-    A2[rand.NewSource] -->|创建函数|A
-    B1[rand.Rand] -->|结构体|B
-    B2[rand.New] -->|创建函数|B
+    A["rand.Source 接口<br/>只负责产出随机数序列（种子 + 算法，结果可复现）"] -->|"Int63() 等"| B["rand.Rand 结构体<br/>提供 Intn / Float64 等便捷方法"]
+    A1["rand.NewSource(seed)"] -->|"创建"| A
+    B1["rand.New(src)"] -->|"创建"| B
+    P["math/rand 包级函数<br/>rand.Intn() 等"] -->|"内部用加锁的全局 Source<br/>并发安全 ✅"| B
+    B -->|"自己 new 出来的 Rand<br/>并发调用不安全 ❌"| Q["多协程下需要自己加锁"]
 ```
 
 - **Source（源）：** 负责用种子和算法产生随机数序列。它是个接口，定义了 `Int63() int64` 和 `Seed(int64)` 方法。
@@ -790,12 +786,12 @@ func main() {
 
 ```mermaid
 graph LR
-    A[硬件噪声] --> B[OS 熵源]
-    A --> C[系统调用]
-    B --> D[/dev/urandom<br/>CryptGenRandom]
+    A["硬件噪声"] --> B["操作系统熵源"]
+    A --> C["系统调用"]
+    B --> D["/dev/urandom（Linux/macOS）<br/>BCryptGenRandom（Windows）"]
     C --> D
-    D --> E[crypto/rand.Reader]
-    E --> F[密钥生成<br/>Nonce 初始化<br/>盐值]
+    D --> E["crypto/rand.Reader"]
+    E --> F["密钥生成<br/>Nonce 初始化<br/>盐值"]
 ```
 
 ```go

@@ -23,25 +23,27 @@ ls -la /
 # total 128
 # drwxr-xr-x  25 root root 4096 Jan 15 00:00 .
 # drwxr-xr-x   2 root root 4096 Jan 15 00:00 ..
-# drwxr-xr-x   2 root root 4096 Jan 15 00:00 bin
-# dr-xr-xr-x   1 root root 4096 Jan 15 00:00 boot
-# drwxr-xr-x  18 root root 4096 Jan 15 00:00 dev
-# drwxr-xr-x  18 root root 4096 Jan 15 00:00 etc
-# drwxr-xr-x   3 root root 4096 Jan 15 00:00 home
-# dr-xr-xr-x  20 root root 4096 Jan 15 00:00 lib
-# drwxr-xr-x   3 root root 4096 Jan 15 00:00 media
+# lrwxrwxrwx   1 root root    7 Jan 15 00:00 bin -> usr/bin
+# drwxr-xr-x   3 root root 4096 Jan 15 00:00 boot
+# drwxr-xr-x  18 root root 4000 Jan 15 00:00 dev
+# drwxr-xr-x  95 root root 4096 Jan 15 00:00 etc
+# drwxr-xr-x   4 root root 4096 Jan 15 00:00 home
+# lrwxrwxrwx   1 root root    7 Jan 15 00:00 lib -> usr/lib
+# drwxr-xr-x   2 root root 4096 Jan 15 00:00 media
 # drwxr-xr-x   2 root root 4096 Jan 15 00:00 mnt
-# drwxr-xr-x   2 root root 4096 Jan 15 00:00 opt
-# dr-xr-x    2 root root 4096 Jan 15 00:00 proc
-# dr-xr-x   3 root root 4096 Jan 15 00:00 root
-# drwxr-xr-x  18 root root 4096 Jan 15 00:00 run
-# drwxr-xr-x  18 root root 4096 Jan 15 00:00 sbin
-# drwxr-xr-x   3 root root 4096 Jan 15 00:00 srv
-# dr-xr-x   2 root root 4096 Jan 15 00:00 sys
-# drwxr-xr-x  17 root root 4096 Jan 15 00:00 tmp
+# drwxr-xr-x   3 root root 4096 Jan 15 00:00 opt
+# dr-xr-xr-x 200 root root    0 Jan 15 00:00 proc
+# drwx------   4 root root 4096 Jan 15 00:00 root      ← 注意是 700
+# drwxr-xr-x  30 root root  800 Jan 15 00:00 run
+# lrwxrwxrwx   1 root root    8 Jan 15 00:00 sbin -> usr/sbin
+# drwxr-xr-x   2 root root 4096 Jan 15 00:00 srv
+# dr-xr-xr-x  13 root root    0 Jan 15 00:00 sys
+# drwxrwxrwt  12 root root 4096 Jan 15 00:00 tmp       ← 注意末尾的 t（Sticky Bit）
 # drwxr-xr-x  11 root root 4096 Jan 15 00:00 usr
-# drwxr-xr-x  25 root root 4096 Jan 15 00:00 var
+# drwxr-xr-x  13 root root 4096 Jan 15 00:00 var
 ```
+
+> **上面的权限位值得多看两眼**：`/root` 是 `drwx------`（700，只有 root 能进）；`/tmp` 是 `drwxrwxrwt`（1777，人人可写，但**只有文件所有者能删自己的文件**，末尾的 `t` 就是粘滞位）；`/proc` 和 `/sys` 是内核动态生成的虚拟目录，大小显示为 0 是正常的。**不同发行版、不同机器上的条目数和权限会有差异，别把这份示例当成"标准答案"。**
 
 > 小技巧：根目录的路径是 `/`（斜杠）。记住这个符号！它是 Linux 里最重要的符号，没有之一！路径以 `/` 开头表示从根目录开始，叫**绝对路径**！
 
@@ -100,10 +102,11 @@ ls /bin | head -20
 # ps      # 查看进程
 # kill    # 终止进程
 # pwd     # 显示当前目录
-# cd      # 切换目录（Shell 内置，但历史上在 /bin）
 ```
 
 > 小知识：/bin 里的命令是**所有用户都能用**的，不管你是普通用户还是 root 用户。这里的"binaries"指的是编译好的可执行文件，不是"二进制数据"的意思！
+
+> **顺带纠正一个常见误会**：`cd`、`echo`、`pwd` 里，`cd` 是**Shell 内置命令**，`/bin` 里根本**没有**这个文件——所以 `ls /bin/cd` 会报"没有那个文件"。而 `echo`、`pwd` 两者都有：既内置，也有独立的 `/usr/bin/echo`。想知道你敲的到底是哪一个，用 `type cd`、`type echo` 看（下一节会讲）。
 
 ### /bin vs /usr/bin
 
@@ -140,15 +143,17 @@ ls /sbin | head -20
 # mount      # 挂载文件系统
 # umount     # 卸载文件系统
 # lvm        # 逻辑卷管理工具
-# raidstart  # 启动 RAID
-# iwconfig   # 无线网络配置
-# iptables   # 防火墙配置
+# ip         # 现代网络配置（替代 ifconfig/route）
+# nft        # 新一代防火墙工具
+# iptables   # 传统防火墙配置
 # reboot     # 重启系统
 # halt       # 关机
 # poweroff   # 关闭电源
 ```
 
 > 对比一下：/bin 是"生活必需品"（谁都需要），/sbin 是"专业工具"（管理员专用）。就像普通感冒去药房买药 vs 去医院做手术！
+
+> **"命令在哪"这件事已经越来越模糊**：在做了 `/usr` 合并（UsrMerge）的系统上，`/sbin` 只是 `/usr/sbin` 的符号链接，而 `/usr/sbin` 也常常在普通用户的 `PATH` 里。所以**别再靠"命令在 /sbin 还是 /bin"来判断它是否需要 root 权限**——该不该用 `sudo`，看命令本身和你要操作的对象。
 
 ---
 
@@ -327,6 +332,10 @@ cat /etc/resolv.conf
 # resolv.conf 格式：
 # nameserver IP地址   # DNS 服务器地址
 ```
+
+> ⚠️ **别直接改 `/etc/resolv.conf` 就以为搞定了**：在现代系统上它多半是**符号链接**，由 NetworkManager、systemd-resolved 或 DHCP 客户端自动生成，**重启或重连网络后你的修改就没了**。正确做法是通过 Netplan / NetworkManager 配置 DNS；想确认它是不是软链接，用 `ls -l /etc/resolv.conf`，想知道当前真正生效的 DNS，用 `resolvectl status`。详细说明见第三十章。
+
+> **关于 `/etc/hosts` 里的 `127.0.1.1`**：那是 Debian/Ubuntu 的约定——把主机名解析到本机的一个环回地址上。别的发行版（如 RHEL）通常不写这一行。它不是"错误"，只是发行版习惯不同。
 
 | nameserver | DNS 服务器 | 说明 |
 |------------|-----------|------|
@@ -1013,7 +1022,6 @@ ls -la /var/log/nginx/
 sudo tail -20 /var/log/nginx/access.log
 
 # 输出示例：
-# 192.168.1.100 - - [15/Jan/2024:10:30:00 +080
 # 192.168.1.100 - - [15/Jan/2024:10:30:00 +0800] "GET / HTTP/1.1" 200 612 "-" "Mozilla/5.0..."
 # 192.168.1.101 - - [15/Jan/2024:10:31:00 +0800] "GET /api/users HTTP/1.1" 404 162 "-" "curl/7.68.0"
 ```
@@ -1168,6 +1176,16 @@ sudo rm -rf /tmp/*
 # 查看 /tmp 大小
 du -sh /tmp
 ```
+
+> **几点补充（`/tmp` 的坑比想象中多）**：
+> - `/tmp` 带**粘滞位**（`drwxrwxrwt`），所以"所有人可写"不等于"能删别人的文件"；每个人只能删自己的文件。
+> - 很多系统把 `/tmp` 挂成 **tmpfs（内存盘）**，重启即清空——你可以用 `findmnt /tmp` 确认。这意味着**放在 /tmp 的大文件会吃掉内存**。
+> - 清理请用系统自带的机制，而不是 `rm -rf /tmp/*`：
+>   ```bash
+>   systemd-tmpfiles --clean          # 按 /etc/tmpfiles.d 的规则清理旧文件
+>   ```
+>   `rm -rf /tmp/*` 连**隐藏文件都删不掉**（`*` 不匹配 `.` 开头），还可能删掉正在运行的程序的 socket 文件，引发莫名其妙的故障。
+> - 需要"重启后保留"的临时文件，应该放 `/var/tmp`——按 FHS 约定它比 `/tmp` 更"持久"。
 
 ---
 
@@ -1357,10 +1375,16 @@ ls /dev
 # zero    # 零设备
 # random  # 随机数设备
 # urandom # 快速随机数设备
-# tty/    # 终端设备
-# sda/    # 第一块硬盘
-# sda1/   # 第一块硬盘的第一个分区
+# tty     # 当前终端设备
+# tty0    # 第一个虚拟控制台
+# sda     # 第一块 SATA/SCSI 硬盘（是块设备，不是目录！）
+# sda1    # 第一块硬盘的第一个分区
+# nvme0n1 # 第一块 NVMe SSD
+# stdin -> /proc/self/fd/0    # 标准输入（指向进程自己的 fd）
+# stdout -> /proc/self/fd/1   # 标准输出
 ```
+
+> **`/dev` 里的东西不是"普通文件"**：用 `ls -l /dev/sda` 看，类型位是 `b`（block，块设备）；`/dev/tty` 是 `c`（character，字符设备）。它们**不代表占用空间**，而是内核对硬件的"接口"。另外 `/dev` 一般由 `udev`/`systemd-udevd` 动态维护——**不要手工往 /dev 里塞设备文件**，重启后基本都会消失。
 
 ### 12.12.1 /dev/sda：第一块硬盘
 
@@ -1422,8 +1446,8 @@ dd if=/dev/zero of=/tmp/testfile bs=1M count=1024
 ### 12.12.4 /dev/random：随机数设备
 
 ```bash
-# /dev/random  - 真随机数生成器（可能会阻塞）
-# /dev/urandom - 伪随机数生成器（永不阻塞，更快）
+# /dev/random  - 早期会"熵不足就阻塞"，用于加密场景
+# /dev/urandom - 永不阻塞，速度更快
 
 # 生成随机数
 cat /dev/urandom | head -c 16 | xxd
@@ -1432,7 +1456,10 @@ cat /dev/urandom | head -c 16 | xxd
 cat /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 16
 ```
 
-> 推荐：除非做安全相关操作，否则用 /dev/urandom！因为 /dev/random 可能因为熵不足而"卡住"！
+> **这个"老知识"已经变了**：从 **Linux 5.6（2020 年）** 起，`/dev/random` 不再会因为"熵不足"而阻塞——只要系统完成初始化，它和 `/dev/urandom` 的行为就基本一致了。所以：
+> - **现代内核上，随便用哪个都行**，`/dev/urandom` 依然是更保险、跨平台兼容性更好的选择（老的 Unix 和旧内核上它才不会阻塞）。
+> - 需要**大量**随机数（比如生成密钥）时，两者性能都够用；真正要"真随机"（比如硬件 RNG）是新版本才有的 `getrandom()` 语义和 `RDRAND` 指令，不是靠挑 `/dev/random`。
+> - 写脚本生成密码，现在更推荐 `openssl rand -base64 16` 或 `head -c 16 /dev/urandom | base64`，比 `tr -dc` 过滤更干净——`tr -dc` 读二进制还可能遇到"多字节字符被截断"的怪问题。
 
 ---
 

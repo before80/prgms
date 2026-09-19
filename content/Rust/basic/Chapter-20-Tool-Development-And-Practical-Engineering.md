@@ -136,7 +136,9 @@ fn main() {
 
 手写虽然简单，但当你的工具变得复杂时，clap 能让你的 CLI 开发体验直接起飞——自动生成帮助信息、bash/zsh/fish 自动补全、默认值、验证... 应有尽有。
 
-```rust
+```rust,ignore
+// ⚠️ 依赖 clap：Cargo.toml 里需要加 clap = { version = "4", features = ["derive"] }（本块标记为 ignore）。
+
 // src/main.rs
 use clap::{Parser, Subcommand};
 
@@ -1845,9 +1847,11 @@ Cargo 的真正威力在于它的可扩展性——你可以添加自己的子�
 cargo new cargo-mytool --bin
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 依赖 clap：Cargo.toml 里需要加 clap = { version = "4", features = ["derive"] }（本块标记为 ignore）。
+
 // src/main.rs
-use clap::{Parser, Subcommand];
+use clap::{Parser, Subcommand};
 
 /// 自定义 cargo 子命令
 #[derive(Parser, Debug)]

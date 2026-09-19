@@ -37,11 +37,15 @@ person.sayHi();  // 输出：你好，我是张三
 ```javascript
 // 把方法单独拿出来用试试？
 const sayHi = person.sayHi;
-sayHi();  // 输出：你好，我是 undefined（或者严格模式下报错）
+sayHi();
+// 在普通脚本（非严格模式）里：this 变成 window，window.name 是空字符串
+//   输出：你好，我是
+// 在严格模式或 ES 模块里：this 是 undefined，直接抛错
+//   TypeError: Cannot read properties of undefined (reading 'name')
 // 天哪！this 怎么变了？！
 ```
 
-这就是 `this` 的"变态"之处——它不是固定的，而是**由调用方式决定**的！
+这就是 `this` 最反直觉的地方——它**不是固定的，而是由调用方式决定**的！同一个函数，换个调用姿势，`this` 就可能完全不同。
 
 ---
 
@@ -82,8 +86,11 @@ function sayName() {
 var name = '我是window的name';  // 注意：用 var 声明的才是 window 的属性
 sayName();  // 输出：我的名字是：我是window的name
 
-let name2 = '我不是window的';  // let 不会挂在 window 上
-// sayName2();  // 会报错！
+let name2 = '我不是window的';  // let/const 声明的变量不会挂在 window 上
+function sayName2() {
+  console.log(this.name2);   // undefined：window 上没有 name2 这个属性
+}
+sayName2();
 ```
 
 ```javascript
@@ -97,8 +104,11 @@ const obj = {
   }
 };
 
-obj.delayLog();  // 1秒后输出：名字是：（空白或undefined）
-// 因为 setTimeout 里的函数是普通函数调用，this 指向 window！
+obj.delayLog();  // 100 毫秒后输出：名字是：（浏览器里 this 指向 window）
+// 因为 setTimeout 里的函数是普通函数调用：
+// 浏览器非严格模式下 this 是 window，window.name 是空字符串 → 输出「名字是：」
+// 严格模式/ES 模块下 this 是 undefined → 抛 TypeError
+// 在 Node.js 里 this 是 Timeout 对象 → 输出「名字是：undefined」
 ```
 
 ---
@@ -614,11 +624,16 @@ const numbers = [3, 1, 4, 1, 5, 9, 2, 6];
 const max = Math.max.apply(null, numbers);  // 9
 const max2 = Math.max(...numbers);          // 9（ES6+）
 
-// 场景3：数组追加
+// 场景3：把数组 arr2 追加到 arr1 末尾
 const arr1 = [1, 2, 3];
 const arr2 = [4, 5, 6];
-arr1.push.apply(arr1, arr2);  // [1, 2, 3, 4, 5, 6]
-arr1.push(...arr2);            // [1, 2, 3, 4, 5, 6, 4, 5, 6]（ES6+）
+
+// 用 apply：把 arr2 的元素逐个作为参数传给 push
+arr1.push.apply(arr1, arr2);   // arr1 变成 [1, 2, 3, 4, 5, 6]
+
+// ES6 之后更推荐展开运算符，效果完全相同、也更易读
+const arr3 = [1, 2, 3];
+arr3.push(...arr2);            // arr3 变成 [1, 2, 3, 4, 5, 6]
 
 // 场景4：事件处理中保持 this
 // button.addEventListener('click', handler.bind(this));
@@ -892,6 +907,166 @@ graph TD
 
 ---
 
+## 18.4 绑定优先级与常见陷阱
+
+前面几条规则同时出现时，谁说了算？答案是固定的优先级，从高到低：
+
+```
+new 绑定  >  显式绑定（call/apply/bind）  >  隐式绑定（obj.method）  >  默认绑定
+```
+
+### new 与 bind 谁更强：new 赢
+
+用 `bind` 硬绑定过的函数，如果再被 `new` 调用，绑定的 `this` 会被忽略，`this` 指向新创建的实例：
+
+```javascript
+function Fn() {
+  this.tag = '实例';
+}
+
+const Bound = Fn.bind({ tag: '被绑定的对象' });
+
+console.log(new Bound().tag);   // "实例"（new 优先，bind 被忽略）
+```
+
+### call / apply 传 null 和原始值会怎样
+
+```javascript
+function showThis() {
+  console.log(this);
+}
+
+// 非严格模式：null / undefined 会被替换成全局对象，原始值会被包装成对象
+showThis.call(null);   // window（浏览器）或 globalThis（Node）
+showThis.call(42);     // Number {42}
+
+// 严格模式：传什么就是什么
+function strictShow() {
+  'use strict';
+  console.log(this);
+}
+strictShow.call(null); // null
+strictShow.call(42);   // 42
+```
+
+这也是「同样的写法在类里和普通函数里行为不同」的原因之一：**class 内部的代码默认就是严格模式**。
+
+### 箭头函数改不了 this
+
+箭头函数的 `this` 在定义时就固定了，`call` / `apply` / `bind` 都改不动它：
+
+```javascript
+const outer = { name: '外层' };
+
+function makeArrow() {
+  return () => this.name;      // 记住 makeArrow 被调用时的 this
+}
+
+const arrow = makeArrow.call(outer);
+console.log(arrow.call({ name: '想改也改不了' })); // "外层"
+```
+
+另外，箭头函数**不能当构造函数**（没有 `prototype`，`new` 会抛 TypeError），也**没有自己的 `arguments`**：
+
+```javascript
+const Arrow = () => {};
+// new Arrow();  // TypeError: Arrow is not a constructor
+
+function normal() {
+  const getArgs = () => arguments;   // 这里的 arguments 是外层 normal 的
+  return getArgs();
+}
+console.log(normal(1, 2)[0]); // 1
+```
+
+### class 方法单独拿出来用：this 是 undefined，不是 window
+
+```javascript
+class Player {
+  constructor(name) { this.name = name; }
+  hello() { return this.name; }
+}
+
+const p = new Player('小明');
+console.log(p.hello());   // "小明"
+
+const hello = p.hello;
+// console.log(hello());  // TypeError：class 内部是严格模式，this 为 undefined
+
+// 现在的常用写法：类字段 + 箭头函数，天然绑定实例
+class Player2 {
+  name = '小红';
+  hello = () => this.name;   // this 永远指向实例
+}
+console.log(new Player2().hello()); // "小红"
+```
+
+类字段箭头函数写起来最省心，代价是**每个实例各持一份函数**，实例数量很大时要权衡内存。
+
+### 事件处理函数里的 this
+
+DOM 事件监听器是个特例：用普通函数注册时，浏览器会把 `this` 设为监听器绑定的那个元素：
+
+```javascript
+const btn = document.querySelector('#btn');
+
+// 普通函数：this 就是按钮元素
+btn.addEventListener('click', function () {
+  console.log(this === btn);   // true
+  this.classList.toggle('active');
+});
+
+// 箭头函数：继承外层的 this，拿不到按钮
+btn.addEventListener('click', () => {
+  // this.classList.toggle('active');  // 会报错
+});
+
+// 想用箭头函数又要拿元素，用事件对象更直观
+btn.addEventListener('click', (event) => {
+  event.currentTarget.classList.toggle('active');
+});
+```
+
+### 链式调用：this 是「最近的那个对象」
+
+```javascript
+const app = {
+  config: {
+    name: 'demo',
+    printName() {
+      return this.name;      // this 是 config，不是 app
+    },
+  },
+};
+console.log(app.config.printName()); // "demo"
+```
+
+### 顶层 this 在不同环境里完全不同
+
+| 环境 | 顶层 `this` |
+| --- | --- |
+| 浏览器普通 `<script>`（非严格） | `window` |
+| 浏览器 ES 模块 / 严格模式 | `undefined` |
+| Node.js CommonJS 模块 | `module.exports`（一开始是空对象） |
+| Node.js ES 模块 | `undefined` |
+
+所以「顶层 `this` 就是全局对象」这句话只在浏览器普通脚本里成立，写跨环境代码时不要依赖它。
+
+### 一张速查表
+
+| 调用形式 | `this` 指向 |
+| --- | --- |
+| `fn()` | `window`／`undefined`（严格模式） |
+| `obj.fn()` | `obj` |
+| `a.b.c.fn()` | `a.b.c` |
+| `fn.call(x)` / `fn.apply(x)` | `x`（立即执行） |
+| `fn.bind(x)()` | `x`（永久绑定，除非用 `new`） |
+| `new Fn()` | 新创建的实例 |
+| 箭头函数 | 定义时外层的 `this`，无法被改变 |
+| `element.addEventListener('click', function(){})` | 该 `element` |
+
+---
+
 ## 本章小结（第18章）
 
 ### 1. this 绑定规则
@@ -912,6 +1087,14 @@ graph TD
 - 解决2：箭头函数
 - 解决3：变量保存 `var that = this`
 
+### 4. 优先级与陷阱
+- 优先级：`new` > 显式绑定 > 隐式绑定 > 默认绑定；`new` 调用会忽略 `bind`
+- 非严格模式下 `call(null)` 会变成全局对象，严格模式下保持 `null`
+- 箭头函数的 `this` 由定义位置决定，且不能作为构造函数
+- class 内部默认严格模式，方法单独调用时 `this` 是 `undefined`
+- 事件监听器用普通函数时 `this` 是绑定元素，用箭头函数则继承外层
+- 顶层 `this` 因环境而异（浏览器脚本是 `window`，ES 模块是 `undefined`）
+
 ### 记忆口诀
 ```
 this 是个变色龙，看调用的方式来决定
@@ -924,10 +1107,10 @@ this 丢失别慌张，bind 箭头变量来帮忙
 ```
 
 ### 实战建议
-1. **永远不要**把对象的方法单独赋值给变量调用
-2. **优先使用箭头函数**解决回调中的 this 问题
-3. **bind** 适合需要稍后调用或预设参数的场景
+1. 对象方法要单独传递时，**明确处理 this**（`bind` 或箭头包装），不要直接赋值给变量
+2. **优先使用箭头函数**解决回调中的 this 问题；但别把它用在对象方法或需要 DOM 元素 `this` 的监听器上
+3. **bind** 适合需要稍后调用或预设参数的场景，也能用于类方法的固定绑定
 4. **构造函数**记得用 `new` 调用，否则 this 会乱套
-5. **class 语法**可以避免很多 this 相关的坑
+5. **class 语法**内部是严格模式，能暴露出不少 this 相关的隐患；需要时用类字段箭头函数
 
 搞定了 `this`，你离 JavaScript 大神又近了一步！🎉

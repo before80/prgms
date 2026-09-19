@@ -52,6 +52,7 @@ Stream 是个"只读"通道，它不会改变原始数据源。你用 Stream 过
 
 ```java
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -849,7 +850,7 @@ public class CreateParallelStream {
 来一个直观的性能测试。
 
 ```java
-import java.util.LongSummaryStatistics;
+import java.util.IntSummaryStatistics;
 import java.util.stream.IntStream;
 
 public class ParallelPerformanceDemo {

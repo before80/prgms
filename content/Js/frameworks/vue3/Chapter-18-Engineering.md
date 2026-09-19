@@ -18,13 +18,13 @@ draft = false
 
 ```mermaid
 graph LR
-    subgraph["传统构建工具 (Webpack)"]
+    subgraph webpack[传统构建工具（Webpack）]
         A1[修改代码] --> A2[重新打包<br/>整个项目]
         A2 --> A3[等待30秒...]
         A3 --> A4[刷新浏览器]
     end
     
-    subgraph["Vite"]
+    subgraph vite[Vite]
         B1[修改代码] --> B2[仅更新<br/>改变的模块]
         B2 --> B3[浏览器立即<br/>收到更新]
         B3 --> B4[极速HMR]
@@ -537,8 +537,6 @@ Git Hook 是 Git 的钩子机制——在某个 Git 操作（commit、push 等�
 **为什么不用 Husky 检查所有文件？** 因为检查所有文件太慢——项目有 1000 个文件，改了 3 个，却要检查全部 1000 个？lint-staged 只检查暂存的那 3 个文件，效率高得多。
 
 ```bash
-
-```bash
 pnpm add -D husky lint-staged
 npx husky install
 ```
@@ -841,14 +839,11 @@ Monorepo是一种项目管理方式，将多个包放在同一个代码仓库中
 
 ```mermaid
 graph TD
-    subgraph["monorepo-root"]
-        A[package.json<br/>workspace配置]
-        B[packages/
-        shared/]
-        C[packages/
-        web/]
-        D[packages/
-        mobile/]
+    subgraph root[monorepo-root]
+        A[package.json<br/>workspace 配置]
+        B["packages/<br/>shared/"]
+        C["packages/<br/>web/"]
+        D["packages/<br/>mobile/"]
     end
     
     E[packages/shared] -->|被依赖| C

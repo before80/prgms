@@ -375,6 +375,8 @@ func main() {
 
 ### 28.6.1 原子整数
 
+`sync/atomic` 提供了无锁的原子操作，比互斥锁更轻。注意它的典型用法是“读-改-写”一步完成——`Add` 返回值是**加完之后**的新值：
+
 ```go
 package main
 
@@ -536,4 +538,3 @@ func main() {
 - 复杂共享资源 → Mutex + map
 - 等待多个协程 → WaitGroup
 - 一次性初始化 → Once
-

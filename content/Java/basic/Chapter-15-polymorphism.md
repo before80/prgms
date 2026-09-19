@@ -72,6 +72,8 @@ public class PolymorphismDemo {
 
 ### 15.1.4 三要素缺一不可示意图
 
+把上面这三个要素画成类图，就能看清它们各自的位置：继承决定了"谁是谁"，重写决定了"调用哪个版本"，而父类引用指向子类对象则是触发多态的那根"导火索"。
+
 ```mermaid
 classDiagram
     class Animal {
@@ -278,7 +280,28 @@ class Bird extends Animal {
 }
 ```
 
+> 💡 **现代写法（Java 16+）**：上面的 `if (animal instanceof Dog) { Dog dog = (Dog) animal; ... }` 要写两遍类型，啰嗦又容易写错。从 Java 16 起（JEP 394）`instanceof` 支持**模式匹配**，判断通过的同时直接把变量声明出来：
+>
+> ```java
+> for (Animal animal : animals) {
+>     if (animal instanceof Dog dog) {       // 匹配成功，dog 就是转型后的引用
+>         dog.eat();
+>         dog.bark();
+>     } else if (animal instanceof Cat cat) {
+>         cat.eat();
+>         cat.meow();
+>     } else if (animal instanceof Bird bird) {
+>         bird.eat();
+>         bird.fly();
+>     }
+> }
+> ```
+>
+> `dog` 的作用域被限定在 `if` 块内部（用 `&&` 连接时还能在判断条件右侧直接使用），既省代码又避免越界使用。本书后面的示例会混用两种写法，看到 `instanceof Xxx y` 就知道是这种模式匹配。
+
 ### 15.3.3 向下转型可能失败的原因
+
+原因只有一个：**运行时对象的真实类型和你强转的目标类型不兼容**。下面的流程图把"能转"和"不能转"两条路径分开了：
 
 ```mermaid
 flowchart TD
@@ -597,10 +620,12 @@ public class PolymorphismCompleteDemo {
 绘制一个圆形，半径为：3.0 🔵
 ===== 绘图完成 =====
 
-所有图形的总面积：109.899
+所有图形的总面积：136.81415022205297
 ```
 
 ### 15.4.5 多态关系图解
+
+最后用一张类图收尾，把本章出现的抽象父类、三个子类以及"使用多态"的工具类放在一起看：
 
 ```mermaid
 classDiagram

@@ -1177,6 +1177,8 @@ trait impl 中关联项的所需顺序：纯字母顺序、遵循 trait 定义�
 
 ```toml
 trait-impl-item-order = "trait_item_ordering"
+```
+
 使用 trait 定义项顺序且回退为字母顺序时：
 
 ```toml

@@ -70,8 +70,18 @@ Redis的作者是意大利程序员 **Salvatore Sanfilippo**（网名Antirez）�
     ↓
 2022年：Redis 7.0，ACLv2
     ↓
+2024年：Redis 7.4 改用 RSALv2/SSPL 许可证，引发社区fork（Valkey）
+    ↓
+2025年：Redis 8.0 重新采用 AGPLv3，并加入不少原本只有 Redis Stack 才有的能力
+    ↓
 持续更新中...
 ```
+
+> 💡 **许可证风波要知道**：2024 年 3 月，Redis 把许可证从 BSD 换成
+> RSALv2/SSPL（不再满足开源定义），Linux 基金会随即把 7.2 分支 fork 成了 **Valkey**，
+> AWS、Google、Oracle 等厂商都转向 Valkey。2025 年 Redis 8 又改回了 AGPLv3。
+> 对你的实际影响是：**很多云厂商的"Redis 服务"现在其实跑的是 Valkey**，
+> 两者命令基本兼容，但版本号和部分新特性会有差异，查文档时留意一下。
 
 ### Redis的名字来源
 
@@ -90,7 +100,7 @@ Redis的作者是意大利程序员 **Salvatore Sanfilippo**（网名Antirez）�
 | **数据结构丰富** | String、Hash、List、Set、ZSet... |
 | **主从复制** | 一主多从，读写分离 |
 | **高可用** | Sentinel哨兵 + Cluster集群 |
-| **单线程** | 使用C语言编写，事件循环模型 |
+| **单线程执行命令** | 命令处理仍是单线程（天然原子），但**网络I/O从6.0起可多线程** |
 | **高性能** | 基于内存，QPS轻松上10万+ |
 
 ### Redis vs 其他数据库
@@ -237,11 +247,19 @@ sudo yum install redis -y
 
 # 启动服务
 sudo systemctl start redis
-sudo systemctl enable redis
+sudo systemctl enable --now redis
 
 # 查看版本
 redis-server --version
 ```
+
+> ⚠️ **CentOS/RHEL 系的版本坑**：
+> - **CentOS Linux 7 已于 2024-06-30 EOL**，CentOS Linux 8 更早在 2021 年底就停止维护了，
+>   新环境请用 Rocky/AlmaLinux 9、CentOS Stream 9 或 Ubuntu/Debian；
+> - EPEL 里的 `redis` 包版本通常很旧（还在 5.x/6.x），而且很多发行版已经改用 **Valkey**
+>   （如 Fedora/RHEL 10 的 `valkey` 包）。想要新版本，优先走官方仓库、Docker 或源码编译；
+> - 装完先确认版本：`redis-server --version`。不同大版本的配置项和命令有差别
+>   （比如 7.0 起 `ACL`、`FUNCTION` 才比较完善）。
 
 ### Docker 安装（跨平台通用）
 
@@ -344,11 +362,18 @@ Redis的主要配置文件位置：
 sudo cat /etc/redis/redis.conf
 ```
 
+> ⚠️ **远程访问的安全前提**：Redis 早期版本被入侵的案例几乎都是"`bind 0.0.0.0` + 没有密码 + 暴露在公网"这一个组合造成的（攻击者可以借 `CONFIG SET dir` + `SAVE` 直接往服务器写文件）。如果确实需要跨机器访问，至少要同时做到：
+>
+> 1. 设置强密码 `requirepass`（并把客户端里的 `requirepass` 配好）；
+> 2. 只 `bind` 内网网卡地址，或用防火墙只放行可信网段；
+> 3. 绝不把 6379 直接暴露到公网——需要外网访问就套 SSH 隧道或 TLS 代理（如 stunnel）。
+
 关键配置项说明：
 
 ```bash
 # 网络配置
-bind 127.0.0.1              # 监听地址（改为0.0.0.0允许远程连接）
+bind 127.0.0.1              # 监听地址：默认只允许本机连接
+# 想开放远程访问，不要简单改成 0.0.0.0 了事——见下面"远程访问的安全前提"
 port 6379                    # 监听端口
 tcp-backlog 511              # TCP连接队列长度
 
@@ -391,14 +416,19 @@ sudo nano /etc/redis/redis.conf
 **必须修改的配置：**
 
 ```bash
-# 1. 允许远程连接（如果需要）
-bind 0.0.0.0
+# 1. 监听地址：默认只监听本机最安全
+bind 127.0.0.1
+#    确实需要跨机器访问时，绑定**内网网卡**的地址，而不是无脑写 0.0.0.0
+#    bind 127.0.0.1 10.0.0.5
+#    并保持 protected-mode yes（默认），不要为了"省事"把它关掉
 
 # 2. 设置密码
 requirepass YourSecurePassword123
 
 # 3. 设置最大内存（根据服务器配置）
 maxmemory 2gb
+#    淘汰策略：当"纯缓存"用就 allkeys-lru；
+#    当"带持久化的数据存储"用就用 volatile-lru/volatile-ttl，避免把没设过期时间的关键数据淘汰掉
 
 # 4. 开启AOF持久化（强烈建议）
 appendonly yes
@@ -408,6 +438,11 @@ appendfsync everysec
 # redis-cli
 # AUTH YourSecurePassword123
 ```
+
+> ⚠️ **写 `bind 0.0.0.0` 之前请三思**：它意味着 Redis 监听所有网卡。
+> 历史上大量"Redis 被入侵"事件（写入 SSH 公钥、植入挖矿程序）就是
+> `bind 0.0.0.0` + 无密码 + 公网可达造成的。如果不得不对外提供服务，
+> 请至少做到：设强密码 + 限制来源IP + 关闭 `protected-mode` 时的额外风险要自己承担。
 
 ### 远程连接配置
 
@@ -419,6 +454,10 @@ redis-cli -h 192.168.1.100 -p 6379
 
 # 如果有密码
 redis-cli -h 192.168.1.100 -p 6379 -a YourPassword
+# ⚠️ -a 会把密码暴露在命令行（ps/history 都能看到），
+#    更推荐用环境变量或交互式输入：
+#    REDISCLI_AUTH=YourPassword redis-cli -h 192.168.1.100
+#    redis-cli -h 192.168.1.100 --askpass
 
 # 连接后认证
 redis-cli
@@ -428,11 +467,11 @@ AUTH YourPassword
 **方式2：开放防火墙**
 
 ```bash
-# Ubuntu (ufw)
-sudo ufw allow 6379/tcp
+# Ubuntu (ufw)：只放行可信网段，不要 allow 6379/tcp 给所有人
+sudo ufw allow from 192.168.1.0/24 to any port 6379 proto tcp
 
 # CentOS (firewalld)
-sudo firewall-cmd --permanent --add-port=6379/tcp
+sudo firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="192.168.1.0/24" port port="6379" protocol="tcp" accept'
 sudo firewall-cmd --reload
 ```
 
@@ -525,13 +564,17 @@ SET token "abc123" PX 3600000  # 1小时后过期
 
 # 设置值（仅当key不存在）
 SETNX newkey "value"  # 如果newkey不存在才设置
+# 注意：SETNX 是早期命令，现在更推荐用一条 SET 搞定（保证"判断+设置"是原子的）
+# SET newkey "value" NX EX 60
 
-# 设置值（仅当key存在）
-SETEX key 3600 "value"  # 设置值并指定过期时间
+# 设置值并指定过期时间（SETEX：key 秒数 值，顺序别写反）
+SETEX key 3600 "value"
+# 等价写法：SET key "value" EX 3600
 
-# 获取旧值并设置新值
+# 获取旧值并设置新值（GETSET 从 Redis 6.2 起已被废弃）
 GETSET key "newvalue"
 # 返回旧值
+# 新写法：SET key "newvalue" GET   （返回旧值）
 
 # 自增/自减
 SET counter 100
@@ -993,6 +1036,8 @@ ZRANGE leaderboard 0 -1 WITHSCORES
 ZRANGEBYSCORE leaderboard 80 90
 # 1) "xiaohong"
 # 2) "xiaogang"
+# 注意：ZRANGEBYSCORE / ZREVRANGEBYSCORE 从 Redis 6.2 起已废弃，
+#       新写法是 ZRANGE leaderboard 80 90 BYSCORE
 
 # 获取排名（从0开始）
 ZRANK leaderboard "xiaohong"
@@ -1060,15 +1105,21 @@ ZREVRANGE game:scores 0 2 WITHSCORES
 # 5) "xiaohong"
 # 6) "12000"
 
-# 获取玩家排名
+# 获取玩家排名（ZREVRANK 返回的是**从0开始**的名次）
 ZREVRANK game:scores "xiaoming"
-# (integer) 0  # 第1名
+# (integer) 1  # 第2名（第1名是18000分的 xiaogang）
 
 # 玩家得分变化后更新
 ZINCRBY game:scores 5000 "xiaohong"
+# xiaohong: 12000 + 5000 = 17000
 ZREVRANK game:scores "xiaohong"
-# (integer) 1  # 变成第2名
+# (integer) 1  # 第2名
+# 此时名次顺序：xiaogang(18000) > xiaohong(17000) > xiaoming(15000)
+# 所以 xiaoming 的 ZREVRANK 变成 2（第3名）
 ```
+
+> 记住：`ZRANK` / `ZREVRANK` 返回的**下标是从 0 开始的**，
+> 想显示"第几名"要自己 `+1`。这是排行榜代码最常见的差一错误。
 
 **热搜排行实战：**
 
@@ -1182,7 +1233,8 @@ redis-cli BGSAVE
 
 # 查看BGSAVE是否完成
 redis-cli LASTSAVE
-# 返回一个Unix时间戳，如果多次调用时间变了，说明保存完成
+# 返回"最后一次成功保存"的Unix时间戳。执行BGSAVE后隔一会儿再取一次，
+# 时间戳变大就说明这次快照完成了
 ```
 
 **RDB的优点：**
@@ -1324,7 +1376,9 @@ auto-aof-rewrite-min-size 64mb
 # 允许AOF截断（如果损坏）
 aof-load-truncated yes
 
-# RDB+AOF混合持久化（Redis 7.0+）
+# 混合持久化：AOF 文件的前半部分用 RDB 格式存"基线快照"，
+# 后面再跟增量命令，恢复时会快很多
+# Redis 4.0 引入，**7.0 起默认就是 yes**
 aof-use-rdb-preamble yes
 ```
 
@@ -1405,8 +1459,8 @@ sudo nano /etc/redis/redis.conf
 
 # 添加/修改
 replicaof 192.168.1.100 6379
-# 或者（新版本用这个）
-replicaof <master-ip> <master-port>
+# 说明：replicaof 是 Redis 5.0 起的新名字；
+#       老写法 slaveof 依然兼容，但新配置请统一用 replicaof
 
 # 如果主库有密码
 masterauth <password>
@@ -1641,9 +1695,9 @@ flowchart TB
     A[应用] -->|请求key1| M1
     A -->|请求key2| M2
     A -->|请求key3| M3
-    
-    Note over A: Redis客户端自动计算key属于哪个槽
 ```
+
+> 客户端（比如 Jedis、Lettuce）会根据 `CRC16(key) mod 16384` 自动算出 key 落在哪个槽，再把请求发给持有该槽的主库——所以业务代码通常不需要自己关心"数据在哪台机器上"。
 
 **连接集群：**
 
@@ -2001,7 +2055,10 @@ bind 192.168.1.100
 # /etc/redis/redis.conf 生产环境配置
 
 # 网络
-bind 0.0.0.0
+bind 127.0.0.1
+# 需要被其他机器访问时，绑定**内网网卡地址**（如 bind 127.0.0.1 10.0.0.5），
+# 再配合 requirepass + 防火墙白名单；
+# 直接写 bind 0.0.0.0 等于对所有网卡开放，历史上大量 Redis 被入侵都是这么来的
 port 6379
 tcp-backlog 65535
 timeout 60
@@ -2042,10 +2099,15 @@ maxmemory-policy allkeys-lru
 
 # 客户端
 maxclients 10000
-
-# 性能优化
-tcp-backlog 65535
 ```
+
+> 顺带说明几个容易搞混的点：
+> - `protected-mode yes` 只在"没有设置密码 + 没有 bind 指定地址"时才真正起保护作用，
+>   一旦你打开了 `bind 0.0.0.0`，它的威慑力就小很多；
+> - `maxmemory-policy allkeys-lru` 适合"纯缓存"；
+>   如果 Redis 里存了不能丢的业务数据，应该用 `volatile-*` 系列并给缓存 key 都设 TTL；
+> - `appendonly yes` + `appendfsync everysec` 是持久化的默认推荐组合，
+>   代价是每次写都有一次系统调用，压测时不要期待和纯内存一个量级。
 
 ### 小结
 
@@ -2093,8 +2155,10 @@ redis-cli PING
 # 查看服务器信息
 redis-cli INFO
 
-# 查看所有键
+# 查看所有键（⚠️ KEYS 会遍历整个键空间并阻塞 Redis，生产环境慎用）
 redis-cli KEYS "*"
+# 在线环境请改用 SCAN（游标式迭代，不阻塞）：
+# redis-cli SCAN 0 MATCH "user:*" COUNT 100
 
 # 查看键数量
 redis-cli DBSIZE
@@ -2286,8 +2350,3 @@ flowchart LR
 > 是的，有时候简单才是王道。一行 `SET key value`，背后是十几年的精心设计。
 > 
 > 记住：**用好Redis，性能翻10倍不是梦！但用不好，数据全丢泪两行！** 🚀
-
-
-
-
-

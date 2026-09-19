@@ -586,7 +586,6 @@ func heapAlloc() *int {
 逃逸分析（Escape Analysis）是 Go 编译器自动分析变量应该分配在栈上还是堆上的过程。编译器会尽可能把变量放在栈上，因为栈分配和回收更快。
 
 ```go
-
 package main
 
 import "fmt"
@@ -596,16 +595,18 @@ func main() {
     a := 10
     b := "hello"
 
-    // 编译器会分析出 c 不需要逃逸
+    // 编译器会分析出 c 不需要逃逸，a、b、c 都可以留在栈上
     c := a + 5
-    fmt.Printf("c = %d\n", c) // c = 15
+    fmt.Printf("c = %d\n", c)        // c = 15
+    fmt.Printf("b 也没有逃逸: %s\n", b) // b 也没有逃逸: hello
 }
 
+// returnPtr 返回局部变量 x 的地址，
+// 这会让 x 逃逸到堆上（编译器替我们做这个决定）
 func returnPtr() *int {
     x := 100
-    return &x // x 逃逸，因为返回了指针
+    return &x
 }
-
 ```
 
 > **逃逸分析的黄金法则**：
@@ -1077,6 +1078,4 @@ func outputValue(n int) int {
    - 编译器自动进行寄存器分配
    - 逃逸分析决定变量分配位置
    - 变量复用减少内存占用
-
-
 

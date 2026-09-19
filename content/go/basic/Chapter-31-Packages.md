@@ -188,7 +188,7 @@ func main() {
 ```
 
 **执行顺序：**
-```
+```text
 第一个init()被调用
 第二个init()被调用
 第三个init()被调用
@@ -221,7 +221,7 @@ func main() {
 
 一个典型的Go项目结构：
 
-```
+```text
 myproject/
 ├── cmd/
 │   └── myapp/
@@ -244,7 +244,7 @@ myproject/
 
 `internal` 目录是Go的"私有保护"机制：
 
-```
+```text
 myproject/
 ├── cmd/
 │   └── app/
@@ -287,18 +287,23 @@ func publicFunc() {}
 func PublicFunc() {}
 ```
 
+> 下面两段代码属于**两个不同的包/文件**：第一段是 `mylib/mylib.go`，第二段是另一个模块里的 `main.go`。它们不能写进同一个文件，放在一起只是为了对照"导出 / 未导出"的可见性。因此第二段直接丢进 Go Playground 会因为找不到 `mylib` 包而报错，这是**预期行为**。
+
 ```go
+// 文件：main.go（与 mylib 不同的包）
 package main
 
-import "mylib"
+import "github.com/yourname/mylib" // 换成你自己的模块路径
 
 func main() {
-    // 可以访问导出的内容
+    // 可以访问首字母大写的导出内容
     p := mylib.Public{Name: "Alice"}
+    mylib.PublicFunc()
+    _ = p
 
-    // 无法访问未导出的内容
-    // p.age  // 编译错误！
-    // mylib.publicFunc()  // 编译错误！
+    // 无法访问未导出的内容：
+    // p.age              // 编译错误：age 未导出（cannot refer to unexported field）
+    // mylib.publicFunc() // 编译错误：publicFunc 未导出
 }
 ```
 
@@ -307,6 +312,8 @@ func main() {
 ## 31.6 go mod 依赖管理
 
 ### 31.6.1 初始化模块
+
+`go mod init` 会在当前目录生成 `go.mod`，把目录变成一个模块。模块路径通常写仓库地址：
 
 ```bash
 # 创建新模块
@@ -317,7 +324,7 @@ go mod init myproject
 ```
 
 生成 `go.mod` 文件：
-```
+```text
 module github.com/username/project
 
 go 1.21
@@ -328,6 +335,8 @@ require (
 ```
 
 ### 31.6.2 添加依赖
+
+`go get` 会把依赖写进 `go.mod`，并把精确版本记在 `go.sum` 里：
 
 ```bash
 # 添加单个依赖
@@ -341,6 +350,8 @@ go get github.com/gin-gonic/gin@latest
 ```
 
 ### 31.6.3 整理依赖
+
+`go mod tidy` 是最常用的维护命令：它会**删掉**代码里没用到的依赖，**补上**代码里用到但 `go.mod` 里漏掉的依赖：
 
 ```bash
 # 自动添加缺失的依赖，删除未使用的
@@ -357,7 +368,7 @@ Go的测试文件有特殊命名规则：
 - 文件名以 `_test.go` 结尾
 - 放在被测试文件的同一个包目录下
 
-```
+```text
 mypkg/
 ├── mypkg.go          # 源代码
 ├── mypkg_test.go     # 测试代码
@@ -367,29 +378,42 @@ mypkg/
 
 ### 31.7.2 编写测试
 
-```go
-package main
+先看被测试的源文件 `mypkg/mypkg.go`：
+
+```text
+package mypkg
+
+// Add 返回两数之和
+func Add(a, b int) int { return a + b }
+```
+
+再看同目录下的测试文件 `mypkg/mypkg_test.go`。测试文件通常和源码放在**同一个包**里，这样可以直接访问未导出的函数：
+
+```text
+package mypkg
 
 import "testing"
 
 // TestAdd 测试加法函数
 func TestAdd(t *testing.T) {
-    result := Add(2, 3)
-    if result != 5 {
-        t.Errorf("Add(2, 3) = %d, want 5", result)
+    if got := Add(2, 3); got != 5 {
+        t.Errorf("Add(2, 3) = %d, want 5", got)
     }
 }
 
 // TestAddNegative 测试负数情况
 func TestAddNegative(t *testing.T) {
-    result := Add(-1, -2)
-    if result != -3 {
-        t.Errorf("Add(-1, -2) = %d, want -3", result)
+    if got := Add(-1, -2); got != -3 {
+        t.Errorf("Add(-1, -2) = %d, want -3", got)
     }
 }
 ```
 
+测试函数的签名必须是 `func TestXxx(t *testing.T)`，其中 `Xxx` 的首字母必须大写，文件名必须以 `_test.go` 结尾。
+
 ### 31.7.3 运行测试
+
+`go test` 是最常用的几个开关：`-v` 显示每个用例、`-run` 按正则筛选、`-cover` 输出覆盖率：
 
 ```bash
 # 运行当前目录所有测试
@@ -414,15 +438,17 @@ go tool cover -html=coverage.out
 
 Go不允许循环依赖！
 
-```go
-// a.go
+```text
+// 文件 a/a.go
 package a
-import "b"
+import "example.com/b"   // a 依赖 b
 
-// b.go
+// 文件 b/b.go
 package b
-import "a"  // 错误！循环依赖
+import "example.com/a"   // b 又依赖 a —— 循环依赖，编译直接失败
 ```
+
+编译时会报：`import cycle not allowed`。Go 编译器在解析阶段就会检测到这种环，根本不会开始编译。
 
 **解决方案：重构代码，把共同依赖提取到新包。**
 
@@ -434,13 +460,23 @@ import "a"  // 错误！循环依赖
 package main
 
 import (
-    myfmt "fmt"      // 冲突时用别名
-    other "some/pkg"
+    myfmt "fmt"    // 给 fmt 起别名，之后要用 myfmt.Printf 调用
+    "net/http"     // 正常导入，包名仍然是 http
 )
 
 func main() {
-    myfmt.Println("使用别名")
+    myfmt.Println("使用别名调用 fmt:", http.MethodGet) // 使用别名调用 fmt: GET
 }
+```
+
+导入的三种特殊写法值得记住：
+
+```go
+import (
+    _ "net/http/pprof"        // 匿名导入：只执行包的 init，不直接使用包名
+    . "math"                  // 点导入：把 math 的导出名直接引入当前文件（可读性差，少用）
+    myfmt "fmt"               // 别名导入：解决同名冲突或简化长包名
+)
 ```
 
 ---
@@ -464,7 +500,7 @@ func main() {
 - 首字母小写 = 未导出（仅本包可访问）
 
 **初始化顺序：**
-```
+```text
 import --> 变量初始化 --> init() --> main()
 ```
 
@@ -480,4 +516,3 @@ import --> 变量初始化 --> init() --> main()
 - 测试文件以 `_test.go` 结尾
 - 使用 `testing` 包
 - `go test -v` 运行测试
-

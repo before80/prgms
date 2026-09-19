@@ -54,7 +54,7 @@ graph TD
 ### 32.1.1 三种获取 Class 对象的方式
 
 ```java
-public class Class Acquisition {
+public class ClassAcquisition {
 
     // 定义一个普通的类，稍后我们用它来演示
     static class Person {
@@ -93,7 +93,8 @@ public class Class Acquisition {
         // 方式三：通过 Class.forName("全限定类名") 动态加载
         // 这种方式最灵活，可以从配置文件或字符串中读取类名
         // 注意：会触发类的静态初始化块
-        Class<?> clazz3 = Class.forName("reflect.ClassAcquisition$Person");
+        // 因为是同文件里的嵌套类，类名用 "外部类$内部类" 的形式（含包名时前面再加包名）
+        Class<?> clazz3 = Class.forName("ClassAcquisition$Person");
         System.out.println("方式三 forName：" + clazz3.getName());
 
         // 三种方式拿到的 Class 对象是同一个（单例）
@@ -160,6 +161,8 @@ public class PrimitiveAndArrayClass {
 ### 32.2.1 获取类信息概览
 
 ```java
+import java.util.Arrays;
+
 public class ClassInfoInspection {
 
     static class Student {
@@ -329,6 +332,10 @@ public class FieldAccess {
 方法比字段稍微复杂一点，因为方法有参数列表和返回值类型。
 
 ```java
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public class MethodDiscovery {
     static class Calculator {
         public int add(int a, int b) {
@@ -674,12 +681,15 @@ Connection conn = DriverManager.getConnection(url, user, password);
 
 实际上，`com.mysql.cj.jdbc.Driver` 类被加载时，会执行类似这样的**静态代码块**：
 
-```java
-// MySQL Driver 源码的简化版
-public class com.mysql.cj.jdbc.Driver {
+```text
+// MySQL Driver 源码的简化版（注意：真实源码里类名是 Driver，
+// 靠 package com.mysql.cj.jdbc; 声明包路径，不能把包名写在类名里）
+package com.mysql.cj.jdbc;
+
+public class Driver {
     static {
         // 把自己注册到 DriverManager 中
-        DriverManager.registerDriver(new com.mysql.cj.jdbc.Driver());
+        DriverManager.registerDriver(new Driver());
     }
 }
 ```

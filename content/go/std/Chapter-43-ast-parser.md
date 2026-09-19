@@ -1228,18 +1228,18 @@ sequenceDiagram
     participant V as Visitor (FuncCounter)
     participant N as Node
     
-    W->>+N: 从根节点 File 开始
-    N->>+V: Visit(File)
-    V-->>-W: 返回 V（继续遍历）
-    W->>+N: 遍历 Decls[]
-    N->>+V: Visit(FuncDecl)
-    V-->>-W: 返回 V
-    W->>+N: 遍历 FuncDecl.Body.BlockStmt
-    N->>+V: Visit(AssignStmt)
-    V-->>-W: 返回 V
+    W->>N: 从根节点 File 开始
+    N->>V: Visit(File)
+    V-->>W: 返回 V（继续遍历）
+    W->>N: 遍历 Decls[]
+    N->>V: Visit(FuncDecl)
+    V-->>W: 返回 V
+    W->>N: 遍历 FuncDecl.Body.BlockStmt
+    N->>V: Visit(AssignStmt)
+    V-->>W: 返回 V
     Note over W,V: 递归遍历所有子节点...
-    W->>+N: Visit(CallExpr)
-    V-->>-W: 记录 FuncCalls++
+    W->>N: Visit(CallExpr)
+    V-->>W: 记录 FuncCalls++
 ```
 
 ### 术语解释
@@ -1548,14 +1548,14 @@ func main() {
 
 ```mermaid
 graph TD
-    A["*ast.Package<br/>name=\"mypkg\""]
+    A["*ast.Package<br/>name = 'mypkg'"]
     
     A --> B["Files map<br/>文件集合"]
     A --> C["Scope<br/>包作用域"]
     
-    B --> D["\"a.go\" → *ast.File"]
-    B --> E["\"b.go\" → *ast.File"]
-    B --> F["\"util.go\" → *ast.File"]
+    B --> D["'a.go' → *ast.File"]
+    B --> E["'b.go' → *ast.File"]
+    B --> F["'util.go' → *ast.File"]
     
     D --> D1["Name: mypkg"]
     D --> D2["Decls: [import, func A]"]

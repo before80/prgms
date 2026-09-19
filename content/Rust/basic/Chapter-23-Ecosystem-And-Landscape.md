@@ -61,7 +61,10 @@ Rust 的 Web 框架生态呈现出一种有趣的"内卷"态势：每个框架�
 
 Rust 的 Web 框架生态绝对是一出精彩的"华山论剑"。**Actix-web** 是公认的"性能天花板"，它的吞吐量数字能让其他语言框架看了沉默、C++ 框架看了流泪。而 **Warp** 则走了一条截然不同的路——它基于 Tower 和 Hyper 构建，推崇"过滤器即服务"的理念，代码简洁得像写自然语言。无论是追求极致性能的 Actix-web，还是追求代码之美的 Warp，Rust 都能让你找到属于自己的"剑道"。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：actix_web、serde_json
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // 一个最简单的 Actix-web 服务器
 // 代码少得可怜，性能却高得离谱
 use actix_web::{web, App, HttpServer, HttpResponse};
@@ -101,7 +104,10 @@ async fn main() -> std::io::Result<()> {
 
 Axum 是由 Tokio 团队打造的 Web 框架，它最大的特点就是**类型安全**——把 HTTP 请求/响应塞进强类型的结构里，让你在编译期就能发现错误，而不是等到线上收到 500 了才拍大腿。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：axum、serde、serde_json、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 use axum::{
     Router,
     routing::{get, post},
@@ -235,7 +241,10 @@ rocket::build().mount("/", routes![index, greet]).launch();
 
 在 Web 生态中，数据库是永恒的主题。Rust 提供了多种数据库客户端，从传统的 SQL 到新兴的 NoSQL，应有尽有。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：sqlx、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // 使用 sqlx 连接 PostgreSQL 数据库
 // sqlx 的特点是：编译时检查 SQL 语句是否正确
 // 想象一下：写完 SQL，编译一下，如果有问题编译器立刻告诉你
@@ -295,7 +304,10 @@ async fn main() -> Result<(), sqlx::Error> {
 // ✅ 新用户创建成功，ID = 3
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：redis、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // 使用 redis-rs 操作 Redis
 // Redis 是内存数据库，速度快到像是骑着火箭去买菜
 
@@ -341,7 +353,10 @@ async fn main() -> Result<(), redis::RedisError> {
 
 > 如果说前端是餐厅的服务员，后端是厨房里的厨师，那么 API 就是那个把菜单从服务员传给厨师、再把菜端回来的传菜员。Rust 的 API 生态，就是要把这个传菜员培训成短跑冠军！
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：reqwest、serde、serde_json、tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // 使用 reqwest 发起 HTTP 请求——调用第三方 API
 // 想象一下：你的 Rust 程序要去调用天气 API、地图 API、支付 API...
 // reqwest 就是它的"外交官"
@@ -406,7 +421,10 @@ async fn main() -> Result<(), reqwest::Error> {
 
 > ** Tokio 是什么？** 想象一下：你的程序是一个大型餐厅，Tokio 就是那个能同时指挥数千道菜同时进行的后台厨房系统——既不会让面条煮烂，也不会让牛排烧焦，它知道什么时候该翻炒、什么时候该装盘，一切尽在掌控！
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // Tokio 基础示例：异步任务的"你好，世界"
 // 在 Tokio 的世界里，一切都应该是 async（异步）的
 // 就像高铁——同一轨道上可以跑很多列车，互不干扰
@@ -417,10 +435,12 @@ use tokio::time::{sleep, Duration};
 async fn main() {
     println!("🍜 Tokio 餐厅开业了！同时准备三道菜...");
 
-    // 创建三个异步任务，让它们"同时"执行
+    // 用 join! 同时推进三个 future
     // 注意：这是并发，不是并行！
-    // 并发是"交替执行"，并行是"同时执行"
-    // Tokio 通过单线程调度实现高并发，CPU 核心利用率拉满
+    // 并发是"交替推进"（一个线程也能并发），并行是"真的同时在多个核心上跑"
+    // 这里三个 future 由 join! 在同一个任务内交替推进；
+    // 而 #[tokio::main] 默认启用多线程运行时（工作线程数 = CPU 核心数），
+    // 真正 spawn 出去的任务会被分配到多个线程上并行执行
 
     let start = std::time::Instant::now();
 
@@ -454,7 +474,10 @@ async fn cook_dish(name: &str, seconds: u64) {
 // 🏆 如果串行执行需要 6 秒，但我们只用了 3 秒！这就是并发的威力！
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：tokio
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // Tokio 进阶：mpsc（多生产者单消费者）通道
 // 想象一下：多个服务员同时向厨房发订单，厨房按顺序出菜
 
@@ -585,7 +608,10 @@ fn main() {
 // 🎯 准确率: 100%
 ```
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：crossbeam
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // 使用 crossbeam 实现无锁并发
 // "无锁"（Lock-free）数据结构：不使用互斥锁，而是用原子操作
 // 速度快到像是用魔法打败魔法！
@@ -796,7 +822,9 @@ fn main() {
 
 ndarray 是 Rust 的多维数组库，类似于 Python 的 NumPy，但速度更快、内存更安全。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate 或平台特性，请配合 Cargo.toml 依赖使用（本块标记为 ignore）。
+
 // ndarray 示例：矩阵运算
 // 想象一下：NumPy 是计算器，ndarray 就是那个计算速度比计算器快 100 倍的超级计算器
 
@@ -879,7 +907,10 @@ fn main() {
 
 Rayon 是一个让你"零成本"并行化迭代器的库。只要把 `.iter()` 改成 `.par_iter()`，你的串行代码就变成了并行代码——这听起来像是魔法，但 Rust 的类型系统让它成为可能。
 
-```rust
+```rust,ignore
+// ⚠️ 本示例依赖外部 crate：rayon
+//    请先在 Cargo.toml 里添加对应依赖，再用 cargo 编译运行（本块标记为 ignore）。
+
 // rayon 示例：并行求和
 // 性能提升可能达到 CPU 核心数的 N 倍
 // 如果你是 16 核，那理论上就是 16 倍！
@@ -964,7 +995,9 @@ fn main() {
 
 Polars 是 Rust（和 Python）的 DataFrame 库，类似于 pandas，但速度更快、内存效率更高。如果你熟悉 pandas，学习 Polars 会非常轻松。
 
-```rust
+> ⚠️ 本示例依赖外部 crate `polars`，需要在 `Cargo.toml` 中声明依赖后才能编译运行，因此标记为 `ignore`。
+
+```rust,ignore
 // polars 示例：数据处理
 // Polars = pandas 但更快更安全
 
@@ -1082,7 +1115,9 @@ rustc 是 Rust 语言的核心编译器，也是 Rust 生态的"心脏"。但你
 
 > **冷知识**：rustc 编译器本身就是一个 Rust 项目，大约有 150 万行 Rust 代码。如果你想深入了解编译器内部结构，阅读 rustc 源码是一个绝佳的起点（当然，你可能需要准备足够的咖啡）。
 
-```rust
+> ⚠️ 本示例是**过程宏（proc-macro）crate**的代码，必须放在一个 `proc-macro = true` 的独立 crate 里编译，直接贴进普通 binary crate 会报错，因此标记为 `ignore`。
+
+```rust,ignore
 // 让我们用代码来"致敬"rustc
 // 虽然我们不能直接修改 rustc，但我们可以写一个简单的编译器插件
 
@@ -1160,7 +1195,7 @@ Cargo 的设计哲学是"约定优于配置"：你不需要写复杂的构建脚
 [package]
 name = "my-awesome-project"       # 项目名称（发布到 crates.io 时使用）
 version = "0.1.0"                 # 语义化版本号
-edition = "2021"                  # Rust 版本（2021 是目前最新的）
+edition = "2024"                  # Rust 版本（2024 是目前最新的 Edition，需 Rust 1.85+）
 authors = ["Rustacean <rust@fan.com>"]
 description = "一个超棒的项目，展示 Rust 生态的强大"
 license = "MIT OR Apache-2.0"     # 开源许可证
@@ -1437,7 +1472,9 @@ graph TB
 
 Bevy 是一个数据驱动的游戏引擎，完全用 Rust 编写。它的设计理念借鉴了 ECS（Entity-Component-System）架构，这种架构在游戏开发中非常流行，但 Bevy 的实现是独特的——它大量使用 Rust 的类型系统来实现编译时检查，让你在编译期就能发现游戏逻辑中的错误。
 
-```rust
+> ⚠️ 本示例依赖游戏引擎 `bevy`（外部 crate），需在 `Cargo.toml` 中声明依赖后才能运行，因此标记为 `ignore`。
+
+```rust,ignore
 // Bevy ECS 示例：创建实体、组件和系统
 // ECS = Entity-Component-System（实体-组件-系统）
 // 这是游戏开发中最流行的架构模式之一
@@ -1533,7 +1570,9 @@ fn main() {
 // 开发者只需要关注"有什么数据"和"如何处理"，而不用关心帧循环
 ```
 
-```rust
+> ⚠️ 本示例依赖游戏引擎 `bevy`（外部 crate），需在 `Cargo.toml` 中声明依赖后才能运行，因此标记为 `ignore`。
+
+```rust,ignore
 // Bevy 资源管理：游戏全局状态
 // 资源是全局数据，与组件不同，组件属于实体
 
@@ -1704,7 +1743,9 @@ WebAssembly（WASM）是浏览器的"第三条腿"——有了它，浏览器不
 
 Yew 是一个用 Rust 编写的 Web 前端框架，它的 API 设计灵感来自 React，同样采用组件化、虚拟 DOM 的思路。你可以用纯 Rust 写前端代码，编译成 WASM 后运行在浏览器里！
 
-```rust
+> ⚠️ 本示例依赖前端框架 `yew`（外部 crate）以及 WASM 目标环境，需在 `Cargo.toml` 中声明依赖并配合 `trunk`/`wasm-pack` 使用，因此标记为 `ignore`。
+
+```rust,ignore
 // Yew 组件示例：计数器
 use yew::prelude::*;
 
@@ -1815,7 +1856,9 @@ fn WeatherApp() {
 
 Leptos 是另一个新兴的 Rust 前端框架，它的响应式系统更加"Rust 化"——使用的是信号（Signal）模式，而不是 Yew 的组件模式。
 
-```rust
+> ⚠️ 本示例依赖前端框架 `leptos`（外部 crate）以及 WASM 目标环境，需在 `Cargo.toml` 中声明依赖并配合 `trunk` 使用，因此标记为 `ignore`。
+
+```rust,ignore
 // Leptos 示例：响应式计数器
 use leptos::*;
 
@@ -1861,6 +1904,8 @@ fn main() {
 ```
 
 #### WASM 生态全景
+
+Rust 编译到 WebAssembly 的整条工具链大致长这样：`wasm-pack` 负责打包，`wasm-bindgen` 负责与 JavaScript 互操作。
 
 ```mermaid
 graph LR

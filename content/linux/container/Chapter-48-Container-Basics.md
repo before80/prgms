@@ -534,19 +534,23 @@ Docker不是容器技术本身，而是**最流行的容器管理平台**。它�
 全场震惊！从此，Docker开始了它的"封神之路"。
 
 ```mermaid
-flowchart Timeline
+graph LR
     A[2013年<br/>Docker诞生] --> B[2014年<br/>Docker 1.0发布]
-    B --> C[2015年<br/>成立CNCF基金会]
-    C --> D[2017年<br/>Docker开源containerd]
-    D --> E[2019年<br/>Docker桌面版发布]
-    E --> F[2020年至今<br/>Docker成为容器标准]
+    B --> C[2015年<br/>OCI成立<br/>容器格式标准化]
+    C --> D[2016年<br/>containerd开源<br/>并捐赠给CNCF]
+    D --> E[2017年<br/>Docker拆分为CE社区版与EE企业版]
+    E --> F[2020年至今<br/>OCI与containerd成为事实标准]
 ```
+
+> 补充说明：CNCF（云原生计算基金会）成立于 2015 年，Docker 是在 2017 年把 containerd 交由 CNCF 托管的，
+> 而 containerd 本身在 2016 年 12 月就已开源。2017 年 Docker 还把产品线拆成了免费的 Docker CE（社区版）
+> 和收费的 Docker EE（企业版），这也是为什么今天很多发行版仓库里 `docker` 和 `containerd` 是两个独立的包。
 
 ### Docker的核心概念
 
 Docker有三个核心概念：**镜像（Image）**、**容器（Container）**、**仓库（Registry）**。
 
-它们的的关系是这样的：
+它们的关系是这样的：
 
 ```mermaid
 flowchart LR
@@ -1004,8 +1008,8 @@ docker pull ubuntu:22.04
 # 大小：77.8MB
 
 # Alpine镜像（专为容器设计的轻量Linux）
-docker pull ubuntu:22.04
-# 大小：77.8MB
+docker pull alpine:3.20
+# 大小：约7MB，比Ubuntu小一个数量级
 
 # 使用Alpine版本
 docker pull python:3.11-alpine
@@ -1510,26 +1514,33 @@ Docker Hub上有大量官方维护的优质镜像：
 
 | 类别 | 镜像 | 说明 |
 |------|------|------|
-| **操作系统** | ubuntu, debian, alpine, centos | 基础操作系统 |
+| **操作系统** | ubuntu, debian, alpine, rockylinux, almalinux | 基础操作系统 |
 | **编程语言** | python, node, golang, ruby, java | 开发环境 |
 | **数据库** | mysql, postgres, redis, mongodb | 数据存储 |
 | **Web服务** | nginx, apache, tomcat | Web服务器 |
 | **DevOps** | jenkins, gitlab, drone | 持续集成 |
 | **监控** | prometheus, grafana | 监控系统 |
 
+> 注意：Docker Hub 上的 `centos` 官方镜像最后只更新到 CentOS 8（CentOS Linux 8 已于 2021-12-31 停止维护）。
+> 现在要装 RHEL 系的基础镜像，建议用 `rockylinux`、`almalinux` 或 `oraclelinux`。
+
 ### 镜像加速器
 
 在中国，拉取Docker Hub镜像可能很慢，可以使用镜像加速器：
+
+> ⚠️ **先看这条**：近几年国内多个公共镜像加速器（如 USTC、网易 163、Docker 中国官方镜像站等）
+> 已经陆续停止对外服务，网上抄来的地址很可能已经失效。**请以各云厂商当前文档里的地址为准**，
+> 例如阿里云容器镜像服务会给每个账号分配一个专属地址 `https://<你的ID>.mirror.aliyuncs.com`，
+> 腾讯云、华为云等也有类似服务。下面只是一份配置方法的示例。
 
 ```bash
 # 配置镜像加速器（修改daemon.json）
 sudo nano /etc/docker/daemon.json
 
-# 添加加速器地址
+# 添加加速器地址（替换成你自己账号对应的地址）
 {
     "registry-mirrors": [
-        "https://docker.mirrors.ustc.edu.cn",
-        "https://hub-mirror.c.163.com"
+        "https://<你的ID>.mirror.aliyuncs.com"
     ]
 }
 
@@ -1537,8 +1548,12 @@ sudo nano /etc/docker/daemon.json
 sudo systemctl restart docker
 
 # 验证加速器是否生效
-docker info | grep "Registry Mirrors"
+docker info | grep -A 5 "Registry Mirrors"
 ```
+
+> 如果只是偶尔拉镜像，也可以直接给单个镜像加前缀走代理，例如
+> `docker pull dockerproxy.example.com/library/nginx:latest`，但大多数公共代理同样不稳定，
+> 生产环境更推荐自建 Harbor 或使用云厂商的镜像仓库。
 
 ### 一图总结仓库操作
 
@@ -1630,5 +1645,3 @@ docker search nginx      # 搜索镜像
 > 但程序员们更喜欢把它理解为："看，这只鲸鱼背着这么多集装箱，迟早要沉！" 😂
 >
 > 记住：**容器虽好，可不要贪多哦！不然鲸鱼真的会沉的！** 🐋
-
-

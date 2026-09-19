@@ -43,6 +43,41 @@ if (result) {
 }
 ```
 
+### 修饰符（flags）
+
+写在正则最后一个 `/` 后面的字母就是修饰符，可以叠加：
+
+| 修饰符 | 名称 | 作用 |
+| --- | --- | --- |
+| `g` | global | 找出全部匹配，而不是找到第一个就停 |
+| `i` | ignoreCase | 忽略大小写 |
+| `m` | multiline | 让 `^` `$` 匹配每一行的开头和结尾 |
+| `s` | dotAll | 让 `.` 也能匹配换行符 |
+| `u` | unicode | 按 Unicode 码点处理，支持 `\p{...}`，能正确处理 emoji 等 |
+| `y` | sticky | 从 `lastIndex` 处**紧挨着**开始匹配（`g` 是往后找，`y` 是必须贴住） |
+| `d` | hasIndices | 让匹配结果带上每个分组的 `indices` 下标信息 |
+
+```javascript
+console.log('Hello hello'.match(/hello/gi)); // 打印结果: ['Hello', 'hello']
+console.log(/^b/m.test('a\nb'));              // 打印结果: true（m 让 ^ 匹配第二行行首）
+console.log(/a.b/s.test('a\nb'));             // 打印结果: true（s 让 . 匹配换行）
+```
+
+> **一个必须知道的坑**：带 `g` 或 `y` 的正则对象是有状态的，`test()` 和 `exec()` 每次调用都会从 `lastIndex` 继续往后找。同一个带 `g` 的正则反复 `test()` 同一个字符串，结果会在 `true`/`false` 之间来回跳。
+
+```javascript
+const re = /a/g;
+console.log(re.test('a')); // true（lastIndex 变成 1）
+console.log(re.test('a')); // false（从 1 开始找，没找到，lastIndex 归零）
+console.log(re.test('a')); // true（又从 0 开始）
+
+// 解决方式一：每次都新建一个正则
+// 解决方式二：用完手动复位
+re.lastIndex = 0;
+
+// 循环取全部匹配时，也要注意 exec 返回 null 后 lastIndex 会自动归零
+```
+
 下一节，我们来学习字符与元字符！
 
 ## 34.2 字符与元字符
@@ -200,7 +235,7 @@ const str = 'Hello World! 123';
 console.log(str.match(/\d+/g)); // 打印结果: ['123']
 
 // search：返回第一个匹配的索引
-console.log(str.search(/\d+/)); // 打印结果: 14
+console.log(str.search(/\d+/)); // 打印结果: 13（从 0 开始数：'!' 在 11，空格在 12，'1' 在 13）
 
 // replace：替换匹配
 console.log(str.replace(/\d+/, '456')); // 打印结果: Hello World! 456
@@ -219,13 +254,24 @@ console.log('2024-03-24'.replace(/(\d{4})-(\d{2})-(\d{2})/, '$3/$2/$1'));
 // $&：整个匹配
 console.log('hello'.replace(/\w+/, '[$&]')); // 打印结果: [hello]
 
-// $`：匹配前面的部分
-console.log('hello world'.replace(/world/, '$`hello '));
-// 打印结果: hello hello world
+// $`：替换文本 = 匹配位置「之前」的全部内容
+console.log('hello world'.replace(/world/, "[$`]"));
+// 匹配到的是 'world'，它前面的内容是 'hello '
+// 于是 'world' 被替换成 '[hello ]'
+// 打印结果: hello [hello ]
 
-// $'：匹配后面的部分
-console.log('hello world'.replace(/hello/, "$' world"));
-// 打印结果: hello world world
+// $'：替换文本 = 匹配位置「之后」的全部内容
+console.log('hello world'.replace(/hello/, "[$']"));
+// 匹配到的是 'hello'，它后面的内容是 ' world'
+// 于是 'hello' 被替换成 '[ world]'
+// 打印结果: [ world] world
+
+// $n 与 $<name>：引用分组（下标分组和命名分组都支持）
+console.log('2024-03-24'.replace(/(?<y>\d{4})-(?<m>\d{2})-(?<d>\d{2})/, '$<d>/$<m>/$<y>'));
+// 打印结果: 24/03/2024
+
+// $$ 表示一个字面量 $
+console.log('price'.replace(/price/, '$$9.9')); // 打印结果: $9.9
 
 // 回调函数
 console.log('2024-03-24'.replace(/(\d{4})-(\d{2})-(\d{2})/, function(match, y, m, d) {
@@ -256,19 +302,35 @@ console.log(emailRegex.test('test@example.com')); // 打印结果: true
 console.log(emailRegex.test('invalid@email')); // 打印结果: false
 ```
 
+邮箱的完整语法（RFC 5321/5322）极其复杂，上面这种简化写法**不能**用来判断「邮箱是否真实存在」，它的定位只是「快速拦掉明显写错的内容」。实践中的做法是：
+
+- 前端只做宽松校验（有 `@`、有域名、长度合理），校验失败不阻塞用户继续修改；
+- 真正可靠的验证手段是**给该邮箱发一封验证邮件**；
+- 需要严格遵循标准时用成熟库（如 `validator.js` 的 `isEmail`），不要手写。
+
+另外两个细节：`[a-zA-Z0-9.-]` 这种字符类里，`.` 已经失去「任意字符」的含义，只是普通的点号；但连续的点（`a..b@x.com`）依然会被放行，需要额外判断。
+
 ### URL 参数解析
 
 ```javascript
 const url = 'https://example.com/search?q=javascript&page=1';
 
-const params = {};
-url.match(/[?&]([^&=]+)=([^&]*)/g).forEach(function(match) {
-    const [, key, value] = match.split('=');
-    params[decodeURIComponent(key)] = decodeURIComponent(value);
-});
-
+// ✅ 推荐写法：浏览器和 Node.js 都内置了 URL 与 URLSearchParams
+const params = Object.fromEntries(new URL(url).searchParams);
 console.log(params); // 打印结果: { q: 'javascript', page: '1' }
+
+// ✅ 正则写法：必须用 matchAll（或 exec 循环）才能拿到分组
+const paramsByRegex = {};
+for (const m of url.matchAll(/[?&]([^&=]+)=([^&]*)/g)) {
+    paramsByRegex[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+}
+console.log(paramsByRegex); // 打印结果: { q: 'javascript', page: '1' }
+
+// 需要处理 '+' 号表示空格、中文参数等情况时，交给 URLSearchParams 更稳妥
+console.log(new URL('https://e.com/s?q=a+b%20c').searchParams.get('q')); // 打印结果: a b c
 ```
+
+> 这个例子也解释了一个高频疑问：**`String.prototype.match` 传入带 `g` 标志的正则时，返回值里只有每段匹配的完整文本，捕获分组全部丢失**。想同时拿到分组内容，就用 `matchAll` 或 `exec` 循环。
 
 ### 敏感词替换
 
@@ -281,6 +343,20 @@ function filterSensitive(text) {
 }
 
 console.log(filterSensitive('这是一段包含暴力的文字')); // 打印结果: 这是一段包含***的文字
+```
+
+用 `new RegExp` 从词库拼正则时，有两个必须处理的细节：
+
+1. **词库里的内容要转义**。如果某个词包含 `.`、`*`、`(`、`?` 这类元字符，直接拼进正则会改变含义甚至让整个正则失效。
+2. **中文没有「单词边界」**，所以不能靠 `\b` 精确匹配，只能做整段替换；这也意味着上面这种替换很容易被空格、标点、拼音、繁体等写法绕过，只能作为**最基础的展示层过滤**，真正的文本审核要交给专业服务。
+
+```javascript
+// 转义正则元字符，再拼成正则
+function escapeRegExp(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const regex = new RegExp(sensitiveWords.map(escapeRegExp).join('|'), 'g');
 ```
 
 ### 千分位格式化
@@ -328,17 +404,119 @@ function trim(str) {
 console.log(trim('  hello world  ')); // 打印结果: hello world
 ```
 
+## 34.6 进阶特性
+
+### 命名捕获分组：(?<name>...)
+
+用下标 `result[1]` 取分组，一旦分组变多就很难看懂，命名分组可以让代码自解释：
+
+```javascript
+const re = /(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/;
+const { groups } = re.exec('2024-03-24');
+console.log(groups.year);  // 打印结果: 2024
+console.log(groups.month); // 打印结果: 03
+console.log(groups.day);   // 打印结果: 24
+```
+
+### 断言（环视）：(?=) (?!) (?<=) (?<!)
+
+断言只「看一眼」而不消耗字符，因此常用来做「只替换某段内容」：
+
+| 写法 | 含义 |
+| --- | --- |
+| `X(?=Y)` | 匹配后面跟着 `Y` 的 `X`（正向前瞻） |
+| `X(?!Y)` | 匹配后面不是 `Y` 的 `X`（负向前瞻） |
+| `(?<=Y)X` | 匹配前面是 `Y` 的 `X`（正向后顾） |
+| `(?<!Y)X` | 匹配前面不是 `Y` 的 `X`（负向后顾） |
+
+```javascript
+// 只给数字加单位，不改动数字本身
+console.log('价格 120 元'.replace(/\d+(?= 元)/, '$&.00')); // 打印结果: 价格 120.00 元
+
+// $ 加千分位就是靠 \B(?=(\d{3})+(?!\d)) 这种「位置断言」实现的
+
+// 后顾断言：只替换￥后面的数字
+console.log('￥120 and $99'.replace(/(?<=￥)\d+/, '***')); // 打印结果: ￥*** and $99
+```
+
+### Unicode 属性转义：\p{...}
+
+处理 emoji、各国文字时，字符类的写法会失效，要配合 `u` 标志使用 Unicode 属性：
+
+```javascript
+// 匹配所有表情符号
+console.log('Hi 👋 世界'.match(/\p{Emoji}/gu)); // 打印结果: ['👋']
+
+// 匹配所有中文字符
+console.log('abc中文'.match(/\p{Script=Han}/gu)); // 打印结果: ['中', '文']
+```
+
+注意：`.` 默认按 UTF-16 码元匹配，不加 `u` 时一个 emoji 会被拆成两半：
+
+```javascript
+console.log('👋'.length);        // 打印结果: 2（UTF-16 长度）
+console.log([...'👋'].length);   // 打印结果: 1（按码点计数）
+console.log(/^.$/.test('👋'));   // 打印结果: false
+console.log(/^.$/u.test('👋'));  // 打印结果: true
+```
+
+### 动态创建正则时记得转义：RegExp.escape
+
+把用户输入当作「普通文本」去搜索时，必须转义元字符。规范中已新增 `RegExp.escape()`：
+
+```javascript
+const keyword = 'a+b';
+
+// ❌ 会被当成「一个或多个 a 后面跟 b」
+new RegExp(keyword).test('aaab');
+
+// ✅ 转义后按字面量匹配
+if (typeof RegExp.escape === 'function') {
+    console.log(new RegExp(RegExp.escape(keyword)).test('a+b')); // 打印结果: true
+}
+
+// 兼容旧环境的等价写法（见上一节 escapeRegExp）
+```
+
+### replaceAll 与字符串方法
+
+`String.prototype.replaceAll`（ES2021）语义更直白：传字符串时替换全部，传正则时**必须带 `g` 标志**，否则会抛错。
+
+```javascript
+console.log('a-b-c'.replaceAll('-', '+'));   // 打印结果: a+b+c
+console.log('a-b-c'.replaceAll(/-/g, '+'));  // 打印结果: a+b+c
+// console.log('a-b-c'.replaceAll(/-/, '+')); // TypeError: replaceAll must be called with a global RegExp
+```
+
+### 什么时候不该用正则
+
+正则是处理**扁平文本**的利器，但它不是万能的：
+
+- **不要用正则解析 HTML、XML、JSON 等嵌套结构**，标签嵌套、属性顺序、注释、CDATA 都会让它出错，应该用 DOMParser 或专用解析器。
+- **不要用正则实现「判断是否包含某个域名」这类安全检查**，`evil.com` 可以写成 `evil.com.attacker.net`、`evil.com@attacker.net` 等多种形式，必须用 URL 解析后比较 `hostname`。
+- **正则性能要留意灾难性回溯**：像 `(a+)+b` 这种嵌套量词，遇到不匹配的长字符串会让引擎指数级尝试。避免嵌套量词、避免 `.*` 重复、能用更精确的字符类就别用 `.`。
+
+```javascript
+// ❌ 嵌套量词，长字符串上可能卡死主线程
+const bad = /(a+)+b/;
+
+// ✅ 用精确字符类，匹配过程是线性的
+const good = /a+b/;
+```
+
 ---
 
 ## 本章小结
 
 本章我们学习了正则表达式：
 
-1. **正则基础**：创建正则（字面量/RegExp）、test/exec 方法。
+1. **正则基础**：创建正则（字面量/RegExp）、test/exec 方法、修饰符 flags，以及带 `g` 的正则有状态这个坑。
 2. **字符与元字符**：字符类、量词、贪婪/非贪婪、边界。
 3. **分组与引用**：捕获分组、非捕获分组、反向引用、或运算。
-4. **字符串方法**：match、search、replace、split 与正则的结合。
-5. **常用场景**：手机号、邮箱、URL参数、千分位、密码强度等验证。
+4. **字符串方法**：match、search、replace、split 与正则的结合，以及 `$&`、`$1`、`$<name>`、`matchAll`、`replaceAll`。
+5. **常用场景**：手机号、邮箱、URL 参数、千分位、密码强度等验证。
+6. **进阶特性**：命名分组、环视断言、Unicode 属性转义、`RegExp.escape`。
+7. **使用边界**：不要解析嵌套结构、不要做域名白名单判断、注意灾难性回溯。
 
 正则表达式是 JavaScript 开发中的"瑞士军刀"，掌握它能让你的字符串处理能力大幅提升。
 

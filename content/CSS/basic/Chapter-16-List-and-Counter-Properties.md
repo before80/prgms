@@ -315,8 +315,17 @@ list-style-position: inside
   margin-bottom: 12px;
 }
 
+.quote-list {
+  quotes: "“" "”";   /* 先定义引号字符，再让 open-quote/close-quote 去引用 */
+}
+
 .quote-list li::before {
-  content: "" "";  /* 使用引号作为标记 */
+  content: open-quote;   /* 输出上面定义的开引号 */
+  color: #3498db;
+}
+
+.quote-list li::after {
+  content: close-quote;  /* 输出对应的闭引号 */
   color: #3498db;
 }
 
@@ -409,16 +418,29 @@ list-style-position: inside
 }
 
 .custom-marker-list li::before {
-  content: url("marker.png");  /* 图片URL作为content */
   position: absolute;
   left: 0;
   top: 50%;
   transform: translateY(-50%);  /* 垂直居中 */
   width: 20px;
   height: 20px;
+  content: "";                  /* 先给个空内容，伪元素才会生成 */
   background-image: url("marker.png");
   background-size: contain;
   background-repeat: no-repeat;
+}
+
+/* 另一种写法：把图片直接当作 content 的内容
+   （此时伪元素相当于"替换元素"，width/height 同样生效。
+   ⚠️ 两种写法选一种即可，同时写 background-image 会把同一张图渲染两遍）*/
+.custom-marker-list.img-content li::before {
+  content: url("marker.png");
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
 }
 
 /* 更灵活的版本：使用 emoji 或 SVG */
@@ -504,15 +526,17 @@ list-style-position: inside
 </ul>
 
 <ul class="emoji-list">
-  <li>👉 使用 emoji 作为标记</li>
-  <li>🎯 灵活多变</li>
-  <li>✨ 不需要额外图片资源</li>
+  <!-- 👉 由上面的 ::before 生成，正文里就不要再手写一遍 -->
+  <li>使用 emoji 作为标记</li>
+  <li>灵活多变</li>
+  <li>不需要额外图片资源</li>
 </ul>
 
 <ul class="arrow-list">
-  <li>→ 箭头列表</li>
-  <li>→ 简洁明了</li>
-  <li>→ 易于维护</li>
+  <!-- 同理：→ 由 ::before 生成，正文再写一遍就会出现两个箭头 -->
+  <li>箭头列表</li>
+  <li>简洁明了</li>
+  <li>易于维护</li>
 </ul>
 ```
 
@@ -729,6 +753,49 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 }
 ```
 
+**别忘了还有第三个兄弟：`counter-set`**
+
+计数器的"增删改查"一共由四个东西负责，很多人只会用前两个：
+
+| 名称 | 作用 | 常见写法 |
+|------|------|----------|
+| `counter-reset` | 在元素上**创建**计数器（首次使用即为创建），并设一个起始值 | `counter-reset: chapter 0;` |
+| `counter-increment` | 递增（可为负，相当于递减） | `counter-increment: chapter 3;` |
+| `counter-set` | **直接赋值**，不涉及加减 | `counter-set: chapter 7;` |
+| `counter()` / `counters()` | 读取并输出 | `content: counter(chapter);` |
+
+```css
+/* counter-reset 负责创建，counter-set 负责"跳跃赋值" */
+.manual-list {
+  counter-reset: item;      /* 创建 item，值为 0 */
+  list-style: none;
+}
+
+.manual-list li {
+  counter-increment: item;  /* 每项 +1 */
+}
+
+.manual-list li.special {
+  counter-set: item 10;     /* 直接把 item 设成 10，下一项就变成 11 */
+}
+
+/* 倒序编号：reversed() 函数
+   ⚠️ 浏览器支持有限（目前主要 Firefox 支持，Chrome / Safari 尚未实现），
+      生产环境请用 counter-increment: x -1 或 JavaScript 兜底 */
+.countdown {
+  counter-reset: reversed(seconds) 5;
+  list-style: none;
+}
+
+.countdown li {
+  counter-increment: seconds -1;  /* 每项递减 1 */
+}
+
+.countdown li::before {
+  content: counter(seconds) "、";
+}
+```
+
 **计数器的生命周期：**
 
 ```css
@@ -874,6 +941,14 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 
 /* 使用 counters() 自动处理嵌套 */
 .auto-nested {
+  counter-reset: item;   /* 顶层创建一个 item 计数器 */
+  list-style: none;
+  padding-left: 20px;
+}
+
+/* ⚠️ 关键的一行：每一层嵌套列表都要"再新建一个"同名计数器
+   否则内层 li 只会继续加在外层那个计数器上，编号会变成 1、2、3 而不是 1.1、1.2 */
+.auto-nested ol {
   counter-reset: item;
   list-style: none;
   padding-left: 20px;
@@ -885,10 +960,10 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 
 .auto-nested li::before {
   content: counters(item, ".") " ";
-  /* counters() 会自动处理嵌套级别 */
-  /* 第一级：1, 2, 3... */
-  /* 第二级（嵌套在1下）：1.1, 1.2... */
-  /* 第三级：1.1.1, 1.1.2... */
+  /* counters() 会把"当前作用域中所有同名计数器"的值串起来，用 "." 连接：
+     第一级：1, 2, 3...
+     第二级（嵌套在第 1 项下）：1.1, 1.2...
+     第三级：1.1.1, 1.1.2... */
 }
 ```
 
@@ -896,21 +971,23 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 <ol class="auto-nested">
   <li>第一章
     <ol>
-      <li>第一章第一节</li>
-      <li>第一章第二节
+      <li>第一节</li>
+      <li>第二节
         <ol>
-          <li>1.2.1 小节</li>
-          <li>1.2.2 小节</li>
+          <li>小节一</li>
+          <li>小节二</li>
         </ol>
       </li>
     </ol>
   </li>
   <li>第二章
     <ol>
-      <li>第二章第一节</li>
+      <li>第一节</li>
     </ol>
   </li>
 </ol>
+<!-- 编号由 ::before 生成，正文里不用手写：
+     1 第一章 / 1.1 第一节 / 1.2 第二节 / 1.2.1 小节一 / 1.2.2 小节二 / 2 第二章 / 2.1 第一节 -->
 ```
 
 **计数器的样式设置：**
@@ -987,6 +1064,10 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 }
 
 /* 3. 脚注编号 */
+.footnote-container {   /* 在公共祖先上创建计数器，编号才有统一的作用域 */
+  counter-reset: footnote;
+}
+
 .footnote-ref {
   counter-increment: footnote;
   font-size: 12px;
@@ -1051,32 +1132,47 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 ```css
 /* @counter-style 的基本语法 */
 
-/* 定义一个自定义计数器样式 */
-@counter-style custom-roman {
-  /* 系统类型 */
-  system: numeric;           /* 使用数字系统 */
-
-  /* 符号定义 */
-  symbols: "I" "II" "III" "IV" "V" "VI" "VII" "VIII" "IX" "X";
-  /* 对应 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 */
+/* 定义一个自定义计数器样式：带前导零的两位数字 */
+@counter-style padded-decimal {
+  system: numeric;                       /* 使用"位置计数"系统 */
+  symbols: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";  /* 10 个符号 = 十进制 */
+  pad: 2 "0";                            /* 不足两位时前面补 0 */
+  suffix: ".";
 }
 
 /* 使用自定义计数器 */
-.roman-list {
-  list-style: custom-roman;
+.padded-list {
+  list-style: padded-decimal;
 }
 ```
 
 ```html
-<ol class="roman-list">
+<ol class="padded-list">
   <li>第一章 - 介绍</li>
   <li>第二章 - 基础</li>
   <li>第三章 - 进阶</li>
   <li>第四章 - 高级</li>
   <li>第五章 - 实战</li>
 </ol>
-<!-- 显示为：I, II, III, IV, V... -->
+<!-- 显示为：01. 02. 03. 04. 05. -->
 ```
+
+> ⚠️ **`system: numeric` 有两个硬性规则**，写错了整个 `@counter-style` 就"静默失效"（规则语法合法，但不定义任何样式）：
+>
+> 1. **第一个符号代表数字 0，第二个代表 1**，以此类推——它是一套"进位计数制"的数字表，不是"第 1 项用什么符号"的列表；
+> 2. **至少要有 2 个符号**。
+>
+> 所以像下面这样用 `numeric` 来"手写罗马数字 1~10"是**错的**：
+>
+> ```css
+> /* ❌ 错误：I 会被当成数字 0，1 就变成了 "II" */
+> @counter-style bad-roman {
+>   system: numeric;
+>   symbols: "I" "II" "III" "IV" "V" "VI" "VII" "VIII" "IX" "X";
+> }
+>
+> /* ✅ 罗马数字应该用 additive（加法）系统，见 16.3.2 */
+> ```
 
 **@counter-style 的完整结构：**
 
@@ -1084,26 +1180,25 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 /* 定义一个更完整的自定义计数器 */
 @counter-style emoji-counter {
   /* 系统类型 */
-  system: fixed -1;  /* 从 -1 开始编号 */
+  system: fixed;     /* 固定符号系统；默认从 1 开始编号 */
 
   /* 符号定义 */
   symbols: "😀" "😁" "😂" "🤣" "😃" "😄" "😅";
 
-  /* 前缀 */
-  prefix: "";
+  /* 前缀（不写时默认是空串 ""） */
 
   /* 后缀 */
   suffix: "、";
 }
 
 /* 使用 */
-.emoji-list {
+.emoji-counter-list {
   list-style: emoji-counter;
 }
 ```
 
 ```html
-<ul class="emoji-list">
+<ul class="emoji-counter-list">
   <li>开心的表情</li>
   <li>微笑</li>
   <li>大笑</li>
@@ -1111,9 +1206,34 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 <!-- 显示为：😀、😁、😂... -->
 ```
 
-### 16.3.2 内置系统——cyclic（循环）、numeric（数字）、alphabetic（字母）、additive（加法）、fixed（固定符号）、extends（扩展内置）
+> ⚠️ 两个容易踩的坑：
+>
+> 1. **`suffix` 的默认值是 `". "`（英文句点加一个空格），不是空串。** 所以自定义样式不写 `suffix` 时，标记后面会自动跟一个 ". "；要"什么都不加"必须显式写 `suffix: "";`。
+> 2. **`counter()` / `counters()` 的输出不包含 `prefix` / `suffix`。** 规范里写得很直接：前缀后缀是"构造 `::marker` 默认内容"时另外拼接上去的，`counter()` 函数本身只负责把数字翻译成符号。所以想用自定义样式做"图 1:"这类文字时，前缀后缀要么写进 `@counter-style`（配合 `list-style-type` 使用），要么在 `content` 里自己拼：
+>
+> ```css
+> /* ✅ 用 list-style-type 时，prefix/suffix 会被自动拼上 */
+> .fig-list { list-style: figure-style; }
+>
+> /* ✅ 用 counter() 时，prefix/suffix 不会自动出现，需要自己写在 content 里 */
+> .fig-caption::before {
+>   content: "图 " counter(figure-num, figure-style) ": ";
+> }
+> ```
+
+### 16.3.2 内置系统——cyclic（循环）、fixed（固定符号）、symbolic（重复符号）、alphabetic（字母）、numeric（数字）、additive（加法）、extends（扩展内置）
 
 `@counter-style` 提供了多种"系统"来定义计数规则，每种系统适合不同的场景。
+
+| system | 一句话说明 | 起点 | 越界（超出符号表）行为 |
+|--------|-----------|------|------------------------|
+| `cyclic` | 符号表循环使用 | 1 | 永远循环，不会越界 |
+| `fixed` | 符号表只用一遍 | 1（可用 `system: fixed 4` 改起点） | 回退到 `fallback` 样式（默认 decimal） |
+| `symbolic` | 符号按"重复次数"叠加 | 1 | 如 1=★，2=★★，3=★★★ |
+| `alphabetic` | 像 Excel 列名一样"进位" | 1 | 双射进位，如 27=aa |
+| `numeric` | 按位拆开的"数字表" | 0 | 需要 0~9 十个符号才像十进制 |
+| `additive` | 每个符号代表固定数值，相加拼出结果 | 0 | 适用于罗马数字、骰子等 |
+| `extends` | 复用另一个计数器样式，只改几个描述符 | 继承 | 继承被扩展样式的行为 |
 
 **1. cyclic（循环系统）——循环使用给定的符号**
 
@@ -1133,10 +1253,19 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 **2. numeric（数字系统）——将数字转换为符号**
 
 ```css
-/* numeric 系统：用符号表示数字 */
-@counter-style dice {
+/* ⚠️ 先看一个反例：用 numeric 表示骰子点数，结果会大出所料 */
+@counter-style wrong-dice {
   system: numeric;
-  symbols: "⚀" "⚁" "⚂" "⚃" "⚄" "⚅";  /* 骰子点数 */
+  symbols: "⚀" "⚁" "⚂" "⚃" "⚄" "⚅";
+  /* 因为第一个符号是"数字 0"，所以第 1 项显示的是 ⚁，不是 ⚀！
+     而且第 7 项会进位成 "⚁⚀"（6 进制），并不会循环。 */
+}
+
+/* ✅ 正确做法：骰子这种"每个符号代表一个固定数值"的场景，要用 additive */
+@counter-style dice {
+  system: additive;
+  additive-symbols: 6 "⚅", 5 "⚄", 4 "⚃", 3 "⚂", 2 "⚁", 1 "⚀";
+  suffix: " ";
 }
 
 .dice-list {
@@ -1146,23 +1275,28 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 
 ```html
 <ol class="dice-list">
-  <li>摇到1点</li>
-  <li>摇到2点</li>
-  <li>摇到3点</li>
-  <li>摇到4点</li>
-  <li>摇到5点</li>
-  <li>摇到6点</li>
+  <li>摇到 1 点</li>
+  <li>摇到 2 点</li>
+  <li>摇到 3 点</li>
+  <li>摇到 4 点</li>
+  <li>摇到 5 点</li>
+  <li>摇到 6 点</li>
+  <li>11 用加法表示</li>
+  <li>12 用加法表示</li>
 </ol>
-<!-- 显示为：⚀、⚁、⚂、⚃、⚄、⚅、⚀（循环）... -->
+<!-- 显示为：⚀、⚁、⚂、⚃、⚄、⚅、⚅⚄、⚅⚅ -->
 ```
+
+> 💡 记两条线：**"数字要按位拆开"用 `numeric`（如 1、2、10、11），"每个符号代表一个固定数值、靠相加拼出来"用 `additive`（如罗马数字、骰子、汉字数字）。**
 
 **3. alphabetic（字母系统）——使用字母序列**
 
 ```css
-/* alphabetic 系统：使用字母序列 */
+/* alphabetic 系统：像 Excel 列号一样"双射进位"（a..e, aa, ab...） */
 @counter-style alpha-asterisk {
   system: alphabetic;
-  symbols: "①" "②" "③" "④" "⑤";  /* 带圈数字 */
+  symbols: "①" "②" "③" "④" "⑤";
+  /* 1=① 2=② … 5=⑤ 6=①① 7=①② …（注意 6 不是"循环回①"） */
 }
 
 .alpha-list {
@@ -1201,7 +1335,7 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 **5. fixed（固定符号系统）——使用固定符号，超出后回退**
 
 ```css
-/* fixed 系统：固定符号，超出后使用备选 */
+/* fixed 系统：符号表从头到尾只用一遍，用完就"掉"到 fallback（默认 decimal） */
 @counter-style zodiac {
   system: fixed;
   symbols: "♈" "♉" "♊" "♋" "♌" "♍" "♎" "♏" "♐" "♑" "♒" "♓";  /* 12星座 */
@@ -1220,9 +1354,54 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
   <li>双子座</li>
   <!-- ... -->
 </ol>
+<!-- 第 1~12 项：♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓
+     第 13 项开始符号用完，回退成 decimal：13 14 15 ... -->
 ```
 
-**6. extends（扩展系统）——扩展内置样式**
+> 💡 **想让 `fixed` 不从头开始？** 在 `system` 后面直接跟一个整数即可设定"第一个符号代表几"：
+>
+> ```css
+> /* 第一个符号对应 4，于是 ♈ 显示为 4、♉ 显示为 5…… */
+> @counter-style zodiac-from-4 {
+>   system: fixed 4;
+>   symbols: "♈" "♉" "♊";
+> }
+>
+> /* 也可以用 range 反过来限制哪些值才使用这个样式，
+     范围之外的值一律走 fallback */
+> @counter-style box-corner {
+>   system: fixed;
+>   symbols: "◰" "◳" "◲" "◱";
+>   range: 1 4;
+>   fallback: decimal;
+>   suffix: ": ";
+> }
+> ```
+
+**6. symbolic（重复符号系统）——符号按层数重复**
+
+```css
+/* symbolic 系统：相同的符号按"出现次数"叠加
+   （注意与 cyclic 的区别：cyclic 是循环，symbolic 是递增重复）*/
+@counter-style star-level {
+  system: symbolic;
+  symbols: "★";
+  /* 1=★ 2=★★ 3=★★★ …… */
+}
+
+.star-list {
+  list-style: star-level;
+}
+
+/* 多个符号时也是重复：● ○ 两个符号
+   1=● 2=○ 3=●● 4=○○ 5=●●● 6=○○○ */
+@counter-style dots {
+  system: symbolic;
+  symbols: "●" "○";
+}
+```
+
+**7. extends（扩展系统）——扩展内置样式**
 
 ```css
 /* extends 系统：扩展已有样式 */
@@ -1238,14 +1417,21 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 
 ### 16.3.3 negative——定义负数的符号，如 negative: "(" ")";
 
-`negative` 属性允许你定义负数的表示方式。
+`negative` 属性用来定义"计数器值为负数时，在数字外面加什么"。它接受 1~2 个符号：第一个加在前面，第二个（可省略）加在后面。
+
+- 初始值是 `"-"`（也就是默认就是前置一个减号）；
+- 写成 `negative: "(" ")";` 就会变成 `(3)` 这种会计记账式负数；
+- **`negative` 只在计数器值为负时生效**，正数、0 都不受影响。
 
 ```css
 /* 定义负数符号 */
 @counter-style signed {
   system: numeric;
-  symbols: "-0" "1" "2" "3" "4" "5";
-  negative: "(" ")";  /* 负数用括号包裹 */
+  /* ⚠️ 和前面说的一样：numeric 是一张"数字表"，
+     第一个符号代表 0，10 个符号才是标准十进制。
+     千万不要写 symbols: "-0" "1" ...，那是把"-0"当成了数字 0 的符号 */
+  symbols: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  negative: "(" ")";   /* 负数用括号包裹 */
 }
 
 .signed-list {
@@ -1254,30 +1440,39 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 ```
 
 ```html
+<!-- 正数项：1、2、3 -->
 <ol class="signed-list">
   <li>正数项</li>
   <li>另一个正数项</li>
+  <li>第三个正数项</li>
 </ol>
-<!-- 显示为：1, 2... -->
-<!-- 如果需要负数，可以这样： -->
+<!-- 显示为：1. 2. 3.（句点+空格是 suffix 的默认值） -->
+
+<!-- 负数项：start="-3" 表示"这一项的值就是 -3"，于是从 -3 开始往上数 -->
 <ol class="signed-list" start="-3">
   <li>负数项</li>
+  <li>负数项</li>
+  <li>负数项</li>
 </ol>
-<!-- 显示为：(3), (2), (1)... -->
+<!-- 显示为：(-3). (-2). (-1). -->
 ```
+
+> 💡 **`start` 属性的取值可以是负数**（HTML 规范的 `start` 是一个"有效整数"，允许负号），所以想演示负数标记时直接写 `start="-3"` 即可；不指定 `negative` 时这些项会显示成 `-3. -2. -1.`。
 
 ### 16.3.4 prefix / suffix——计数器前后缀，如 prefix: "第";
 
 `prefix` 和 `suffix` 属性用于添加计数器的前缀和后缀。
 
+> ⚠️ **`system: numeric` 必须喂够 10 个符号。** 它是"按位拆开的数字表"，第一个符号代表 0；只给 5 个符号等于把进制改成了 5，第 1 项就会显示成"2"而不是"1"。下面所有例子都老老实实写满 `"0"` 到 `"9"`。
+
 ```css
 /* 定义带前缀后缀的计数器 */
 @counter-style chapter-style {
   system: numeric;
-  symbols: "1" "2" "3" "4" "5";
-  prefix: "第";     /* 前缀 */
-  suffix: "章";     /* 后缀 */
-  /* 显示效果：第1章、第2章、第3章... */
+  symbols: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  prefix: "第";     /* 前缀：加在数字前面 */
+  suffix: "章";     /* 后缀：加在数字后面（这里覆盖了默认的 ". "） */
+  /* 显示效果：第1章、第2章、第3章…… */
 }
 
 .chapter-list {
@@ -1287,9 +1482,10 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 /* 常用组合 */
 @counter-style section-style {
   system: numeric;
-  symbols: "1" "2" "3" "4" "5";
+  symbols: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
   prefix: "§ ";
   suffix: " - ";
+  /* 显示效果：§ 1 - 、§ 2 - …… */
 }
 
 .section-list {
@@ -1299,9 +1495,10 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 /* 图注样式 */
 @counter-style figure-style {
   system: numeric;
-  symbols: "1" "2" "3" "4" "5";
+  symbols: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
   prefix: "图 ";
   suffix: ": ";
+  /* 显示效果：图 1: 、图 2: …… */
 }
 
 .figure-list {
@@ -1325,13 +1522,52 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 <!-- 显示为：图 1:、图 2:、图 3:... -->
 ```
 
-> 💡 **小技巧**：`@counter-style` 是 CSS 中非常强大的功能，但浏览器支持情况不一。在使用前，请确认你的目标浏览器是否支持。必要的情况下，可以准备一个 fallback 方案。
+### 16.3.5 其他描述符——fallback、speak-as 与 symbols() 匿名样式
+
+除了前面用到的 `system`、`symbols`、`prefix`、`suffix`、`negative`、`pad`、`range`，`@counter-style` 还有两个描述符值得知道：
+
+```css
+@counter-style fancy {
+  system: numeric;
+  symbols: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+  range: 1 999;          /* 只负责 1~999，其它值交给 fallback */
+  fallback: disc;        /* 兜底样式：范围外或无法表示时改用它 */
+  speak-as: numbers;     /* 屏幕阅读器把标记读成"第几个"（另有 bullets / spell-out 等值） */
+}
+
+/* 有些场景根本不想为此写一个 @counter-style 规则，
+   可以用 symbols() 函数就地生成"匿名计数器样式" */
+.stars {
+  /* 循环使用 ★ ☆ */
+  list-style-type: symbols(cyclic "★" "☆");
+}
+
+.abc-list {
+  /* 字母编号：a b c ... z aa ab ...（不写系统名时默认 symbolic） */
+  list-style-type: symbols(alphabetic "a" "b" "c");
+}
+```
+
+| 描述符 | 作用 | 初始值 |
+|--------|------|--------|
+| `system` | 计数算法 | `symbolic` |
+| `symbols` / `additive-symbols` | 符号表 | 无（不写则整个规则无效） |
+| `negative` | 负数写法 | `"-"` |
+| `prefix` / `suffix` | 标记前后缀 | `""` / `". "` |
+| `range` | 生效的数值范围 | `auto` |
+| `pad` | 补位（如 `pad: 2 "0"` → 01） | `0 ""` |
+| `fallback` | 越界时的兜底样式 | `decimal` |
+| `speak-as` | 语音合成的读法 | `auto` |
+
+> 💡 **小技巧**：`@counter-style` 曾经是"叫好不叫座"的功能，但现在主流浏览器都已经支持：Chrome / Edge 91+、Firefox 33+、Safari 17+（含 iOS 17+）。真正需要担心的反而是 `symbols()` 的写法较新，以及 `pad`、`speak-as` 这类描述符在不同引擎上的细节差异。稳妥起见，可以把它当作"锦上添花"的样式，并保留 `list-style-type: decimal` 之类的兜底写法。
 
 ## 16.4 quotes 引号属性
 
 ### 16.4.1 quotes——定义引号字符，如 quotes: "«" "»" "‹" "›";
 
 `quotes` 属性用于定义 `<q>` 元素（行内引用）使用的引号字符。这个属性可以让你自定义引号的样式，支持多级嵌套引用。
+
+> 💡 先厘清一件事：**`quotes` 只负责"用哪几对字符"，真正把字符画出来的是 `content: open-quote / close-quote`**。浏览器 UA 样式表里给 `q::before` / `q::after` 写的正是这两个值，所以你改了 `quotes` 才会"自动"看到效果。另外，`quotes` 是**继承属性**，在父元素上写一次，整棵子树里的 `<q>` 都会跟着变——这也是它常配合 `:lang()` 使用的原因。
 
 **什么是 `quotes` 属性？**
 
@@ -1361,8 +1597,18 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 <p class="quote-style">
   老师说：<q>这句诗的意思是<q>长江后浪推前浪</q>的精神</q>。
 </p>
-<!-- 嵌套引用显示为：老师说：«这句诗的意思是‹长江后浪推前浪‹的精神»。 -->
+<!-- 嵌套引用显示为：老师说：«这句诗的意思是‹长江后浪推前浪›的精神»。 -->
+<!-- 第 1 层用第 1 对引号「«」「»」，第 2 层自动换成第 2 对「‹」「›」 -->
 ```
+
+**几个常见疑问：**
+
+| 疑问 | 答案 |
+|------|------|
+| `<blockquote>` 会用到 `quotes` 吗？ | 不会。`quotes` 只对 `q` 这类"用 `open-quote` 生成引号"的元素生效；`blockquote` 的默认样式是缩进，跟 `quotes` 无关。 |
+| 浏览器默认用的是哪对引号？ | 取决于**元素的语言**。UA 样式表大致是 `:lang(en) { quotes: "“" "”" "‘" "’" }` 之类，所以中文页面里 `<q>` 的默认引号要看浏览器实现。 |
+| 能改成"按语言自动切换"吗？ | 可以，写 `quotes: auto;`（Chrome 87+、Firefox 70+、Safari 14.1+）——由浏览器根据 `:lang()` / `lang` 属性挑引号，比自己写一堆 `:lang()` 规则省事。 |
+| `quotes` 能被子元素"局部取消"吗？ | 可以，子元素写 `quotes: none;` 就行。`none` 的效果是：`open-quote` / `close-quote` 等同于 `no-open-quote` / `no-close-quote`——不画引号，但嵌套层级仍会变化。 |
 
 **`quotes` 的语法详解：**
 
@@ -1372,7 +1618,7 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 
 /* 两级引号 */
 .two-level {
-  quotes: """ """";  /* 第一级用""，第二级用"" */
+  quotes: "“" "”" "‘" "’";  /* 第一级用“”，第二级用‘’ */
 }
 
 /* 三级引号 */
@@ -1388,8 +1634,8 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 }
 
 .double-quotes {
-  quotes: "" "" "" "";
-  /* 英文双引号 */
+  quotes: "“" "”";
+  /* 只要一级引号：一对即可 */
 }
 
 .chinese-quotes {
@@ -1398,8 +1644,8 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 }
 
 .single-quotes {
-  quotes: "'" "'";
-  /* 单引号 */
+  quotes: "‘" "’";
+  /* 单引号（注意左右不同） */
 }
 
 /* none —— 不显示引号 */
@@ -1417,7 +1663,7 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 ```css
 /* 1. 西方风格的引用 */
 .western-quote {
-  quotes: """ """" "‘" "’";
+  quotes: "“" "”" "‘" "’";
 }
 
 .western-quote q {
@@ -1436,7 +1682,7 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 
 /* 2. 中文风格的引用 */
 .chinese-quote {
-  quotes: """ """ "『" "』";
+  quotes: "「" "」" "『" "』";
 }
 
 .chinese-quote q {
@@ -1499,7 +1745,9 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 <p class="western-quote">
   莎士比亚说：<q>To be, or not to be, that is the question</q>。
 </p>
-<!-- 显示为：莎士比亚说：<To be, or not to be, that is the question>。 -->
+<!-- 显示为：莎士比亚说：“To be, or not to be, that is the question”。 -->
+<!-- 说明：上面的 .western-quote 用的是 quotes: "“" "”" ...，
+     所以引号就是弯引号，不是尖括号；角度符号（< >）在本教程里只用来表示"占位"。 -->
 
 <!-- 中文风格引用 -->
 <p class="chinese-quote">
@@ -1529,15 +1777,23 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
   content: close-quote;  /* 使用 quotes 定义的闭引号 */
 }
 
-/* no-open-quote —— 插入但不增加嵌套层级 */
+/* no-open-quote —— 什么都不画，但"嵌套层级"照旧 +1
+   （常用来手动控制多级引号的层级，比如跳级直接使用第 3 对引号）*/
 .no-nest-example::before {
-  content: no-open-quote;  /* 不显示引号，但层级增加 */
+  content: no-open-quote;   /* 不显示引号，但嵌套层级 +1 */
 }
 
-/* no-close-quote —— 同理 */
+/* no-close-quote —— 什么都不画，嵌套层级 -1 */
 .no-nest-example::after {
   content: no-close-quote;
 }
+
+/* 对照记忆：
+   open-quote     画引号 + 层级 +1
+   close-quote    画引号 + 层级 -1
+   no-open-quote  不画引号 + 层级 +1
+   no-close-quote 不画引号 + 层级 -1
+   换句话说 no-* 系列只"跳过显示"，嵌套计数照常走动。 */
 ```
 
 **`quotes` 与语言的关系：**
@@ -1547,12 +1803,13 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 
 /* 英文页面 */
 :lang(en) {
-  quotes: """ """" "‘" "’";
+  quotes: "“" "”" "‘" "’";
 }
 
 /* 法文页面 */
 :lang(fr) {
-  quotes: "« " " »" "‹ " " ›";
+  /* 法文的引号内侧要留一个不换行空格（\00a0），否则排版不地道 */
+  quotes: "«\00a0" "\00a0»" "‹\00a0" "\00a0›";
 }
 
 /* 德文页面 */
@@ -1562,7 +1819,7 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 
 /* 中文页面 */
 :lang(zh) {
-  quotes: """ """ 「」『」;
+  quotes: "“" "”" "「" "」" "『" "』";
 }
 ```
 
@@ -1584,9 +1841,11 @@ CSS 计数器是一个强大但鲜为人知的功能。它允许你创建"虚拟
 | list-style | 列表样式缩写 |
 | counter-reset | 创建/重置计数器 |
 | counter-increment | 递增计数器 |
+| counter-set | 直接给计数器赋一个新值（不做加减） |
 | counter() | 获取计数器值 |
 | counters() | 嵌套计数器 |
-| @counter-style | 自定义计数样式 |
+| @counter-style | 自定义计数样式（system / symbols / pad / range / fallback） |
+| symbols() | 不写 `@counter-style` 的"匿名"自定义计数样式 |
 | quotes | 定义引号字符 |
 
 ### 列表样式对比
@@ -1610,6 +1869,25 @@ graph TD
     D --> E["4. content 显示"]
 ```
 
+### 本章易错点速查
+
+| 容易写错的地方 | 正确认识 |
+|----------------|----------|
+| `list-style: none` 之后标记就"没了" | 标记被隐藏，但 `::marker` 仍在；想彻底干净可以配合 `padding-left: 0`，自定义标记用 `::before` |
+| `list-style-position: inside` 只是"换个位置" | 标记会变成行内内容的一部分，文字换行时会缩进到标记之后，多行列表往往变难看 |
+| 用 `list-style-image: url(...)` 精确控制图标 | 图片尺寸/位置几乎不可控，图片加载失败还会掉回 `list-style-type`；优先 `::before` + `background-image` |
+| 嵌套列表直接 `counters(item, ".")` 就有 1.1 | 必须**每一层都 `counter-reset` 同名计数器**，否则内层会接着外层的数字往下加 |
+| `counter-increment` 只能递增 | 可以给负数表示递减，也可以写多个"名字 数字"对 |
+| `counter-reset` / `counter-set` 分不清 | reset 是**创建 + 设初值**，set 是**只改值**；两者都不增不减 |
+| `system: numeric` 随便给几个符号 | numeric 是"数字表"，第一个符号代表 0，十进制必须给满 10 个符号 |
+| 用 `numeric` 手写罗马数字 / 骰子 | 应该用 `additive` + `additive-symbols`，因为它靠"相加"拼出结果 |
+| `system: fixed` 会一直循环 | fixed 只用一遍符号，越界就回退到 `fallback`（默认 decimal）；循环请用 `cyclic` |
+| 自定义样式没写 `suffix` 就是"干干净净的数字" | `suffix` 初始值是 `". "`，不想要就显式写 `suffix: "";` |
+| `counter()` 会带上 `prefix` / `suffix` | 不会。前后缀是构造 `::marker` 默认内容时拼接的，`counter()` 只输出数字本身 |
+| `content: "引号"` 和 `quotes` 是一回事 | `quotes` 定义"用哪几对引号"，`content: open-quote / close-quote` 才真正把引号画出来 |
+| `no-open-quote` 不改变嵌套层级 | 正好相反：它不显示引号，但嵌套层级照旧 +1（`no-close-quote` 是 -1） |
+| `<blockquote>` 也受 `quotes` 影响 | 不受。`quotes` 只对使用 `open-quote` / `close-quote` 的元素（如 `<q>`）起作用 |
+
 ### 实战建议
 
 1. **自定义列表标记**：使用 `list-style: none` 清除默认样式，配合 `::before` 伪元素添加自定义图标
@@ -1620,8 +1898,3 @@ graph TD
 ### 下章预告
 
 下一章我们将学习图片与替换元素属性，看看如何用 CSS 来控制图片和替换元素的显示效果！
-
-
-
-
-

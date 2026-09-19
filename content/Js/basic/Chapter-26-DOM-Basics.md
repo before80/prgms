@@ -71,11 +71,24 @@ DOM 规范定义了 12 种节点类型，常用的有：
 | 类型 | 值 | 说明 |
 |------|-----|------|
 | Element | 1 | HTML 元素 |
-| Attr | 2 | 属性（已废弃） |
+| Attr | 2 | 属性节点（仍存在，但不再出现在子节点列表里，日常几乎不用） |
 | Text | 3 | 文本节点 |
 | Comment | 8 | 注释 |
 | Document | 9 | document 对象 |
 | DocumentFragment | 11 | 文档片段 |
+
+> ⚠️ 关于 `Attr` 的一个常见误解：属性并不是「被删掉的概念」，而是从 DOM4 开始**属性节点不再继承自 `Node`，也不会作为子节点出现**：
+>
+> ```javascript
+> const div = document.createElement('div');
+> div.title = '提示';
+> const attr = div.getAttributeNode('title');
+> console.log(attr.nodeType);      // 2（仍然有 nodeType）
+> console.log(attr.parentNode);    // null（不属于 DOM 树）
+> console.log(div.childNodes.length); // 0（属性不算子节点）
+> ```
+>
+> 日常操作属性直接用 `getAttribute` / `setAttribute` / `dataset` 就够了，见第 27 章。
 
 ```javascript
 // 检测节点类型
@@ -135,8 +148,9 @@ console.log('不存在的元素:', nonExistent);  // null
 
 ```javascript
 // getElementById 是最高效的选择方法
-// 因为浏览器内部为每个 ID 维护了索引
-// 时间复杂度是 O(1)
+// 主流浏览器内部为 ID 维护了索引，查找接近 O(1)；
+// 规范并没有强制要求这样做，但无论如何它都是最快的选择方式。
+// 代价是它只能按 ID 找，表达式能力最弱
 ```
 
 ---
@@ -217,11 +231,25 @@ allButtons.forEach(btn => {
 
 ```javascript
 // NodeList vs HTMLCollection
-// NodeList：querySelectorAll 返回，大多数是静态的
-// HTMLCollection：getElementsBy* 返回，是动态的
+// 判断「动态」还是「静态」，看的是来源，而不是类名：
+// - querySelectorAll → NodeList，静态快照
+// - childNodes        → NodeList，但是【动态】的
+// - getElementsBy* / children → HTMLCollection，动态的
 
-// 注意：querySelectorAll 返回的 NodeList 在现代浏览器中大多是静态的
-// 但在旧版 Firefox 中可能是动态的
+// 静态：拿到之后 DOM 再变，集合不变
+const staticList = document.querySelectorAll('.item');
+
+// 动态：DOM 一变，集合跟着变（下面以 #list 的子节点为例）
+const listEl = document.getElementById('list');
+const liveList = listEl.childNodes;
+console.log(liveList.length);   // 假设是 2
+
+const item = document.createElement('div');
+item.className = 'item';
+listEl.appendChild(item);       // 往被观察的容器里插节点
+
+console.log(staticList.length); // 不变，仍是查询那一刻的快照
+console.log(liveList.length);   // 变成 3，动态集合立即反映了变化
 ```
 
 ```javascript
@@ -260,7 +288,62 @@ const nodeList = document.querySelectorAll('.item');
 // htmlCollection.forEach(...)  // 报错
 
 // NodeList 有 forEach
-nodeList.forEach(...)  // 正常
+nodeList.forEach((el) => {
+  console.log(el.textContent);
+});
+```
+
+### 动态集合必须小心：边遍历边修改会出错
+
+```javascript
+// ❌ 用动态集合边删边遍历，会跳过元素
+const liveItems = document.getElementsByClassName('item'); // 动态集合
+for (let i = 0; i < liveItems.length; i++) {
+  liveItems[i].remove();   // 删除后集合立即缩短，i 却继续累加 → 漏掉一半元素
+}
+
+// ✅ 先转成静态数组再操作
+const snapshot = Array.from(document.getElementsByClassName('item'));
+snapshot.forEach((el) => el.remove());
+
+// ✅ querySelectorAll 返回的就是静态快照，可以直接遍历
+document.querySelectorAll('.item').forEach((el) => el.remove());
+```
+
+### 其他常用节点判断与查找
+
+```javascript
+// matches：判断当前元素是否匹配某个选择器（只判断自己，不含祖先）
+const link = document.querySelector('a');
+console.log(link.matches('.nav > a'));        // true / false
+
+// closest：从自己开始向上找最近的匹配祖先（包含自己）
+console.log(link.closest('.nav'));            // 最近的 .nav 祖先，找不到返回 null
+
+// 事件委托里最常用的一对组合
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-action]');
+  if (!button) return;
+  console.log('点击了操作按钮：', button.dataset.action);
+});
+
+// isConnected：节点当前是否在文档中（比 document.contains 更直观）
+const detached = document.createElement('div');
+console.log(detached.isConnected);            // false
+document.body.appendChild(detached);
+console.log(detached.isConnected);            // true
+```
+
+### querySelectorAll 的作用范围：不包含自己
+
+```javascript
+const box = document.querySelector('.box');
+
+// 只在 box 的子孙里查找，不会匹配 box 本身
+console.log(box.querySelectorAll('.box').length); // 0（如果只有它自己带 .box）
+
+// 想包含自身，用 matches 或从父节点查
+console.log(box.matches('.box'));                 // true
 ```
 
 > 💡 **本章小结（第26章第2节）**
@@ -290,7 +373,12 @@ const container = document.getElementById('container');
 console.log('父节点:', container.parentNode);
 
 // childNodes：所有子节点（文本、元素、注释等）
-console.log('子节点数量:', container.childNodes.length);  // 5（空白文本、注释、空白文本、p、空白文本）
+console.log('子节点数量:', container.childNodes.length);
+// 7：换行缩进产生的空白文本 + 注释 + 空白文本 + p + 空白文本 + p + 末尾空白文本
+// 很多人以为只有 5 个，正是忽略了空白文本节点
+
+// 只算元素就简单多了
+console.log('子元素数量:', container.children.length);  // 2
 
 // firstChild：第一个子节点
 console.log('第一个子节点:', container.firstChild);  // 可能是空白文本节点
@@ -463,9 +551,25 @@ console.log('设置后:', div.innerHTML);  // 纯文本（HTML 标签被移除�
 
 const div = document.createElement('div');
 div.innerHTML = '<span style="display:none">隐藏</span>可见';
-console.log('textContent:', div.textContent);  // 隐藏可见
-console.log('innerText:', div.innerText);      // 可见（需要元素已在 DOM 中）
+console.log('textContent:', div.textContent);  // "隐藏可见"（不受样式影响）
+console.log('innerText:', div.innerText);      // 这个元素还没插入文档
+// 未渲染的元素无法计算可见性，此时 innerText 会退化成 textContent，同样输出 "隐藏可见"
+
+// 插入文档后才能真正体现差异（display:none 的内容会被跳过）
+document.body.appendChild(div);
+console.log('innerText（在文档中）:', div.innerText);  // "可见"
 ```
+
+两者的取舍很清楚：
+
+| | `textContent` | `innerText` |
+| --- | --- | --- |
+| 是否受 CSS 影响 | 否，返回全部文本 | 是，跳过不可见内容 |
+| 是否触发排版计算 | 否，速度快 | **是**，会强制浏览器计算布局，慢 |
+| 对空白与换行的处理 | 原样保留 | 会按渲染结果折叠 |
+| 推荐用途 | 读取/设置纯文本、防 XSS | 确实需要「用户看到的文字」时 |
+
+**默认用 `textContent`**：它更快，而且设置时不会解析 HTML，天然避免 XSS。
 
 ```javascript
 // 安全考虑：使用 textContent 而不是 innerHTML 来设置用户输入
@@ -491,10 +595,12 @@ function safeSetText(element, userInput) {
 - 节点类型：元素(1)、文本(3)、注释(8)、document(9) 等
 
 ### 2. 选择元素
-- `getElementById`：最快（O(1)），返回单个元素
+- `getElementById`：最快（浏览器内部有 ID 索引），返回单个元素或 `null`
 - `getElementsByClassName/getElementsByTagName`：返回动态 HTMLCollection
 - `querySelector/querySelectorAll`：CSS 选择器，返回 NodeList
-- HTMLCollection 是动态的，NodeList（querySelectorAll）多为静态
+- **动态还是静态看来源**：`querySelectorAll` 是静态快照；`getElementsBy*`、`children`、`childNodes` 都是动态的
+- 动态集合不能边遍历边删，先 `Array.from` 转成快照再操作
+- `matches` 判断自身是否匹配选择器，`closest` 从自身向上找最近祖先；`isConnected` 判断是否在文档中
 
 ### 3. 遍历节点
 - 节点树：`parentNode`、`childNodes`、`firstChild`、`lastChild`、`nextSibling`、`previousSibling`
@@ -505,7 +611,8 @@ function safeSetText(element, userInput) {
 - `nodeName`：节点名称（元素返回标签名）
 - `nodeType`：节点类型（1=元素，3=文本，8=注释，9=document）
 - `nodeValue`：节点值（元素为 null，文本为内容）
-- `textContent`：纯文本内容
+- `textContent`：纯文本内容，速度快、不受样式影响，设置时不会解析 HTML
+- `innerText`：返回渲染后可见的文字，会触发排版计算，只在确需「用户看到的文字」时使用
 
 ### 记忆口诀
 ```

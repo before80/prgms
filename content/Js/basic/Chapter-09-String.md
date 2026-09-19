@@ -127,17 +127,26 @@ console.log(message);
 
 #### length 属性
 
-字符串的 `length` 属性告诉你这个字符串有多长——注意，是字符数，不是字节数。一个中文占一个字符，但可能在内存中占2-4个字节：
+`length` 返回的是**UTF-16 编码单元（code unit）的个数**，既不是字节数，也不总是「字符数」。这个区别在遇到 emoji 或生僻字时会立刻显形：
 
 ```javascript
 const str1 = "Hello";
 const str2 = "你好";
 const str3 = "🎉";
 
-console.log(str1.length); // 5
-console.log(str2.length); // 2
-console.log(str3.length); // 1（emoji 也是一个字符，虽然可能占用4个字节）
+console.log(str1.length); // 5（ASCII 字符，1 个字符 = 1 个编码单元）
+console.log(str2.length); // 2（常用汉字在 BMP 内，同样是 1 个编码单元）
+console.log(str3.length); // 2！🎉 是 U+1F389，超出 BMP，需要一对「代理项」来表示
+
+// 想按「码点」数个数，先展开成数组
+console.log([...str3].length);       // 1
+console.log(Array.from(str3).length); // 1
+
+// 汉字在内存里通常占 3 个字节，但 length 不算字节
+console.log(new TextEncoder().encode("你好").length); // 6（浏览器 / Node 都支持）
 ```
+
+> 记住一句话：`length` 数的是「编码单元」，不是肉眼看到的字符数。第 9.5 节会专门讲怎么正确处理 emoji。
 
 #### charAt(index)
 
@@ -195,6 +204,28 @@ console.log(String.fromCharCode(72)); // H
 console.log(String.fromCharCode(101)); // e
 console.log(String.fromCharCode(20013)); // 中
 console.log(String.fromCharCode(0x4E2D)); // 中（十六进制也可以）
+```
+
+```javascript
+// charCodeAt 同样只处理 16 位编码单元，遇到 emoji 会被「劈成两半」
+const emoji = "🎉";
+console.log(emoji.charCodeAt(0));    // 55356（0xD83C，高代理项）
+console.log(emoji.charCodeAt(1));    // 57225（0xDF89，另一半）
+console.log(emoji.codePointAt(0));   // 127881（0x1F389，才是完整的码点）
+
+// 想还原完整字符，用 codePointAt + fromCodePoint 配对
+console.log(String.fromCodePoint(emoji.codePointAt(0))); // "🎉"
+// 而 fromCharCode 对超出 BMP 的码点会「拆成两个字符」
+console.log(String.fromCharCode(0x1F389).codePointAt(0).toString(16)); // "f389"
+// 结果是一个毫不相干的私用区字符，跟 🎉 没有关系，别这么用
+
+// 实践中更简单：直接按码点遍历
+for (const ch of "a🎉b") {
+  console.log(ch, ch.codePointAt(0));
+}
+// a 97
+// 🎉 127881
+// b 98
 ```
 
 ---
@@ -312,10 +343,14 @@ const filename = "document.pdf";
 
 console.log(filename.endsWith(".pdf"));    // true
 console.log(filename.endsWith(".txt"));     // false
-console.log(filename.endsWith("ment"));     // true
+console.log(filename.endsWith("ment"));     // false（"ment" 出现在中间，但结尾是 "pdf"）
+console.log(filename.endsWith("ment", 8));  // true（限定只看前 8 个字符，也就是 "document"）
+console.log(filename.slice(0, 8).endsWith("ment")); // true —— 第二个参数等价于这种写法
 ```
 
 > 💡 小技巧：判断文件类型用 `endsWith` 比用 `indexOf` + `=== -1` 优雅多了！
+
+> ⚠️ 注意 `endsWith` 的第二个参数是「把字符串截断到这么长再判断」，语义和 `startsWith` 的「从第几位开始」正好相反，很容易记混。
 
 #### 综合对比
 
@@ -336,10 +371,14 @@ console.log(filename.endsWith("ment"));     // true
 ```javascript
 const str = "我的邮箱是 user@email.com，他的邮箱是 admin@test.org";
 
-console.log(str.search("邮箱"));           // 3（找到了，返回位置）
-console.log(str.search(/\d+/));            // 15（匹配数字，返回位置）
-console.log(str.search(/[a-z]+@[a-z]+\.[a-z]+/i)); // 4（正则匹配）
+console.log(str.search("邮箱"));           // 2（第一个「邮」的位置）
+console.log(str.search(/\d+/));            // -1（这段文字里根本没有数字！）
+console.log(str.search(/[a-z]+@[a-z]+\.[a-z]+/i)); // 6（"user@email.com" 的起始位置）
 console.log(str.search("xyz"));            // -1（找不到）
+
+// 想找数字，得换一段带数字的文本
+const order = "订单号：20240101，总价：999.5元";
+console.log(order.search(/\d+/)); // 4（第一个数字的位置）
 ```
 
 `search` 方法返回的是匹配内容的**起始位置**，和 `indexOf` 一样，找不到就返回 `-1`。
@@ -410,12 +449,20 @@ console.log(str.replaceAll("Hello", "Hi")); // "Hi World, Hi JavaScript"
 "aaa".replaceAll("a", "b");   // "bbb" — 替换所有
 ```
 
-但如果用正则表达式，两者效果一样（都要加 `g` 标志）：
+如果第一个参数是正则表达式，`replaceAll` 会**强制要求**你带上 `g` 标志，否则直接抛 `TypeError`：
 
 ```javascript
 // 用正则表达式 + g，两者效果相同
 "aaa".replace(/a/g, "b");      // "bbb"
 "aaa".replaceAll(/a/g, "b");   // "bbb"
+
+// 少了 g 标志，replaceAll 会直接报错（这点和 replace 不同）
+// "aaa".replaceAll(/a/, "b");  // TypeError: replaceAll must be called with a global RegExp
+"aaa".replace(/a/, "b");       // "baa" —— replace 只在第一个匹配处动手
+
+// 另一个区别：replaceAll 传字符串时是「字面量」匹配，不需要转义正则元字符
+"1.2.3".replaceAll(".", "-");  // "1-2-3"
+"1.2.3".replace(/./g, "-");    // "-----" —— 正则里 . 匹配任意字符，踩坑现场
 ```
 
 > 💡 小贴士：浏览器兼容性需要注意——`replaceAll` 是 ES2021 新增的，比较老的浏览器可能不支持。如果你需要兼容旧环境，用 `replace` + 正则表达式是更稳妥的选择。
@@ -562,6 +609,8 @@ console.log(baseName, extension); // "report" "2024.pdf"
 > const str = "Hello World";
 > const result = str.split("").reverse().join(""); // "dlroW olleH" — 字符串反转！
 > ```
+>
+> ⚠️ 不过 `split("")` 是按编码单元切的，只要字符串里有 emoji，反转结果就会被切碎。要处理任意文本，请写成 `[...str].reverse().join("")`（详见 9.5 节）。
 
 ---
 
@@ -603,22 +652,31 @@ console.log(str.toLocaleUpperCase("tr")); // "İ" — 土耳其语：i 变成 İ
 // 德语
 const german = "straße";
 
-console.log(german.toUpperCase());          // "STRASSE" — 简单地替换
-console.log(german.toLocaleUpperCase("de")); // "STRAßE" — 正确处理 ß → SS
+console.log(german.toUpperCase());          // "STRASSE" — 不区分语言，直接做 Unicode 大写的默认映射
+console.log(german.toLocaleUpperCase("de")); // "STRASSE" — 德语里 ß 的大写同样写作 SS
+
+// 那 toLocaleUpperCase 到底什么时候有用？看土耳其语，它把 i 的大写定为带点的 İ
+const turkish = "i";
+console.log(turkish.toUpperCase());            // "I"
+console.log(turkish.toLocaleUpperCase("tr"));  // "İ"（带点的大写 I）
 ```
 
 土耳其语有一个著名的"点I问题"——在土耳其语中，大写的 "i" 不是 "I"，而是 "İ"（带点的 I）。如果你在做国际化应用，用户名 "istay" 的大写形式应该是 "İSTAY"，而不是 "ISTAY"。
 
-> ⚠️ 所以在做用户输入的大小写不敏感比较时，最好使用 `toLocaleLowerCase()` / `toLocaleUpperCase()`，而不是简单版本。
+> ⚠️ 默认的 `toUpperCase()` / `toLowerCase()` 走的是「语言无关」的 Unicode 映射；一旦你的应用面向土耳其语、德语、立陶宛语等用户，大小写转换和比较就应该带上 locale。
 
 ```javascript
-// 错误示例
+// 英语环境下的比较
 const username = "istay";
 const input = "ISTAY";
-console.log(username.toUpperCase() === input.toUpperCase()); // true（碰巧正确）
+console.log(username.toUpperCase() === input.toUpperCase()); // true
 
-// 正确示例
-console.log(username.toLocaleUpperCase("tr") === input.toLocaleUpperCase("tr")); // false
+// 到了土耳其语环境，用 locale 版本才符合当地习惯
+console.log(username.toLocaleUpperCase("tr")); // "İSTAY"
+console.log(input.toLocaleUpperCase("tr"));    // "ISTAY"（这里的 I 是原来的大写 I）
+
+// 真正稳的大小写不敏感比较，推荐用 localeCompare 的 sensitivity 选项
+console.log("İSTAY".localeCompare("istay", "tr", { sensitivity: "base" })); // 0 表示视为相同
 ```
 
 ---
@@ -794,7 +852,150 @@ console.log(names.sort((a, b) => a.localeCompare(b, "zh")));
 
 > 🎯 小技巧：如果你需要对大量字符串进行排序，`localeCompare` 是首选！它考虑了语言习惯，排序结果更符合人类阅读习惯。
 >
-> 不过要注意，`localeCompare` 的性能比普通的 `compareTo`（比如 `a > b ? 1 : -1`）要慢一些，如果是对性能要求很高的场景（比如大数据量的实时排序），可能需要权衡使用。
+> 不过要注意，`localeCompare` 每次比较都要走 ICU 的本地化规则，比直接用 `a > b` 这种方法慢不少。当排序的数据量很大、又在热路径上时，可以先用 `Intl.Collator` 建一个比较器复用，它的开销比反复调用 `localeCompare` 小得多。
+
+```javascript
+// 大数据量排序的正确姿势：复用 Intl.Collator
+const collator = new Intl.Collator("zh");
+const words = ["张三", "李四", "王五", "赵六"];
+
+words.sort((a, b) => collator.compare(a, b));
+console.log(words); // ["李四", "王五", "张三", "赵六"]
+
+// localeCompare 支持的选项比 > < 丰富得多
+console.log("2".localeCompare("10", "en", { numeric: true })); // -1（按数字大小比，而不是按字符）
+console.log("a".localeCompare("A", "en", { sensitivity: "base" })); // 0（忽略大小写差异）
+```
+
+---
+
+## 9.5 字符串与 Unicode：那些年我们踩过的坑
+
+前面反复提到「编码单元」和「码点」，这一节把它们串起来，顺便补齐几个很实用但容易被忽略的 API。
+
+### 为什么会踩坑
+
+JavaScript 的字符串底层是 UTF-16。BMP（基本多文种平面，码点 U+0000 ~ U+FFFF）里的字符占 1 个编码单元，而 emoji、部分生僻汉字、数学符号等超出 BMP 的字符要占 2 个（一对「代理项」）。
+
+```javascript
+const s = "a🎉b";
+
+console.log(s.length);          // 4（不是 3！🎉 占了 2 格）
+console.log(s[1]);              // "\uD83C" —— 半个 emoji，控制台看起来像乱码
+console.log(s.charAt(1));       // "\uD83C"（同样是半截）
+console.log(s.codePointAt(1));  // 127881（从这个位置能读到完整码点，但只对这种恰好落在高位的情形有效）
+
+// 正确的遍历方式
+console.log([...s]);            // ["a", "🎉", "b"]
+console.log(Array.from(s));     // 同上
+```
+
+```javascript
+// 反面教材：用 length / split("") 数长度、反转字符串
+const emoji = "👍🏽"; // 一个 emoji 加上肤色修饰符
+console.log(emoji.length);           // 4
+console.log([...emoji].length);      // 2（手势 + 肤色修饰符）
+
+// 用 split("") 反转会把代理对拆散，得到一堆乱码
+console.log("🎉a".split("").reverse().join("")); // "a" 后面跟着两个乱码字符（代理对被切碎了）
+// 按码点反转就安全得多
+console.log([..."🎉a"].reverse().join(""));      // "a🎉"
+
+// 但严格来说，「字素簇」才是最接近人眼认知的「一个字符」
+console.log("👍🏽".length);                        // 4
+console.log([..."👍🏽"].length);                   // 2
+// 用 Intl.Segmenter 按字素簇切分（Node 16+ / 现代浏览器）
+const segmenter = new Intl.Segmenter("zh", { granularity: "grapheme" });
+console.log([...segmenter.segment("👍🏽🇨🇳")].map(seg => seg.segment)); // [ '👍🏽', '🇨🇳' ]
+```
+
+### at()：支持负索引的取值（ES2022）
+
+`charAt` 不认负数，`str[-1]` 是 `undefined`，于是以前只能写 `str[str.length - 1]`。现在有了 `at()`：
+
+```javascript
+const str = "Hello";
+
+console.log(str.at(0));   // "H"
+console.log(str.at(-1));  // "o"（倒数第一个）
+console.log(str.at(-2));  // "l"
+console.log(str.at(99));  // undefined（越界返回 undefined）
+console.log(str.charAt(-1)); // ""（charAt 不认负数，返回空字符串）
+console.log(str[-1]);     // undefined（下标写法不支持负数）
+
+// 数组也有 at()
+console.log([1, 2, 3].at(-1)); // 3
+```
+
+### match / matchAll：一次性拿到所有匹配
+
+```javascript
+const text = "2024-01-02 下单，2024-02-15 发货，2024-03-20 收货";
+
+// match + g：返回所有匹配的字符串，但拿不到分组信息
+console.log(text.match(/\d{4}-\d{2}-\d{2}/g));
+// ["2024-01-02", "2024-02-15", "2024-03-20"]
+
+// matchAll：返回迭代器，每一项都带 index 和 groups，信息最全
+for (const m of text.matchAll(/(\d{4})-(\d{2})-(\d{2})/g)) {
+  console.log(m[0], "年:", m[1], "位置:", m.index);
+}
+// 2024-01-02 年: 2024 位置: 0
+// 2024-02-15 年: 2024 位置: 14
+// 2024-03-20 年: 2024 位置: 28
+// 注意：matchAll 的正则必须带 g 标志，否则会抛 TypeError
+
+// 想快速拿到「所有分组」的数组，可以配合扩展运算符
+const all = [...text.matchAll(/(\d{4})-(\d{2})-(\d{2})/g)].map(m => m.slice(1));
+console.log(all); // [["2024","01","02"], ["2024","02","15"], ["2024","03","20"]]
+```
+
+### String.raw：让转义符保持原样
+
+```javascript
+// 反斜杠在普通字符串里是转义符，写路径很痛苦
+console.log("C:\\new\\test");        // C:\new\test（要写两层反斜杠）
+console.log(String.raw`C:\new\test`); // C:\new\test（String.raw 原样保留）
+
+// 注意：String.raw 不会处理 \n 之类的转义 —— 它就是要原样
+console.log(String.raw`第一行\n第二行`); // 第一行\n第二行（字面量，不是换行）
+```
+
+### normalize：统一 Unicode 的写法
+
+同一个「é」，可能是单个码点 U+00E9，也可能是 e + 组合重音 U+0301。两者肉眼一样，但 `===` 会判不等：
+
+```javascript
+const nfc = "é".normalize("NFC");  // 合成形式，长度 1
+const nfd = "é".normalize("NFD");  // 分解形式，长度 2
+
+console.log(nfc.length, nfd.length); // 1 2
+console.log(nfc === nfd);            // false（字面量不同）
+console.log(nfc.normalize() === nfd.normalize()); // true（都归一化成 NFC）
+
+// 实践建议：比较、查找、存储用户输入前，先统一 normalize("NFC")
+```
+
+### 其他值得记一笔的细节
+
+```javascript
+// 1. repeat 的边界情况
+console.log("ab".repeat(2.9)); // "abab"（小数会被截断）
+console.log("ab".repeat(0));   // ""
+// "ab".repeat(-1);            // RangeError: Invalid count value
+
+// 2. padStart / padEnd 的长度也按编码单元算，emoji 会「多占格」
+console.log("🎉".padStart(3, "-")); // "-🎉"（🎉 已占 2 格，所以只补 1 个字符）
+console.log("🎉".length);           // 2，所以 padStart(3) 只会补 1 个字符
+
+// 3. String.prototype 上的方法对原始字符串调用时会自动装箱，但别去改原型
+console.log("abc".toUpperCase()); // "ABC"
+
+// 4. 用 includes / startsWith / endsWith 时，第二个参数是「起始位置」
+console.log("abcabc".includes("abc", 1)); // true（从索引 1 开始找）
+```
+
+> 一句话总结：处理 ASCII 之外的文本时，先问自己一句「这里是按编码单元、码点还是字素簇在数？」——大多数莫名其妙的 bug 都源于这三者的混淆。
 
 ---
 
@@ -804,11 +1005,13 @@ console.log(names.sort((a, b) => a.localeCompare(b, "zh")));
 
 1. **基础操作**：模板字符串（反引号 + `${}`）让字符串拼接优雅无比；模板标签函数让你可以自定义模板解析逻辑；`length` / `charAt` / `charCodeAt` 让你能获取字符串的长度和字符信息；最重要的是——字符串是不可变的！
 
-2. **查找与替换**：`indexOf` / `lastIndexOf` 从前后查找子串；`includes` / `startsWith` / `endsWith` 判断是否包含/开头/结尾；`search` 支持正则表达式；`replace` / `replaceAll` 替换内容。
+2. **查找与替换**：`indexOf` / `lastIndexOf` 从前后查找子串；`includes` / `startsWith` / `endsWith` 判断是否包含/开头/结尾（`endsWith` 的第二个参数是「截断长度」，语义和 `startsWith` 相反）；`search` 支持正则但忽略 `g`；`replace` 只替换第一个匹配，`replaceAll` 替换全部且传正则时必须带 `g`。
 
-3. **提取与分割**：`slice` / `substring` 提取子串（substr 已废弃！）；`split` 把字符串分割成数组。
+3. **提取与分割**：`slice` / `substring` 提取子串（`substr` 已废弃）；`slice` 支持负数、`substring` 会自动交换参数并把负数当 0；`split` 把字符串分割成数组，反转字符串记得用 `[...str]` 而不是 `split("")`。
 
-4. **转换与格式化**：`toUpperCase` / `toLowerCase` 大小写转换（注意本地化版本）；`trim` 系列去空格；`repeat` / `padStart` / `padEnd` 填充；`concat` 拼接；`localeCompare` 本地化比较。
+4. **转换与格式化**：`toUpperCase` / `toLowerCase` 走语言无关映射，面向土耳其语等场景要用 `toLocaleUpperCase` / `toLocaleLowerCase`；`trim` 系列去空白；`repeat` / `padStart` / `padEnd` 填充；`concat` 拼接；`localeCompare` 做本地化比较，大数据量排序请复用 `Intl.Collator`，需要数字感知排序用 `{ numeric: true }`。
+
+5. **Unicode 与工具方法**：`length` 数的是 UTF-16 编码单元，emoji 会占 2 格甚至更多；`codePointAt` / `String.fromCodePoint` 处理完整码点；`at(-1)` 取末尾；`matchAll` 拿到带位置的完整匹配；`String.raw` 写路径；`normalize("NFC")` 统一等价字符；`Intl.Segmenter` 按字素簇切分才是人眼意义上的「一个字符」。
 
 字符串的方法还有很多，但掌握这些核心方法足够让你在 JavaScript 世界里自由翱翔了！
 
@@ -821,7 +1024,7 @@ console.log(names.sort((a, b) => a.localeCompare(b, "zh")));
 >     A --> D[提取与分割]
 >     A --> E[转换与格式化]
 >
->     B --> B1["模板字符串 ` ${} `"]
+>     B --> B1["模板字符串（反引号 + 表达式）"]
 >     B --> B2[模板标签函数]
 >     B --> B3[length / charAt / charCodeAt]
 >     B --> B4[不可变性]
@@ -839,11 +1042,15 @@ console.log(names.sort((a, b) => a.localeCompare(b, "zh")));
 >     E --> E2[trim 系列]
 >     E --> E3[repeat / padStart / padEnd]
 >     E --> E4[concat / localeCompare]
+>
+>     A --> F[Unicode 与工具方法]
+>     F --> F1[codePointAt / fromCodePoint]
+>     F --> F2["at(-1)"]
+>     F --> F3[matchAll]
+>     F --> F4[String.raw]
+>     F --> F5["normalize / Intl.Segmenter"]
 > ```
 
 ---
 
 **下章预告**：下一章我们将学习 JavaScript 的数学与数值处理——`Math` 对象、进制转换、精度问题...准备好了吗？ 🚀
-
-
-

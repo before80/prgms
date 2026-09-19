@@ -85,7 +85,12 @@ console.log("这段代码在 Promise 创建后立即执行");
 2. "这段代码在 Promise 创建后立即执行"
 3. （1秒后）"成功：操作成功！"
 
-> 💡 因为 Promise 内部是异步执行的，Promise 构造器中的代码会立即执行，但 resolve/reject 会放到微任务队列中。
+> 💡 这里有两个容易说反的细节：
+>
+> - **Promise 构造器里的代码是同步执行的**（所以上面两行 `console.log` 才按书写顺序打印）；
+> - **`resolve()` 本身也是同步调用**，它只是改变状态；真正被排进微任务队列的是 `then` / `catch` / `finally` 的**回调**。
+>
+> 换句话说：是「回调」异步，不是「resolve」异步。
 
 ---
 
@@ -247,6 +252,54 @@ Promise.reject("出错了")
 
 ---
 
+### then 的第二个参数 vs catch
+
+`then(onFulfilled, onRejected)` 和 `.catch(onRejected)` 看起来都能处理失败，但它们**能捕获的范围不同**：
+
+```javascript
+// ❌ 用 then 的第二个参数：捕获不到「同一个 then 里」抛出的错误
+Promise.resolve(1)
+  .then(
+    (x) => { throw new Error("第一个 then 出错"); },
+    (err) => console.log("不会执行：", err.message)
+  )
+  .catch((err) => console.log("这才收到：", err.message)); // "这才收到：第一个 then 出错"
+
+// ✅ 用 catch：能捕获它前面所有 then 里抛出的错误
+Promise.resolve(1)
+  .then((x) => { throw new Error("出错"); })
+  .catch((err) => console.log("捕获到：", err.message)); // "捕获到：出错"
+```
+
+`then` 的第二个参数只负责处理**上游**那个 Promise 的失败，而 `catch` 挂在链尾，相当于给整条链配了一个统一出口。实践建议：**链式调用统一用 `.catch()` 收尾**，只有在「成功与失败要各自转换后继续往下传」时才用 `then` 的第二个参数。
+
+### 未处理的失败会怎样
+
+被 reject 的 Promise 如果始终没人处理，浏览器会在控制台报 `Unhandled promise rejection`，并且可以用事件接住它：
+
+```javascript
+// 没有任何 catch 处理的拒绝
+Promise.reject(new Error("没人管我"));
+
+// 统一上报
+window.addEventListener("unhandledrejection", (event) => {
+  console.log("未处理的拒绝：", event.reason);
+  // event.preventDefault(); // 需要时阻止控制台默认警告
+});
+```
+
+反过来，如果一个失败先被报成「未处理」，随后才补上 `.catch`，还会触发 `rejectionhandled` 事件——这通常意味着代码里有「先把 Promise 存起来、稍后再处理」的逻辑，值得检查。
+
+另外，`reject` 的推荐姿势和 `throw` 一样：**传 Error 对象而不是字符串**，否则拿不到堆栈。
+
+```javascript
+// ❌ reject("用户不存在");
+// ✅
+reject(new Error("用户不存在"));
+```
+
+---
+
 ## 15.3 Promise 类方法
 
 ### Promise.resolve() / Promise.reject()
@@ -326,6 +379,58 @@ Promise.all(promises)
 // "整体失败：失败2"
 ```
 
+关于 `Promise.all` 还有三个必须记住的行为：
+
+```javascript
+// 1. 结果的顺序永远与传入顺序一致，和哪个先返回无关
+const slow = new Promise(r => setTimeout(() => r("慢"), 100));
+const fast = new Promise(r => setTimeout(() => r("快"), 10));
+Promise.all([slow, fast]).then(console.log); // ["慢", "快"]
+
+// 2. 第一个失败就整体失败，但其他请求不会被取消，仍会继续执行
+//    需要取消就必须自己准备 AbortController
+
+// 3. 数组元素不必是 Promise，普通值会被当作已完成处理
+Promise.all([1, Promise.resolve(2), "三"]).then(console.log); // [1, 2, "三"]
+```
+
+如果只想「谁先成功就用谁」，那是 `Promise.any`；如果只是「谁先有结果就用谁（失败也算）」，那是 `Promise.race`。
+
+### Promise.resolve() 的两个细节
+
+```javascript
+// 1. 传进去的本来就是 Promise，会原样返回，不会多包一层
+const p = Promise.resolve(1);
+console.log(Promise.resolve(p) === p); // true
+
+// 2. 这是把「可能是 Promise 的值」统一成 Promise 的标准手段
+function alwaysPromise(value) {
+  return Promise.resolve(value);   // 值、thenable、Promise 通吃
+}
+```
+
+### Promise.withResolvers()（ES2024）
+
+以前要把 `resolve` / `reject` 暴露到外面，得写一圈 `new Promise` 的模板代码；现在可以直接拿到三个东西：
+
+```javascript
+// 旧写法
+let resolveOuter, rejectOuter;
+const promise = new Promise((resolve, reject) => {
+  resolveOuter = resolve;
+  rejectOuter = reject;
+});
+
+// 新写法（Node 22+ / 现代浏览器）
+const { promise: p, resolve, reject } = Promise.withResolvers();
+
+// 典型场景：事件回调里的「一次性等待」
+const { promise: clicked, resolve: onClick } = Promise.withResolvers();
+document.querySelector("#confirm").addEventListener("click", onClick, { once: true });
+await clicked;
+console.log("用户点了确认");
+```
+
 ---
 
 ### Promise.allSettled()（ES2020+）：等待所有 Promise 结束
@@ -363,7 +468,17 @@ const fast = new Promise(resolve => setTimeout(() => resolve("快"), 500));
 
 Promise.race([slow, fast])
   .then(result => console.log("获胜的是：" + result));
-// "获胜的是：快"（1秒后）
+// "获胜的是：快"（约 0.5 秒后，取决于哪个先完成）
+```
+
+`race` 的规则是「第一个**敲定**（fulfilled 或 rejected）的结果决定整体」——注意它不看成功与否，只比快慢：
+
+```javascript
+// 失败得更快，整体就是失败
+Promise.race([
+  Promise.reject(new Error("秒失败")),
+  new Promise((resolve) => setTimeout(() => resolve("慢成功"), 1000)),
+]).catch((e) => console.log(e.message)); // "秒失败"
 ```
 
 **典型应用：请求超时**
@@ -381,6 +496,21 @@ function fetchWithTimeout(url, timeout = 3000) {
 fetchWithTimeout("/api/data", 1000)
   .then(data => console.log(data))
   .catch(error => console.log(error.message)); // "请求超时"（如果1秒内没响应）
+```
+
+需要特别注意：**`race` 只是「不再等待」慢的那个，并不会取消它**。超时之后请求仍在后台跑，浏览器还要继续占用连接和内存，响应回来也没人处理。要真正取消，得用 `AbortController` 把信号交给 `fetch`：
+
+```javascript
+function fetchWithTimeout(url, timeout = 3000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+
+  return fetch(url, { signal: controller.signal })
+    .finally(() => clearTimeout(timer));   // 无论成功失败都要清掉定时器
+}
+
+// 现代环境也可以直接用 AbortSignal.timeout
+// fetch(url, { signal: AbortSignal.timeout(3000) })
 ```
 
 ---
@@ -473,6 +603,58 @@ console.log("3");
 // 4（微任务）
 ```
 
+### Promise 构造函数反模式
+
+既然封装 Promise 是常见需求，就更要避开「在已经返回 Promise 的函数外面再套一层 `new Promise`」这个典型反模式：
+
+```javascript
+// ❌ 反模式：多包了一层，还容易漏掉错误处理
+function getUser(id) {
+  return new Promise((resolve, reject) => {
+    fetch(`/api/users/${id}`)
+      .then(res => resolve(res.json()))
+      .catch(err => reject(err));
+  });
+}
+
+// ✅ 直接返回，链式调用的错误会自动传递
+async function getUser(id) {
+  const res = await fetch(`/api/users/${id}`);
+  return res.json();
+}
+
+// ❌ 也不要在里面同步写可能抛错且没人 catch 的逻辑
+// ✅ 只有「回调风格的旧 API」才需要手动包一层，这叫 promisify
+function readFileAsync(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, "utf8", (err, data) => {
+      if (err) reject(err);   // 回调风格 → Promise
+      else resolve(data);
+    });
+  });
+}
+// Node 里现成的工具：util.promisify(fs.readFile)
+```
+
+### finally 的三个细节
+
+`finally` 的回调不接收参数，也**不会改变值**——除非它自己抛错或返回一个 rejected 的 Promise：
+
+```javascript
+Promise.resolve(1)
+  .finally(() => 999)              // 返回值被忽略
+  .then(v => console.log(v));      // 1
+
+Promise.resolve(1)
+  .finally(() => { throw new Error("清理失败"); })
+  .catch(e => console.log(e.message)); // "清理失败"（会覆盖原来的成功结果）
+
+// finally 里返回的 Promise 会被等待，适合「等连接关闭」
+Promise.resolve(1)
+  .finally(() => new Promise(r => setTimeout(r, 100)))
+  .then(v => console.log(v));      // 约 100ms 后打印 1
+```
+
 ---
 
 ### thenable 对象
@@ -505,53 +687,62 @@ class SimplePromise {
     this.value = undefined;
     this.callbacks = [];
 
-    const resolve = (value) => {
-      if (this.state !== "pending") return;
-      this.state = "fulfilled";
+    // 统一处理状态变更：只允许改变一次，并异步执行已登记的回调
+    const settle = (state, value) => {
+      if (this.state !== "pending") return; // 已经敲定过，直接忽略
+      this.state = state;
       this.value = value;
-      this.callbacks.forEach(cb => cb.onFulfilled(value));
+      const pending = this.callbacks;
+      this.callbacks = [];
+      pending.forEach(cb => queueMicrotask(cb));
     };
 
-    const reject = (reason) => {
-      if (this.state !== "pending") return;
-      this.state = "rejected";
-      this.value = reason;
-      this.callbacks.forEach(cb => cb.onRejected(reason));
+    const resolve = (value) => {
+      // 如果 resolve 的是 Promise 或 thenable，就跟随它的状态
+      if (value && typeof value.then === "function") {
+        value.then(resolve, reject);
+        return;
+      }
+      settle("fulfilled", value);
     };
+
+    const reject = (reason) => settle("rejected", reason);
 
     try {
-      executor(resolve, reject);
+      executor(resolve, reject);   // 执行器是同步调用的
     } catch (error) {
-      reject(error);
+      reject(error);               // 执行器里同步抛错 → 直接变成 rejected
     }
   }
 
   then(onFulfilled, onRejected) {
     return new SimplePromise((resolve, reject) => {
-      const handleCallback = (callback, fallback) => {
+      const handle = () => {
+        const handler = this.state === "fulfilled" ? onFulfilled : onRejected;
+
+        // 没有传对应的回调时，把状态和值透传下去
+        if (typeof handler !== "function") {
+          return this.state === "fulfilled" ? resolve(this.value) : reject(this.value);
+        }
+
         try {
-          const result = callback ? callback(this.value) : fallback(this.value);
-          resolve(result);
+          // 回调的返回值会被「展开」后交给下一个 Promise
+          resolve(handler(this.value));
         } catch (error) {
           reject(error);
         }
       };
 
-      if (this.state === "fulfilled") {
-        queueMicrotask(() => handleCallback(onFulfilled, v => v));
-      } else if (this.state === "rejected") {
-        queueMicrotask(() => handleCallback(onRejected, throw it => { throw it; }));
+      if (this.state === "pending") {
+        this.callbacks.push(handle);
       } else {
-        this.callbacks.push({
-          onFulfilled: () => handleCallback(onFulfilled, v => v),
-          onRejected: () => handleCallback(onRejected, throw it => { throw it; })
-        });
+        queueMicrotask(handle);   // 已经敲定：立即排进微任务
       }
     });
   }
 
   catch(onRejected) {
-    return this.then(null, onRejected);
+    return this.then(undefined, onRejected);
   }
 
   finally(onFinally) {
@@ -565,9 +756,25 @@ class SimplePromise {
 // 测试
 new SimplePromise(resolve => resolve("成功"))
   .then(value => console.log(value)); // "成功"
+
+new SimplePromise(resolve => setTimeout(() => resolve(1), 10))
+  .then(x => x + 1)
+  .then(x => console.log(x)); // 2（链式传递）
+
+new SimplePromise(() => { throw new Error("同步抛错"); })
+  .catch(e => console.log(e.message)); // "同步抛错"
+
+new SimplePromise(resolve => resolve(Promise.resolve("内层 Promise")))
+  .then(v => console.log(v)); // "内层 Promise"（resolve 会展开 thenable）
 ```
 
-> 💡 这个简易 Promise 只实现了核心功能，真正完整的 Promise 实现（如 Promise/A+ 规范）要复杂得多。如果你想深入了解，可以去看 Promise/A+ 规范的实现。
+> 💡 这个实现和标准 Promise 还有几处差距，写出来是为了理解机制，不是拿去做生产工具：
+>
+> - 没有实现 `Symbol.toStringTag`、`Promise.resolve/reject/all` 等静态方法；
+> - `then` 返回的 Promise 无法被外部取消；
+> - 错误堆栈、`unhandledrejection` 上报等宿主行为都依赖引擎实现。
+>
+> 真正要对照的规范是 [Promise/A+](https://promisesaplus.com/) 与 ECMAScript 的 Promise 章节。
 
 ---
 
@@ -626,25 +833,29 @@ promiseAll([
 1. **Promise 基础**：
    - 三种状态：pending / fulfilled / rejected
    - 状态不可逆
-   - `new Promise` 创建
+   - `new Promise` 创建；执行器与 `resolve` 都是同步调用，异步的是回调
 
 2. **Promise 方法**：
    - `then`：处理成功
    - `catch`：处理失败
    - `finally`：无论如何都执行
    - 链式调用和返回值传递
-   - 忘记 return 的坑
+   - 忘记 return 的坑；`then` 的第二个参数捕获不到自身抛出的错误，链尾更适合用 `catch`
+   - 未处理的失败会触发 `unhandledrejection`
 
 3. **Promise 类方法**：
    - `Promise.resolve/reject`
-   - `Promise.all`：全部成功才成功
+   - `Promise.all`：全部成功才成功，结果顺序与传入顺序一致，且不会取消其他请求
    - `Promise.allSettled`：等待所有完成
    - `Promise.race`：返回最快的
    - `Promise.any`：返回第一个成功的
+   - `Promise.withResolvers()`：ES2024 新增，省去手写 resolve/reject 样板
 
 4. **Promise 进阶**：
    - then 是微任务
    - thenable 对象
+   - Promise 构造函数反模式与 promisify
+   - finally 不改变值，除非它抛错
    - 手写简易 Promise
    - 手写 Promise.all
 
@@ -666,4 +877,3 @@ promiseAll([
 ---
 
 **下章预告**：下一章我们将学习 **async/await 与 Generator**——让异步代码看起来像同步代码！ 🚀
-

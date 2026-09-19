@@ -161,6 +161,7 @@ func (adapter *UnionPayAdapter) Refund(transactionID string) error {
 
 好了，现在我们有了适配器大军，来看看怎么使用：
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 // ProcessPayment 是一个通用的支付处理函数
 // 它只认识 PaymentGateway，不管你是支付宝还是微信还是银联
@@ -191,7 +192,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 开始支付流程 ===
 支付宝收款: 199.50 元
 支付成功！
@@ -234,6 +235,7 @@ func LegacyToNewAdapter(legacy LegacyAPI) NewAPI {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     // 模拟旧系统的遗留接口
@@ -253,11 +255,12 @@ func main() {
 
 运行结果：
 
-```
+```text
 旧系统处理: userID=10086, data=Hello, 适配器！, timeout=30
 ```
 
 ### 适配器模式的 UML 图
+下图展示了目标接口、适配器与被适配者三者的关系：
 
 ```mermaid
 classDiagram
@@ -404,7 +407,9 @@ func (d *CoffeeDecorator) GetDescription() string {
 ```go
 // MilkDecorator —— 牛奶装饰器
 type MilkDecorator struct {
-    *CoffeeDecorator // 匿名嵌套，相当于"继承"了 GetPrice 和 GetDescription 方法
+    // 嵌入 CoffeeDecorator 只是为了让 NewXxx 能少写一点字段，
+    // 真正生效的是下面两个自己定义的方法（Go 没有虚函数，无法靠嵌入做到"重写"）
+    *CoffeeDecorator
 }
 
 func NewMilkDecorator(coffee Coffee) *MilkDecorator {
@@ -501,6 +506,7 @@ func (d *WhippedCreamDecorator) GetDescription() string {
 
 现在来看看装饰器是怎么工作的：
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 点一杯基础咖啡 ===")
@@ -527,7 +533,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 点一杯基础咖啡 ===
 描述: 原味咖啡, 价格: 30.00 元
 
@@ -595,6 +601,7 @@ func TimeoutDecorator(next HandlerFunc) HandlerFunc {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 // 真实的处理器函数
 func RealHandler(w string, r string) string {
@@ -623,7 +630,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 执行装饰后的处理器 ===
 [超时控制] 开始计时...
 [认证] 检查用户身份...
@@ -645,6 +652,7 @@ func main() {
 这非常像HTTP中间件栈的洋葱模型，洋葱怎么切，切面都是对称的。
 
 ### 装饰器模式的 UML 图
+下图展示了装饰器与组件共享同一接口、层层包装的结构：
 
 ```mermaid
 classDiagram
@@ -873,6 +881,7 @@ func (p *StarProxy) SignName(fanName string) string {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     // 创建真实明星
@@ -916,7 +925,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 场景1: 普通粉丝送礼物 ===
 [经纪人] 检查礼物: 一束鲜花
 [经纪人] 礼物检查通过，转交明星！
@@ -964,6 +973,7 @@ func main() {
 两者都在"包装"，但"为什么包装"不一样。
 
 ### 代理模式的 UML 图
+下图展示了代理对象与真实主题实现同一接口的结构：
 
 ```mermaid
 classDiagram
@@ -1045,6 +1055,7 @@ func (proxy *VirtualImageProxy) Display() {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 创建虚代理（这时候不会加载真实图片！） ===")
@@ -1061,7 +1072,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 创建虚代理（这时候不会加载真实图片！） ===
 虚代理创建完成，真实图片还没有加载。
 
@@ -1321,6 +1332,7 @@ func (facade *HomeTheaterFacade) ListenToMusic() {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     // 创建外观对象——这就是你的"万能遥控器"
@@ -1338,7 +1350,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 ========================================
 >>> 家庭影院系统启动 <<<
 ========================================
@@ -1376,6 +1388,7 @@ func main() {
 看到了吗？客户端（main函数）从头到尾只需要调用两个方法：`WatchMovie` 和 `EndMovie`，完全不需要知道投影仪怎么开、音响怎么调、音量多少合适。**这些复杂性都被封装在了外观对象内部**。
 
 ### 外观模式的 UML 图
+下图展示了外观类型如何统一收拢多个子系统的调用：
 
 ```mermaid
 classDiagram
@@ -1489,7 +1502,7 @@ classDiagram
 
 用传统的"继承"思路，你会这样设计类：
 
-```
+```text
 Notification
 ├── TextNotification + SMS → TextSMSNotification
 ├── TextNotification + Email → TextEmailNotification
@@ -1518,6 +1531,8 @@ Notification
 两者通过"桥"连接，抽象持有实现的引用，而不是继承实现。
 
 ### Go语言实现桥接模式
+
+桥接模式把“抽象”和“实现”拆成两个独立的继承/组合维度：抽象层只持有实现层的**接口**，两边可以各自扩展。下面这个例子把“消息类型”（普通/紧急/定时）和“发送渠道”（邮件/短信/微信）彻底分开：
 
 ```go
 // ========== 第一步：定义实现（发送渠道）接口 ==========
@@ -1645,6 +1660,7 @@ func (n *VideoNotification) SendVideo(videoURL string, receiver string, title st
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 桥接模式演示 ===\n")
@@ -1710,7 +1726,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 桥接模式演示 ===
 
 --- 用短信发送文本消息 ---
@@ -1776,6 +1792,7 @@ func main() {
 > 💡 直观理解：如果用继承，3种消息类型 × 3种发送渠道 = 9个子类；用桥接模式后，只需要 3 + 3 = 6 个类。
 
 ### 桥接模式的 UML 图
+下图展示了抽象部分与实现部分各自独立扩展的结构：
 
 ```mermaid
 classDiagram
@@ -1875,7 +1892,7 @@ classDiagram
 
 你打开电脑的"我的电脑"，看到：
 
-```
+```text
 E:\
 ├── 文档/
 │   ├── 工作/
@@ -1911,6 +1928,8 @@ E:\
 - **Composite（组合）**：树形结构的容器节点，可以包含子节点（叶子或其他组合）
 
 ### Go语言实现组合模式
+
+组合模式让“单个对象”和“对象的容器”拥有同一套接口。这样一来，调用方不需要区分“这是一片叶子还是一棵子树”，递归遍历和递归操作都能用同一段代码完成。下面用文件系统来演示：
 
 ```go
 // ========== 第一步：定义组件接口 ==========
@@ -2080,6 +2099,7 @@ func (f *FolderV2) PrintTree(indent int) {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 组合模式：文件系统 ===\n")
@@ -2159,7 +2179,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 组合模式：文件系统 ===
 
 📁 我的电脑/ (总计: 156862408 字节)
@@ -2205,6 +2225,7 @@ func main() {
 3. **客户端透明**：客户端调用 `GetSize()` 的时候，不需要知道内部是文件还是文件夹
 
 ### 组合模式的 UML 图
+下图展示了组合模式中「叶子」与「容器」共用的递归结构：
 
 ```mermaid
 classDiagram
@@ -2562,6 +2583,7 @@ func (s *ParticleSystem) Render() {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 享元模式：粒子特效系统 ===\n")
@@ -2606,7 +2628,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 享元模式：粒子特效系统 ===
 
 --- 发射火球技能 (100个火球粒子) ---
@@ -2652,6 +2674,7 @@ func main() {
 - **外部状态（Extrinsic State）**：不能共享的状态，如粒子的位置、速度。它们由客户端在运行时提供，存储在 Context 中。
 
 ### 享元模式的 UML 图
+下图展示了享元工厂、享元对象与外部状态的职责划分：
 
 ```mermaid
 classDiagram
@@ -2897,6 +2920,7 @@ func (s *RealUserService) DeleteUser(id int) error {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 // ========== 第三步：使用动态代理 ==========
 
@@ -2958,7 +2982,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 动态代理：反射实现 ===
 
 --- 场景1: 获取用户 ---
@@ -3142,6 +3166,7 @@ func RateLimitInterceptor() UnaryInterceptor {
 type CallOption interface{}
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== 动态代理：代码生成风格 ===\n")
@@ -3189,7 +3214,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === 动态代理：代码生成风格 ===
 
 --- 场景1: 正常调用 ---
@@ -3304,6 +3329,8 @@ Go语言没有析构函数，也没有 C++ 那样的 RAII 机制。但是 Go 有
 
 #### 示例一：文件操作的 RAII
 
+Go 虽然没有析构函数，但 `defer` 已经能覆盖 RAII 最核心的诉求：**资源在离开作用域时一定被释放**。
+
 ```go
 // OpenFileWithRAII 是使用 defer 实现 RAII 的文件操作
 func OpenFileWithRAII(filename string) error {
@@ -3362,6 +3389,7 @@ func OpenFileWithRAIIBetter(filename string) error {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("=== RAII：资源获取即初始化 ===\n")
@@ -3386,7 +3414,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === RAII：资源获取即初始化 ===
 
 --- 场景1: 正常读取文件 ---
@@ -3402,6 +3430,8 @@ func main() {
 ```
 
 #### 示例二：互斥锁的 RAII 封装
+
+把 `Lock` / `Unlock` 成对写在一起，再交给 `defer`——这是 Go 里最有效的防死锁手段：
 
 ```go
 // SafeCounter 是一个线程安全的计数器，展示了互斥锁的 RAII 用法
@@ -3448,6 +3478,7 @@ func (c *SafeCounter) Value() int {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     counter := &SafeCounter{}
@@ -3475,7 +3506,7 @@ func main() {
 
 运行结果（每次可能不同，因为并发顺序不确定）：
 
-```
+```text
 --- 场景: 并发安全计数器 ---
 [SafeCounter] count 现在是: 1
 [SafeCounter] count 现在是: 0
@@ -3491,6 +3522,8 @@ func main() {
 ```
 
 #### 示例三：数据库连接的 RAII
+
+连接池场景下，“归还连接”比“关闭连接”更重要。把它交给 `defer`，可以有效避免连接泄漏把池子占满：
 
 ```go
 // DBConnection 是数据库连接的模拟
@@ -3548,6 +3581,7 @@ func QueryWithRAII(sql string) error {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     fmt.Println("--- 场景: 数据库连接 RAII ---")
@@ -3561,7 +3595,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 --- 场景: 数据库连接 RAII ---
 [DB] 正在连接到: localhost:5432
 [DB] 连接成功！
@@ -3598,6 +3632,7 @@ func deferRulesDemo() {
 }
 ```
 
+> 📎 本节的示例程序被拆成了多个代码块，它们共同组成一个完整的 `main.go`。请把这几块**拼在一起**再运行；单独复制其中一块，会因为缺少其他块里的定义而报 `undefined: xxx`。
 ```go
 func main() {
     deferRulesDemo()
@@ -3606,7 +3641,7 @@ func main() {
 
 运行结果：
 
-```
+```text
 === defer 规则演示 ===
 [主函数] x=100, y=200
 [defer] x=1, y=2
@@ -3827,4 +3862,3 @@ defer file.Close() // 无论后面发生什么，文件都会被关闭
 ---
 
 **第39章 结构型模式 · 完结** 🎉
-

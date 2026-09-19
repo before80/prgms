@@ -1040,6 +1040,8 @@ conn.close()
 
 ### 重点语法速记
 
+这一页是 SQL 的"骨架图"。要特别注意：**书写顺序和执行顺序并不一样**——数据库先看 FROM/WHERE，再做 GROUP BY，最后才轮到 SELECT 和 ORDER BY。把模板记牢，写复杂查询时就不容易漏环节。
+
 ```sql
 -- 查询模板
 SELECT 列 FROM 表 WHERE 条件 GROUP BY 列 HAVING 聚合条件 ORDER BY 列 LIMIT;
