@@ -1,5 +1,5 @@
 +++
-title = "accessCtrl"
+title = "访问控制"
 date = 2026-09-19T12:00:00+08:00
 weight = 17
 type = "docs"

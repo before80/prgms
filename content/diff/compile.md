@@ -1,5 +1,5 @@
 +++
-title = "compile"
+title = "编译与执行"
 date = 2026-09-19T09:00:00+08:00
 weight = 3
 type = "docs"
