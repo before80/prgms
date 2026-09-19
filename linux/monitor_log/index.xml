@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第15卷：监控与日志 on 编程那些事儿</title><link>https://before80.github.io/prgms/linux/monitor_log/</link><description>Recent content in 第15卷：监控与日志 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 24 Mar 2026 22:14:42 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/linux/monitor_log/index.xml" rel="self" type="application/rss+xml"/><item><title>第57章：系统监控</title><link>https://before80.github.io/prgms/linux/monitor_log/Chapter-57-System-Monitoring/</link><pubDate>Tue, 24 Mar 2026 13:18:28 +0800</pubDate><guid>https://before80.github.io/prgms/linux/monitor_log/Chapter-57-System-Monitoring/</guid><description>&lt;h1 id="第五十七章系统监控"&gt;第五十七章：系统监控&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第15卷：监控与日志 on 编程那些事儿</title><link>https://before80.github.io/prgms/linux/monitor_log/</link><description>Recent content in 第15卷：监控与日志 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sat, 19 Sep 2026 21:54:25 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/linux/monitor_log/index.xml" rel="self" type="application/rss+xml"/><item><title>第57章：系统监控</title><link>https://before80.github.io/prgms/linux/monitor_log/Chapter-57-System-Monitoring/</link><pubDate>Tue, 24 Mar 2026 13:18:28 +0800</pubDate><guid>https://before80.github.io/prgms/linux/monitor_log/Chapter-57-System-Monitoring/</guid><description>&lt;h1 id="第五十七章系统监控"&gt;第五十七章：系统监控&lt;/h1&gt;
 &lt;h2 id="571-tophtop"&gt;57.1 top/htop&lt;/h2&gt;
 &lt;h3 id="top-简介"&gt;top 简介&lt;/h3&gt;
 &lt;p&gt;&lt;code&gt;top&lt;/code&gt; 是 Linux 下最常用的实时系统监控工具，就像给你的服务器装了一个&amp;quot;实时仪表盘&amp;quot;。&lt;/p&gt;
@@ -136,84 +136,15 @@
 &lt;p&gt;&lt;code&gt;htop&lt;/code&gt; 是 top 的升级版，界面更友好，支持鼠标操作：&lt;/p&gt;</description></item><item><title>第58章：日志管理</title><link>https://before80.github.io/prgms/linux/monitor_log/Chapter-58-Log-Management/</link><pubDate>Tue, 24 Mar 2026 13:18:28 +0800</pubDate><guid>https://before80.github.io/prgms/linux/monitor_log/Chapter-58-Log-Management/</guid><description>&lt;h1 id="第五十八章日志管理"&gt;第五十八章：日志管理&lt;/h1&gt;
 &lt;h2 id="581-系统日志"&gt;58.1 系统日志&lt;/h2&gt;
 &lt;h3 id="linux-日志体系"&gt;Linux 日志体系&lt;/h3&gt;
-&lt;p&gt;Linux 系统有一套完整的日志体系，记录着系统运行的一切&amp;quot;蛛丝马迹&amp;quot;。&lt;/p&gt;
+&lt;p&gt;Linux 的日志来自好几个源头，由不同的组件负责收集，最后落到磁盘上：&lt;/p&gt;
 &lt;pre class="mermaid"&gt;graph LR
- A[应用程序] --&amp;gt; B[系统日志接口]
- B --&amp;gt; C[rsyslog]
- C --&amp;gt; D[日志文件]
- 
- E[内核] --&amp;gt; F[journald]
- F --&amp;gt; G[journal]
- 
- H[用户操作] --&amp;gt; I[wtmp&amp;lt;br/&amp;gt;last]
- I --&amp;gt; D&lt;/pre&gt;
-&lt;h3 id="主要日志文件"&gt;主要日志文件&lt;/h3&gt;
-&lt;table&gt;
- &lt;thead&gt;
- &lt;tr&gt;
- &lt;th&gt;文件路径&lt;/th&gt;
- &lt;th&gt;内容&lt;/th&gt;
- &lt;/tr&gt;
- &lt;/thead&gt;
- &lt;tbody&gt;
- &lt;tr&gt;
- &lt;td&gt;&lt;code&gt;/var/log/messages&lt;/code&gt;&lt;/td&gt;
- &lt;td&gt;系统主日志&lt;/td&gt;
- &lt;/tr&gt;
- &lt;tr&gt;
- &lt;td&gt;&lt;code&gt;/var/log/syslog&lt;/code&gt;&lt;/td&gt;
- &lt;td&gt;系统日志（Debian/Ubuntu）&lt;/td&gt;
- &lt;/tr&gt;
- &lt;tr&gt;
- &lt;td&gt;&lt;code&gt;/var/log/secure&lt;/code&gt;&lt;/td&gt;
- &lt;td&gt;安全日志（认证相关）&lt;/td&gt;
- &lt;/tr&gt;
- &lt;tr&gt;
- &lt;td&gt;&lt;code&gt;/var/log/boot.log&lt;/code&gt;&lt;/td&gt;
- &lt;td&gt;启动日志&lt;/td&gt;
- &lt;/tr&gt;
- &lt;tr&gt;
- &lt;td&gt;&lt;code&gt;/var/log/dmesg&lt;/code&gt;&lt;/td&gt;
- &lt;td&gt;内核消息&lt;/td&gt;
- &lt;/tr&gt;
- &lt;tr&gt;
- &lt;td&gt;&lt;code&gt;/var/log/kern.log&lt;/code&gt;&lt;/td&gt;
- &lt;td&gt;内核日志&lt;/td&gt;
- &lt;/tr&gt;
- &lt;tr&gt;
- &lt;td&gt;&lt;code&gt;/var/log/cron&lt;/code&gt;&lt;/td&gt;
- &lt;td&gt;定时任务日志&lt;/td&gt;
- &lt;/tr&gt;
- &lt;tr&gt;
- &lt;td&gt;&lt;code&gt;/var/log/maillog&lt;/code&gt;&lt;/td&gt;
- &lt;td&gt;邮件日志&lt;/td&gt;
- &lt;/tr&gt;
- &lt;/tbody&gt;
-&lt;/table&gt;
-&lt;h3 id="varlog-目录结构"&gt;/var/log 目录结构&lt;/h3&gt;
-&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
-&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
-&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;8
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;9
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
-&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;ls -la /var/log/
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# 常见日志文件&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;/var/log/syslog &lt;span style="color:#8a93a5;font-style:italic"&gt;# 系统主要日志&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;/var/log/auth.log &lt;span style="color:#8a93a5;font-style:italic"&gt;# 认证日志&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;/var/log/nginx/ &lt;span style="color:#8a93a5;font-style:italic"&gt;# Nginx 日志目录&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;/var/log/apache2/ &lt;span style="color:#8a93a5;font-style:italic"&gt;# Apache 日志目录&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;/var/log/mysql/ &lt;span style="color:#8a93a5;font-style:italic"&gt;# MySQL 日志&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;/var/log/httpd/ &lt;span style="color:#8a93a5;font-style:italic"&gt;# Apache 日志&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;h3 id="日志轮转机制"&gt;日志轮转机制&lt;/h3&gt;
-&lt;p&gt;Linux 使用 &lt;code&gt;logrotate&lt;/code&gt; 自动管理日志文件大小：&lt;/p&gt;</description></item></channel></rss>
+ A[&amp;#34;应用程序&amp;lt;br&amp;gt;（直接写自己的日志文件）&amp;#34;] --&amp;gt; D[&amp;#34;/var/log/应用名/*.log&amp;#34;]
+ B[&amp;#34;服务进程的标准输出&amp;#34;] --&amp;gt; C[&amp;#34;systemd-journald&amp;#34;]
+ E[&amp;#34;内核 printk&amp;#34;] --&amp;gt; C
+ C --&amp;gt; F[&amp;#34;内存日志（默认）&amp;lt;br&amp;gt;/run/log/journal&amp;#34;]
+ C --&amp;gt;|&amp;#34;Storage=persistent&amp;#34;| G[&amp;#34;持久化日志&amp;lt;br&amp;gt;/var/log/journal&amp;#34;]
+ C --&amp;gt; H[&amp;#34;rsyslogd&amp;lt;br&amp;gt;按规则分发&amp;#34;]
+ H --&amp;gt; I[&amp;#34;/var/log/syslog 或 messages 等&amp;#34;]
+ J[&amp;#34;登录与认证事件&amp;lt;br&amp;gt;login / sshd / sudo&amp;#34;] --&amp;gt; K[&amp;#34;wtmp、btmp、lastlog&amp;#34;]
+ K --&amp;gt; L[&amp;#34;last（读 wtmp）&amp;lt;br&amp;gt;lastb（读 btmp）&amp;#34;]&lt;/pre&gt;
+&lt;p&gt;两条主线要记牢：&lt;/p&gt;</description></item></channel></rss>

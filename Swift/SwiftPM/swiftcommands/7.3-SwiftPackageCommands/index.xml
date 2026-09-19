@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>7.3 swift package on 编程那些事儿</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/</link><description>Recent content in 7.3 swift package on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 13 Sep 2026 18:20:56 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/index.xml" rel="self" type="application/rss+xml"/><item><title>7.3.1 swift package init</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.1-PackageInit/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.1-PackageInit/</guid><description>&lt;blockquote&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>7.3 swift package on 编程那些事儿</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/</link><description>Recent content in 7.3 swift package on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sat, 19 Sep 2026 21:54:25 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/index.xml" rel="self" type="application/rss+xml"/><item><title>7.3.1 swift package init</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.1-PackageInit/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.1-PackageInit/</guid><description>&lt;blockquote&gt;
 &lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageinit/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageinit/&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;h1 id="731-swift-package-init"&gt;7.3.1 swift package init&lt;/h1&gt;
@@ -1389,7 +1389,7 @@
 &lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packageconfiggetmirror/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packageconfiggetmirror/&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;h1 id="7329-swift-package-config-get-mirror"&gt;7.3.29 swift package config get-mirror&lt;/h1&gt;
-&lt;p&gt;打印给定包依赖的镜像配置。&lt;/p&gt;
+&lt;p&gt;打印指定包依赖的镜像配置。它读取的是 &lt;code&gt;swift package config set-mirror&lt;/code&gt; 写入的本地配置，不会联网查询。&lt;/p&gt;
 &lt;pre tabindex="0"&gt;&lt;code&gt;package config get-mirror [--package-path=&amp;lt;package-path&amp;gt;]
  [--cache-path=&amp;lt;cache-path&amp;gt;] [--config-path=&amp;lt;config-path&amp;gt;]
  [--security-path=&amp;lt;security-path&amp;gt;]
@@ -1430,202 +1430,12 @@
  [--build-system=&amp;lt;build-system&amp;gt;] [--=&amp;lt;debug-info-format&amp;gt;]
  [--enable-dead-strip] [--disable-dead-strip]
  [--disable-local-rpath] [--original=&amp;lt;original&amp;gt;] [--version]
- [--help]```
-
-- term **--package-path=\&amp;lt;package-path\&amp;gt;**:
-
-*Specify the package path to operate on (default current directory). This changes the working directory before any other operation.*
-
-- term **--cache-path=\&amp;lt;cache-path\&amp;gt;**:
-
-*Specify the shared cache directory path.*
-
-- term **--config-path=\&amp;lt;config-path\&amp;gt;**:
-
-*Specify the shared configuration directory path.*
-
-- term **--security-path=\&amp;lt;security-path\&amp;gt;**:
-
-*Specify the shared security directory path.*
-
-- term **--scratch-path=\&amp;lt;scratch-path\&amp;gt;**:
-
-*Specify a custom scratch directory path. (default .build)*
-
-- term **--swift-sdks-path=\&amp;lt;swift-sdks-path\&amp;gt;**:
-
-*Path to the directory containing installed Swift SDKs.*
-
-- term **--toolset=\&amp;lt;toolset\&amp;gt;**:
-
-*Specify a toolset JSON file to use when building for the target platform. Use the option multiple times to specify more than one toolset. Toolsets will be merged in the order they&amp;#39;re specified into a single final toolset for the current build.*
-
-- term **--pkg-config-path=\&amp;lt;pkg-config-path\&amp;gt;**:
-
-*Specify alternative path to search for pkg-config `.pc` files. Use the option multiple times to
-specify more than one path.*
-
-- term **--enable-dependency-cache|disable-dependency-cache**:
-
-*Use a shared cache when fetching dependencies.*
-
-- term **--enable-build-manifest-caching|disable-build-manifest-caching**:
-
-- term **--manifest-cache=\&amp;lt;manifest-cache\&amp;gt;**:
-
-*Caching mode of Package.swift manifests. Valid values are: (shared: shared cache, local: package&amp;#39;s build directory, none: disabled)*
-
-- term **--enable-experimental-prebuilts|disable-experimental-prebuilts**:
-
-*Whether to use prebuilt swift-syntax libraries for macros.*
-
-- term **--verbose**:
-
-*Increase verbosity to include informational output.*
-
-- term **--very-verbose|vv**:
-
-*Increase verbosity to include debug output.*
-
-- term **--quiet**:
-
-*Decrease verbosity to only include error output.*
-
-- term **--color-diagnostics|no-color-diagnostics**:
-
-*Enables or disables color diagnostics when printing to a TTY. 
-By default, color diagnostics are enabled when connected to a TTY and disabled otherwise.*
-
-- term **--disable-sandbox**:
-
-*Disable using the sandbox when executing subprocesses.*
-
-- term **--netrc**:
-
-*Use netrc file even in cases where other credential stores are preferred.*
-
-- term **--enable-netrc|disable-netrc**:
-
-*Load credentials from a netrc file.*
-
-- term **--netrc-file=\&amp;lt;netrc-file\&amp;gt;**:
-
-*Specify the netrc file path.*
-
-- term **--enable-keychain|disable-keychain**:
-
-*Search credentials in macOS keychain.*
-
-- term **--resolver-fingerprint-checking=\&amp;lt;resolver-fingerprint-checking\&amp;gt;**:
-
-- term **--resolver-signing-entity-checking=\&amp;lt;resolver-signing-entity-checking\&amp;gt;**:
-
-- term **--enable-signature-validation|disable-signature-validation**:
-
-*Validate signature of a signed package release downloaded from registry.*
-
-- term **--enable-prefetching|disable-prefetching**:
-
-- term **--force-resolved-versions|disable-automatic-resolution|only-use-versions-from-resolved-file**:
-
-*Only use versions from the Package.resolved file and fail resolution if it is out-of-date.*
-
-- term **--skip-update**:
-
-*Skip updating dependencies from their remote during a resolution.*
-
-- term **--disable-scm-to-registry-transformation**:
-
-*Disable source control to registry transformation.*
-
-- term **--use-registry-identity-for-scm**:
-
-*Look up source control dependencies in the registry and use their registry identity when possible to help deduplicate across the two origins.*
-
-- term **--replace-scm-with-registry**:
-
-*Look up source control dependencies in the registry and use the registry to retrieve them instead of source control when possible.*
-
-- term **--default-registry-url=\&amp;lt;default-registry-url\&amp;gt;**:
-
-*Default registry URL to use, instead of the registries.json configuration file.*
-
-- term **--configuration=\&amp;lt;configuration\&amp;gt;**:
-
-*Build with configuration*
-
-- term **--=\&amp;lt;Xcc\&amp;gt;**:
-
-*Pass flag through to all C compiler invocations.*
-
-- term **--=\&amp;lt;Xswiftc\&amp;gt;**:
-
-*Pass flag through to all Swift compiler invocations.*
-
-- term **--=\&amp;lt;Xlinker\&amp;gt;**:
-
-*Pass flag through to all linker invocations.*
-
-- term **--=\&amp;lt;Xcxx\&amp;gt;**:
-
-*Pass flag through to all C++ compiler invocations.*
-
-- term **--triple=\&amp;lt;triple\&amp;gt;**:
-
-- term **--sdk=\&amp;lt;sdk\&amp;gt;**:
-
-- term **--toolchain=\&amp;lt;toolchain\&amp;gt;**:
-
-- term **--swift-sdk=\&amp;lt;swift-sdk\&amp;gt;**:
-
-*Filter for selecting a specific Swift SDK to build with.*
-
-- term **--sanitize=\&amp;lt;sanitize\&amp;gt;**:
-
-*Turn on runtime checks for erroneous behavior, possible values: address, thread, undefined, scudo.*
-
-- term **--auto-index-store|enable-index-store|disable-index-store**:
-
-*Enable or disable indexing-while-building feature.*
-
-- term **--enable-parseable-module-interfaces**:
-
-- term **--jobs=\&amp;lt;jobs\&amp;gt;**:
-
-*The number of jobs to spawn in parallel during the build process.*
-
-- term **--use-integrated-swift-driver**:
-
-- term **--explicit-target-dependency-import-check=\&amp;lt;explicit-target-dependency-import-check\&amp;gt;**:
-
-*A flag that indicates this build should check whether targets only import their explicitly-declared dependencies.*
-
-- term **--build-system=\&amp;lt;build-system\&amp;gt;**:
-
-- term **--=\&amp;lt;debug-info-format\&amp;gt;**:
-
-*The Debug Information Format to use.*
-
-- term **--enable-dead-strip|disable-dead-strip**:
-
-*Disable/enable dead code stripping by the linker.*
-
-- term **--disable-local-rpath**:
-
-*Disable adding $ORIGIN/@loader_path to the rpath by default.*
-
-- term **--original=\&amp;lt;original\&amp;gt;**:
-
-*The original url or identity.*
-
-- term **--version**:
-
-*Show the version.*
-
-- term **--help**:
-
-*Show help information.*
-&lt;/code&gt;&lt;/pre&gt;</description></item><item><title>7.3.30 swift.package.generate-sbom</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.30-PackageGenerateSBOM/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.30-PackageGenerateSBOM/</guid><description>&lt;blockquote&gt;
+ [--help]
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="参数说明"&gt;参数说明&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;ndash;package-path=&amp;lt;package-path&amp;gt;&lt;/strong&gt;：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;指定要操作的包路径（默认为当前目录）。这会先切换工作目录，然后再执行其他任何操作。&lt;/em&gt;&lt;/p&gt;</description></item><item><title>7.3.30 swift.package.generate-sbom</title><link>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.30-PackageGenerateSBOM/</link><pubDate>Fri, 11 Sep 2026 21:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/SwiftPM/swiftcommands/7.3-SwiftPackageCommands/7.3.30-PackageGenerateSBOM/</guid><description>&lt;blockquote&gt;
 &lt;p&gt;原文链接: &lt;a href="https://docs.swift.org/latest/documentation/packagemanagerdocs/packagegeneratesbom/"&gt;https://docs.swift.org/latest/documentation/packagemanagerdocs/packagegeneratesbom/&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;h1 id="7330-swiftpackagegenerate-sbom"&gt;7.3.30 swift.package.generate-sbom&lt;/h1&gt;
