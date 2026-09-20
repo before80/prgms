@@ -154,7 +154,7 @@ print(MultipleOf(base: 3) ~= 9)
 
 ⚠️ 三个容易想歪的点，都实测过：
 
-1. **没有"函数版"重载。** 有人以为 `case isEven:` 能拿一个 `(Int) -> Bool` 当模式，实测报 `cannot convert value of type '(Int) -> Bool' to expected argument type 'Int'`。要按条件筛，用 `case let x where isEven(x):`。
+1. **没有"函数版"重载。** 有人以为 `case isEven:` 能拿一个 `(Int) -> Bool` 当模式，实测报的是 `expression pattern of type '(Int) -> Bool' cannot match values of type 'Int'`——`~=` 要求模式值本身能被"比较"，闭包不在其列。要按条件筛，用 `case let x where isEven(x):`。
 2. **`~=` 可以直接调用**，不必写在 `switch` 里：`if 1...10 ~= x { }` 是合法写法。
 3. **元组模式是逐元素匹配的**：`case (1, 2):` 相当于两个元素各走一次 `~=`（相等比较也是它的一个重载）。所以自定义模式照样能塞进元组——实测 `case (MultipleOf(base: 3), 4):` 能命中。
 
@@ -260,7 +260,8 @@ print(g)
 | `i++` / `i--` | `cannot find operator '++' in scope; did you mean '+= 1'?` |
 | `2 ** 3` | `cannot find operator '**' in scope`（要么自己定义，要么 `pow`） |
 | `x ??= 1` | `cannot find operator '??=' in scope` |
-| `x &/= 2`、`x &%= 2` | `cannot find operator '&/=' in scope` —— 环绕族只覆盖加、减、乘和移位 |
+| `x &/= 2` | `cannot find operator '&/=' in scope` |
+| `x &%= 2` | `cannot find operator '&%=' in scope`——环绕族只覆盖加、减、乘和移位 |
 
 ### 同一个符号，好几种身份
 

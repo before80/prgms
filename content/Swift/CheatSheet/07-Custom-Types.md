@@ -212,7 +212,7 @@ print(v.summary)
 | `final` 方法、`final` 类型 | 不能覆写 / 不能继承 | `instance method overrides a 'final' instance method` |
 | `static` 成员 | 不能覆写 | `cannot override static method` |
 | `let` 存储属性 | 不能覆写 | `cannot override immutable 'let' property 'n' with the getter of a 'var'` |
-| 存储属性 | 只能"加观察器" | `override var value: Int { didSet { } }` 合法 |
+| 存储属性（`var`） | 有三条路：加观察器、换成计算属性、或两者都来 | `override var value: Int { didSet { } }`、`override var value: Int { get { 5 } set { } }` 都合法；只写 `get` 会报 `cannot override mutable property with read-only property 'x'` |
 
 初始化器的继承只有两条规则，但很容易记反：
 
@@ -229,7 +229,20 @@ print(B().name, B(name: "x").name)
 // prints: 默认 x
 ```
 
-🔥 **子类不写任何指定初始化器时，父类的初始化器全部继承；只要写了任何一个，这条继承就断了**——想在保留老入口的同时加新入口，就把它写进 `extension`（见 [12 语法糖]({{< relref "12-Syntax-Sugar.md" >}}) 里的成员逐一初始化器）。
+```swift
+class C: A {
+    override init(name: String) { super.init(name: name) }   // 覆写了全部指定初始化器
+}
+print(C().name)
+// prints: 默认     便利初始化器照样继承
+```
+
+🔥 规则要分两句话说：
+
+- **指定初始化器**：子类不写任何自己的指定初始化器时，父类的全部继承；写了就只继承自己覆写的那些。
+- **便利初始化器**：只要子类把父类的**所有**指定初始化器都实现了（覆写也算实现），父类的便利初始化器就继续继承；落下一个，这条链就断。
+
+所以上面 `B` 什么都没写，白拿两个入口；`C` 用 `override` 补齐了唯一的指定初始化器 `init(name:)`，于是 `C()` 也还在。反过来，如果 `A` 有两个指定初始化器而 `C` 只覆写了一个，`C()` 就会报 `missing argument for parameter ...`——它已经没有 `init()` 这个入口了。想在保留老入口的同时加新入口，把新初始化器写进 `extension`（见 [12 语法糖]({{< relref "12-Syntax-Sugar.md" >}}) 里的成员逐一初始化器）。
 
 给继承来的存储属性加观察器时，父子两边的观察器都会跑：
 
@@ -253,7 +266,7 @@ s.value = 5
 | 便利初始化器 | `convenience init(...)` | 必须最终转调本类的指定初始化器 |
 | 可失败初始化器 | `init?(...)` / `init!(...)` | 返回值会变成可选值 |
 | 必需初始化器 | `required init(...)` | 子类必须实现 |
-| 继承来的初始化器 | 子类无自定义 init 时自动继承 | 一旦写了任何指定初始化器，继承规则收紧 |
+| 继承来的初始化器 | 见上文"初始化器的继承" | 指定初始化器：不写自己的才全盘继承；便利初始化器：把父类的指定初始化器全实现了才继承 |
 | `deinit` | 只有类与 actor 有 | 对象销毁前调用，不能直接调用 |
 
 ```swift

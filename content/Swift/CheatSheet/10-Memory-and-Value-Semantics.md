@@ -169,7 +169,7 @@ struct Player { var health = 1; var energy = 2 }
 func balance(_ a: inout Int, _ b: inout Int) { a += b }
 
 func localCase() {
-    var oscar = Player()
+    var oscar = Player()                    // ⚠️ 关键：oscar 必须是"局部"变量
     balance(&oscar.health, &oscar.energy)   // ✅ 局部变量的两个存储属性，编译器能证明互不相干
     print("OK", oscar.health, oscar.energy)
 }
@@ -177,14 +177,23 @@ localCase()
 // prints: OK 3 2
 ```
 
-把 `oscar` 换成全局变量、或者把元组的两个元素传进去，编译器就证明不了了——本机实测是运行期直接崩：
+⚠️ 把 `var oscar` 挪到函数外面变成全局变量，同一行代码就换了个死法——**编译期放行，运行期崩**（本机实测）：
+
+```swift
+struct Player { var health = 1; var energy = 2 }
+func balance(_ a: inout Int, _ b: inout Int) { a += b }
+
+var oscar = Player()                        // 全局变量
+balance(&oscar.health, &oscar.energy)       // 🛑 编译通过，一跑就崩
+```
 
 ```text
 Simultaneous accesses to 0x..., but modification requires exclusive access.
-Fatal access conflict detected.
 ```
 
-⚠️ 判断标准不是"这两块内存有没有关系"，而是"**编译器能不能证明**没有关系"。局部变量的存储属性它证明得了；全局变量、类实例的属性、元组元素常常证明不了，于是改用运行期检查——检查失败就是上面那句致命错误。[14 类型转换]({{< relref "14-Type-Casting-and-Interop.md" >}}) 里 `NSNumber` 那种"看起来是 A 其实是 B"的坑，和这里是同一种味道：**别问直觉，问编译器**。
+元组的两个元素同理（`balance(&pair.0, &pair.1)` 一样崩）。原因是"**编译器能不能静态证明这两个访问互不相干**"：局部变量它证得了，就按静态诊断放行；全局变量、类实例的属性、元组元素它证不了，于是退回**运行期检查**——一冲突就打印上面那句 `Simultaneous accesses to ...`，随后进程带着崩溃栈退出。
+
+⚠️ 判断标准不是"这两块内存有没有关系"，而是"**编译器能不能证明**没有关系"。[14 类型转换]({{< relref "14-Type-Casting-and-Interop.md" >}}) 里 `NSNumber` 那种"看起来是 A 其实是 B"的坑，和这里是同一种味道：**别问直觉，问编译器**。🝖 顺带一提，这条检查在 `-Onone` 和 `-O` 下都在；真想在优化构建里关掉，得显式写 `-enforce-exclusivity=unchecked`（那时上面两段都"能跑"了，代价是冲突变成未定义行为）。
 
 真碰上冲突，解法只有一个：把要读的值先抄到局部变量里，让读访问在写访问开始之前结束。
 
@@ -254,7 +263,32 @@ final class Downloader {
 }
 ```
 
-⚠️ `weak` 只对类有效。结构体、枚举、元组里写 `weak` 是编译错误，因为它们本来就不会造成引用环。
+⚠️ 两个常见的说法都不准确，先纠正掉：
+
+- ❌「`weak` 只能写在类里」——**能写在任何地方**。`struct`、`actor`、局部变量里都可以放 `weak var`，它照样是真的弱引用：
+
+  ```swift
+  final class Session { deinit { print("session 没了") } }
+  struct Holder { weak var session: Session? }   // ✅ 合法，且确实是弱引用
+
+  var s: Session? = Session()
+  let h = Holder(session: s)
+  s = nil                      // prints: session 没了
+  print(h.session == nil)
+  // prints: true
+  ```
+
+- ✅「`weak` 只能指向**类**（或类约束协议）类型」——这才是真正的限制。随便拿个值类型去弱引用，报的是：
+
+  ```swift
+  struct Point { var x = 0 }
+  struct Holder { weak var p: Point? }
+  // error: 'weak' may only be applied to class and class-bound protocol types, not 'Point'
+  ```
+
+⚠️ 顺带一提，`weak` 也不能出现在**元组类型**和 **enum 关联值**里（`case a(weak C)` 报 `enum case cannot have keyword arguments`）——不是语法没设计好，而是这两处没有"属性"这个概念，弱引用得挂在属性上。真需要的话，把那个值包进一个 struct 再放进去。
+
+💭 所以判断标准不是"这个类型是不是值类型"，而是"**被指向的那个类型是不是类**"。值类型里放 `weak`，恰恰是打断"类 → 结构体 → 类"这种间接引用环的标准手法。
 
 ### deinit 与销毁顺序
 
@@ -393,13 +427,32 @@ print(MemoryLayout<WithPadding>.size, MemoryLayout<WithPadding>.stride)
 | --- | --- | --- |
 | `Int` | 8 | 8 |
 | `Bool` | 1 | 1 |
-| `(Int8, Int8)` 结构体 | 2 | 2 |
+| `(Int8, Int8)` 元组或结构体 | 2 | 2 |
 | `{ Bool, Int }` 结构体 | 16 | 16 |
 | `String` | 16 | 16 |
 | `[Int]` | 8 | 8 |
-| 无关联值的 `enum`（3 个 case） | 1 | 1 |
-| 带 `Int` 关联值的 `enum` | 9 | 16 |
+| 无关联值的 `enum`（3 个 case 也一样） | 1 | 1 |
+| 只有一个 case、且只带一个 `Int` 的 `enum` | 8 | 8 |
+| 带 `Int` 关联值、但有多个 case 的 `enum` | 9 | 16 |
+| `Int?` | 9 | 16 |
 | `class` 的引用本身 | 8 | 8 |
+
+⚠️ 上表里那两个 `enum` 的行最容易记反，实测数据摆在这里：
+
+```swift
+enum Single { case a(Int) }              // 只有一个 case
+enum Multi  { case a(Int); case b(Int); case c }
+enum Extra  { case a(Int, Int8) }
+
+print(MemoryLayout<Single>.size, MemoryLayout<Single>.stride)
+// prints: 8 8       只有一个 case 时，根本没有"判别位"要存，布局就等于那个 Int
+print(MemoryLayout<Multi>.size, MemoryLayout<Multi>.stride)
+// prints: 9 16      多出来的那 1 个字节就是判别位，再补 7 个字节对齐
+print(MemoryLayout<Extra>.size, MemoryLayout<Extra>.stride)
+// prints: 9 16      关联值本身就是 9 字节，判别位被塞进了 Int8 的填充里，没多占
+```
+
+所以"带关联值的 enum 就是 size + 1"这条经验只对**多个 case**成立；只有一个 case 时它退化成那个关联值本身。`Int?` 走的正是"多个 case"那条路（`.none` / `.some`），所以是 9 / 16。
 
 关键区别：**`size` 是实际用到的字节，`stride` 是数组里每个元素占的间隔。** 两者的差额就是编译器塞进去的填充。写跨平台二进制格式时别拿结构体布局当协议：成员顺序、填充位置都不保证，`size` 也不等于"各字段加起来"。要序列化就老老实实按字节逐个字段写。
 

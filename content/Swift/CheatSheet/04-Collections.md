@@ -275,7 +275,7 @@ print(numbers.span[1], numbers.span.count)     // 借出来看一眼，不复制
 | 你想写的 | 结果 |
 | --- | --- |
 | `for x in buffer`（遍历 `InlineArray`） | `for-in loop requires 'InlineArray<3, Int>' to conform to 'Iterable', which is only available in macOS 27.0 or newer` |
-| `let v = buffer.span` 然后拿去别处用 | `lifetime-dependent value escapes its scope` —— `Span` 只能在借用范围内用 |
+| 把 `Span` 存进属性、或从函数里返回 | `the 'get' accessor cannot return a ~Escapable result` / `a function cannot return a ~Escapable result`——`Span` 是 `~Escapable` 的，不许比出借它的那个值活得久 |
 
 💭 这两个类型是给性能敏感代码准备的（省掉堆分配、也能天然避免数据竞争）。日常业务照旧用 `Array`；读到它们时，知道是"更快但更受限的数组"就够。
 

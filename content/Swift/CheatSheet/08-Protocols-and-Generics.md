@@ -264,7 +264,7 @@ print(shapes.map(\.area).reduce(0, +))
 | 具体类型 | 编译期确定，但对外隐藏 | 运行期才知道 |
 | 能返回不同类型吗 | ❌ 同一函数只能返回一种 | ✅ 可以按分支返回不同实现 |
 | 性能 | 与直接使用具体类型相同 | 需要装箱与动态派发，慢一些 |
-| 能当泛型参数用吗 | ✅ 直接传进 `func f<S: Shape>(_: S)` | ❌ 实测报 `type 'any Shape' cannot conform to 'Shape'` |
+| 能当泛型参数用吗 | ✅ 直接传进 `func f<S: Shape>(_: S)` | 🚧 只在一个位置上"能"：单个值传进去时，Swift 会**隐式打开**这个盒子（implicitly opened existential），把 `S` 推成里面那个具体类型，于是编译通过。但只要这个 `S` 还要同时对上别的东西——`f(boxed, boxed)`、`[boxed, boxed]`、`[any Shape]` 传给 `[S]`——就露馅：`type 'any Shape' cannot conform to 'Shape' [#ProtocolTypeNonConformance]` |
 | `-> Self` 的方法 | 返回的还是同一个具体类型 | 也能调用（Swift 5.7 起），但返回的是 `any Shape`，类型身份丢了 |
 | 什么时候用 | 返回单一时——**默认选它** | 需要异构集合时 |
 
@@ -339,7 +339,22 @@ print(shapes.map(\.area).reduce(0, +))
 
 {{< /tabpane >}}
 
-⚠️ `any` 会让关联类型跟着退化。写 `let s: any Sequence = [1, 2, 3]` 时元素类型变成 `Any`，`map` / `filter` / `contains` 这些只依赖元素的算法照样跑得动，只是你已经拿不到具体类型了；把主关联类型写全——`any Sequence<Int>`——元素类型才保得住。至于 `count` 这种能力，它属于 `Collection` 而不是 `Sequence`，`any Sequence` 上本来就没有，别把这笔账算到 `any` 头上。真遇到"套上 `any` 就编译不过"，通常说明这里该用 `some`，或者把泛型参数一路写下去。
+⚠️ `any` 会让关联类型跟着退化。写 `let s: any Sequence = [1, 2, 3]` 时元素类型变成**实打实的 `Any`**——`s.map { $0 }` 的闭包参数拿到的是 `Any`，`Array(s)` 得到 `[Any]`，只是这些算法本身照样跑得动。
+
+⚠️ 但**依赖 `Element: Equatable` 的那批 API 会跟着失效**，这是 `any` 最容易被忽略的代价：
+
+```swift
+let s: any Sequence = [1, 2, 3]
+
+print(s.contains { ($0 as? Int) == 2 })   // ✅ 谓词版本能编译，得自己转型
+// prints: true
+// print(s.contains(2))                   // 🛑 missing argument label 'where:' in call
+//                                        //    元素是 Any，Any 不 Equatable，只能给谓词
+// print(s.firstIndex(of: 2))             // 🛑 另外 firstIndex(of:) 是 Collection 的成员，
+//                                        //    Sequence 上本来就没有，和 any 无关
+```
+
+把主关联类型写全——`any Sequence<Int>`——元素类型才保得住，`contains(2)` 这类"按值找"的重载也就回来了。至于 `count` 这种能力，它属于 `Collection` 而不是 `Sequence`，`any Sequence` 上本来就没有，别把这笔账算到 `any` 头上。真遇到"套上 `any` 就编译不过"，通常说明这里该用 `some`，或者把泛型参数一路写下去。
 
 ## 协议扩展与默认实现
 

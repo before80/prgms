@@ -101,7 +101,32 @@ func log(_ s: String) -> Int { s.count }
 log("这行不会产生警告")
 ```
 
-🔥 单表达式函数可以省略 `return`。多行函数不行——这是 Swift 5.1 起就有的老规矩，但写法上很容易混。
+🔥 单表达式函数可以省略 `return`（Swift 5.1 起的老规矩）。⚠️ 但它**不只管"写在一行"的情况**：Swift 5.9 起 `if` / `switch` 本身就能当表达式（SE-0380），所以函数体哪怕写成好几行的 `if` / `switch`，只要整体是一个表达式，`return` 照样能省：
+
+```swift
+func describe(_ n: Int) -> String {
+    if n > 0 {          // 多行，但整体是一个 if 表达式
+        "正数"
+    } else {
+        "非正数"
+    }
+}
+print(describe(1), describe(-1))
+// prints: 正数 非正数
+```
+
+⚠️ 别把这条推得太远：**函数体里一旦有别的语句，最后那个表达式就不再是返回值了**。下面这段编译不过，报 `missing return in global function expected to return 'String'`：
+
+```swift
+func f(_ n: Int) -> String {
+    print("先做点别的")      // ← 有了这一句，函数体就不再是单个表达式
+    n > 0 ? "正" : "非正"
+}
+```
+
+补上 `return` 就好；只想留表达式又要有返回值，就把多余语句挪到别的函数里去。
+
+⚠️ 顺带一个容易骗过自己的细节：这条 `missing return` 是**完整编译**才报的错，`swiftc -typecheck` 只给你一句 `expression of type 'String' is unused` 的警告就放行了（见 [13 工具链]({{< relref "13-Tooling.md" >}})）。用 `-typecheck` 图快时，别把"没报错"当成"能编过"。
 
 ## 函数是值
 

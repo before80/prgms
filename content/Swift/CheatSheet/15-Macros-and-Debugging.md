@@ -24,7 +24,9 @@ draft = false
 | 形态 | 长这样 | 名字风格 | 例子 |
 | --- | --- | --- | --- |
 | 自由宏（freestanding） | `#名字(...)` | 小驼峰 | `#stringify(x)`、`#function`、`#warning("...")` |
-| 附加宏（attached） | `@名字` | 大驼峰 | `@Observable`、`@Test`、`@OptionSet` |
+| 附加宏（attached） | `@名字` | 大驼峰 | `@Observable`、`@Test`、`@DebugDescription` |
+
+⚠️ 别把老教程里的 `@OptionSet` 照抄过来：它**已经从标准库里移除了**，现在写会报 `unknown attribute 'OptionSet'`。它如今只是 swift-syntax 仓库里的一个示例宏。想要位掩码，老老实实手写 `struct X: OptionSet`（见 [11 标准库]({{< relref "11-Standard-Library.md" >}})）。
 
 📘 官方对宏的完整介绍在 [The Swift Programming Language · Macros](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/macros/)。
 
@@ -80,6 +82,8 @@ internal nonisolated func access<Member>(
 $ swift package init --type macro
 ```
 
+💭 建出来的包里有两处值得先看一眼：`Package.swift` 里锁着 **swift-syntax** 的版本（`swift-tools-version: 6.4` 的模板写的是 `from: "604.0.0-latest"`，实测解析到 `604.0.0`），以及模板自带的那个 `#stringify` —— 它就是下面这个例子的原型。swift-syntax 的版本决定了宏实现能用哪套 API 签名，所以它同时也是升级时第一个要看的东西。
+
 一个宏要三份东西，分别住在三个地方：
 
 | 角色 | 放在哪 | 长什么样 |
@@ -125,19 +129,31 @@ public macro Kind() = #externalMacro(module: "MacroDemoMacros", type: "KindMacro
 ```
 
 ```swift
-import SwiftSyntax
 import SwiftSyntaxMacros
 
 public struct KindMacro: MemberMacro {
     public static func expansion(
         of node: AttributeSyntax,
         providingMembersOf declaration: some DeclGroupSyntax,
+        conformingTo protocols: [TypeSyntax],          // ← 新签名多出来的参数
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         ["static var kind: String { String(describing: Self.self) }"]
     }
 }
 ```
+
+⚠️ 那个 `conformingTo protocols: [TypeSyntax]` 是**新签名**的一部分（swift-syntax 600 起）。省掉它、写成老的 `expansion(of:providingMembersOf:in:)` 也还能编过，但会收到一条警告：
+
+```text
+warning: deprecated default implementation is used to satisfy static method
+'expansion(of:providingMembersOf:conformingTo:in:)' required by protocol 'MemberMacro':
+`MemberMacro` conformance should implement the `expansion` function that takes a `conformingTo` parameter [#DeprecatedDeclaration]
+```
+
+💭 所以升级 swift-syntax 时，这条 `#DeprecatedDeclaration` 就是最省事的迁移清单：编译器把"该改成哪个签名"直接写在警告里了。
+
+🝖 顺带一说，附加宏的角色比你想象的细：除了上表的 `member`，还有 `@attached(memberAttribute)`（给成员**加**属性，`@Observable` 给每个属性挂 `@ObservationTracked` 用的就是它）、`@attached(accessor)`、`@attached(peer)`、`@attached(extension)`、`@attached(conformance)`。写宏声明时要按"你到底往哪里加东西"挑角色，挑错了编译器会拒绝展开。
 
 最后把两个宏登记进插件，并写一个调用方：
 
@@ -192,10 +208,22 @@ print(Config.kind, Config().name)
 | 写法 | 用于 | `-Onone`（调试） | `-O`（发布） | `-Ounchecked` |
 | --- | --- | --- | --- | --- |
 | `assert(_:_:)` | 开发者自检，比如"这个数组不该是空的" | ✅ 生效 | ❌ 被去掉 | ❌ 被去掉 |
-| `assertionFailure(_:)` | 走到这里就说明逻辑错了 | ✅ 生效 | ❌ 被去掉 | ⚠️ 实测仍会崩 |
-| `precondition(_:_:)` | 调用方的错，比如参数越界 | ✅ 生效 | ✅ 生效 | ❌ 被去掉 |
+| `assertionFailure(_:)` | 走到这里就说明逻辑错了 | ✅ 生效 | ❌ 被去掉 | ⚠️ **还是生效**（见下） |
+| `precondition(_:_:)` | 调用方的错，比如参数越界 | ✅ 生效 | ✅ 生效（不再打印消息） | ❌ 被去掉 |
 | `preconditionFailure(_:)` | 调用方给的组合不可能成立 | ✅ 生效 | ✅ 生效（不再打印消息） | ✅ 生效（不再打印消息） |
 | `fatalError(_:)` | 彻底没救了，必须停下 | ✅ 生效 | ✅ 生效 | ✅ 生效 |
+
+⚠️ 第二行那个 `-Ounchecked` 的 ⚠️ 是整张表里唯一值得背一下的例外，实测数据摆在这里（每一格都是真的跑一遍拿到的，只看退出码 133 就是崩了）：
+
+| 表达式 | `-Onone` | `-O` | `-Ounchecked` |
+| --- | --- | --- | --- |
+| `assert(false, "M")` | 崩，`Assertion failed: M` | 不崩 | 不崩 |
+| `assertionFailure("M")` | 崩，`Fatal error: M` | 不崩 | **崩**（退出码 133） |
+| `precondition(false, "M")` | 崩，`Precondition failed: M` | 崩，无消息 | 不崩 |
+| `preconditionFailure("M")` | 崩，`Fatal error: M` | 崩，无消息 | 崩，无消息 |
+| `fatalError("M")` | 崩，`Fatal error: M` | 崩，`Fatal error: M` | 崩，`Fatal error: M` |
+
+💭 为什么会歪成这样？翻一眼标准库源码就清楚了：`assertionFailure` 是"调试配置下报错，**快速配置（`-Ounchecked`）下走 `_conditionallyUnreachable()`**"；而 `precondition` 反过来，是"调试配置下报错，发布配置下把条件交给 `Builtin.condfail_message`"，那个分支在 `-Ounchecked` 里被当成"不可能发生"优化掉了。所以这三个函数在三种构建下的组合并不是"从弱到强"的一条线——**要写"任何构建下都拦得住"的检查，只有 `preconditionFailure` 和 `fatalError` 靠得住**。
 
 ```swift
 func average(_ numbers: [Int]) -> Double {
@@ -220,7 +248,7 @@ demo/demo.swift:2: Precondition failed: 空数组没有平均值
 
 ⚠️ `-Ounchecked` 是把安全带剪掉：连数组越界都不再检查。实测 `let a = [1, 2, 3]; print(a[5])` 在 `-Onone` 下报 `Fatal error: Index out of range`，在 `-Ounchecked` 下**不报错**、直接给你一段垃圾数据。它只适合"性能优先级压过一切、且已经压测过"的场景。
 
-💭 选哪个的一句话版本：**自己的逻辑错了用 `assert`，别人传错了用 `precondition`，世界末日用 `fatalError`。** 想要"文档里写明的、必须成立的契约"，就用 `precondition`——它在发布版本里还拦得住。
+💭 选哪个的一句话版本：**自己的逻辑错了用 `assert`，别人传错了用 `precondition`，世界末日用 `fatalError`。** 想要"文档里写明的、必须成立的契约"，就用 `precondition`——它在 `-O` 的发布版本里还拦得住（但**挡不住 `-Ounchecked`**，那种构建下它和 `assert` 一样消失；真要绝对拦得住，用 `preconditionFailure`）。
 
 ## 打印与调试输出
 
@@ -250,10 +278,28 @@ demo.Point(x: 1, y: 2)       ← debugPrint / String(reflecting:)，会把模块
 
 | 写法 | 看什么 | 特点 |
 | --- | --- | --- |
-| `print(x)` | `CustomStringConvertible.description` | 面向用户，最漂亮 |
+| `print(x)` | `CustomStringConvertible.description` | 面向用户，最漂亮；没实现就退回到反射 |
 | `debugPrint(x)` | `CustomDebugStringConvertible.debugDescription` | 面向调试，会带模块名、给字符串加引号 |
-| `dump(x)` | 反射出来的 `Mirror` 树 | 递归展开层级，适合看嵌套结构 |
-| `String(reflecting: x)` | 同上，但产出字符串 | 想拼日志时用它 |
+| `String(reflecting: x)` | **和 `debugPrint` 同一套**（`debugDescription`） | 只是产出字符串而不是打印，想拼日志时用它 |
+| `dump(x)` | 反射出来的 `Mirror` 树 | ⚠️ 唯一走反射的那个，递归展开层级，**不看上面两个协议** |
+
+⚠️ 上表第三、四行经常被写成"两者一样"，实测并不一样。拿一个嵌套结构体跑一遍：
+
+```swift
+struct Inner { var a = 1 }
+struct Outer { var i = Inner(); var b = 2 }
+
+dump(Outer())
+// ▿ demo.Outer
+//   ▿ i: demo.Inner
+//     - a: 1
+//   - b: 2
+
+print(String(reflecting: Outer()))
+// demo.Outer(i: demo.Inner(a: 1), b: 2)
+```
+
+`dump` 给的是带 `▿` 的层级树，`String(reflecting:)` 给的是**一整行**——它跟 `debugPrint` 是一家人，只是不直接往 stdout 写。
 
 想让自己的类型输出好看，实现对应协议就行：
 
@@ -328,7 +374,8 @@ print(Hidden().value(), Hidden.value())
 
 | 你写的 | 报什么 |
 | --- | --- |
-| 给非 public 枚举加 `@frozen` | `warning: @frozen has no effect on non-public enums`（只是没效果） |
+| 给非 public 的**枚举**加 `@frozen` | `warning: @frozen has no effect on non-public enums`（只是没效果，能编过） |
+| 给非 public 的**结构体**加 `@frozen` | `error: '@frozen' attribute can only be applied to '@usableFromInline', package, or public declarations, but 'S' is internal`（**直接报错**，两者行为不一样） |
 | 给 `internal` 函数加 `@backDeployed` | `error: '@backDeployed' may not be used on internal declarations` |
 
 ### 并发与互操作
@@ -374,7 +421,8 @@ print(5.id)
 | 用 `assert` 校验用户输入 | 发布版本里它不在了，用 `precondition` 或正经的错误处理 |
 | 以为 `fatalError` 会被优化掉 | 它永远生效，是"我就是不跑了"的意思 |
 | 用 `-Ounchecked` 换性能 | 越界检查也没了，实测会安静地给你垃圾数据 |
-| 把 `@frozen` 写在非 public 的类型上 | 编译器只给一句 `@frozen has no effect on non-public enums`，什么都没发生 |
+| 把 `@frozen` 写在非 public 的类型上 | 枚举只给一句 `@frozen has no effect on non-public enums`（警告），结构体则是硬错误，见上文 |
+| 照抄老教程里的 `@OptionSet` | 它已从标准库移除，报 `unknown attribute 'OptionSet'`，改成手写 `OptionSet` |
 | 以为 `@inline(__always)` 一定内联 | 它是建议不是命令，跨模块还要配合 `@inlinable` 才有意义 |
 | 忘了写 `@retroactive` | 两个"外来"类型凑一起时，编译器会为重复遵循的隐患提醒你 |
 | 把 `@objc` 那种"有运行期代价"的假设套到宏上 | 宏在编译期就展开完了，运行期没有开销 |

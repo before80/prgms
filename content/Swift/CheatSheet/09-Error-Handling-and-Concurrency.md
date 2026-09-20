@@ -470,12 +470,78 @@ print(await account.balance, account.describe)
 | 规则 | 说明 |
 | --- | --- |
 | 外部访问可变状态要 `await` | 编译器替你排队，不会真的同时改 |
-| `nonisolated` | 明确声明"这个成员不碰内部状态"，可以同步访问 |
+| `nonisolated` | 明确声明"这个成员不碰内部状态"，于是**可以从任何地方同步调用** |
 | actor 内部可以直接互调 | 不需要 `await`，因为已经在同一隔离域 |
 | actor 是引用类型 | 传的是引用，不是拷贝 |
-| 不要 `await` 一个 actor 的 `nonisolated` 方法 | 它不是异步的 |
+| `nonisolated` 不等于"一定同步" | 它只免掉了隔离跳转；函数**自己声明成 `async`** 时照样要 `await`（见下） |
+
+⚠️ 上表最后一条是最容易记混的：**要不要 `await` 看的是"这个函数是不是 `async`"，不是"它是不是 `nonisolated`"。** 三种组合实测如下：
+
+```swift
+actor Store {
+    nonisolated var label: String { "仓库" }              // 同步，直接读
+    nonisolated func syncCount() -> Int { 0 }             // 同步，直接调
+    nonisolated func asyncCount() async -> Int { 0 }      // 异步！必须 await
+}
+
+let store = Store()
+print(store.label, store.syncCount())                     // 不需要 await
+print(await store.asyncCount())                           // 🛑 漏掉 await 会报
+// error: expression is 'async' but is not marked with 'await'
+```
+
+💭 为什么 `nonisolated` 还能是 `async`？因为"不碰隔离状态"和"会不会挂起"是两件事。`nonisolated func f() async` 不跳 actor、但可能真的等 I/O；它的执行器归属见下一节。
 
 💭 actor 不是"加了锁的类"。它保证的是**同一时刻只有一个任务在改它的状态**，代价是调用点变成异步的。能用值类型解决的问题，别用 actor。
+
+### ⚠️ actor 是可重入的：`await` 之后世界会变
+
+这是 actor 最容易踩、也最不像"锁"的地方，值得单独一节：**actor 保证"同一时刻只有一个任务在跑"，但不保证"一个方法从头到尾不被打断"。** 只要方法里出现 `await`，就是一次**挂起点**——actor 会放别的任务进来执行，等你回来时，状态可能早被改过了。
+
+换句话说：**actor 里的 `await` ≈ 主动让出锁。** 判断"这段代码安全吗"的标准，和写并发代码时完全一样——挂起前读到的值，挂起后一律当作已经失效。
+
+```swift
+actor BankAccount {
+    private(set) var balance: Int
+    init(_ balance: Int) { self.balance = balance }
+
+    // 🛑 错误写法：await 之前检查过一次，就以为稳了
+    func buggyWithdraw(_ amount: Int) async -> Bool {
+        guard balance >= amount else { return false }
+        try? await Task.sleep(for: .milliseconds(10))   // ← 挂起点，别的任务趁虚而入
+        balance -= amount                                // 余额可能早就被扣过了
+        return true
+    }
+
+    // ✅ 正确写法：挂起之后**重新检查**，检查到扣款之间不能再有 await
+    func withdraw(_ amount: Int) async -> Bool {
+        guard balance >= amount else { return false }
+        try? await Task.sleep(for: .milliseconds(10))
+        guard balance >= amount else { return false }    // ⚠️ 这一行是关键
+        balance -= amount
+        return true
+    }
+}
+```
+
+两个任务同时从余额 100 的账户各取 100，实测结果（跑三遍都稳定）：
+
+```text
+=== 🛑 错误写法 ===
+成功次数 2，余额 -100      ← 两个都以为自己是唯一取款人，账户被取穿
+=== ✅ 正确写法 ===
+成功次数 1，余额 0         ← 第二个任务在重查时被挡下
+```
+
+⚠️ 所以"把状态和方法都塞进 actor 就安全了"是错的。真正常用的三种写法：
+
+| 做法 | 说明 |
+| --- | --- |
+| 挂起后重查 | 上面的 ✅ 版本；最直接，但要保证"检查 → 修改"之间没有 `await` |
+| 用一个 `inFlight` / 状态标记 | 进入临界段前打标，退出时清掉；注意标记本身也要在挂起后重查 |
+| 把整个操作做成同步方法 | 根本不留挂起点，也就没有重入的余地——能用就最好 |
+
+💭 用一句话概括：**actor 防的是数据竞争，不防逻辑竞态（race condition 的那一半是"顺序"，actor 不管）。** `await` 是个门，门一开，你之前读到的一切都需要重新确认。
 
 ### @MainActor：把你按回主线程
 
@@ -487,13 +553,32 @@ final class ViewModel {
 }
 
 func useViewModel() async {
-    let vm = await ViewModel()
+    let vm = ViewModel()          // ⚠️ 无参 init 是 nonisolated 的，不用 await
     await vm.bump()
     print(await vm.count)
 }
 await useViewModel()
 // prints: 1
 ```
+
+⚠️ 这里有个反直觉的点，实测会给出警告 `no 'async' operations occur within 'await' expression`：**成员都有默认值时，编译器合成的那个无参 `init()` 是 nonisolated 的**，所以 `await ViewModel()` 属于白等一场。可一旦你手写了带参数的 `init`，它就被算作 actor 隔离的，必须 `await`：
+
+```swift
+@MainActor
+final class VM2 {
+    var count: Int
+    init(count: Int) { self.count = count }   // 这个 init 是 main actor 隔离的
+}
+
+func useVM2() async {
+    let vm = await VM2(count: 1)              // 参数化的 init 需要 await
+    print(await vm.count)
+}
+await useVM2()
+// prints: 1
+```
+
+💭 记法：**"读/写隔离状态"才需要 `await`。** 合成的无参 `init` 只是给属性填默认值，没碰任何需要隔离的东西，所以不必等；手写 `init` 里能访问隔离状态，于是它本身也被隔离了。拿不准就让编译器告诉你——多写一个 `await` 只会收到上面那条警告，少写一个才是错误。
 
 `@MainActor` 可以标在类型、属性、方法上。UI 相关的一切都该在主线程，标上它以后，在别的线程碰它会直接编译报错——这比等到线上崩溃友好得多。
 
@@ -786,7 +871,31 @@ print(await slow.value)
 | --- | --- | --- | --- |
 | `withTaskGroup` | 要 | 否 | 固定格式的并行请求、并行计算 |
 | `withThrowingTaskGroup` | 要 | 是 | 子任务可能失败，失败要整体收摊 |
-| `withDiscardingTaskGroup` | **不要** | 是 | 长跑服务：每个连接起一个任务，跑完就扔 🆕 |
+| `withDiscardingTaskGroup` | **不要** | 否 | 长跑服务：每个连接起一个任务，跑完就扔 🆕 |
+| `withThrowingDiscardingTaskGroup` | **不要** | 是 | 同上，但子任务会失败（要写 `try`）🆕 |
+
+⚠️ 四个名字里，"会不会抛错"取决于**有没有 `Throwing`**，和 `Discarding` 是两件独立的事。写错了编译器会说得很清楚：
+
+```swift
+enum JobError: Error { case boom }
+
+// 🛑 这个组不接会抛错的任务
+await withDiscardingTaskGroup { group in
+    group.addTask { throw JobError.boom }
+}
+// error: invalid conversion from throwing function of type '() throws -> Void'
+//        to non-throwing function type '@isolated(any) () async -> Void'
+
+// ✅ 换成 Throwing 版本，再补 try；错误会被抛到调用点
+do {
+    try await withThrowingDiscardingTaskGroup { group in
+        group.addTask { throw JobError.boom }
+    }
+} catch {
+    print("子任务炸了:", error)
+}
+// prints: 子任务炸了: boom
+```
 
 ```swift
 await withDiscardingTaskGroup { group in
@@ -905,3 +1014,4 @@ await load()
 | `@unchecked Sendable` 当免死金牌 | 它只是"我保证"，编译器不再检查 |
 | 以为 `cancel()` 会立刻停下 | 取消是协作式的，需要自己检查 |
 | 在同步函数里访问 `@MainActor` 属性 | 编译报错，要 `await` 或把函数标成 `@MainActor` |
+| 以为进了 actor 就万事大吉 | actor 是**可重入**的：每个 `await` 都是一个让别的任务插进来的口子，挂起前读到的值挂起后要重查 |

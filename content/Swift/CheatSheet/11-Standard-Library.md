@@ -145,12 +145,35 @@ print(users.sorted { $0.age < $1.age }.map(\.name))
 | 存成变量 | `let kp: KeyPath<User, String> = \User.name` |
 | 排序 | `users.sorted(using: KeyPathComparator(\.age))` |
 | 求和 | `users.map(\.age).reduce(0, +)` |
-| 可写路径 | `let wk: WritableKeyPath<User, Int>` 🝖 |
-| 字符串化 | `#keyPath(User.name)`（Objective-C 互操作用） |
+| 可写路径（要求属性是 `var`） | `let wk: WritableKeyPath<User, Int> = \User.age` 🝖 |
+| 字符串化 | `#keyPath(User.name)`（**只对 `@objc` 属性成立**，见下） |
 
 ⚠️ KeyPath **不能**当双参数谓词：`users.sorted(by: \.age)` 是编译错误。要么 `sorted { $0.age < $1.age }`，要么 `sorted(using: KeyPathComparator(\.age))`。
 
 ⚠️ `user[keyPath: \.name]`、`users.map(\.name)` 属于标准库，不需要导入；但 `KeyPathComparator` 来自 Foundation。在 Linux 上它会随 swift-corelibs-foundation 一起提供。
+
+⚠️ **`#keyPath` 和 `\.age` 不是同一件事**，这是 KeyPath 这一节最容易混的地方：
+
+| 写法 | 是什么 | 要求 |
+| --- | --- | --- |
+| `\User.age` | Swift 的 KeyPath 字面量，**真正的类型** | 无。属性是 `let` 就是 `KeyPath`，是 `var` 才是 `WritableKeyPath` |
+| `#keyPath(User.age)` | 把属性名变成**字符串**，只给 Objective-C 的 KVC 用 | 类型得是 `NSObject` 子类、属性得标 `@objc`，且属性是 `var` |
+
+```swift
+import Foundation
+
+struct User { let name: String; let age: Int }   // 纯 Swift 结构体
+// print(#keyPath(User.name))
+// 🛑 error: argument of '#keyPath' refers to non-'@objc' property 'name'
+
+final class ObjcUser: NSObject {
+    @objc var name: String = "x"
+}
+print(#keyPath(ObjcUser.name))
+// prints: name
+```
+
+顺手记一句：上面那张表里 `WritableKeyPath<User, Int>` 只能指向 `var`。如果 `User` 的属性是 `let`，写 `let wk: WritableKeyPath<User, Int> = \User.age` 会报 `cannot convert key path type 'any KeyPath<User, Int> & Sendable' to contextual type 'WritableKeyPath<User, Int>'`——`let` 属性只配得到 `KeyPath`。
 
 ## Codable
 
@@ -185,7 +208,7 @@ print(try JSONDecoder().decode(Config.self, from: data))
 | 改键名 | 自定义 `CodingKeys` 枚举 |
 | 日期格式 | `encoder.dateEncodingStrategy = .iso8601` |
 | 输出可读 | `outputFormatting = [.prettyPrinted, .sortedKeys]` |
-| 忽略某个字段 | 不放进 `CodingKeys` |
+| 忽略某个字段 | 不放进 `CodingKeys`——但该属性必须**是可选值，或者有默认值**，否则解码直接失败（见下） |
 | 缺失字段用默认值 | 自己写 `init(from:)`，用 `decodeIfPresent` |
 | 嵌套容器 | 用 `nestedContainer(keyedBy:forKey:)` 🝖 |
 | 非 JSON 编码 | `PropertyListEncoder`、自定义 `Encoder` |
@@ -290,7 +313,29 @@ print(elapsed > .zero)
 | 测耗时 | `ContinuousClock().measure { ... }` 🔥 |
 | 异步等待 | `try await Task.sleep(for: .seconds(1))` |
 
-⚠️ 测耗时用 `ContinuousClock`，不要用 `Date()` 相减：系统时间会被调整，挂起、时区变更都会污染结果。
+⚠️ **"不放进 `CodingKeys`" ≠ "这个字段可以随便缺"**，这两件事经常被当成一件。把一个属性从 `CodingKeys` 里去掉，只是让它不参与编解码，但类型仍然必须满足 `Codable` 的合成条件：
+
+| 被排除的属性长什么样 | 结果 |
+| --- | --- |
+| `var b: Int`（非可选、无默认值） | ❌ 合成失败：`type 'A' does not conform to protocol 'Decodable'`，附一句 `'b' does not have a matching CodingKey and does not have a default value` |
+| `var b: Int = 0`（有默认值） | ✅ 解码时保持默认值，JSON 里的 `b` 被忽略 |
+| `var b: Int?`（可选值） | ✅ 解码成 `nil` |
+
+```swift
+import Foundation
+
+struct A: Codable {
+    var a: Int
+    var b: Int = 0                            // 有默认值，才敢从 CodingKeys 里去掉
+    enum CodingKeys: String, CodingKey { case a }
+}
+
+let data = Data(#"{"a":1,"b":2}"#.utf8)
+print(try JSONDecoder().decode(A.self, from: data))
+// prints: A(a: 1, b: 0)       JSON 里的 b 被整个忽略，留下的 0 是属性默认值
+```
+
+⚠️ 测耗时用 `ContinuousClock`，不要用 `Date()` 相减：系统时间会被调整（NTP 校时、用户手动改、闰秒），挂起也会污染结果。💭 顺带澄清一个常被夸大的点：**时区本身不影响相减**——`timeIntervalSince` 数的是绝对时间差，把 `TZ` 换成哪个时区，两次 `Date()` 之差都一样。`Date()` 真正的毛病是"挂钟"性质，不是时区。
 
 ## 结果构建器
 
@@ -341,7 +386,7 @@ print(built)
 | 找最值及其位置 | `a.enumerated().max { $0.element < $1.element }` |
 | 累加（前缀和） | `a.reduce(into: []) { $0.append(($0.last ?? 0) + $1) }` |
 | 交错 | `zip(a, b).flatMap { [$0, $1] }` |
-| 去重且保序 | `a.reduce(into: []) { seen, x in if !seen.contains(x) { seen.append(x) } }` |
+| 去重且保序 | `a.reduce(into: [Int]()) { seen, x in if !seen.contains(x) { seen.append(x) } }` ⚠️ 累加器的类型必须写出来，`into: []` 推不出来 |
 | 随机抽样 | `a.shuffled().prefix(3)` |
 | 可复现的随机 | 自己实现 `RandomNumberGenerator`，再用 `a.randomElement(using: &rng)`、`Int.random(in:using:)` |
 | 定长内联数组 | `InlineArray<N, T>`，见 [04 集合]({{< relref "04-Collections.md" >}}) 🆕 |

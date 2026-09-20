@@ -95,12 +95,12 @@ $ swift package preview-documentation --target MyLib
 
 ## 命令行程序常用 API
 
-写一个能跑的工具，绕不开这四件事：拿参数、读环境、碰文件、往外报错。它们全在 `Foundation` 里（`CommandLine` 也是）：
+写一个能跑的工具，绕不开这四件事：拿参数、读环境、碰文件、往外报错。它们**基本都在 `Foundation` 里**，只有一个例外：
 
 | 需求 | 写法 |
 | --- | --- |
-| 参数列表 | `CommandLine.arguments` → `[String]`，第 0 个是可执行文件路径 |
-| 参数个数 | `CommandLine.argc` |
+| 参数列表 | `CommandLine.arguments` → `[String]`，第 0 个是可执行文件路径（**标准库**，不用 import） |
+| 参数个数 | `CommandLine.argc`（同样在标准库） |
 | 环境变量 | `ProcessInfo.processInfo.environment["KEY"]` → `String?` |
 | 进程名 / 系统版本 | `ProcessInfo.processInfo.processName`、`operatingSystemVersionString` |
 | 临时目录 | `FileManager.default.temporaryDirectory` |
@@ -110,6 +110,8 @@ $ swift package preview-documentation --target MyLib
 | 写文件 | `try text.write(to: url, atomically: true, encoding: .utf8)` |
 | 标准错误 | `FileHandle.standardError.write(Data("...".utf8))` |
 | 正常 / 异常退出码 | `EXIT_SUCCESS` / `EXIT_FAILURE`，配合 `exit()` |
+
+⚠️ **`CommandLine` 在标准库，不在 Foundation**，所以下面的代码即使一行 `import` 都不写也能编译；而 `ProcessInfo`、`FileManager`、`FileHandle` 必须 `import Foundation`，否则报 `cannot find 'ProcessInfo' in scope`。
 
 ```swift
 import Foundation

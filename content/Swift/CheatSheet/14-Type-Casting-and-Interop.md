@@ -73,7 +73,7 @@ print(d, type(of: d))
 // prints: 1.0 Double
 ```
 
-⚠️ 向下转型必须写 `as?` 或 `as!`。写成 `dog as Cat` 编译器直接拦下：`'Animal' is not convertible to 'Cat'`。
+⚠️ 向下转型必须写 `as?` 或 `as!`。以下面这个 `let dog = Dog()` 为例，写成 `dog as Cat` 编译器直接拦下：`cannot convert value of type 'Dog' to type 'Cat' in coercion`。（如果是声明成 `let dog: Animal = Dog()` 再写 `dog as Cat`，报的会是另一句 `'Animal' is not convertible to 'Cat'`——都指向上转型不能顺手转下来这件事。）
 
 💭 注意上面 `type(of: upcast)` 给的是 `Dog` 而不是 `Animal`：变量声明的类型是静态类型，`type(of:)` 看的是运行期类型。多态就建立在这两者的差别上。
 
@@ -347,8 +347,19 @@ $ ./demo
 
 ⚠️ 三个实测出来的细节：
 
-1. **要导出成库给别的模块用时，函数得是 `public`**。忘了写 `public`，`nm` 里根本找不到这个符号，链接时报 `Undefined symbols: _swift_add2`；加上 `public` 立刻就好。
-2. **参数只能是 C 认识的东西**：定长整数（`Int32`、`UInt8`…）、`Double`、`Float`、指针。`String`、`Array`、`Bool` 这些都不能直接跨过去——`String` 要传 `UnsafePointer<CChar>`（用 `strdup` 或 `withCString` 搭桥）。
+1. **要导出成库给别的模块用时，函数得是 `public`。** 忘了写 `public`，符号虽然还在二进制里（`nm libadd.dylib` 能看到 `t _swift_add`，小写 `t` 表示它是本地符号），但它不在导出表里（`nm -gU` 为**空**），链接时照样失败：
+
+   ```console
+   $ nm -gU libadd.dylib | grep swift_add      # 没有 public 时：毫无输出
+   $ clang -o demo main.c -L. -ladd -Wl,-rpath,.
+   Undefined symbols for architecture arm64:
+     "_swift_add", referenced from:
+         _main in main-xxxx.o
+   ld: symbol(s) not found for architecture arm64
+   ```
+
+   加上 `public` 之后 `nm -gU` 变成 `T _swift_add`（大写 `T` = 外部可见），链接立刻通过。⚠️ 报错里的符号名是 `_swift_add`，**没有**任何后缀——看到 `_xxx2` 那种名字，那是别的原因（比如两个文件重复导出同名符号）造成的。
+2. **参数只能是 C 认识的东西**：定长整数（`Int32`、`UInt8`…）、`Double`、`Float`、`Bool`、指针。`String`、`Array` 这些不能直接跨过去——实测 `@_cdecl` 里写 `String` 参数会报 `global function cannot be marked '@_cdecl' because the type of the parameter cannot be represented in Objective-C`，得改用 `UnsafePointer<CChar>`（用 `strdup` 或 `withCString` 搭桥）。（`Bool` 是可以的，它在 C 侧对应 `stdbool.h` 的 `bool`，实测从 C 调用能正确往返。）
 3. **下划线开头意味着"非正式 API"**：它不在官方语言参考的正式特性里，行为可能变。真要用就先固定工具链版本，并写一个 C 侧的冒烟测试。🛑
 
 ## 陷阱速查

@@ -213,7 +213,7 @@ let a = Direction.north      // 完整写法
 let b: Direction = .north    // 类型已知时省略类型名
 ```
 
-⚠️ 这叫**前导点**（隐式成员表达式），前提是上下文类型已经确定。少了上下文就没法省：`let b = .north` 报的是 `cannot infer contextual base in reference to member 'north'`。枚举 `case`、静态属性、静态方法、`.init` 全都适用，完整规律和几个坑见 [06 可选值]({{< relref "06-Optionals.md" >}})。
+⚠️ 这叫**前导点**（隐式成员表达式），前提是上下文类型已经确定。少了上下文就没法省：`let b = .north` 报的是 `reference to member 'north' cannot be resolved without a contextual type`；如果这个点号落在元组里（`let t = (1, .north)`），报的则是 `cannot infer contextual base in reference to member 'north'`——同一件事的两种说法。枚举 `case`、静态属性、静态方法、`.init` 全都适用，完整规律和几个坑见 [06 可选值]({{< relref "06-Optionals.md" >}})。
 
 {{% /tab %}}
 
@@ -415,7 +415,18 @@ print(Money(amount: 1, currency: "CNY") == Money(amount: 1, currency: "CNY"))
 // prints: true
 ```
 
-只要所有存储属性都满足条件，这两个协议、还有 `Codable` 与 `CaseIterable`，编译器都会替你补上。
+只要所有存储属性都满足条件，`Equatable`、`Hashable`、`Codable` 编译器都会替你补上。
+
+⚠️ 但 `CaseIterable` **不在这个名单里**：它是"枚举专用"的，只有**没有关联值的枚举**才能合成 `allCases`。结构体哪怕全是简单属性也不行：
+
+```swift
+enum Suit: CaseIterable { case hearts, spades }
+print(Suit.allCases.count)      // prints: 2      ✅
+
+struct Bad: CaseIterable { var a: Int }
+// 🛑 error: type 'Bad' does not conform to protocol 'CaseIterable'
+//    note: protocol requires property 'allCases'
+```
 
 {{% /tab %}}
 
@@ -466,11 +477,12 @@ print(Wrapper(value: "a") == Wrapper(value: "a"))
 | --- | --- | --- |
 | `ExpressibleByIntegerLiteral` | `let x: T = 42` | `Int`、`Double`、`Decimal` |
 | `ExpressibleByFloatLiteral` | `let x: T = 3.14` | `Double`、`Float` |
-| `ExpressibleByStringLiteral` | `let x: T = "hi"` | `String`、`Character` |
+| `ExpressibleByStringLiteral` | `let x: T = "hi"` | `String`、`StaticString`（⚠️ **不是 `Character`**） |
 | `ExpressibleByBooleanLiteral` | `let x: T = true` | `Bool` |
 | `ExpressibleByArrayLiteral` | `let x: T = [1, 2]` | `Array`、`Set` |
 | `ExpressibleByDictionaryLiteral` | `let x: T = ["a": 1]` | `Dictionary` |
 | `ExpressibleByNilLiteral` | `let x: T = nil` | `Optional` |
+| `ExpressibleByExtendedGraphemeClusterLiteral` | `let x: T = "A"` | `Character`（**它在这里，不在 `ExpressibleByStringLiteral` 里**） |
 
 ```swift
 struct Meters: ExpressibleByStringLiteral {
