@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Swift 语言速查表 on 编程那些事儿</title><link>https://before80.github.io/prgms/Swift/CheatSheet/</link><description>Recent content in Swift 语言速查表 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sat, 19 Sep 2026 21:54:25 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Swift/CheatSheet/index.xml" rel="self" type="application/rss+xml"/><item><title>01 起步与运行方式</title><link>https://before80.github.io/prgms/Swift/CheatSheet/01-Quickstart/</link><pubDate>Wed, 16 Sep 2026 11:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/CheatSheet/01-Quickstart/</guid><description>&lt;h1 id="01-起步与运行方式"&gt;01 起步与运行方式&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Swift 语言速查表 on 编程那些事儿</title><link>https://before80.github.io/prgms/Swift/CheatSheet/</link><description>Recent content in Swift 语言速查表 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 20 Sep 2026 18:22:26 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Swift/CheatSheet/index.xml" rel="self" type="application/rss+xml"/><item><title>01 起步与运行方式</title><link>https://before80.github.io/prgms/Swift/CheatSheet/01-Quickstart/</link><pubDate>Wed, 16 Sep 2026 11:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/CheatSheet/01-Quickstart/</guid><description>&lt;h1 id="01-起步与运行方式"&gt;01 起步与运行方式&lt;/h1&gt;
 &lt;h2 id="一段代码的五种跑法"&gt;一段代码的五种跑法&lt;/h2&gt;
 &lt;p&gt;Swift 不像脚本语言只有一种执行方式，也不像编译型语言动不动就要建工程。同一个 &lt;code&gt;print&lt;/code&gt;，下面五种跑法都成立，选哪种取决于你此刻想干什么。&lt;/p&gt;</description></item><item><title>02 语言主干</title><link>https://before80.github.io/prgms/Swift/CheatSheet/02-Language-Basics/</link><pubDate>Wed, 16 Sep 2026 11:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/CheatSheet/02-Language-Basics/</guid><description>&lt;h1 id="02-语言主干"&gt;02 语言主干&lt;/h1&gt;
 &lt;h2 id="常量与变量"&gt;常量与变量&lt;/h2&gt;
@@ -701,8 +701,17 @@
  &lt;td&gt;附加宏（attached）&lt;/td&gt;
  &lt;td&gt;&lt;code&gt;@名字&lt;/code&gt;&lt;/td&gt;
  &lt;td&gt;大驼峰&lt;/td&gt;
- &lt;td&gt;&lt;code&gt;@Observable&lt;/code&gt;、&lt;code&gt;@Test&lt;/code&gt;、&lt;code&gt;@OptionSet&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;@Observable&lt;/code&gt;、&lt;code&gt;@Test&lt;/code&gt;、&lt;code&gt;@DebugDescription&lt;/code&gt;&lt;/td&gt;
  &lt;/tr&gt;
  &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;📘 官方对宏的完整介绍在 &lt;a href="https://docs.swift.org/swift-book/documentation/the-swift-programming-language/macros/"&gt;The Swift Programming Language · Macros&lt;/a&gt;。&lt;/p&gt;</description></item></channel></rss>
+&lt;p&gt;⚠️ 别把老教程里的 &lt;code&gt;@OptionSet&lt;/code&gt; 照抄过来：它&lt;strong&gt;已经从标准库里移除了&lt;/strong&gt;，现在写会报 &lt;code&gt;unknown attribute 'OptionSet'&lt;/code&gt;。它如今只是 swift-syntax 仓库里的一个示例宏。想要位掩码，老老实实手写 &lt;code&gt;struct X: OptionSet&lt;/code&gt;（见 &lt;a href="https://before80.github.io/prgms/Swift/CheatSheet/11-Standard-Library/"&gt;11 标准库&lt;/a&gt;）。&lt;/p&gt;</description></item><item><title>16 血泪速查：最容易写错的地方</title><link>https://before80.github.io/prgms/Swift/CheatSheet/16-Pitfalls-and-Gotchas/</link><pubDate>Sun, 20 Sep 2026 10:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/Swift/CheatSheet/16-Pitfalls-and-Gotchas/</guid><description>&lt;h1 id="16-血泪速查最容易写错的地方"&gt;16 血泪速查：最容易写错的地方&lt;/h1&gt;
+&lt;p&gt;前面 15 章是按&lt;strong&gt;知识结构&lt;/strong&gt;组织的，这一章按&lt;strong&gt;症状&lt;/strong&gt;组织——你遇到了怪事，来这里对号入座。&lt;/p&gt;
+&lt;p&gt;每一条都严格写成三行：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;你会怎么写&lt;/strong&gt;：看起来完全合理、甚至别的语言里就是对的写法。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;实际发生什么&lt;/strong&gt;：编译器/运行期真的做了什么（不是&amp;quot;理论上可能&amp;quot;）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;正确写法&lt;/strong&gt;：照抄就能过。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;⚠️ 本章所有&amp;quot;实际发生什么&amp;quot;都是在 &lt;strong&gt;Swift 6.4、&lt;code&gt;-swift-version 6&lt;/code&gt;&lt;/strong&gt; 下真跑出来的，包括崩溃信息和退出码。看到 &lt;code&gt;rc=133&lt;/code&gt; 就是进程被 SIGTRAP 干掉——Swift 的 &lt;code&gt;Fatal error&lt;/code&gt; 家族统一是这个退出码。&lt;/p&gt;</description></item></channel></rss>

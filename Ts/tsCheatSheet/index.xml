@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>TypeScript 速查表 on 编程那些事儿</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/</link><description>Recent content in TypeScript 速查表 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 20 Sep 2026 18:22:26 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Ts/tsCheatSheet/index.xml" rel="self" type="application/rss+xml"/><item><title>01 起步与工具链</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/01-Quickstart-and-Tooling/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/01-Quickstart-and-Tooling/</guid><description>&lt;h1 id="01-起步与工具链"&gt;01 起步与工具链&lt;/h1&gt;
+&lt;p&gt;本页回答两个问题：&lt;strong&gt;这段 TypeScript 代码怎么跑起来&lt;/strong&gt;，以及&lt;strong&gt;出了问题用什么命令查&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：TypeScript &lt;strong&gt;6.0.3&lt;/strong&gt;，Node.js &lt;strong&gt;v24.20.0&lt;/strong&gt;。所有命令输出均为实测结果。&lt;/p&gt;</description></item><item><title>02 类型系统主干</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/02-Type-System-Core/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/02-Type-System-Core/</guid><description>&lt;h1 id="02-类型系统主干"&gt;02 类型系统主干&lt;/h1&gt;
+&lt;p&gt;本页是整套速查表的地基。&lt;code&gt;any&lt;/code&gt; / &lt;code&gt;unknown&lt;/code&gt; / &lt;code&gt;never&lt;/code&gt; / &lt;code&gt;{}&lt;/code&gt; / &lt;code&gt;object&lt;/code&gt; 这几个概念如果没理清，后面每一页都会看不懂。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;所有 &lt;code&gt;❌ TSxxxx&lt;/code&gt; 标注均为 TS 6.0.3 实测错误码，可去 &lt;a href="https://before80.github.io/prgms/Ts/tsCheatSheet/09-Diagnostics-and-Error-Codes/"&gt;09 错误码&lt;/a&gt; 反查。&lt;/p&gt;</description></item><item><title>03 收窄与类型守卫</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/03-Narrowing-and-Type-Guards/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/03-Narrowing-and-Type-Guards/</guid><description>&lt;h1 id="03-收窄与类型守卫"&gt;03 收窄与类型守卫&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;收窄&lt;/strong&gt;（narrowing）是 TypeScript 最强大的能力：你写普通的 &lt;code&gt;if&lt;/code&gt; / &lt;code&gt;switch&lt;/code&gt;，编译器自动把宽类型缩到窄类型。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-typescript" data-lang="typescript"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;function&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;f&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;v&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;string&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;|&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;if&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#76a9f9"&gt;typeof&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;v&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;===&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;string&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;return&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;v&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;toUpperCase&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;();&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// v 已自动变成 string
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;return&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;v&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;toFixed&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#d19a66"&gt;2&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// v 已自动变成 number
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;这一页讲清楚：&lt;strong&gt;什么情况下会收窄、什么情况下会失效&lt;/strong&gt;。后者才是真正花时间的地方。&lt;/p&gt;</description></item><item><title>04 函数、对象与类</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/04-Functions-Objects-and-Classes/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/04-Functions-Objects-and-Classes/</guid><description>&lt;h1 id="04-函数对象与类"&gt;04 函数、对象与类&lt;/h1&gt;
+&lt;p&gt;本页是日常编码里查得最频繁的一页：&lt;strong&gt;函数类型怎么写、类成员怎么标、对象形状怎么约束&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;所有 &lt;code&gt;❌ TSxxxx&lt;/code&gt; 均为 TS 6.0.3 实测。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h2 id="函数类型"&gt;函数类型&lt;/h2&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;ul class="nav nav-tabs" id="tabs-0" role="tablist"&gt;
+ &lt;li class="nav-item"&gt;
+ &lt;button class="nav-link active"
+ id="tabs-00-00-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-00" role="tab"
+ aria-controls="tabs-00-00" aria-selected="true"&gt;
+ 基本写法
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-01-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-01" role="tab"
+ aria-controls="tabs-00-01" aria-selected="false"&gt;
+ 函数重载
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-02-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-02" role="tab"
+ aria-controls="tabs-00-02" aria-selected="false"&gt;
+ this 参数
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-03-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-03" role="tab"
+ aria-controls="tabs-00-03" aria-selected="false"&gt;
+ 函数变型（逆变）
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-04-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-04" role="tab"
+ aria-controls="tabs-00-04" aria-selected="false"&gt;
+ void 返回值的特例
+ &lt;/button&gt;
+ &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class="tab-content" id="tabs-0-content"&gt;
+ &lt;div class="tab-body tab-pane fade show active"
+ id="tabs-00-00" role="tabpanel" aria-labelled-by="tabs-00-00-tab" tabindex="0"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-typescript" data-lang="typescript"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 函数声明
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;function&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;add&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;a&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;return&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;a&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;+&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 函数表达式（返回值可推断，通常省略）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;const&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;sub&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;a&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&amp;gt;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;a&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;-&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 箭头函数的返回类型用括号包住参数列表
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;const&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;mul&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;a&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&amp;gt;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;a&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;*&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 类型别名形式的函数类型
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;type&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;BinOp&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;a&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&amp;gt;&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;const&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;div&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;BinOp&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;a&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&amp;gt;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;a&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;/&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// ✅ 参数类型自动继承，无需重复标 🔥
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 对象里的方法
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;interface&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Calc&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;add&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;a&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;number&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;参数形态&lt;/th&gt;
+ &lt;th&gt;写法&lt;/th&gt;
+ &lt;th&gt;说明&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;必需&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;(a: number)&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;—&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;可选&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;(a?: number)&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;必须在必需参数之后&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;默认值&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;(a = 10)&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;类型从默认值推断；隐式可选&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;剩余&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;(...rest: number[])&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;永远是数组类型&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;元组剩余&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;(...args: [string, number])&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;参数个数固定 🔥&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;this&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;(this: Window)&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;假参数，不占实参位置&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-typescript" data-lang="typescript"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 用元组剩余参数约束参数个数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;function&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;log&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(...&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;args&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;level&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;string&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;msg&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;string&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;])&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;/* ... */&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;log&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;info&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;ok&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// ✅
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;log&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;info&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// ❌ TS2554: Expected 2 arguments, but got 1.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;log&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;info&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;ok&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;x&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// ❌ TS2554: Expected 2 arguments, but got 3.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 默认值会自动变可选
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;function&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;greet&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;name&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;string&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;greeting&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;Hello&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;return&lt;/span&gt; &lt;span style="color:#98c379"&gt;`&lt;/span&gt;&lt;span style="color:#98c379"&gt;${&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;greeting&lt;/span&gt;&lt;span style="color:#98c379"&gt;}&lt;/span&gt;&lt;span style="color:#98c379"&gt;, &lt;/span&gt;&lt;span style="color:#98c379"&gt;${&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;name&lt;/span&gt;&lt;span style="color:#98c379"&gt;}&lt;/span&gt;&lt;span style="color:#98c379"&gt;`&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;greet&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;A&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// ✅
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;可选参数与默认值在调用点上等价&lt;/strong&gt;，但在类型层面有细微差别：&lt;code&gt;a?: number&lt;/code&gt; 表示「可以传 &lt;code&gt;undefined&lt;/code&gt;」，&lt;code&gt;a = 10&lt;/code&gt; 表示「有默认值」。开启 &lt;code&gt;exactOptionalPropertyTypes&lt;/code&gt; 时这个区别才会显现（更多见 &lt;a href="https://before80.github.io/prgms/Ts/tsCheatSheet/08-tsconfig-Reference/"&gt;08&lt;/a&gt;）。&lt;/p&gt;</description></item><item><title>05 泛型与类型推断</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/05-Generics-and-Inference/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/05-Generics-and-Inference/</guid><description>&lt;h1 id="05-泛型与类型推断"&gt;05 泛型与类型推断&lt;/h1&gt;
+&lt;p&gt;泛型是「类型的参数」。这一页从&lt;strong&gt;怎么写&lt;/strong&gt;讲到&lt;strong&gt;编译器怎么推&lt;/strong&gt;，最后是&lt;strong&gt;条件类型与映射类型&lt;/strong&gt;——TypeScript 类型编程的两块基石。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;本页的类型推断结论用 &lt;code&gt;Eq&amp;lt;A, B&amp;gt;&lt;/code&gt; 断言&lt;strong&gt;逐条实测&lt;/strong&gt;过（&lt;code&gt;tsc 6.0.3&lt;/code&gt;），不是推测。&lt;/p&gt;</description></item><item><title>06 类型层编程配方</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/06-Type-Level-Programming-Recipes/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/06-Type-Level-Programming-Recipes/</guid><description>&lt;h1 id="06-类型层编程配方"&gt;06 类型层编程配方&lt;/h1&gt;
+&lt;p&gt;&lt;a href="https://before80.github.io/prgms/Ts/tsCheatSheet/02-Type-System-Core/"&gt;02&lt;/a&gt; 讲的是&lt;strong&gt;内置&lt;/strong&gt;工具类型，本页是&lt;strong&gt;自己写&lt;/strong&gt;的常用配方——可以直接抄进项目。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;本页所有配方均在 TS 6.0.3 实测编译通过，关键推断结果用 &lt;code&gt;Eq&amp;lt;A, B&amp;gt;&lt;/code&gt; 断言验证。&lt;/p&gt;</description></item><item><title>07 模块系统与声明文件</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/07-Modules-and-Declaration-Files/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/07-Modules-and-Declaration-Files/</guid><description>&lt;h1 id="07-模块系统与声明文件"&gt;07 模块系统与声明文件&lt;/h1&gt;
+&lt;p&gt;TypeScript 的模块系统是&lt;strong&gt;最容易出错&lt;/strong&gt;的一块：它同时要描述 ES 模块、CommonJS，还要适配各种打包器和 Node 的不同解析规则。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;所有 &lt;code&gt;❌ TSxxxx&lt;/code&gt; 均为 TS 6.0.3 实测。&lt;/p&gt;</description></item><item><title>08 tsconfig 全量参考</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/08-tsconfig-Reference/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/08-tsconfig-Reference/</guid><description>&lt;h1 id="08-tsconfig-全量参考"&gt;08 tsconfig 全量参考&lt;/h1&gt;
+&lt;p&gt;&lt;code&gt;tsconfig.json&lt;/code&gt; 是 TypeScript 项目里&lt;strong&gt;影响最大、又最容易抄错&lt;/strong&gt;的文件。本页按官方分类组织，重点是&lt;strong&gt;6.0 的变化&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;本页所有「默认值」「报错码」「选项接受性」均在 &lt;strong&gt;TypeScript 6.0.3&lt;/strong&gt; 用 &lt;code&gt;tsc --showConfig&lt;/code&gt; 与真实编译实测确认。&lt;/p&gt;</description></item><item><title>09 诊断与错误码</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/09-Diagnostics-and-Error-Codes/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/09-Diagnostics-and-Error-Codes/</guid><description>&lt;h1 id="09-诊断与错误码"&gt;09 诊断与错误码&lt;/h1&gt;
+&lt;p&gt;报错看不懂时翻这一页。&lt;strong&gt;按错误码搜索&lt;/strong&gt;（&lt;code&gt;Ctrl+F&lt;/code&gt; 搜 &lt;code&gt;TS2322&lt;/code&gt;）或按&lt;strong&gt;症状&lt;/strong&gt;查找。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;本页所有错误码与其原文均在 &lt;strong&gt;TypeScript 6.0.3&lt;/strong&gt; 真实触发并记录。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h2 id="高频错误码反查表"&gt;高频错误码反查表&lt;/h2&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;ul class="nav nav-tabs" id="tabs-0" role="tablist"&gt;
+ &lt;li class="nav-item"&gt;
+ &lt;button class="nav-link active"
+ id="tabs-00-00-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-00" role="tab"
+ aria-controls="tabs-00-00" aria-selected="true"&gt;
+ 赋值与类型不符
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-01-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-01" role="tab"
+ aria-controls="tabs-00-01" aria-selected="false"&gt;
+ 属性与索引访问
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-02-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-02" role="tab"
+ aria-controls="tabs-00-02" aria-selected="false"&gt;
+ 未知与隐式 any
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-03-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-03" role="tab"
+ aria-controls="tabs-00-03" aria-selected="false"&gt;
+ 函数与类
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-04-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-04" role="tab"
+ aria-controls="tabs-00-04" aria-selected="false"&gt;
+ 模块与声明
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-05-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-05" role="tab"
+ aria-controls="tabs-00-05" aria-selected="false"&gt;
+ 泛型与类型运算
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-06-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-06" role="tab"
+ aria-controls="tabs-00-06" aria-selected="false"&gt;
+ TS 6.0 新增与废弃相关
+ &lt;/button&gt;
+ &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class="tab-content" id="tabs-0-content"&gt;
+ &lt;div class="tab-body tab-pane fade show active"
+ id="tabs-00-00" role="tabpanel" aria-labelled-by="tabs-00-00-tab" tabindex="0"&gt;
+ &lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;错误码&lt;/th&gt;
+ &lt;th&gt;原文要点&lt;/th&gt;
+ &lt;th&gt;常见原因&lt;/th&gt;
+ &lt;th&gt;修法&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;TS2322&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Type &amp;lsquo;X&amp;rsquo; is not assignable to type &amp;lsquo;Y&amp;rsquo;&lt;/td&gt;
+ &lt;td&gt;万能错误，见下&lt;/td&gt;
+ &lt;td&gt;见下&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;TS2345&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Argument of type &amp;lsquo;X&amp;rsquo; is not assignable to parameter of type &amp;lsquo;Y&amp;rsquo;&lt;/td&gt;
+ &lt;td&gt;实参类型不对&lt;/td&gt;
+ &lt;td&gt;检查参数类型，或用守卫收窄&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;TS2353&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Object literal may only specify known properties&lt;/td&gt;
+ &lt;td&gt;多余属性检查&lt;/td&gt;
+ &lt;td&gt;删掉多余属性 / 经变量中转 / 改类型&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;TS2739&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Type &amp;lsquo;X&amp;rsquo; is missing the following properties from type &amp;lsquo;Y&amp;rsquo;&lt;/td&gt;
+ &lt;td&gt;缺属性&lt;/td&gt;
+ &lt;td&gt;补齐，或改类型为 &lt;code&gt;Partial&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;TS2741&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Property &amp;lsquo;x&amp;rsquo; is missing in type &amp;lsquo;X&amp;rsquo; but required in type &amp;lsquo;Y&amp;rsquo;&lt;/td&gt;
+ &lt;td&gt;缺一个必需属性&lt;/td&gt;
+ &lt;td&gt;补上 🔥 穷举 &lt;code&gt;Record&lt;/code&gt; 时常见&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;TS2375&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&amp;hellip;with &amp;rsquo;exactOptionalPropertyTypes: true&amp;rsquo;&lt;/td&gt;
+ &lt;td&gt;给可选属性显式传了 &lt;code&gt;undefined&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;类型加 &lt;code&gt;| undefined&lt;/code&gt;，或不传该键&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;TS4104&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;The type &amp;lsquo;readonly T[]&amp;rsquo; is &amp;lsquo;readonly&amp;rsquo; and cannot be assigned to the mutable type &amp;lsquo;T[]&amp;rsquo;&lt;/td&gt;
+ &lt;td&gt;只读数组赋给可变数组&lt;/td&gt;
+ &lt;td&gt;用 &lt;code&gt;[...ro]&lt;/code&gt; 复制，或改目标为 &lt;code&gt;readonly&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;TS2540&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Cannot assign to &amp;lsquo;x&amp;rsquo; because it is a read-only property&lt;/td&gt;
+ &lt;td&gt;改只读属性&lt;/td&gt;
+ &lt;td&gt;去掉 &lt;code&gt;readonly&lt;/code&gt;，或用副本&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;TS2322&lt;/code&gt; 的系统排查法&lt;/strong&gt;——它只是「类型不符」，真正原因在&lt;strong&gt;下面那几行&lt;/strong&gt;：&lt;/p&gt;</description></item><item><title>10 异步与错误处理</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/10-Async-and-Error-Handling/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/10-Async-and-Error-Handling/</guid><description>&lt;h1 id="10-异步与错误处理"&gt;10 异步与错误处理&lt;/h1&gt;
+&lt;p&gt;异步代码的类型问题集中在两处：&lt;strong&gt;组合子的返回类型&lt;/strong&gt;（很多人记不清）和&lt;strong&gt;错误的类型建模&lt;/strong&gt;（&lt;code&gt;catch&lt;/code&gt; 变量为什么是 &lt;code&gt;unknown&lt;/code&gt;）。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;组合子返回类型由 &lt;code&gt;Eq&amp;lt;A, B&amp;gt;&lt;/code&gt; 断言在 TS 6.0.3 实测确认。&lt;/p&gt;</description></item><item><title>11 运行时校验与边界</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/11-Runtime-Validation-and-Boundaries/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/11-Runtime-Validation-and-Boundaries/</guid><description>&lt;h1 id="11-运行时校验与边界"&gt;11 运行时校验与边界&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;这是整套速查表里最重要的一页。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;TypeScript 的类型在运行时&lt;strong&gt;完全不存在&lt;/strong&gt;。所有「外部来的数据」——HTTP 响应、&lt;code&gt;JSON.parse&lt;/code&gt;、&lt;code&gt;localStorage&lt;/code&gt;、环境变量、表单、URL 参数、IPC 消息——&lt;strong&gt;没有任何一个字节被校验过&lt;/strong&gt;。&lt;/p&gt;</description></item><item><title>12 测试</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/12-Testing/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/12-Testing/</guid><description>&lt;h1 id="12-测试"&gt;12 测试&lt;/h1&gt;
+&lt;p&gt;TypeScript 项目的测试有两类&lt;strong&gt;完全不同&lt;/strong&gt;的测试目标：&lt;/p&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;目标&lt;/th&gt;
+ &lt;th&gt;测什么&lt;/th&gt;
+ &lt;th&gt;工具&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;strong&gt;行为测试&lt;/strong&gt;&lt;/td&gt;
+ &lt;td&gt;运行时行为对不对&lt;/td&gt;
+ &lt;td&gt;Vitest / Jest / &lt;code&gt;node:test&lt;/code&gt; / Playwright&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;strong&gt;类型测试&lt;/strong&gt;&lt;/td&gt;
+ &lt;td&gt;类型推导对不对&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;expectTypeOf&lt;/code&gt; / &lt;code&gt;tsd&lt;/code&gt; / &lt;code&gt;expect-type&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;第二类是 TypeScript 特有的，也是最容易被忽略的——&lt;strong&gt;泛型库的类型行为如果不测，重构时悄悄退化你都不会知道&lt;/strong&gt;。&lt;/p&gt;</description></item><item><title>13 发布带类型的库</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/13-Publishing-Libraries-with-Types/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/13-Publishing-Libraries-with-Types/</guid><description>&lt;h1 id="13-发布带类型的库"&gt;13 发布带类型的库&lt;/h1&gt;
+&lt;p&gt;会写 &lt;code&gt;.d.ts&lt;/code&gt; 不等于&lt;strong&gt;别人能用上你的类型&lt;/strong&gt;。本页讲的是把类型&lt;strong&gt;正确交付&lt;/strong&gt;给使用者的工程细节。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;涉及解析行为的结论均在 TS 6.0.3 + &lt;code&gt;moduleResolution: nodenext&lt;/code&gt; 实测。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h2 id="packagejson-是类型交付的核心"&gt;&lt;code&gt;package.json&lt;/code&gt; 是类型交付的核心&lt;/h2&gt;
+
+
+
+
+
+
+
+
+&lt;ul class="nav nav-tabs" id="tabs-0" role="tablist"&gt;
+ &lt;li class="nav-item"&gt;
+ &lt;button class="nav-link active"
+ id="tabs-00-00-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-00" role="tab"
+ aria-controls="tabs-00-00" aria-selected="true"&gt;
+ 最小可用配置
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-01-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-01" role="tab"
+ aria-controls="tabs-00-01" aria-selected="false"&gt;
+ types 条件的位置
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-02-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-02" role="tab"
+ aria-controls="tabs-00-02" aria-selected="false"&gt;
+ 双发布（ESM + CJS）
+ &lt;/button&gt;
+ &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class="tab-content" id="tabs-0-content"&gt;
+ &lt;div class="tab-body tab-pane fade show active"
+ id="tabs-00-00" role="tabpanel" aria-labelled-by="tabs-00-00-tab" tabindex="0"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-jsonc" data-lang="jsonc"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;mylib&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;1.0.0&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;&amp;#34;type&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;module&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;&amp;#34;main&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;./dist/index.js&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;&amp;#34;types&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;./dist/index.d.ts&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;&amp;#34;exports&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;&amp;#34;.&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;&amp;#34;types&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;./dist/index.d.ts&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;&amp;#34;default&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;./dist/index.js&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;&amp;#34;files&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;dist&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;字段&lt;/th&gt;
+ &lt;th&gt;作用&lt;/th&gt;
+ &lt;th&gt;还需要吗&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;types&lt;/code&gt;（顶层）&lt;/td&gt;
+ &lt;td&gt;老工具的类型入口&lt;/td&gt;
+ &lt;td&gt;✅ 保留，兼容旧 &lt;code&gt;node10&lt;/code&gt; 解析&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;main&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;老工具的 JS 入口&lt;/td&gt;
+ &lt;td&gt;✅ 保留，兼容 CJS&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;exports&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;strong&gt;现代解析的唯一事实来源&lt;/strong&gt;&lt;/td&gt;
+ &lt;td&gt;✅ 必须有 🔥&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;files&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;控制发布哪些文件&lt;/td&gt;
+ &lt;td&gt;✅ 别忘了 &lt;code&gt;dist&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;type&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;决定 &lt;code&gt;.js&lt;/code&gt; 被当作 ESM 还是 CJS&lt;/td&gt;
+ &lt;td&gt;✅ 明确写&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;blockquote&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;&lt;code&gt;files&lt;/code&gt; 忘了写 &lt;code&gt;dist&lt;/code&gt;&lt;/strong&gt; 会导致发布了&lt;strong&gt;没有产物&lt;/strong&gt;的包——本地测试正常，装到别的项目就报 &lt;code&gt;Cannot find module&lt;/code&gt;。这是最常见的发布事故。&lt;/p&gt;</description></item><item><title>14 JSX 与前端类型模式</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/14-JSX-and-Frontend-Type-Patterns/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/14-JSX-and-Frontend-Type-Patterns/</guid><description>&lt;h1 id="14-jsx-与前端类型模式"&gt;14 JSX 与前端类型模式&lt;/h1&gt;
+&lt;p&gt;本页只讲&lt;strong&gt;类型层面的模式&lt;/strong&gt;——组件签名、事件类型、Hook 推断。框架用法请查框架文档。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;⚠️ 涉及 React 的具体 API 时，本页基于 React 19 的 &lt;code&gt;@types/react&lt;/code&gt;。&lt;strong&gt;类型包版本不同，细节可能有差异&lt;/strong&gt;，请以你项目里实际安装的 &lt;code&gt;.d.ts&lt;/code&gt; 为准。&lt;/p&gt;</description></item><item><title>15 从 JS 迁移与生态互操作</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/15-Migrating-JS-to-TS-and-Ecosystem-Interop/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/15-Migrating-JS-to-TS-and-Ecosystem-Interop/</guid><description>&lt;h1 id="15-从-js-迁移与生态互操作"&gt;15 从 JS 迁移与生态互操作&lt;/h1&gt;
+&lt;p&gt;把老 JS 项目搬上 TypeScript，难点不在语法，而在&lt;strong&gt;如何在不停工的前提下逐步收紧&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;6.0 让迁移变难了一点&lt;/strong&gt;：&lt;code&gt;strict&lt;/code&gt; 默认变为 &lt;code&gt;true&lt;/code&gt;、&lt;code&gt;types&lt;/code&gt; 默认变为 &lt;code&gt;[]&lt;/code&gt;。所以从 5.x 升级或从零引入时，&lt;strong&gt;第一步应该是显式固定这两个选项&lt;/strong&gt;，而不是直接吃默认值。详见 &lt;a href="https://before80.github.io/prgms/Ts/tsCheatSheet/08-tsconfig-Reference/"&gt;08 tsconfig&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>16 血泪速查</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/16-Pitfalls-and-Gotchas/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/16-Pitfalls-and-Gotchas/</guid><description>&lt;h1 id="16-血泪速查"&gt;16 血泪速查&lt;/h1&gt;
+&lt;p&gt;这一页&lt;strong&gt;按症状索引&lt;/strong&gt;，不是按语法索引。出问题时从「我看到的现象」出发查，比从「这是哪个语法」出发快得多。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;本页所有「实际发生什么」都在 TS 6.0.3 实测过。&lt;/p&gt;</description></item><item><title>17 编译器与性能</title><link>https://before80.github.io/prgms/Ts/tsCheatSheet/17-Compiler-Internals-and-Performance/</link><pubDate>Fri, 27 Mar 2026 10:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/Ts/tsCheatSheet/17-Compiler-Internals-and-Performance/</guid><description>&lt;h1 id="17-编译器与性能"&gt;17 编译器与性能&lt;/h1&gt;
+&lt;p&gt;「&lt;code&gt;tsc&lt;/code&gt; 好慢」是可以&lt;strong&gt;量化定位&lt;/strong&gt;的，不用猜。本页讲清楚每个诊断指标的含义和对应的解法。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;本页所有命令输出格式均在 TS 6.0.3 实测。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h2 id="编译流水线"&gt;编译流水线&lt;/h2&gt;
+&lt;p&gt;理解阶段划分，才能把「慢」定位到具体环节。&lt;/p&gt;</description></item></channel></rss>
