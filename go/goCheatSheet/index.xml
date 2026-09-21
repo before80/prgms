@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Go 语言速查表 on 编程那些事儿</title><link>https://before80.github.io/prgms/go/goCheatSheet/</link><description>Recent content in Go 语言速查表 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Mon, 21 Sep 2026 23:02:48 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/go/goCheatSheet/index.xml" rel="self" type="application/rss+xml"/><item><title>01 起步与工具链</title><link>https://before80.github.io/prgms/go/goCheatSheet/01-Quickstart-and-Toolchain/</link><pubDate>Sun, 20 Sep 2026 10:05:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/01-Quickstart-and-Toolchain/</guid><description>&lt;h1 id="01-起步与工具链"&gt;01 起步与工具链&lt;/h1&gt;
+&lt;p&gt;本页回答三个问题：&lt;strong&gt;这段代码怎么跑起来&lt;/strong&gt;、&lt;strong&gt;依赖怎么管&lt;/strong&gt;、&lt;strong&gt;怎么交付到别的机器上&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt; / darwin/arm64。命令输出为本机实跑结果。&lt;/p&gt;</description></item><item><title>02 词法与语法骨架</title><link>https://before80.github.io/prgms/go/goCheatSheet/02-Lexical-and-Syntax-Skeleton/</link><pubDate>Sun, 20 Sep 2026 10:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/02-Lexical-and-Syntax-Skeleton/</guid><description>&lt;h1 id="02-词法与语法骨架"&gt;02 词法与语法骨架&lt;/h1&gt;
+&lt;p&gt;本页是「查写法」的底座：&lt;strong&gt;关键字有哪些、字面量怎么写、运算符谁先算、什么名字能被外部包看见&lt;/strong&gt;。语法结构的语义在 &lt;a href="https://before80.github.io/prgms/go/goCheatSheet/05-Statements-and-Control-Flow/"&gt;05 语句&lt;/a&gt; 与 &lt;a href="https://before80.github.io/prgms/go/goCheatSheet/03-Types-and-Zero-Values/"&gt;03 类型&lt;/a&gt; 里展开。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有输出为本机实跑结果。&lt;/p&gt;</description></item><item><title>03 类型与零值</title><link>https://before80.github.io/prgms/go/goCheatSheet/03-Types-and-Zero-Values/</link><pubDate>Sun, 20 Sep 2026 10:15:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/03-Types-and-Zero-Values/</guid><description>&lt;h1 id="03-类型与零值"&gt;03 类型与零值&lt;/h1&gt;
+&lt;p&gt;本页回答：&lt;strong&gt;有哪些类型、各占多宽、默认值是什么、什么时候必须显式转换&lt;/strong&gt;。复合类型的操作细节在 &lt;a href="https://before80.github.io/prgms/go/goCheatSheet/07-Arrays-Slices-Maps-Structs/"&gt;07 数组·切片·映射·结构体&lt;/a&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt; / darwin/arm64（64 位平台）。所有数值均为本机实跑结果。&lt;/p&gt;</description></item><item><title>04 变量·常量·iota</title><link>https://before80.github.io/prgms/go/goCheatSheet/04-Variables-Constants-and-iota/</link><pubDate>Sun, 20 Sep 2026 10:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/04-Variables-Constants-and-iota/</guid><description>&lt;h1 id="04-变量常量iota"&gt;04 变量·常量·iota&lt;/h1&gt;
+&lt;p&gt;本页回答：&lt;strong&gt;该用 &lt;code&gt;var&lt;/code&gt; 还是 &lt;code&gt;:=&lt;/code&gt;&lt;/strong&gt;、&lt;strong&gt;常量为什么可以没有类型&lt;/strong&gt;、&lt;strong&gt;&lt;code&gt;iota&lt;/code&gt; 到底怎么数&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;，输出为本机实跑结果。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h2 id="声明方式选哪张牌"&gt;声明方式选哪张牌&lt;/h2&gt;
+&lt;pre class="mermaid"&gt;flowchart TB
+ Q([&amp;#34;我要声明一个名字&amp;#34;]) --&amp;gt; Q1{&amp;#34;值在编译期就确定&amp;lt;br/&amp;gt;且永不改变？&amp;#34;}
+ Q1 -- 是 --&amp;gt; CONST[&amp;#34;const ✅&amp;lt;br/&amp;gt;可无类型，参与常量表达式&amp;#34;]
+ Q1 -- 否 --&amp;gt; Q2{&amp;#34;在函数内部？&amp;#34;}
+ Q2 -- 是 --&amp;gt; Q3{&amp;#34;已有同名的值？&amp;lt;br/&amp;gt;至少要有一个新变量&amp;#34;}
+ Q3 -- 是 --&amp;gt; SHORT[&amp;#34;:= 短变量声明 🔥&amp;lt;br/&amp;gt;最常用&amp;#34;]
+ Q3 -- &amp;#34;否，都是已声明的&amp;#34; --&amp;gt; ASSIGN[&amp;#34;= 赋值&amp;lt;br/&amp;gt;不是声明 ⚠️&amp;#34;]
+ Q2 -- 否 --&amp;gt; VAR[&amp;#34;var ✅&amp;lt;br/&amp;gt;包级只能用 var&amp;#34;]
+ VAR --&amp;gt; ZERO[&amp;#34;不给初值就得到零值&amp;lt;br/&amp;gt;Go 没有未初始化变量&amp;#34;]&lt;/pre&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;写法&lt;/th&gt;
+ &lt;th&gt;位置&lt;/th&gt;
+ &lt;th&gt;类型&lt;/th&gt;
+ &lt;th&gt;典型场景&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;x := 42&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;仅函数内&lt;/td&gt;
+ &lt;td&gt;推断&lt;/td&gt;
+ &lt;td&gt;&lt;strong&gt;首选&lt;/strong&gt;，局部变量 🔥&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;var x int&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;函数内外&lt;/td&gt;
+ &lt;td&gt;显式&lt;/td&gt;
+ &lt;td&gt;需要零值、需要指定类型&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;var x int = 42&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;函数内外&lt;/td&gt;
+ &lt;td&gt;显式&lt;/td&gt;
+ &lt;td&gt;类型与字面量默认类型不同时&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;var x, y = 1, &amp;quot;a&amp;quot;&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;函数内外&lt;/td&gt;
+ &lt;td&gt;推断&lt;/td&gt;
+ &lt;td&gt;类型不同的一批声明&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;var (...)&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;函数内外&lt;/td&gt;
+ &lt;td&gt;混合&lt;/td&gt;
+ &lt;td&gt;包级变量分组，可读性好&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;const x = 42&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;函数内外&lt;/td&gt;
+ &lt;td&gt;无类型&lt;/td&gt;
+ &lt;td&gt;编译期常量&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;x = 42&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;函数内&lt;/td&gt;
+ &lt;td&gt;—&lt;/td&gt;
+ &lt;td&gt;赋值，&lt;strong&gt;不是声明&lt;/strong&gt; ⚠️&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;hr&gt;
+&lt;h2 id="var-的四种形态"&gt;var 的四种形态&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;var&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;a&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;int&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 1. 只有类型，得到零值 0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;var&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#d19a66"&gt;42&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 2. 只有初值，类型推断为 int&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;var&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;c&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;int&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#d19a66"&gt;42&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 3. 类型 + 初值&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;var&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;d&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;e&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#98c379"&gt;&amp;#34;two&amp;#34;&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 4. 批量，类型各自推断&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;var&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;f&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;g&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;int&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 5. 批量同类型，都是 0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;var&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 6. 分组声明，包级最常用&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#aa89ea"&gt;host&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;string&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#aa89ea"&gt;port&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;int&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;	&lt;span style="color:#aa89ea"&gt;debug&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;bool&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;fmt&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#00b1f7"&gt;Println&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;a&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;c&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;d&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;e&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;f&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;g&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;host&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;port&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;debug&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;0 42 42 1 two 0 0 0 false
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;💡 &lt;strong&gt;包级变量用分组&lt;/strong&gt;是 Go 的惯例，比一长串 &lt;code&gt;var x = ...&lt;/code&gt; 好读，也方便对齐类型：&lt;/p&gt;</description></item><item><title>05 语句与控制流</title><link>https://before80.github.io/prgms/go/goCheatSheet/05-Statements-and-Control-Flow/</link><pubDate>Sun, 20 Sep 2026 10:25:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/05-Statements-and-Control-Flow/</guid><description>&lt;h1 id="05-语句与控制流"&gt;05 语句与控制流&lt;/h1&gt;
+&lt;p&gt;本页回答：&lt;strong&gt;Go 的控制流只有哪几种&lt;/strong&gt;、&lt;strong&gt;&lt;code&gt;range&lt;/code&gt; 在不同类型上分别给你什么&lt;/strong&gt;、&lt;strong&gt;&lt;code&gt;switch&lt;/code&gt; 为什么不需要 &lt;code&gt;break&lt;/code&gt;&lt;/strong&gt;、&lt;strong&gt;标签怎么用&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有输出为本机实跑结果。
+⚠️ 本页涉及两个会改变旧代码行为的版本节点：&lt;strong&gt;Go 1.22 循环变量语义&lt;/strong&gt;、&lt;strong&gt;Go 1.23 range over func&lt;/strong&gt;。&lt;/p&gt;</description></item><item><title>06 函数·方法·defer</title><link>https://before80.github.io/prgms/go/goCheatSheet/06-Functions-Methods-and-defer/</link><pubDate>Sun, 20 Sep 2026 10:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/06-Functions-Methods-and-defer/</guid><description>&lt;h1 id="06-函数方法defer"&gt;06 函数·方法·defer&lt;/h1&gt;
+&lt;p&gt;本页回答：&lt;strong&gt;返回值怎么设计&lt;/strong&gt;、&lt;strong&gt;接收者该用值还是指针&lt;/strong&gt;、&lt;strong&gt;&lt;code&gt;defer&lt;/code&gt; 到底什么时候求值&lt;/strong&gt;、&lt;strong&gt;&lt;code&gt;panic&lt;/code&gt; 什么时候能用&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有输出为本机实跑结果。&lt;/p&gt;</description></item><item><title>07 数组·切片·映射·结构体</title><link>https://before80.github.io/prgms/go/goCheatSheet/07-Arrays-Slices-Maps-Structs/</link><pubDate>Sun, 20 Sep 2026 10:35:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/07-Arrays-Slices-Maps-Structs/</guid><description>&lt;h1 id="07-数组切片映射结构体"&gt;07 数组·切片·映射·结构体&lt;/h1&gt;
+&lt;p&gt;本页是 Go 里&lt;strong&gt;最容易写出隐蔽 bug&lt;/strong&gt; 的一页。切片的三字段结构、&lt;code&gt;append&lt;/code&gt; 的别名效应、&lt;code&gt;map&lt;/code&gt; 的并发禁地、结构体的内存填充，每一条都有对应的血案。&lt;/p&gt;</description></item><item><title>08 接口与嵌入</title><link>https://before80.github.io/prgms/go/goCheatSheet/08-Interfaces-and-Embedding/</link><pubDate>Sun, 20 Sep 2026 10:40:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/08-Interfaces-and-Embedding/</guid><description>&lt;h1 id="08-接口与嵌入"&gt;08 接口与嵌入&lt;/h1&gt;
+&lt;p&gt;Go 的抽象机制只有一个：&lt;strong&gt;接口&lt;/strong&gt;。没有继承、没有虚函数表、没有 &lt;code&gt;implements&lt;/code&gt; 关键字。本页回答：&lt;strong&gt;怎么定义、怎么满足、为什么 &lt;code&gt;err != nil&lt;/code&gt; 有时会骗你&lt;/strong&gt;、&lt;strong&gt;嵌入到底提升什么&lt;/strong&gt;。&lt;/p&gt;</description></item><item><title>09 错误处理</title><link>https://before80.github.io/prgms/go/goCheatSheet/09-Errors-and-Error-Handling/</link><pubDate>Sun, 20 Sep 2026 10:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/09-Errors-and-Error-Handling/</guid><description>&lt;h1 id="09-错误处理"&gt;09 错误处理&lt;/h1&gt;
+&lt;p&gt;Go &lt;strong&gt;没有异常&lt;/strong&gt;：错误是普通值，必须显式检查。本页回答：&lt;strong&gt;错误怎么造、怎么包、怎么判、什么时候该用 panic&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有输出为本机实跑结果。&lt;/p&gt;</description></item><item><title>10 泛型</title><link>https://before80.github.io/prgms/go/goCheatSheet/10-Generics/</link><pubDate>Sun, 20 Sep 2026 10:50:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/10-Generics/</guid><description>&lt;h1 id="10-泛型"&gt;10 泛型&lt;/h1&gt;
+&lt;p&gt;Go 1.18 引入类型参数（泛型）。本页回答：&lt;strong&gt;语法怎么写&lt;/strong&gt;、&lt;strong&gt;约束怎么表达&lt;/strong&gt;、&lt;strong&gt;什么时候该用泛型而不是接口&lt;/strong&gt;、&lt;strong&gt;哪些事泛型做不到&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有输出为本机实跑结果。泛型相关特性若无特别说明，均自 &lt;strong&gt;1.18&lt;/strong&gt; 起可用；&lt;code&gt;slices&lt;/code&gt;/&lt;code&gt;maps&lt;/code&gt;/&lt;code&gt;cmp&lt;/code&gt; 标准库包需 &lt;strong&gt;1.21+&lt;/strong&gt;。&lt;/p&gt;</description></item><item><title>11 内存·指针·unsafe</title><link>https://before80.github.io/prgms/go/goCheatSheet/11-Memory-Pointers-and-unsafe/</link><pubDate>Sun, 20 Sep 2026 10:55:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/11-Memory-Pointers-and-unsafe/</guid><description>&lt;h1 id="11-内存指针unsafe"&gt;11 内存·指针·unsafe&lt;/h1&gt;
+&lt;p&gt;本页回答：&lt;strong&gt;变量到底分配在哪&lt;/strong&gt;、&lt;strong&gt;&lt;code&gt;new&lt;/code&gt; 和 &lt;code&gt;make&lt;/code&gt; 差在哪&lt;/strong&gt;、&lt;strong&gt;GC 怎么调&lt;/strong&gt;、&lt;strong&gt;&lt;code&gt;unsafe&lt;/code&gt; 什么时候值得用&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt; / darwin/arm64。逃逸分析输出由本机 &lt;code&gt;go build -gcflags=-m&lt;/code&gt; 实测得到。&lt;/p&gt;</description></item><item><title>12 goroutine 与 channel</title><link>https://before80.github.io/prgms/go/goCheatSheet/12-Goroutines-and-Channels/</link><pubDate>Sun, 20 Sep 2026 11:00:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/12-Goroutines-and-Channels/</guid><description>&lt;h1 id="12-goroutine-与-channel"&gt;12 goroutine 与 channel&lt;/h1&gt;
+&lt;p&gt;本页回答：&lt;strong&gt;&lt;code&gt;go&lt;/code&gt; 到底启动了什么&lt;/strong&gt;、&lt;strong&gt;channel 什么时候阻塞&lt;/strong&gt;、&lt;strong&gt;&lt;code&gt;close&lt;/code&gt; 之后会发生什么&lt;/strong&gt;、&lt;strong&gt;&lt;code&gt;select&lt;/code&gt; 怎么写才不漏 goroutine&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有输出为本机实跑结果。&lt;/p&gt;</description></item><item><title>13 sync·atomic·context</title><link>https://before80.github.io/prgms/go/goCheatSheet/13-Sync-Atomic-and-Context/</link><pubDate>Sun, 20 Sep 2026 11:05:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/13-Sync-Atomic-and-Context/</guid><description>&lt;h1 id="13-syncatomiccontext"&gt;13 sync·atomic·context&lt;/h1&gt;
+&lt;p&gt;本页回答：&lt;strong&gt;该用锁还是 channel&lt;/strong&gt;、&lt;strong&gt;atomic 能做什么&lt;/strong&gt;、&lt;strong&gt;context 怎么传才不漏&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有输出为本机实跑结果。包里列出的 &lt;code&gt;golang.org/x/sync&lt;/code&gt; 需另外 &lt;code&gt;go get&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>14 标准库：字符串与数字</title><link>https://before80.github.io/prgms/go/goCheatSheet/14-Standard-Library-strings-numbers/</link><pubDate>Sun, 20 Sep 2026 11:10:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/14-Standard-Library-strings-numbers/</guid><description>&lt;h1 id="14-标准库字符串与数字"&gt;14 标准库：字符串与数字&lt;/h1&gt;
+&lt;p&gt;本页是&lt;strong&gt;日常调用最频繁&lt;/strong&gt;的一页：字符串处理、类型转换、排序、切片/映射的泛型助手。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有输出为本机实跑结果。&lt;/p&gt;</description></item><item><title>15 标准库：io·fs·time</title><link>https://before80.github.io/prgms/go/goCheatSheet/15-Standard-Library-io-fs-time/</link><pubDate>Sun, 20 Sep 2026 11:15:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/15-Standard-Library-io-fs-time/</guid><description>&lt;h1 id="15-标准库iofstime"&gt;15 标准库：io·fs·time&lt;/h1&gt;
+&lt;p&gt;本页回答：&lt;strong&gt;数据怎么流&lt;/strong&gt;、&lt;strong&gt;文件怎么读写&lt;/strong&gt;、&lt;strong&gt;时间怎么格式化与计算&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有输出为本机实跑结果。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h2 id="io一切皆-reader--writer"&gt;io：一切皆 Reader / Writer&lt;/h2&gt;
+&lt;p&gt;Go 的 IO 抽象只有两个核心接口，所有装饰器都是它们的组合：&lt;/p&gt;</description></item><item><title>16 标准库：编码与日志</title><link>https://before80.github.io/prgms/go/goCheatSheet/16-Standard-Library-encoding-log-slog/</link><pubDate>Sun, 20 Sep 2026 11:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/16-Standard-Library-encoding-log-slog/</guid><description>&lt;h1 id="16-标准库编码与日志"&gt;16 标准库：编码与日志&lt;/h1&gt;
+&lt;p&gt;本页回答：&lt;strong&gt;JSON 怎么编解码才不出错&lt;/strong&gt;、&lt;strong&gt;struct tag 每个选项什么意思&lt;/strong&gt;、&lt;strong&gt;日志该怎么打&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有输出为本机实跑结果。
+⚠️ &lt;strong&gt;Go 1.27 起 &lt;code&gt;encoding/json&lt;/code&gt; 底层已换成 v2 实现&lt;/strong&gt;（行为保持兼容，错误文本可能不同），同时提供显式的 &lt;code&gt;encoding/json/v2&lt;/code&gt; 与 &lt;code&gt;encoding/json/jsontext&lt;/code&gt; 包。&lt;/p&gt;</description></item><item><title>17 测试</title><link>https://before80.github.io/prgms/go/goCheatSheet/17-Testing/</link><pubDate>Sun, 20 Sep 2026 11:25:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/17-Testing/</guid><description>&lt;h1 id="17-测试"&gt;17 测试&lt;/h1&gt;
+&lt;p&gt;Go 把测试做进了工具链：&lt;strong&gt;不需要第三方框架&lt;/strong&gt;。本页回答：&lt;strong&gt;测试怎么写&lt;/strong&gt;、&lt;strong&gt;&lt;code&gt;go test&lt;/code&gt; 怎么用&lt;/strong&gt;、&lt;strong&gt;并发与 IO 怎么测&lt;/strong&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有输出为本机实跑结果（测试包为 &lt;code&gt;ch17&lt;/code&gt;）。&lt;/p&gt;</description></item><item><title>18 并发模式</title><link>https://before80.github.io/prgms/go/goCheatSheet/18-Concurrency-Patterns/</link><pubDate>Sun, 20 Sep 2026 11:30:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/18-Concurrency-Patterns/</guid><description>&lt;h1 id="18-并发模式"&gt;18 并发模式&lt;/h1&gt;
+&lt;p&gt;&lt;a href="https://before80.github.io/prgms/go/goCheatSheet/12-Goroutines-and-Channels/"&gt;12 章&lt;/a&gt; 讲的是&lt;strong&gt;语法&lt;/strong&gt;，本页讲的是&lt;strong&gt;结构&lt;/strong&gt;：把 &lt;code&gt;go&lt;/code&gt;/&lt;code&gt;chan&lt;/code&gt;/&lt;code&gt;select&lt;/code&gt; 组合成可维护、可取消、不会泄漏的并发代码。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有示例在本机实跑并通过 &lt;code&gt;go run -race&lt;/code&gt; 检查。&lt;/p&gt;</description></item><item><title>19 陷阱与惯用法</title><link>https://before80.github.io/prgms/go/goCheatSheet/19-Pitfalls-and-Gotchas/</link><pubDate>Sun, 20 Sep 2026 11:35:00 +0800</pubDate><guid>https://before80.github.io/prgms/go/goCheatSheet/19-Pitfalls-and-Gotchas/</guid><description>&lt;h1 id="19-陷阱与惯用法"&gt;19 陷阱与惯用法&lt;/h1&gt;
+&lt;p&gt;这是全套速查表的&lt;strong&gt;病历本&lt;/strong&gt;。前面 18 页讲「怎么写」，本页讲「&lt;strong&gt;为什么你写错了，以及正确的长什么样&lt;/strong&gt;」。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基线：&lt;strong&gt;Go 1.27.1&lt;/strong&gt;。所有「实际结果」都是本机实跑得到的，不是推测。&lt;/p&gt;</description></item></channel></rss>
