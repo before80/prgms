@@ -37,10 +37,24 @@ draft = false
 | 词频（每百万词出现次数） | [FrequencyWords](https://github.com/hermitdave/FrequencyWords) 的 OpenSubtitles 2018 字幕语料 | CC BY-SA 4.0 |
 | 中文释义与词性 | [ECDICT](https://github.com/skywind3000/ECDICT) 开源英汉词典 | MIT |
 | 英式音标 | [英文维基词典](https://en.wiktionary.org/) 的 RP 标注 | CC BY-SA 4.0 |
-| 美式音标 | [CMU Pronouncing Dictionary](https://github.com/cmusphinx/cmudict)（ARPAbet 转写为国际音标） | BSD 许可，版权归 Carnegie Mellon University |
-| 真人发音 | [维基共享资源](https://commons.wikimedia.org/wiki/Category:U.S._English_pronunciation) 的 En-us 系列，录音者 Dvortygirl | CC BY-SA 3.0 |
+| 美式音标 | [CMU Pronouncing Dictionary](https://github.com/cmusphinx/cmudict)（ARPAbet 转写为国际音标），高频功能词按牛津／剑桥词典通用标音校订 | BSD 许可，版权归 Carnegie Mellon University |
+| 真人发音 | [维基共享资源](https://commons.wikimedia.org/wiki/Category:U.S._English_pronunciation) 的美式英语录音 | CC BY-SA 3.0 / CC0 |
 
-音频文件为维基共享资源的 Ogg 原始录音，本地转码为 MP3 后使用；未作任何剪辑或修改。按许可要求保留署名：**英文发音录音 © Dvortygirl，CC BY-SA 3.0**。
+音频文件取自维基共享资源的 Ogg 原始录音，本地转码为 MP3 后使用；未作任何剪辑或修改。按许可要求保留署名：**英文发音录音 © Dvortygirl 等维基共享资源贡献者，CC BY-SA 3.0**。
+
+## 校对说明
+
+音标与释义逐条核对过，与初版相比的主要订正：
+
+- **英美音标混用**：初版部分词条把英式元音写进了美式（如 want 的美式误作 `/wɒnt/`，应为 `/wɑnt/`），或将弱读形式当作词条读音（如 to 的美式误作 `/tʊ/`，do 的英式误作 `/də/`）。现按"英式用维基词典 RP 标注、美式用 CMU 通用美式发音词典"重新标注，高频功能词另有牛津／剑桥通用标音校订。
+- **释义遗漏词形**：said、made、written 等 55 个词补上了"某词的过去式／过去分词"等说明。
+- **释义错误**：punished 原写作"未受处罚的"（恰好相反），ve 原写作"委内瑞拉"，cars、bits、pa 等词原按缩写词条解释、与口语用法不符，均已改正。
+- **专有名词大小写**：Danny、London、Henry 等 221 个人名地名原为全小写，已按规范大写；FBI、CIA、DNA、TV、OK、UN、PM、DA 等缩写改为全大写，Mr、Mrs、Ms、Dr 改为规范写法。
+- **缩写词读音**：FBI 原标 `/ˈɛfˈbiˈaɪ/`、TV 原标 `/tiviː/`、Dr 甚至按 drive 标注，现按逐字母读音标为 `/ˌefbiːˈaɪ/`、`/ˌtiːˈviː/`、`/ˈdɒktə/` 等。
+- **口语拼写词释义**：hmm、ya、gonna、goin、gets、cats 等 53 个词的释义原按缩写词条解释（如 hmm 写成"隐马尔可夫模型"、cats 写成"计算机自动测试系统"），已改为口语中的实际用法。
+- **发音补录**：初版有 71 个音频是 0 字节的空文件，另有一批词因文件名大小写与序号差异未被匹配到。现从维基共享资源的**美式英语发音分类**（17616 个文件）与全量文件名索引（24849 个文件）重新匹配，发音从 876 个补到 **4043 个**，并已校验每个文件都是可播放的 MP3。
+
+音频只收美式真人录音；维基共享资源里只有英式等其他口音的 619 个词、以及完全没有录音的 338 个词，发音列显示为 `—`，以免口音混杂。
 
 > [!NOTE] 关于词频数字
 >

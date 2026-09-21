@@ -560,6 +560,8 @@ struct TaskDetail: View {
 }
 ```
 
+> 📦 这一段是 `View` + `#Preview`，**没有 `@main`**：新建 `Chapter08.swift` 放进 Xcode 的 App 项目，再把 App 文件里的 `WindowGroup { ContentView() }` 改成 `WindowGroup { TaskListView() }`；只想看效果就直接看 `#Preview`——预览不需要入口。
+
 💭 跑起来重点试三件事：
 
 1. **滑动删除一行**（或 macOS 上用工具栏按钮），然后确认剩下的行状态没问题；

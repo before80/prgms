@@ -367,6 +367,8 @@ struct PerformanceLab: View {
 }
 ```
 
+> 📦 这一段是 `View` + `#Preview`，**没有 `@main`**：新建 `Chapter10.swift` 放进 Xcode 的 App 项目，再把 App 文件里的 `WindowGroup { ContentView() }` 改成 `WindowGroup { PerformanceLab() }`；只想看效果就直接看 `#Preview`——预览不需要入口。
+
 💭 建议这样玩这个文件：
 
 1. **把元素数量拉到 5000**，对比开/关 `LazyVStack` 的滚动流畅度；

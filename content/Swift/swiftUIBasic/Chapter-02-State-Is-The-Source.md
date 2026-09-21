@@ -589,6 +589,8 @@ struct Chapter02Demo: View {
 }
 ```
 
+> 📦 这一段是 `View` + `#Preview`，**没有 `@main`**：新建 `Chapter02.swift` 放进 Xcode 的 App 项目，再把 App 文件里的 `WindowGroup { ContentView() }` 改成 `WindowGroup { Chapter02Demo() }`；只想看效果就直接看 `#Preview`——预览不需要入口。
+
 ⚠️ 这个文件里藏着三个容易写错的地方，对照一下你有没有踩：
 
 | 位置 | 为什么这么写 |

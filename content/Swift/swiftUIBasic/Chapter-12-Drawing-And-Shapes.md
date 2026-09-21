@@ -497,6 +497,8 @@ struct DrawingLab: View {
 }
 ```
 
+> 📦 这一段是 `View` + `#Preview`，**没有 `@main`**：新建 `Chapter12.swift` 放进 Xcode 的 App 项目，再把 App 文件里的 `WindowGroup { ContentView() }` 改成 `WindowGroup { DrawingLab() }`；只想看效果就直接看 `#Preview`——预览不需要入口。
+
 💭 跑起来试四件事：
 
 1. **点百分比按钮**，看环形的圆弧如何补间（这是 `Animatable` 在起作用）；

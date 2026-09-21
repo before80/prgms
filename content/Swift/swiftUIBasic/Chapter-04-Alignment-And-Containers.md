@@ -370,6 +370,8 @@ struct AlignmentLab: View {
 }
 ```
 
+> 📦 这一段是 `View` + `#Preview`，**没有 `@main`**：新建 `Chapter04.swift` 放进 Xcode 的 App 项目，再把 App 文件里的 `WindowGroup { ContentView() }` 改成 `WindowGroup { AlignmentLab() }`；只想看效果就直接看 `#Preview`——预览不需要入口。
+
 💭 用 Xcode 预览跑起来，然后**把窗口拖窄**——你会看到 `ViewThatFits` 从横排切成竖排，而 `Grid` 的列宽始终对齐。这比读十遍规则都管用。
 
 ## 4.8 本章易错点速查

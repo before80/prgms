@@ -481,6 +481,8 @@ struct AccessibilityLab: View {
 }
 ```
 
+> 📦 这一段是 `View` + `#Preview`，**没有 `@main`**：新建 `Chapter11.swift` 放进 Xcode 的 App 项目，再把 App 文件里的 `WindowGroup { ContentView() }` 改成 `WindowGroup { AccessibilityLab() }`；只想看效果就直接看 `#Preview`——预览不需要入口。
+
 💭 建议这样验证：
 
 1. **切到"超大字号 + 深色"预览**——看 `AccessibleRow` 会不会挤爆（`@ScaledMetric` 应该让间距跟着变大）；

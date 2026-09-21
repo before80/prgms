@@ -475,6 +475,8 @@ struct AnimationLab: View {
 }
 ```
 
+> 📦 这一段是 `View` + `#Preview`，**没有 `@main`**：新建 `Chapter05.swift` 放进 Xcode 的 App 项目，再把 App 文件里的 `WindowGroup { ContentView() }` 改成 `WindowGroup { AnimationLab() }`；只想看效果就直接看 `#Preview`——预览不需要入口。
+
 💭 跑起来以后重点观察三件事：
 
 1. **①②** 是"同一个视图的属性在变"——平滑补间；

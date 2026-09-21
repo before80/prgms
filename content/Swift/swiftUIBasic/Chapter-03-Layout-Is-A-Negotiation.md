@@ -368,6 +368,8 @@ struct Chapter03Demo: View {
 }
 ```
 
+> 📦 这一段是 `View` + `#Preview`，**没有 `@main`**：新建 `Chapter03.swift` 放进 Xcode 的 App 项目，再把 App 文件里的 `WindowGroup { ContentView() }` 改成 `WindowGroup { Chapter03Demo() }`；只想看效果就直接看 `#Preview`——预览不需要入口。
+
 💭 建议真的跑一下这个文件，然后**逐个删掉**里面的 `.frame` / `Spacer` / `.padding`，看界面怎么变。布局规则只有在"改一下、看一眼"的循环里才会变成直觉。
 
 ## 3.9 本章易错点速查

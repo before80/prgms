@@ -480,6 +480,8 @@ extension EnvironmentValues {
 }
 ```
 
+> 📦 这一段是 `View` + `#Preview`，**没有 `@main`**：新建 `Chapter13.swift` 放进 Xcode 的 App 项目，再把 App 文件里的 `WindowGroup { ContentView() }` 改成 `WindowGroup { EffectsLab() }`；只想看效果就直接看 `#Preview`——预览不需要入口。
+
 💭 跑起来重点看三件事：
 
 1. **五档材质的区别**——薄档能看到背景的色块轮廓，厚档几乎只剩底纹；

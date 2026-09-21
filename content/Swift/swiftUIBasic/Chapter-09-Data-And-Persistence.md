@@ -621,6 +621,8 @@ struct NotesView: View {
 }
 ```
 
+> 📦 这一段是 `View` + `#Preview`，**没有 `@main`**：新建 `Chapter09.swift` 放进 Xcode 的 App 项目，再把 App 文件里的 `WindowGroup { ContentView() }` 改成 `WindowGroup { NotesView() }`；只想看效果就直接看 `#Preview`——预览不需要入口。
+
 💭 跑起来试三件事：
 
 1. **输入并添加一条**，然后**完全退出 App 再打开**——数据还在（文件持久化生效）；

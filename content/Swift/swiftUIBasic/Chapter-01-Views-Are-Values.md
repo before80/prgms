@@ -36,7 +36,7 @@ struct Card: View {
 
 现在把 `body` 的真实类型打印出来：
 
-🔬 这段可以真跑。完整文件如下（存成 `t.swift`，用 `swiftc -parse-as-library t.swift -o t && ./t` 执行）：
+🔬 这段可以真跑。完整文件如下（存成 `t.swift`，用 `swiftc t.swift -o t && ./t` 执行；直接 `swift t.swift` 也行）：
 
 ```swift
 import SwiftUI
@@ -54,18 +54,14 @@ struct Card: View {
     }
 }
 
-@main
-struct PrintType {
-    @MainActor static func main() {
-        let t = String(describing: type(of: Card(title: "hi", highlighted: true).body))
-        print(t)
-        print("长度：\(t.count) 字符")
-    }
-}
+let t = String(describing: type(of: Card(title: "hi", highlighted: true).body))
+print(t)
+print("长度：\(t.count) 字符")
 ```
 
-```
+```txt
 ModifiedContent<ModifiedContent<VStack<TupleView<(Text, Optional<Text>)>>, _PaddingLayout>, _BackgroundStyleModifier<Color>>
+长度：124 字符
 ```
 
 **124 个字符，四层泛型嵌套。** 你写的四行声明式代码，编译器把它拼成了这样一个类型。
@@ -79,7 +75,24 @@ ModifiedContent<ModifiedContent<VStack<TupleView<(Text, Optional<Text>)>>, _Padd
 | `.padding()` | `ModifiedContent<内层, _PaddingLayout>` —— **包了一层壳** |
 | `.background(...)` | 又包一层：`ModifiedContent<上面那层, _BackgroundStyleModifier<Color>>` |
 
-💭 记住"修饰符 = 包一层壳"这件事，第 3 章讲布局顺序、第 4 章讲尺寸传递时都要用它。`.padding().background()` 和 `.background().padding()` 的差别，根源就在这里。
+🔤 **等一下，先说清"修饰符"是什么**——上面那张表和我下面要说的话都靠它，但这个词前面一直没解释过。
+
+**写在视图后面、以 `.` 开头的那些方法，就是修饰符（modifier）**：`.font(.title)`、`.padding()`、`.background(...)`、`.frame(width:)`、`.opacity(0.5)`。SwiftUI 里并没有 `modifier` 这个关键字，它只是 **"接收一个视图、返回一个视图的方法"的统称** ——正因为返回的还是视图，才能一个接一个点下去（这种写法叫**链式调用**）。
+
+```swift
+Text("你好")
+    .font(.title)                      // 这四行全是修饰符
+    .padding()
+    .background(Color.yellow)
+    .frame(maxWidth: .infinity)
+```
+
+关键在两点，它们解释了上面那个吓人的类型：
+
+1. **它不修改原来的视图**。视图是结构体、是值（下一节讲透），所以 `.padding()` 并不是"给这个 `Text` 加上内边距"，而是**返回一个新的视图**（原内容 + 内边距），原来那个 `Text` 一个字都没变。
+2. **所以它是"在外面套一层"，而不是"设置某个属性"**。套出来的新类型当然和原来不同——`ModifiedContent<Text, _PaddingLayout>` 就是这么来的。
+
+💭 记住"修饰符 = 包一层壳"这件事，第 3 章讲布局顺序、第 4 章讲尺寸传递时都要用它。`.padding().background()` 和 `.background().padding()` 的差别，根源就在这里。（自己定义一个修饰符是第 7 章 `ViewModifier` 的内容。）
 
 ## 1.2 视图是结构体，所以"创建视图"什么也没发生
 
@@ -105,11 +118,23 @@ print(type(of: g))
 要在命令行里自己验证这一点，可以把上面这段存成 `t.swift`，然后：
 
 ```console
-$ swiftc -parse-as-library t.swift -o t && ./t
+$ swiftc t.swift -o t && ./t
 Greeting
 ```
 
 🔬 这段是本教程里少数**不需要 Xcode、不需要窗口**就能验证的代码之一——因为它压根不涉及渲染，只涉及类型。后面凡是标了 🔬 的实验，都可以这样在命令行跑。
+
+⚠️ **顺手把一个坑说清：上面这段是"顶层代码"，它不需要 `@main`。** 但你在别处（Xcode 模板、别人的示例）肯定见过带 `@main` 的版本——那不是多此一举，而是**两种互斥的入口写法**，用错哪个都会报错：
+
+| 你怎么跑 | 顶层代码（`let g = ...` / `print(...)`） | `@main` |
+| --- | --- | --- |
+| `swift t.swift`（解释执行） | ✅ 可以 | 不需要（也没有意义，文件顶部就是入口） |
+| `swiftc t.swift -o t`（单文件编译） | ✅ 可以 | 🛑 `'main' attribute cannot be used in a module that contains top-level code` |
+| `swiftc -parse-as-library t.swift -o t` | 🛑 `expressions are not allowed at the top level` | ✅ 必须写：`@main struct X { @MainActor static func main() { ... } }` |
+| 多个文件一起编译 | 只有名为 `main.swift` 的那个文件可以 | ✅ 其它文件里的入口要写 `@main`，并配 `-parse-as-library` |
+| 一个真正的 App | 🛑 不行 | ✅ `@main struct MyApp: App`——Xcode 模板里那个文件 |
+
+💭 记忆法：**`@main` 和顶层代码是同一件事的两种写法，二选一。** 本教程的 🔬 片段统一用顶层代码，所以照上面的命令直接跑就行；`-parse-as-library` 只在你自己写 `@main` 时才需要。App 那边的 `@main` 见 §1.6。
 
 那界面什么时候才出现？当 SwiftUI **调用 `body`** 并拿到这份描述之后。也就是说：
 
@@ -122,6 +147,8 @@ Greeting
 所以视图值的生命周期和"屏幕上的东西"是**完全两回事**。这带来三个直接结论：
 
 ### 结论一：视图可以被随便创建、复制、丢弃
+
+💭 下面这段和结论二那段都**不是独立文件**：它们用上面那个 `Greeting` 的定义，各自单独配上 `import SwiftUI` + `Greeting` 存成 `t.swift` 就能跑。
 
 ```swift
 let a = Greeting(name: "A")
@@ -209,9 +236,11 @@ func status(_ on: Bool) -> some View {
 
 `Text` 和 `Image` 是两个完全不同的类型，`some View` 不允许一函数两种类型。于是 `@ViewBuilder` 把它们**打包**成第三种类型：
 
-🔬
+🔬 存成 `t.swift` 直接跑（跑法见 §1.2）：
 
 ```swift
+import SwiftUI
+
 @ViewBuilder
 func status(_ on: Bool) -> some View {
     if on { Text("开") } else { Image(systemName: "xmark") }
@@ -224,9 +253,11 @@ print(type(of: status(true)))
 
 同理，连写三行会被打包成元组：
 
-🔬
+🔬 存成 `t.swift` 直接跑（跑法见 §1.2）：
 
 ```swift
+import SwiftUI
+
 @ViewBuilder
 func triple() -> some View {
     Text("a"); Text("b"); Text("c")
@@ -248,6 +279,8 @@ print(type(of: triple()))
 💭 日常你不需要记这些名字，但**看到它们时要知道从哪来**。报错信息里出现 `_ConditionalContent<Text, Image>` 时，你就知道编译器在抱怨"你这两个分支类型不一致"。
 
 ## 1.5 修饰符为什么是"包壳"
+
+（修饰符 = 贴在视图后面的 `.font(.title)` / `.padding()` 这类方法，§1.1 里已经解释过。这一节看它的**类型**后果。）
 
 再看一眼这个类型，这次只看修饰符部分：
 
@@ -273,9 +306,11 @@ Text("x").font(.title)
 
 这个区别为什么重要？因为**通用修饰符的顺序会改变结果，而 `Text` 自身方法的顺序不会**：
 
-🔬
+🔬 存成 `t.swift` 直接跑（跑法见 §1.2）：
 
 ```swift
+import SwiftUI
+
 let x = Text("x").bold().foregroundStyle(.red)
 let y = Text("x").foregroundStyle(.red).bold()
 print(type(of: x) == type(of: y), type(of: x))
@@ -293,7 +328,7 @@ Text("x").background(Color.yellow).padding()   // 黄底只有文字那么大，
 
 ## 1.6 完整可运行文件
 
-把这一章的东西拼成一个能跑的 App（存成 `Chapter01.swift`，Xcode 里新建 App 项目后替换 `ContentView.swift` 也行）：
+把这一章的东西拼成一个能跑的界面（存成 `Chapter01.swift`，加进 Xcode 的 App 项目）：
 
 ```swift
 import SwiftUI
@@ -332,6 +367,23 @@ struct Chapter01Demo: View {
 }
 ```
 
+📦 **这个文件里没有 `@main`，也不需要**——它只是一份"界面描述"，交给谁去显示由外面决定。真正带 `@main` 的是 Xcode 模板生成的 App 文件：
+
+```swift
+import SwiftUI
+
+@main
+struct Chapter01App: App {                    // ← App 的入口在这里
+    var body: some Scene {
+        WindowGroup { Chapter01Demo() }       // ← 指向上面那个主视图
+    }
+}
+```
+
+所以两种用法都行：**①** 把 `Chapter01.swift` 加进项目，再把 App 文件里的 `WindowGroup { ContentView() }` 改成 `WindowGroup { Chapter01Demo() }`；**②** 或者把内容贴进模板的 `ContentView.swift`，并把 `Chapter01Demo` 改名成 `ContentView`——这样 App 文件一个字都不用动。只想看效果的话更省事：直接看 `#Preview`，预览不需要入口。
+
+🔤 `#Preview` 是 Xcode 的**预览宏**（`#` 开头的是宏，不是函数）：`#Preview { Chapter01Demo() }` 的意思是"这一块可以在 Xcode 的预览画布里直接渲染"。它只服务开发期的预览，不参与 App 正式运行时的逻辑——所以它既不冲突 `@main`，也不需要任何入口。
+
 ⚠️ 注意 `Card` 里**没有一个 `var` 是可变的**（`title` 和 `highlighted` 都是 `let` 性质的存储属性），它却能显示两种不同内容——因为内容由**外面传进来的值**决定。这就是"视图是描述"的最直接体现。
 
 ## 1.7 本章易错点速查
@@ -345,6 +397,8 @@ struct Chapter01Demo: View {
 | `if` 两个分支返回不同视图类型 | 报 `_ConditionalContent` 相关错误 | 加 `@ViewBuilder`，或让两分支形状一致 |
 | 以为 `Text("x").font(.title)` 也包了一层 | 它返回的还是 `Text` | 只有 `View` 扩展的通用修饰符才包 `ModifiedContent` |
 | 以为视图是"屏幕上的控件的引用" | 无法比较、无法持有、`===` 不成立 | 视图是值；要持有状态用 `@State`，要持有对象用模型类型 |
+| 以为示例没有 `@main` 就"跑不起来" | 顶层代码本身就是入口，`swiftc t.swift -o t && ./t` 直接跑 | 顶层代码与 `@main` 二选一：加了 `-parse-as-library` 才必须写 `@main`（§1.2 有对照表） |
+| 把 App 文件里的 `WindowGroup { ContentView() }` 忘了改 | 项目里找不到 `ContentView`，编译不过 | 让 `WindowGroup` 指向你新写的视图，或把新视图改名成 `ContentView`（§1.6） |
 
 ## 1.8 下一章
 

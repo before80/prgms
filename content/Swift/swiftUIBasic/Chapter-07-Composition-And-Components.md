@@ -636,6 +636,8 @@ struct Chapter07Demo: View {
 }
 ```
 
+> 📦 这一段是 `View` + `#Preview`，**没有 `@main`**：新建 `Chapter07.swift` 放进 Xcode 的 App 项目，再把 App 文件里的 `WindowGroup { ContentView() }` 改成 `WindowGroup { Chapter07Demo() }`；只想看效果就直接看 `#Preview`——预览不需要入口。
+
 💭 跑起来重点看**最后两个按钮**：它们用了同一个 `PressableButtonStyle`，只是 `tint` 不同，但**点击、按下反馈、无障碍语义、键盘操作全都正常**——这就是"用 `ButtonStyle` 而不是自己拼 `HStack`"的价值。
 
 ## 7.9 本章易错点速查
