@@ -13,7 +13,7 @@ draft = false
 
 ​	可参见以下视频：
 
-{<youtube "q3-jUJZpC0o">}
+{{<youtube "q3-jUJZpC0o">}}
 
 
 
