@@ -225,6 +225,18 @@ where git
 
 ```
 
+## 安装 `tree`命令
+
+```bash
+brew install tree
+
+# 查看版本
+tree --version
+
+# 卸载
+brew uninstall tree
+```
+
 
 
 ## 安装 `go`
@@ -256,7 +268,9 @@ go env -u GOPROXY
 
 ## 安装 `python`
 
-### 方式1
+### 安装方式
+
+#### 方式1： 直接安装
 
 ```bash
 # `python` 永远指向最新稳定 Python3；
@@ -285,7 +299,7 @@ pip3 --version
 >
 > 保存，重启终端，之后直接敲 `python` 就可以。
 
-### 方式2
+#### 方式2： 通过`pyenv`
 
 ​	pyenv 是一个 **Python 版本管理工具**。它让你可以：
 
@@ -454,7 +468,7 @@ pyenv --version
 >
 > 所以 `pyenv init -` 的输出实际上**包含了 `--path` 的所有功能**，并额外增加了 shell 集成。
 
-#### pyenv的使用
+##### pyenv的使用
 
 ```bash
 # 查看可安装的版本
@@ -522,9 +536,11 @@ brew upgrade pyenv
 pyenv update
 ```
 
-### 方式3（推荐）
+#### 方式3:（推荐）通过`uv`
 
 ​	`uv` 是一个用 Rust 编写的、速度极快的现代 Python 包与项目管理工具，旨在用一个统一的工具替代 `pip`、`venv`、`pyenv`、`pip-tools`、`pipx` 等多个传统工具
+
+​	更多内容，请参见[uv官方文档](https://docs.astral.sh/uv/)。
 
 ```bash
 brew install uv
@@ -533,8 +549,11 @@ brew install uv
 # 独立安装脚本：curl -LsSf https://astral.sh/uv/install.sh | sh
 # 通过 pip：pip install uv
 # 通过 pipx：pipx install uv
+```
 
+##### uv的使用
 
+```bash
 # 管理 Python 版本
 # 查看已安装的 Python 版本
 uv python list --only-installed
@@ -592,6 +611,10 @@ cd myproject
 uv pip install flask
 ```
 
+###### uvx的使用
+
+> 使用 `uvx`（即 `uv tool run` 的别名）在临时环境中运行工具：
+
 
 
 ### 创建虚拟环境
@@ -601,13 +624,12 @@ uv pip install flask
 > 适合场景：简单项目、单环境
 
 ```bash
-# 创建虚拟环境， 其中.venv是目录名
+# 创建虚拟环境， 其中.venv 是目录名
 python -m venv .venv
 # 激活虚拟环境
 source .venv/bin/activate
 # 若是Windows系统，则使用 .venv\Scripts\activate 来激活虚拟环境
 # 激活后，终端提示符通常会显示 (.venv)
-
 
 # 验证是否已经处于虚拟环境中
 which python
@@ -695,7 +717,6 @@ source .venv/bin/activate
 # 若使用 my-env 虚拟环境，则需要使用
 source my-env/bin/activate
 # 激活后，你的终端提示符前会出现 (my-venv) 标识，此时即可使用 uv pip 安装包
-
 
 ```
 
