@@ -297,6 +297,10 @@ pip3 --version
 ```bash
 brew install pyenv
 
+# 卸载 pyenv
+# brew uninstall pyenv
+# 若后续有安装pyenv-virtualenv，则需要先执行 brew install pyenv-virtualenv， 才可以卸载成功！
+
 # 打开 ~/.zshrc
 nano ~/.zshrc
 
@@ -459,6 +463,11 @@ pyenv install -l
 
 # 安装指定版本
 pyenv install 3.14.7
+# 安装自由线程版（无 GIL，实验性）：
+# pyenv install 3.14.7t
+
+# 卸载
+pyenv uninstall 3.14.7
 
 # 查看已安装的版本
 pyenv versions
@@ -473,15 +482,221 @@ pyenv local 3.14.7
 # 3. 全局默认，写入 ~/.pyenv/version，持久有效
 pyenv global 3.14.7
 
-# 查看当前实际使用的版本
+# 4. 使用操作系统自带的 Python
+# system 是 pyenv 的一个特殊关键字，不是具体的版本号。
+# 将 system 作为内容写入 ~/.pyenv/version，持久有效
+# 若要 system 有效，则不能在 ~/.zshrc 中写入： eval "$(pyenv init --path)" 和 eval "$(pyenv init -)"
+pyenv global system
+
+# 取消设置
+pyenv global system
+pyenv local --unset
+pyenv shell --unset
+
+
+# 查看当前活跃版本及来源
 pyenv version
 
+# 查看全局版本
+pyenv global
+
+# 查看当前目录的本地版本
+pyenv local
+
+# 当前 python 的真实路径
+pyenv which python
+
+# 当前 pip 的真实路径
+pyenv which pip
+
+# pyenv 根目录
+pyenv root
+
+# 安装新版本或通过 pip install 安装了带命令行入口的工具后，需要重建 shims：
+# 通常 pyenv install 会自动执行，但 pip install 不会，所以手动运行。
+pyenv rehash
+
+# 更新 pyenv
+brew upgrade pyenv
+# 或使用 pyenv 自带命令（部分安装方式支持）
+pyenv update
 ```
 
 ### 方式3（推荐）
 
+​	`uv` 是一个用 Rust 编写的、速度极快的现代 Python 包与项目管理工具，旨在用一个统一的工具替代 `pip`、`venv`、`pyenv`、`pip-tools`、`pipx` 等多个传统工具
+
 ```bash
 brew install uv
+
+# 也可以通过如下方式安装：
+# 独立安装脚本：curl -LsSf https://astral.sh/uv/install.sh | sh
+# 通过 pip：pip install uv
+# 通过 pipx：pipx install uv
+
+
+# 管理 Python 版本
+# 查看已安装的 Python 版本
+uv python list --only-installed
+# 查看可安装的 Python 版本
+uv python list --only-downloads
+
+# 安装指定版本（可安装多个：3.13 3.14）
+# 默认安装 CPython 编译器的 Python 版本
+uv python install 3.14.7
+# 等价于 uv python install cpython@3.14.7
+# uv python install pypy@3.12.14 则是安装 PyPy 编译器的 Python 版本
+# CPython、PyPy、GraalPy 都是 Python 语言的具体实现，
+# 可以理解为“不同厂家用不同技术做的 Python 解释器/运行时”。它们不是单纯的编译器，
+# 而是包含编译器、解释器、运行时环境、标准库等完整组件的软件。
+
+# 一次安装多个版本
+# uv python install 3.14.7 3.13.15
+# 不指定版本，则安装最新稳定版
+# uv python install
+
+# 卸载指定版本
+uv python uninstall 3.14.7
+# 即 uv python uninstall cpython@3.14.7
+
+# uv python uninstall pypy@3.12.14
+
+# 指定默认 Python 版本
+# 即使该版本已经安装，这条命令也会重新将其设置为默认版本，
+# 并创建或更新指向该版本的 python 和 python3 可执行文件
+uv python --default 3.14.7
+
+# 配置 shell，即将： export PATH="$HOME/.local/bin:$PATH" 加入到 ./zshenv 文件中
+uv python update-shell
+
+# 在当前终端，立即生效
+source ~/.zshenv
+
+# 为当前项目固定 Python 版本，生成：.python-version 文件
+uv python pin 3.14.7
+
+# 当执行 uv venv 或 uv run 等命令时，如果所需 Python 版本不存在，uv 会自动下载
+
+
+# 查看 Python 实际路径
+uv python find 3.14.7
+
+# 创建新项目
+uv init myproject
+# 或，在 /path/to/parent/ 下创建 myproject 目录，与先 cd 再 uv init myproject 效果类似
+uv init --directory /path/to/parent  myproject
+cd myproject
+
+
+# 安装单个包
+uv pip install flask
+```
+
+
+
+### 创建虚拟环境
+
+#### 使用python自带的`venv`
+
+> 适合场景：简单项目、单环境
+
+```bash
+# 创建虚拟环境， 其中.venv是目录名
+python -m venv .venv
+# 激活虚拟环境
+source .venv/bin/activate
+# 若是Windows系统，则使用 .venv\Scripts\activate 来激活虚拟环境
+# 激活后，终端提示符通常会显示 (.venv)
+
+
+# 验证是否已经处于虚拟环境中
+which python
+which pip
+python --version
+# 只显示该环境安装的包
+pip list 
+
+# 应该指向 .venv/bin/python 和 .venv/bin/pip。
+
+# 退出虚拟环境
+deactivate
+
+# 虚拟环境本质上就是一个目录，删除目录即可：
+deactivate
+rm -rf .venv
+
+# 建议把 .venv/ 加入 .gitignore，不要提交到 Git：
+# 即在 .gitignore 文件中添加以下内容
+.venv/
+__pyche__/
+*.pyc
+```
+
+#### 使用`pyenv-virtualenv`
+
+> 适合场景：多环境、频繁切换、集中管理
+
+```bash
+# 安装 pyenv-virtualenv
+brew install pyenv-virtualenv
+
+# 在 ~/.zshrc 中加入：
+eval "$(pyenv virtualenv-init -)"
+
+# `Ctrl+O` → 回车保存 → `Ctrl+X` -> 退出
+# 加载~/.zshrc 中的配置使其在当前终端中立即生效
+source ~/.zshrc
+
+# 基于 pyenv 已安装的 Python 3.14.7，创建一个名为 myapp-env 的虚拟环境，并由 pyenv 统一管理。
+# 其中 myapp-env 也是目录名
+# 在 ~/.pyenv/versions/ 下创建： ~/.pyenv/versions/myapp-env/
+pyenv virtualenv 3.14.7 myapp-env
+# 也可以省略版本，基于当前活跃版本创建：
+# pyenv virtualenv myapp-env
+
+# 手动激活指定的虚拟环境
+# 激活后，你的终端提示符前会出现 (myapp-env) 标识
+pyenv activate myapp-env
+
+# 或者，绑定到项目，自动激活
+cd ~/projects/myapp
+pyenv local myapp-env
+
+# 退出虚拟环境
+pyenv deactivate
+
+# 列出所有虚拟环境
+pyenv virtualenvs
+
+
+# 删除指定的虚拟环境
+# 删除后，~/.pyenv/versions/myapp-env 目录会被移除
+pyenv virtualenv-delete myapp-env
+
+```
+
+#### 使用`uv`
+
+```bash
+# 在当前目录创建 .venv 虚拟环境
+uv venv
+
+# 创建名为 my-env 的虚拟环境
+uv venv my-env
+
+# 创建使用特定 Python 版本（如 3.14）的虚拟环境
+uv venv --python 3.14
+
+
+# 手动激活 .venv 虚拟环境
+source .venv/bin/activate
+# 激活后，你的终端提示符前会出现 (.venv) 标识，此时即可使用 uv pip 安装包
+
+# 若使用 my-env 虚拟环境，则需要使用
+source my-env/bin/activate
+# 激活后，你的终端提示符前会出现 (my-venv) 标识，此时即可使用 uv pip 安装包
+
+
 ```
 
 
