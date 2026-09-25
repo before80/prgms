@@ -1,6 +1,6 @@
 +++
-title = "tools"
-linkTitle = "tools"
+title = "Tools"
+linkTitle = "Tools"
 date = 2026-09-09T15:22:26+08:00
 type="docs"
 description = ""

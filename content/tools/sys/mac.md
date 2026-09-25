@@ -65,6 +65,25 @@ sudo spctl --master-enable
 - 公证只是证明安装包提交给 Apple 扫描过，**不代表 Apple 认证软件绝对安全**；
 - 删除隔离标记，只是去掉触发 Gatekeeper 的开关，**不会关闭系统其他安全防护**。
 
+## 安装`Homebrew`
+
+```bash
+# 国内需要科学上网才可以
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 安装后，重开终端，查看版本
+# 或者
+# brew --version
+brew -v 
+
+# 查看帮助文档
+# 或者
+# brew --help
+brew -h
+```
+
+更多关于`brew`的内容，参见[brew](/Tools/brew)
+
 ## 安装 Easydict
 
 ​	一个简洁优雅的词典翻译 macOS App。开箱即用，支持离线 OCR 识别，支持有道词典，🍎 苹果系统词典，🍎 苹果系统翻译，OpenAI，Gemini，DeepL，Google，Bing，腾讯，百度，阿里，小牛，彩云和火山翻译。
