@@ -65,6 +65,10 @@ sudo spctl --master-enable
 - 公证只是证明安装包提交给 Apple 扫描过，**不代表 Apple 认证软件绝对安全**；
 - 删除隔离标记，只是去掉触发 Gatekeeper 的开关，**不会关闭系统其他安全防护**。
 
+MacOS快捷键
+
+​	参见[CheatSheet/macShortcutKey](/CheatSheet/macShortcutKey/)
+
 ## 安装`Homebrew`
 
 ```bash
@@ -80,9 +84,531 @@ brew -v
 # 或者
 # brew --help
 brew -h
+
+# brew 环境变量
+# 打开 ~/.zshrc
+nano ~/.zshrc
+
+# 添加以下一行到文件末尾
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# `Ctrl+O` → 回车保存 → `Ctrl+X` -> 退出
+# 加载~/.zshrc 中的配置使其在当前终端中立即生效
+source ~/.zshrc
 ```
 
-更多关于`brew`的内容，参见[brew](/Tools/brew)
+​	`eval "$(/opt/homebrew/bin/brew shellenv)"` 执行后，主要会设置这些环境变量：
+
+| 变量                  | 作用                                                      |
+| :-------------------- | :-------------------------------------------------------- |
+| `HOMEBREW_PREFIX`     | Homebrew 安装根目录，Apple Silicon 为 `/opt/homebrew`     |
+| `HOMEBREW_CELLAR`     | Homebrew 软件包安装目录，通常是 `/opt/homebrew/Cellar`    |
+| `HOMEBREW_REPOSITORY` | Homebrew 仓库目录                                         |
+| `PATH`                | 把 `/opt/homebrew/bin` 和 `/opt/homebrew/sbin` 加到最前面 |
+| `MANPATH`             | 让 `man` 能查到 Homebrew 安装的命令的手册                 |
+| `INFOPATH`            | 让 `info` 能查到 Homebrew 的 info 文档                    |
+
+​	其中最重要的是 `PATH`。它让终端优先使用 `Homebrew` 安装的命令，例如：
+
+```bash
+/opt/homebrew/bin/git
+/opt/homebrew/bin/go
+/opt/homebrew/bin/python3
+```
+
+而不是系统自带的旧版本。
+
+​	更多关于`brew`的内容，参见[brew](/Tools/brew)
+
+## 为自带终端`zsh`安装命令实时提示
+
+1. **zsh-autosuggestions：灰色历史命令实时提示（输入时后面灰色预填，最常用）**
+2. **zsh-syntax-highlighting：语法高亮，命令对错变色**
+
+```bash
+# 安装两个插件
+brew install zsh-autosuggestions zsh-syntax-highlighting
+
+# 打开 ~/.zshrc
+nano ~/.zshrc
+
+# 在文件末尾粘贴以下内容
+source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# `Ctrl+O` → 回车保存 → `Ctrl+X`  -> 退出
+# 加载~/.zshrc 中的配置使其在当前终端中立即生效
+source ~/.zshrc
+```
+
+## 为自带终端`zsh`添加时间显示
+
+**常用时间标记**
+
+- `%T` → 24 小时 时：分（`15:30`）
+- `%*` → 24 小时 时：分: 秒（`15:30:22`，推荐，开发记录执行耗时很方便）
+- `%D` → 日期 `2026-09-16`
+- `%t` → 12 小时制 AM/PM
+
+```bash
+# 打开 ~/.zshrc
+nano ~/.zshrc
+
+# 在文件最末尾粘贴一行，
+PROMPT='[%*] %n@%m %1~ %# '
+# `Ctrl+O` → 回车保存 → `Ctrl+X`  -> 退出
+
+# 加载配置，立刻生效
+source ~/.zshrc
+
+# 效果预览：
+# [15:30:22] lx@lxdeMacBook-Pro prgms %
+```
+
+
+
+## 安装 `openInTerminal`
+
+​	**在 Finder（访达）和终端（或代码编辑器）之间建立快捷通道**，让你无需手动输入冗长的 `cd` 路径命令，就能直接在终端或编辑器中打开当前所在的文件夹。
+
+​	`openInTerminal`支持的终端有哪些？
+
+OpenInTerminal 支持的终端列表在不断更新中，以下是它兼容的主流终端：
+
+- **系统内置**：Apple 的 **Terminal.app**
+- **主流第三方终端**：**iTerm2**, **Hyper**, **Alacritty**, **kitty**, **Warp**, **WezTerm**, **Tabby**
+- **其他**：**Ghostty**, **cmux** 等
+
+> 注意
+>
+> ​	前提是需要自己提前安装这些终端（除了系统内置的 Teminal ）。
+>
+> ​	点击打开 `OpenInTerminal.app` 可选择使用哪个终端！
+
+```bash
+brew install --cask openinterminal
+
+# 在设置中启用 Finder 扩展
+# 依次进入 系统设置 -> 通用 -> 登录项与扩展 -> OpenInTerminal Extensions，然后启用 File Provider。
+# 在访达工具栏点击“显示” -> “自定义工具栏”将 “Open in Termimal”图标拖拽到访达窗口中工具栏位置上。
+# 这样在访达中，右键会出现“终端”， 工具栏也可以打开“终端”！
+```
+
+## 覆盖默认`git`
+
+​	在 macOS 上，**不建议直接卸载系统自带的 Git**。因为它与 Xcode 命令行工具（Command Line Tools）深度绑定，位于受系统完整性保护（SIP）的 `/usr/bin/git` 目录，强行删除可能会破坏系统其他功能。
+
+​	正确的做法是：**通过 Homebrew 安装最新版 Git，并调整 Shell 的 `PATH` 环境变量，让你的终端优先使用 Homebrew 安装的版本**。
+
+```bash
+brew install git
+
+# 若之前在安装 brew 之后有在.zshrc中添加 eval "$(/opt/homebrew/bin/brew shellenv)"
+# 则，当前的git命令就是使用 通过brew安装的git
+
+# 查看 git 版本
+git --version
+# [11:03:07] lx@lxdeMacBook-Pro ~ % git --version 
+# git version 2.55.0
+
+# 查看 git 程序的位置
+where git
+# [10:56:42] lx@lxdeMacBook-Pro ~ % where git
+# /opt/homebrew/bin/git
+# /usr/bin/git
+# /opt/homebrew/bin/git
+
+# 查看系统自带git的版本
+/usr/bin/git --version
+# [11:02:23] lx@lxdeMacBook-Pro ~ % /usr/bin/git --version
+# git version 2.54.0 (Apple Git-157)
+
+```
+
+
+
+## 安装 `go`
+
+​	Go 语言的完整开发工具链， 包括：
+
+- `go` 命令：编译、运行、测试、下载依赖、管理模块等。
+- `gofmt`：Go 官方代码格式化工具。
+- Go 标准库。
+- Go 编译器。
+- 其他内置工具，比如 `go vet`、`go doc` 等。
+
+```bash
+brew install go
+
+# 安装后，查看版本
+go --version
+
+# 查看配置
+go env
+
+# 配置，例如：
+# 1. 设置国内代理（最常用的配置，解决模块下载慢的问题）
+go env -w GOPROXY=“https://goproxy.cn,direct”
+
+# 2. 撤销 GOPROXY 的设置，恢复为官方默认值
+go env -u GOPROXY
+```
+
+## 安装 `python`
+
+### 方式1
+
+```bash
+# `python` 永远指向最新稳定 Python3；
+brew install python
+
+# 卸载
+# brew uninstall python
+
+# 安装指定版本
+brew install python@3.14
+
+# 卸载
+# brew uninstall python@3.14
+
+# 查看版本
+python3 --version
+pip3 --version 
+```
+
+> Mac 默认没有 `python` 命令，只有 `python3`；可以加别名方便使用，写入 `~/.zshrc`：
+>
+> ```bash
+> alias python="python3"
+> alias pip="pip3"
+> ```
+>
+> 保存，重启终端，之后直接敲 `python` 就可以。
+
+### 方式2
+
+​	pyenv 是一个 **Python 版本管理工具**。它让你可以：
+
+- 在同一台机器上安装多个 Python 版本（如 3.9、3.10、3.11、3.12、3.13、3.14）。
+- 为不同项目指定不同的 Python 版本。
+- 通过 `.python-version` 文件自动切换版本。
+- 避免污染系统自带的 Python。
+
+```bash
+brew install pyenv
+
+# 打开 ~/.zshrc
+nano ~/.zshrc
+
+# 在文件末尾添加以下两行
+eval "$(pyenv init --path)"
+eval "$(pyenv init -)"
+
+# `Ctrl+O` → 回车保存 → `Ctrl+X` -> 退出
+# 加载~/.zshrc 中的配置使其在当前终端中立即生效
+source ~/.zshrc
+
+# 查看版本
+pyenv --version
+# [12:55:46] lx@lxdeMacBook-Pro ~ % pyenv --version
+# pyenv 2.8.5
+```
+
+
+
+> 解释下：
+>
+> ```bash
+> pyenv init --path
+> pyenv init -
+> ```
+>
+> 一、`pyenv init --path` 的输出
+>
+> ```bash
+> PATH="$(bash --norc -ec 'IFS=:; paths=($PATH); 
+> for i in ${!paths[@]}; do 
+> if [[ ${paths[i]} == "''/Users/lx/.pyenv/shims''" ]]; then unset '\''paths[i]'\''; 
+> fi; done; 
+> echo "${paths[*]}"')"
+> export PATH="/Users/lx/.pyenv/shims:${PATH}"
+> command pyenv rehash
+> ```
+>
+> 
+>
+> 1. **第一段：清理 PATH 中重复的 shims 路径**
+>
+> ```bash
+> PATH="$(bash --norc -ec 'IFS=:; paths=($PATH); 
+> for i in ${!paths[@]}; do 
+> if [[ ${paths[i]} == "''/Users/lx/.pyenv/shims''" ]]; then unset '\''paths[i]'\''; 
+> fi; done; 
+> echo "${paths[*]}"')"
+> ```
+>
+> - 它启动一个**干净的 bash**（`--norc` 不读取任何 bash 配置），用 `-e` 让错误退出，`-c` 执行后面的脚本。
+> - 把当前的 `PATH` 按冒号 `:` 分割成数组 `paths`。
+> - 遍历数组，如果某个元素等于 `/Users/lx/.pyenv/shims`，就把它从数组中删除。
+> - 最后用 `echo "${paths[*]}"` 重新用空格拼接？注意这里 `IFS=:` 被设置，所以 `${paths[*]}` 会用冒号连接，输出新的 PATH 字符串。
+> - 外层用 `PATH="$(...)"` 把清理后的 PATH 赋值回去。
+>
+> **目的**：防止多次执行 `pyenv init` 导致 `/Users/lx/.pyenv/shims` 在 PATH 中重复出现。
+>
+> 2. **第二段：把 shims 目录加到 PATH 最前面**
+>
+> ```bash
+> export PATH="/Users/lx/.pyenv/shims:${PATH}"
+> ```
+>
+> - 将 pyenv 的 shims 目录放到 `PATH` 的最前面。
+> - 这样 `python`、`pip` 等命令会优先调用 `~/.pyenv/shims` 下的代理脚本，由 pyenv 决定实际使用哪个 Python 版本。
+>
+> 3. 第三段：重新生成 shims
+>
+> ```bash
+> command pyenv rehash
+> ```
+>
+> - `command` 表示直接调用外部 `pyenv` 命令，而不是 shell 函数。
+> - `pyenv rehash` 会扫描已安装的 Python 版本，在 `~/.pyenv/shims` 下重新生成所有可执行文件的代理脚本。
+> - 确保新安装的 Python 或工具能立即通过 shims 调用。
+>
+> ------
+>
+> 二、`pyenv init -` 的输出
+>
+> ```bash
+> PATH="$(bash --norc -ec 'IFS=:; paths=($PATH); 
+> for i in ${!paths[@]}; do 
+> if [[ ${paths[i]} == "''/Users/lx/.pyenv/shims''" ]]; then unset '\''paths[i]'\''; 
+> fi; done; 
+> echo "${paths[*]}"')"
+> export PATH="/Users/lx/.pyenv/shims:${PATH}"
+> export PYENV_SHELL=zsh
+> source '/opt/homebrew/Cellar/pyenv/2.8.5/completions/pyenv.zsh'
+> command pyenv rehash
+> pyenv() {
+>   local command=${1:-}
+>   [ "$#" -gt 0 ] && shift
+>   case "$command" in
+>   rehash|shell)
+>     eval "$(pyenv "sh-$command" "$@")"
+>     ;;
+>   *)
+>     command pyenv "$command" "$@"
+>     ;;
+>   esac
+> }
+> ```
+>
+> 它比 `--path` 多了以下内容：
+>
+> 1. **设置 `PYENV_SHELL`**
+>
+> ```bash
+> export PYENV_SHELL=zsh
+> ```
+>
+> - 告诉 pyenv 当前使用的 shell 是 zsh，便于 pyenv 内部根据 shell 类型调整行为。
+>
+> 2. **加载 zsh 补全脚本**
+>
+> ```bash
+> source '/opt/homebrew/Cellar/pyenv/2.8.5/completions/pyenv.zsh'
+> ```
+>
+> - 加载 pyenv 提供的 zsh 补全功能。
+> - 这样你在输入 `pyenv` 命令时，按 Tab 键可以自动补全子命令、版本号等。
+> - 路径来自 Homebrew 安装的 pyenv 版本（2.8.5）。
+>
+> 3. **定义 `pyenv` shell 函数**
+>
+> ```bash
+> pyenv() {
+>   local command=${1:-}
+>   [ "$#" -gt 0 ] && shift
+>   case "$command" in
+>   rehash|shell)
+>     eval "$(pyenv "sh-$command" "$@")"
+>     ;;
+>   *)
+>     command pyenv "$command" "$@"
+>     ;;
+>   esac
+> }
+> ```
+>
+> - 这个函数**覆盖**了直接调用外部 `pyenv` 命令的行为。
+> - 当执行 `pyenv rehash` 或 `pyenv shell` 时：
+>   - 会调用 `pyenv sh-rehash` 或 `pyenv sh-shell`。
+>   - 这两个内部命令会输出一段 shell 代码，然后通过 `eval` 在当前 shell 中执行。
+>   - 因为 `pyenv shell` 需要修改当前 shell 的环境变量（如 `PYENV_VERSION`），直接运行外部命令无法影响父 shell，所以必须用 `eval` 执行它输出的代码。
+> - 对于其他子命令（如 `pyenv install`、`pyenv versions`），则直接转发给真正的 `pyenv` 命令（用 `command pyenv` 避免递归调用函数）。
+>
+> 4. **仍然包含 `--path` 中的 PATH 清理、添加和 rehash**
+>
+> 所以 `pyenv init -` 的输出实际上**包含了 `--path` 的所有功能**，并额外增加了 shell 集成。
+
+#### pyenv的使用
+
+```bash
+# 查看可安装的版本
+# 或者 pyenv install --list
+pyenv install -l
+
+# 安装指定版本
+pyenv install 3.14.7
+
+# 查看已安装的版本
+pyenv versions
+
+# 切换 Python 版本
+# 1. 仅当前终端会话, 关闭终端即失效
+pyenv shell 3.14.7 
+
+# 2. 当前目录及其子目录,写入 .python-version 文件，持久有效
+pyenv local 3.14.7
+
+# 3. 全局默认，写入 ~/.pyenv/version，持久有效
+pyenv global 3.14.7
+
+# 查看当前实际使用的版本
+pyenv version
+
+```
+
+### 方式3（推荐）
+
+```bash
+brew install uv
+```
+
+
+
+## 安装Nginx
+
+```bash
+brew install nginx
+# 查看版本确认
+nginx -v
+
+# 后台常驻（开机自启）推荐
+brew services start nginx
+brew services stop nginx
+brew services restart nginx
+
+# nginx原生命令
+nginx -t                  # ✅校验配置语法，修改配置一定要先跑这个！
+nginx -s reload           # 平滑重载配置，不中断服务
+nginx -s stop             # 立刻停止
+nginx -s quit             # 优雅停止
+
+# 在 /opt/homebrew/etc/nginx/servers/目录下为新站点新建配置文件，例如：prgm.conf，
+touch /opt/homebrew/etc/nginx/servers/prgm.conf
+
+# 该文件的内容如下：
+server {
+    listen 80;
+    server_name prgm.cn;
+
+    # 网站根目录，替换成你的网站文件夹
+    root /Users/lx/Hugos/prgms/public;
+    index index.html index.htm;
+
+    # 前端SPA路由（Vue/React单页应用必须加，刷新404修复）
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 日志（可选）
+    access_log /opt/homebrew/var/log/nginx/prgm.cnaccess.log;
+    error_log /opt/homebrew/var/log/nginx/prgm.cn.error.log;
+}
+
+# 检查配置语法
+nginx -t
+# 重载配置
+nginx -s reload
+
+# 本地域名解析
+# 修改 /etc/hosts文件
+# 例如，新增 127.0.0.1 prgm.cn
+nano /etc/hosts
+
+# nano 相关操作
+# `Ctrl + O`：保存
+# `Ctrl + X`：退出
+# `Ctrl + W`：搜索文字
+# `Ctrl + K`：剪切当前一行
+# `Ctrl + U`：粘贴
+
+# 查看 /etc/hosts中的内容
+cat /etc/hosts  
+##
+# Host Database
+#
+# localhost is used to configure the loopback interface
+# when the system is booting.  Do not change this entry.
+##
+127.0.0.1	localhost
+255.255.255.255	broadcasthost
+::1             localhost
+127.0.0.1	prgm.cn
+```
+
+## 安装`hugo`
+
+```bash
+# 默认安装最新的 extended 版本，该版本支持 Sass，是做 Hugo 站点的首选
+brew install hugo
+# 重复执行，遇到有新版本，相当于更新版本
+
+# 查看安装版本
+hugo version
+# 例如： hugo v0.165.0+extended+withdeploy darwin/arm64 BuildDate=2026-08-12T14:26:28Z VendorInfo=Homebrew
+
+# 更新 hugo 版本
+brew upgrade hugo
+
+# 锁定 hugo 版本
+brew pin hugo
+
+# 取消锁定
+brew unpin hugo
+
+```
+
+## 安装 `stats`
+
+​	项目：[https://github.com/exelban/stats](https://link.wtturl.cn/?target=https%3A%2F%2Fgithub.com%2Fexelban%2Fstats&scene=im&aid=582478&lang=zh)，MIT 开源，社区维护多年，菜单栏实时显示 CPU、内存、GPU、温度、网速，**完全无广告、无订阅**，非常适合开发者。
+
+```bash
+# 安装
+brew install --cask stats
+
+# 卸载
+brew uninstall --cask stats
+
+# 配置
+open /Applications/Stats.app
+```
+
+## 安装 `visual-studio-code`
+
+```bash
+brew install --cask visual-studio-code
+
+# 安装后查看版本
+code --version
+
+# 或从命令行直接打开
+open -a "Visual Studio Code"
+# 或，指定打开某个文件
+code ~/.zshrc
+```
+
+
 
 ## 安装 Easydict
 
@@ -114,7 +640,7 @@ brew install lihaoyun6/tap/quickrecorder
 ```bash
 # 访问 https://www.navicat.com/en/download/navicat-premium-lite
 # 下载安装包
-# 安装
+# 打开安装包，拖拽到 Applications
 # 执行以下命令，递归删除 Navicat Premium Lite 整个 App 包里所有文件的网络隔离标记
 # 下载的 Navicat 打开时，macOS 提示：
 # “Navicat Premium Lite” 无法打开，因为 Apple 无法检查其是否包含恶意软件。
@@ -126,6 +652,15 @@ xattr -rd com.apple.quarantine /Applications/Navicat\ Premium\ Lite.app
 # 验证邮箱
 # 登录账号
 # 访问数据库
+```
+
+## 安装 `Chrome`
+
+```bash
+# 到官网 https://www.google.com/chrome/dr/download/ 下载 Chrome 的最新安装包
+# 打开安装包，拖拽到 Applications
+# 执行以下命令
+xattr -rd com.apple.quarantine /Applications/Google\ Chrome.app 
 ```
 
 
