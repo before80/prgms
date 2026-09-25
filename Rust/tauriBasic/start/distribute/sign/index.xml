@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>代码签名 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/distribute/sign/</link><description>Recent content in 代码签名 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 25 Sep 2026 23:46:06 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/tauriBasic/start/distribute/sign/index.xml" rel="self" type="application/rss+xml"/><item><title>1 macOS</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/distribute/sign/1-macos/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/distribute/sign/1-macos/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/distribute/sign/macos/"&gt;https://tauri.app/distribute/sign/macos/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在 macOS 上，代码签名是让应用能上架 &lt;a href="https://www.apple.com/app-store/"&gt;Apple App Store&lt;/a&gt;、以及避免从浏览器下载后被提示应用已损坏无法启动所必需的。&lt;/p&gt;
+&lt;h2 id="前置条件"&gt;前置条件&lt;/h2&gt;
+&lt;p&gt;macOS 上的代码签名需要一个 &lt;a href="https://developer.apple.com"&gt;Apple Developer&lt;/a&gt; 账号，可以是付费的（每年 99 美元）或免费计划（仅用于测试和开发目的）。你还需要一台用于执行代码签名的 Apple 设备。这是签名流程和 Apple 条款与条件所要求的。&lt;/p&gt;</description></item><item><title>2 iOS</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/distribute/sign/2-ios/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/distribute/sign/2-ios/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/distribute/sign/ios/"&gt;https://tauri.app/distribute/sign/ios/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在 iOS 上进行代码签名，是通过官方 &lt;a href="https://www.apple.com/app-store/"&gt;Apple App Store&lt;/a&gt; 或欧盟可能的替代市场分发应用所必需的，一般来说也是在终端用户设备上安装并执行所必需的。&lt;/p&gt;
+&lt;h2 id="前置条件"&gt;前置条件&lt;/h2&gt;
+&lt;p&gt;iOS 的代码签名需要注册 &lt;a href="https://developer.apple.com"&gt;Apple Developer&lt;/a&gt; 计划，撰写本文时费用为每年 99 美元。
+你还需要一台用于执行代码签名的 Apple 设备。这是签名流程和 Apple 条款与条件所要求的。&lt;/p&gt;</description></item><item><title>3 Windows</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/distribute/sign/3-windows/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/distribute/sign/3-windows/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/distribute/sign/windows/"&gt;https://tauri.app/distribute/sign/windows/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在 Windows 上，代码签名是让应用能上架 &lt;a href="https://apps.microsoft.com/"&gt;Microsoft Store&lt;/a&gt;、以及避免从浏览器下载后被 &lt;a href="https://en.wikipedia.org/wiki/Microsoft_SmartScreen"&gt;SmartScreen&lt;/a&gt; 提示应用不受信任无法启动所必需的。&lt;/p&gt;
+&lt;p&gt;只要你的终端用户愿意忽略 &lt;a href="https://en.wikipedia.org/wiki/Microsoft_SmartScreen"&gt;SmartScreen&lt;/a&gt; 警告，或者不是通过浏览器下载，那么在 Windows 上执行应用并不要求签名。
+本指南涵盖通过 OV（Organization Validated）证书和 Azure Key Vault 进行签名。
+如果你使用这里未记录的其它签名机制，例如 EV（Extended Validation）证书，
+请查阅你的证书颁发机构的文档，并参阅&lt;a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E7%AD%BE%E5%90%8D%E5%91%BD%E4%BB%A4"&gt;自定义签名命令&lt;/a&gt;一节。&lt;/p&gt;</description></item><item><title>4 Linux</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/distribute/sign/4-linux/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/distribute/sign/4-linux/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/distribute/sign/linux/"&gt;https://tauri.app/distribute/sign/linux/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;本指南提供关于 Linux 软件包代码签名的信息。
+虽然把应用部署到 Linux 并不要求对产物签名，
+但签名可以用来提升对你所部署应用的信任度。
+对二进制文件签名可以让终端用户验证这些文件是真实的，且未被其它不受信任的实体修改过。&lt;/p&gt;</description></item><item><title>5 Android</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/distribute/sign/5-android/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/distribute/sign/5-android/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/distribute/sign/android/"&gt;https://tauri.app/distribute/sign/android/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;要在 Play Store 上发布，你需要用数字证书为应用签名。&lt;/p&gt;
+&lt;p&gt;Android App Bundle 和 APK 在上传分发之前必须先签名。&lt;/p&gt;
+&lt;p&gt;Google 还为在 Play Store 中分发的 Android App Bundle 提供了额外的签名机制。
+更多信息请参阅 &lt;a href="https://support.google.com/googleplay/android-developer/answer/9842756?hl=en&amp;amp;visit_id=638549803861403647-3347771264&amp;amp;rd=1"&gt;Play 应用签名官方文档&lt;/a&gt;。&lt;/p&gt;</description></item></channel></rss>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>安全 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/security/</link><description>Recent content in 安全 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 25 Sep 2026 23:46:06 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/tauriBasic/start/security/index.xml" rel="self" type="application/rss+xml"/><item><title>1 安全概述</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/security/1-overview/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/security/1-overview/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/security/"&gt;https://tauri.app/security/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;本页旨在解释 Tauri 设计与生态核心中的高层概念和安全特性，它们让你、你的应用以及你的用户默认就更安全。&lt;/p&gt;
+&lt;p&gt;页面中还包含最佳实践建议、如何向我们报告漏洞，以及详细概念说明的链接。&lt;/p&gt;</description></item><item><title>2 权限</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/security/2-permissions/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/security/2-permissions/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/security/permissions/"&gt;https://tauri.app/security/permissions/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;权限（Permission）描述了命令所拥有的明确特权。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-toml" data-lang="toml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;identifier&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;my-identifier&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;description&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;This describes the impact and more.&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;commands&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;allow&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;read_file&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;[[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;permission&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;scope&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;allow&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;my-scope&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;$HOME/*&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;[[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;permission&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;scope&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;deny&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;my-scope&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;$HOME/secret&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;它可以让命令能够在 Tauri 应用的前端被访问，也可以把作用域映射到命令，并定义哪些命令被启用。权限可以启用或拒绝某些命令、定义作用域，或者两者结合。&lt;/p&gt;</description></item><item><title>3 命令作用域</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/security/3-scope/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/security/3-scope/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/security/scope/"&gt;https://tauri.app/security/scope/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;作用域（scope）是一种细粒度定义 Tauri 命令（不）允许行为的方式。&lt;/p&gt;
+&lt;p&gt;作用域分为 &lt;code&gt;allow&lt;/code&gt;（允许）和 &lt;code&gt;deny&lt;/code&gt;（拒绝）两类，其中 &lt;code&gt;deny&lt;/code&gt; 始终优先于 &lt;code&gt;allow&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>4 能力</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/security/4-capabilities/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/security/4-capabilities/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/security/capabilities/"&gt;https://tauri.app/security/capabilities/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Tauri 为应用和插件开发者提供了能力（capabilities）系统，用于细粒度地启用并约束对运行在系统 WebView 中的应用前端所暴露的核心能力。&lt;/p&gt;
+&lt;p&gt;能力定义了哪些&lt;a href="../2-permissions/"&gt;权限&lt;/a&gt;被授予或拒绝给哪些窗口或 webview。&lt;/p&gt;</description></item><item><title>5 资源协议作用域</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/security/5-assetprotocol/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/security/5-assetprotocol/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/security/asset-protocol/"&gt;https://tauri.app/security/asset-protocol/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Tauri 可以通过 &lt;strong&gt;asset&lt;/strong&gt; 自定义协议把磁盘文件提供给 WebView（例如当你在前端使用 &lt;a href="https://tauri.app/reference/javascript/api/namespacecore/#convertfilesrc"&gt;&lt;code&gt;convertFileSrc&lt;/code&gt;&lt;/a&gt; 时）。某个路径是否被允许由 &lt;code&gt;tauri.conf.json&lt;/code&gt; 中的 &lt;strong&gt;&lt;code&gt;app.security.assetProtocol&lt;/code&gt;&lt;/strong&gt; 控制。&lt;/p&gt;
+&lt;p&gt;你必须把 &lt;strong&gt;&lt;code&gt;enable&lt;/code&gt;&lt;/strong&gt; 设为 &lt;code&gt;true&lt;/code&gt;，并定义一个 &lt;strong&gt;&lt;code&gt;scope&lt;/code&gt;&lt;/strong&gt;，列出允许暴露的文件系统路径。运行时解析出的路径必须匹配该作用域，否则 WebView 会拒绝加载（通常伴随类似 “asset protocol not configured to allow the path” 的错误）。&lt;/p&gt;</description></item><item><title>6 内容安全策略（CSP）</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/security/6-csp/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/security/6-csp/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/security/csp/"&gt;https://tauri.app/security/csp/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Tauri 会限制你 HTML 页面的&lt;a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP"&gt;内容安全策略&lt;/a&gt;（CSP）。
+这可以用来减少或防止跨站脚本（XSS）等常见 Web 漏洞的影响。&lt;/p&gt;
+&lt;p&gt;本地脚本会做哈希处理，样式和外部脚本则使用密码学 nonce 引用，从而阻止未允许的内容被加载。&lt;/p&gt;</description></item><item><title>7 HTTP 头</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/security/8-httpheaders/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/security/8-httpheaders/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/security/http-headers/"&gt;https://tauri.app/security/http-headers/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;em&gt;需要 Tauri 2.1.0 或更高版本。&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;在配置中定义的头会随响应一起发送给 webview。
+这不包括 IPC 消息和错误响应。
+更具体地说，通过 &lt;a href="https://github.com/tauri-apps/tauri/blob/8e8312bb8201ccc609e4bbc1a990bdc314daa00f/crates/tauri/src/protocol/tauri.rs#L103"&gt;crates/tauri/src/protocol/tauri.rs ↗&lt;/a&gt; 中的 &lt;code&gt;get_response&lt;/code&gt; 函数发送的每个响应都会包含这些头。&lt;/p&gt;</description></item><item><title>9 生态安全</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/security/9-ecosystem/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/security/9-ecosystem/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/security/ecosystem/"&gt;https://tauri.app/security/ecosystem/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;我们的 Tauri 组织生态托管在 GitHub 上，并利用多项功能让我们各个仓库在面对针对源代码和发布版本的对手时更具韧性。&lt;/p&gt;
+&lt;p&gt;为了降低风险并遵循普遍采用的最佳实践，我们落实了以下做法。&lt;/p&gt;</description></item><item><title>10 应用生命周期威胁</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/security/10-lifecycle/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/security/10-lifecycle/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/security/lifecycle/"&gt;https://tauri.app/security/lifecycle/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Tauri 应用由许多部分构成，它们在应用生命周期的不同阶段发挥作用。
+这里我们描述一些经典威胁，以及你&lt;strong&gt;应当&lt;/strong&gt;如何应对。&lt;/p&gt;
+&lt;p&gt;所有这些不同的步骤将在下面各节中说明。&lt;/p&gt;</description></item><item><title>11 运行时权限</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/security/11-runtimeauthority/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/security/11-runtimeauthority/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/security/runtime-authority/"&gt;https://tauri.app/security/runtime-authority/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;运行时权限（runtime authority）是 Tauri 核心的一部分。
+它在运行时持有所有权限、能力和作用域，以强制决定哪个窗口可以访问哪个命令，并把作用域传递给命令。&lt;/p&gt;</description></item><item><title>12 未来工作</title><link>https://before80.github.io/prgms/Rust/tauriBasic/start/security/12-future/</link><pubDate>Fri, 25 Sep 2026 21:31:08 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/tauriBasic/start/security/12-future/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://tauri.app/security/future/"&gt;https://tauri.app/security/future/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;本节介绍我们已着手或希望在未来处理的主题，目的是让 Tauri 应用更加安全。
+如果你对这些主题感兴趣，或者已有相关知识，我们随时欢迎通过 GitHub 或 Discord 等社区平台加入新的贡献者和建议。&lt;/p&gt;</description></item></channel></rss>
