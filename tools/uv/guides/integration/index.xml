@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>2.7 集成 on 编程那些事儿</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/</link><description>Recent content in 2.7 集成 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 25 Sep 2026 21:01:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/tools/uv/guides/integration/index.xml" rel="self" type="application/rss+xml"/><item><title>2.7.1 在 Docker 中使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.1-docker/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.1-docker/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/docker/"&gt;https://docs.astral.sh/uv/guides/integration/docker/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="271-在-docker-中使用"&gt;2.7.1 在 Docker 中使用&lt;/h1&gt;
+&lt;h2 id="快速开始"&gt;快速开始&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;提示&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;在 Docker 中使用 uv 构建应用的最佳实践示例，请查看 &lt;a href="https://github.com/astral-sh/uv-docker-example"&gt;&lt;code&gt;uv-docker-example&lt;/code&gt;&lt;/a&gt; 项目。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;uv 同时提供&lt;em&gt;无发行版&lt;/em&gt;（distroless）Docker 镜像和基于常见基础镜像派生的镜像。前者适合在构建自己的镜像时&lt;a href="#installing-uv"&gt;复制 uv 二进制文件&lt;/a&gt;，后者适合在容器中使用 uv。无发行版镜像除 uv 二进制文件之外不包含任何内容；相对地，派生镜像则包含预装 uv 的操作系统。&lt;/p&gt;</description></item><item><title>2.7.2 与 Jupyter 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.2-jupyter/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.2-jupyter/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/jupyter/"&gt;https://docs.astral.sh/uv/guides/integration/jupyter/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="272-与-jupyter-配合使用"&gt;2.7.2 与 Jupyter 配合使用&lt;/h1&gt;
+&lt;p&gt;&lt;a href="https://jupyter.org/"&gt;Jupyter&lt;/a&gt; notebook 是交互式计算、数据分析和可视化的常用工具。你可以用几种不同方式把 Jupyter 与 uv 配合使用，既可以与项目交互，也可以把它当作独立工具。&lt;/p&gt;</description></item><item><title>2.7.3 与 marimo 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.3-marimo/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.3-marimo/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/marimo/"&gt;https://docs.astral.sh/uv/guides/integration/marimo/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="273-与-marimo-配合使用"&gt;2.7.3 与 marimo 配合使用&lt;/h1&gt;
+&lt;p&gt;&lt;a href="https://github.com/marimo-team/marimo"&gt;marimo&lt;/a&gt; 是一个开源 Python notebook，它把交互式计算与传统软件的可复现性和可复用性结合起来，让你可以用 Git 做版本管理、作为脚本运行，并作为应用分享。由于 marimo notebook 以纯 Python 脚本形式存储，它们能够与 uv 紧密集成。&lt;/p&gt;</description></item><item><title>2.7.4 在 GitHub Actions 中使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.4-github/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.4-github/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/github/"&gt;https://docs.astral.sh/uv/guides/integration/github/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="274-在-github-actions-中使用"&gt;2.7.4 在 GitHub Actions 中使用&lt;/h1&gt;
+&lt;h2 id="安装"&gt;安装&lt;/h2&gt;
+&lt;p&gt;在 GitHub Actions 中使用时，我们推荐官方 &lt;a href="https://github.com/astral-sh/setup-uv"&gt;&lt;code&gt;astral-sh/setup-uv&lt;/code&gt;&lt;/a&gt; action：它会安装 uv、把它加入 PATH、（可选地）持久化缓存等，并支持 uv 支持的所有平台。&lt;/p&gt;</description></item><item><title>2.7.5 在 GitLab CI/CD 中使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.5-gitlab/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.5-gitlab/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/gitlab/"&gt;https://docs.astral.sh/uv/guides/integration/gitlab/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="275-在-gitlab-cicd-中使用"&gt;2.7.5 在 GitLab CI/CD 中使用&lt;/h1&gt;
+&lt;h2 id="使用-uv-镜像"&gt;使用 uv 镜像&lt;/h2&gt;
+&lt;p&gt;Astral 提供了预装 uv 的 &lt;a href="./2.7.1-docker/#available-images"&gt;Docker 镜像&lt;/a&gt;。请选择适合你工作流的变体。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# .gitlab-ci.yml&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;variables&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;UV_VERSION&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;0.12.19&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;PYTHON_VERSION&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;3.12&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;BASE_LAYER&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;trixie-slim&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# GitLab CI 会为构建目录创建单独的挂载点，&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# 所以我们需要复制而不是使用硬链接。&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;UV_LINK_MODE&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;copy&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;uv&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;image&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;ghcr.io/astral-sh/uv:$UV_VERSION-python$PYTHON_VERSION-$BASE_LAYER&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;script&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# 你的 `uv` 命令&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>2.7.6 与 pre-commit 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.6-pre-commit/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.6-pre-commit/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/pre-commit/"&gt;https://docs.astral.sh/uv/guides/integration/pre-commit/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="276-与-pre-commit-配合使用"&gt;2.7.6 与 pre-commit 配合使用&lt;/h1&gt;
+&lt;p&gt;官方 pre-commit 钩子位于 &lt;a href="https://github.com/astral-sh/uv-pre-commit"&gt;&lt;code&gt;astral-sh/uv-pre-commit&lt;/code&gt;&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;要把 uv 与 pre-commit 配合使用，请把下面示例之一加入 &lt;code&gt;.pre-commit-config.yaml&lt;/code&gt; 的 &lt;code&gt;repos&lt;/code&gt; 列表。&lt;/p&gt;
+&lt;p&gt;要确保即使 &lt;code&gt;pyproject.toml&lt;/code&gt; 被修改后 &lt;code&gt;uv.lock&lt;/code&gt; 文件仍然是最新的：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# .pre-commit-config.yaml&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;repos&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;repo&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;https://github.com/astral-sh/uv-pre-commit&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;# uv 版本。&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;rev&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0.12.19&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;hooks&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; - &lt;span style="color:#76a9f9"&gt;id&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;:&lt;/span&gt; &lt;span style="color:#98c379"&gt;uv-lock&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;要让 &lt;code&gt;requirements.txt&lt;/code&gt; 文件与 &lt;code&gt;uv.lock&lt;/code&gt; 文件保持同步：&lt;/p&gt;</description></item><item><title>2.7.7 与 PyTorch 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.7-pytorch/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.7-pytorch/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/pytorch/"&gt;https://docs.astral.sh/uv/guides/integration/pytorch/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="277-与-pytorch-配合使用"&gt;2.7.7 与 PyTorch 配合使用&lt;/h1&gt;
+&lt;p&gt;&lt;a href="https://pytorch.org/"&gt;PyTorch&lt;/a&gt; 生态是深度学习研究和开发的热门选择。你可以用 uv 在不同 Python 版本和环境中管理 PyTorch 项目与 PyTorch 依赖，甚至可以控制加速器的选择（例如仅 CPU 还是 CUDA）。&lt;/p&gt;</description></item><item><title>2.7.8 与 FastAPI 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.8-fastapi/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.8-fastapi/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/fastapi/"&gt;https://docs.astral.sh/uv/guides/integration/fastapi/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="278-与-fastapi-配合使用"&gt;2.7.8 与 FastAPI 配合使用&lt;/h1&gt;
+&lt;p&gt;&lt;a href="https://github.com/fastapi/fastapi"&gt;FastAPI&lt;/a&gt; 是一个现代、高性能的 Python Web 框架。你可以用 uv 管理 FastAPI 项目，包括安装依赖、管理环境、运行 FastAPI 应用等。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;本指南的源代码可以在 &lt;a href="https://github.com/astral-sh/uv-fastapi-example"&gt;uv-fastapi-example&lt;/a&gt; 仓库中查看。&lt;/p&gt;</description></item><item><title>2.7.9 与 Bazel 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.9-bazel/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.9-bazel/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/bazel/"&gt;https://docs.astral.sh/uv/guides/integration/bazel/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="279-与-bazel-配合使用"&gt;2.7.9 与 Bazel 配合使用&lt;/h1&gt;
+&lt;p&gt;关于与 uv 配合的更广泛的 Bazel 工作流，请参阅 &lt;a href="https://github.com/aspect-build/rules_py#dependency-resolution-with-uv"&gt;&lt;code&gt;rules_py&lt;/code&gt; 的 uv 指南&lt;/a&gt;或 &lt;a href="https://rules-python.readthedocs.io/en/latest/pypi/lock.html#uv-pip-compile-bzlmod-only"&gt;&lt;code&gt;rules_python&lt;/code&gt; 的 uv 指南&lt;/a&gt;。&lt;/p&gt;
+&lt;h2 id="身份验证"&gt;身份验证&lt;/h2&gt;
+&lt;p&gt;Bazel 7 及更高版本通过 &lt;code&gt;--credential_helper&lt;/code&gt; 选项支持凭据助手。要让 Bazel 拉取时使用 uv 存储的凭据，请先用托管 Bazel 需要拉取文件的服务的账号登录 uv：&lt;/p&gt;</description></item><item><title>2.7.10 与 Azure Artifacts 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.10-azure/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.10-azure/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/azure/"&gt;https://docs.astral.sh/uv/guides/integration/azure/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="2710-与-azure-artifacts-配合使用"&gt;2.7.10 与 Azure Artifacts 配合使用&lt;/h1&gt;
+&lt;p&gt;uv 可以从 &lt;a href="https://learn.microsoft.com/en-us/azure/devops/artifacts/start-using-azure-artifacts?view=azure-devops&amp;amp;tabs=nuget%2Cnugetserver"&gt;Azure Artifacts&lt;/a&gt; 安装包，既可以使用&lt;a href="https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&amp;amp;tabs=Windows"&gt;个人访问令牌&lt;/a&gt;（PAT），也可以使用 &lt;a href="https://github.com/jaraco/keyring"&gt;&lt;code&gt;keyring&lt;/code&gt;&lt;/a&gt; 包。&lt;/p&gt;
+&lt;p&gt;要使用 Azure Artifacts，请把索引添加到你的项目：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-toml" data-lang="toml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# pyproject.toml&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;[[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;tool&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;uv&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;index&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;name&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;private-registry&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;url&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;https://pkgs.dev.azure.com/&amp;lt;ORGANIZATION&amp;gt;/&amp;lt;PROJECT&amp;gt;/_packaging/&amp;lt;FEED&amp;gt;/pypi/simple/&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="使用-azure-访问令牌进行身份验证"&gt;使用 Azure 访问令牌进行身份验证&lt;/h2&gt;
+&lt;p&gt;如果有可用的个人访问令牌（PAT）（例如 &lt;a href="https://learn.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&amp;amp;tabs=yaml#systemaccesstoken"&gt;Azure 流水线中的 &lt;code&gt;$(System.AccessToken)&lt;/code&gt;&lt;/a&gt;），可以通过 “Basic” HTTP 身份验证方案提供凭据。把 PAT 放在 URL 的密码字段中。用户名也必须提供，但可以是任意字符串。&lt;/p&gt;</description></item><item><title>2.7.11 与 Google Artifact Registry 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.11-google/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.11-google/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/google/"&gt;https://docs.astral.sh/uv/guides/integration/google/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="2711-与-google-artifact-registry-配合使用"&gt;2.7.11 与 Google Artifact Registry 配合使用&lt;/h1&gt;
+&lt;p&gt;uv 可以从 &lt;a href="https://cloud.google.com/artifact-registry/docs"&gt;Google Artifact Registry&lt;/a&gt; 安装包，既可以使用访问令牌，也可以使用 &lt;a href="https://github.com/jaraco/keyring"&gt;&lt;code&gt;keyring&lt;/code&gt;&lt;/a&gt; 包。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;本指南假设 &lt;a href="https://cloud.google.com/sdk/gcloud"&gt;&lt;code&gt;gcloud&lt;/code&gt;&lt;/a&gt; CLI 已安装并完成身份验证。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;要使用 Google Artifact Registry，请把索引添加到你的项目：&lt;/p&gt;</description></item><item><title>2.7.12 与 AWS CodeArtifact 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.12-aws/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.12-aws/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/aws/"&gt;https://docs.astral.sh/uv/guides/integration/aws/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="2712-与-aws-codeartifact-配合使用"&gt;2.7.12 与 AWS CodeArtifact 配合使用&lt;/h1&gt;
+&lt;p&gt;uv 可以从 &lt;a href="https://docs.aws.amazon.com/codeartifact/latest/ug/using-python.html"&gt;AWS CodeArtifact&lt;/a&gt; 安装包，既可以使用访问令牌，也可以使用 &lt;a href="https://github.com/jaraco/keyring"&gt;&lt;code&gt;keyring&lt;/code&gt;&lt;/a&gt; 包。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;本指南假设 &lt;a href="https://aws.amazon.com/cli/"&gt;&lt;code&gt;awscli&lt;/code&gt;&lt;/a&gt; 已安装并完成身份验证。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;索引可以这样声明：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-toml" data-lang="toml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# pyproject.toml&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;[[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;tool&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;uv&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;index&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;name&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;private-registry&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;url&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;https://&amp;lt;DOMAIN&amp;gt;-&amp;lt;ACCOUNT_ID&amp;gt;.d.codeartifact.&amp;lt;REGION&amp;gt;.amazonaws.com/pypi/&amp;lt;REPOSITORY&amp;gt;/simple/&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="使用-aws-访问令牌进行身份验证"&gt;使用 AWS 访问令牌进行身份验证&lt;/h2&gt;
+&lt;p&gt;凭据可以通过 “Basic” HTTP 身份验证方案提供。把访问令牌放在 URL 的密码字段中。用户名必须是 &lt;code&gt;aws&lt;/code&gt;，否则身份验证会失败。&lt;/p&gt;</description></item><item><title>2.7.13 与 JFrog Artifactory 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.13-jfrog/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.13-jfrog/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/jfrog/"&gt;https://docs.astral.sh/uv/guides/integration/jfrog/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="2713-与-jfrog-artifactory-配合使用"&gt;2.7.13 与 JFrog Artifactory 配合使用&lt;/h1&gt;
+&lt;p&gt;uv 可以从 JFrog Artifactory 安装包，既可以使用用户名和密码，也可以使用 JWT 令牌。&lt;/p&gt;
+&lt;p&gt;要使用它，请把索引添加到你的项目：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-toml" data-lang="toml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;# pyproject.toml&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;[[&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;tool&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;uv&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;index&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;]]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;name&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;private-registry&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;url&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;https://&amp;lt;organization&amp;gt;.jfrog.io/artifactory/api/pypi/&amp;lt;repository&amp;gt;/simple&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="使用用户名和密码进行身份验证"&gt;使用用户名和密码进行身份验证&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;$&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;export&lt;/span&gt; &lt;span style="color:#dcaeea"&gt;UV_INDEX_PRIVATE_REGISTRY_USERNAME&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;=&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;&amp;lt;username&amp;gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;$&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;export&lt;/span&gt; &lt;span style="color:#dcaeea"&gt;UV_INDEX_PRIVATE_REGISTRY_PASSWORD&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;=&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;&amp;lt;password&amp;gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="使用-jwt-令牌进行身份验证"&gt;使用 JWT 令牌进行身份验证&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;$&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;export&lt;/span&gt; &lt;span style="color:#dcaeea"&gt;UV_INDEX_PRIVATE_REGISTRY_USERNAME&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;=&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;$&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;export&lt;/span&gt; &lt;span style="color:#dcaeea"&gt;UV_INDEX_PRIVATE_REGISTRY_PASSWORD&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;=&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#dcaeea"&gt;$JFROG_JWT_TOKEN&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>2.7.14 与 Renovate 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.14-renovate/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.14-renovate/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/renovate/"&gt;https://docs.astral.sh/uv/guides/integration/renovate/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="2714-与-renovate-配合使用"&gt;2.7.14 与 Renovate 配合使用&lt;/h1&gt;
+&lt;p&gt;定期更新依赖被认为是最佳实践，可以避免暴露于漏洞、减少依赖之间的不兼容，并避免因版本过旧而导致的复杂升级。&lt;/p&gt;
+&lt;p&gt;uv 已得到 &lt;a href="https://github.com/renovatebot/renovate"&gt;Renovate&lt;/a&gt; 的支持。&lt;/p&gt;</description></item><item><title>2.7.15 与 Dependabot 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.15-dependabot/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.15-dependabot/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/dependabot/"&gt;https://docs.astral.sh/uv/guides/integration/dependabot/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="2715-与-dependabot-配合使用"&gt;2.7.15 与 Dependabot 配合使用&lt;/h1&gt;
+&lt;p&gt;定期更新依赖被认为是最佳实践，可以避免暴露于漏洞、减少依赖之间的不兼容，并避免因版本过旧而导致的复杂升级。&lt;/p&gt;
+&lt;p&gt;Dependabot 已宣布支持 uv，但还有一些用例尚不可用。更新情况请参阅 &lt;a href="https://github.com/astral-sh/uv/issues/2512"&gt;astral-sh/uv#2512&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>2.7.16 与 AWS Lambda 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.16-aws-lambda/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.16-aws-lambda/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/aws-lambda/"&gt;https://docs.astral.sh/uv/guides/integration/aws-lambda/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="2716-与-aws-lambda-配合使用"&gt;2.7.16 与 AWS Lambda 配合使用&lt;/h1&gt;
+&lt;p&gt;&lt;a href="https://aws.amazon.com/lambda/"&gt;AWS Lambda&lt;/a&gt; 是一项无服务器计算服务，让你无需预置或管理服务器即可运行代码。&lt;/p&gt;
+&lt;p&gt;你可以把 uv 与 AWS Lambda 配合使用，管理 Python 依赖、构建部署包并部署 Lambda 函数。&lt;/p&gt;</description></item><item><title>2.7.17 与 Coiled 配合使用</title><link>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.17-coiled/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/guides/integration/2.7.17-coiled/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/guides/integration/coiled/"&gt;https://docs.astral.sh/uv/guides/integration/coiled/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="2717-与-coiled-配合使用"&gt;2.7.17 与 Coiled 配合使用&lt;/h1&gt;
+&lt;p&gt;&lt;a href="https://coiled.io?utm_source=uv-docs"&gt;Coiled&lt;/a&gt; 是一个无服务器、注重用户体验的云计算平台，让你可以轻松在云端硬件（AWS、GCP 和 Azure）上运行代码。&lt;/p&gt;
+&lt;p&gt;本指南展示如何使用 uv 管理依赖、使用 Coiled 部署到云端，从而在云上运行 Python 脚本。&lt;/p&gt;</description></item></channel></rss>

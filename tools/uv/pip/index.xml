@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>4 pip 接口 on 编程那些事儿</title><link>https://before80.github.io/prgms/tools/uv/pip/</link><description>Recent content in 4 pip 接口 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 25 Sep 2026 21:01:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/tools/uv/pip/index.xml" rel="self" type="application/rss+xml"/><item><title>4.1 使用环境</title><link>https://before80.github.io/prgms/tools/uv/pip/4.1-environments/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/pip/4.1-environments/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/pip/environments/"&gt;https://docs.astral.sh/uv/pip/environments/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="41-使用环境"&gt;4.1 使用环境&lt;/h1&gt;
+&lt;p&gt;每个 Python 安装都有一个在使用 Python 时激活的环境。可以把包安装到某个环境中，使它们的模块可以从你的 Python 脚本中使用。通常认为，最好不要修改 Python 安装的环境。对随操作系统提供的 Python 安装来说尤其重要，它们往往自行管理包。虚拟环境是一种轻量的方式，用于把包与 Python 安装的环境隔离。与 &lt;code&gt;pip&lt;/code&gt; 不同，uv 默认要求使用虚拟环境。&lt;/p&gt;</description></item><item><title>4.2 管理包</title><link>https://before80.github.io/prgms/tools/uv/pip/4.2-packages/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/pip/4.2-packages/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/pip/packages/"&gt;https://docs.astral.sh/uv/pip/packages/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="42-管理包"&gt;4.2 管理包&lt;/h1&gt;
+&lt;h2 id="安装包"&gt;安装包&lt;/h2&gt;
+&lt;p&gt;要把包安装到虚拟环境中，例如 Flask：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;$&lt;/span&gt; uv pip install flask
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;要安装启用了可选依赖的包，例如带 “dotenv” extra 的 Flask：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;$&lt;/span&gt; uv pip install &lt;span style="color:#63c381"&gt;&amp;#34;flask[dotenv]&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;要安装多个包，例如 Flask 和 Ruff：&lt;/p&gt;</description></item><item><title>4.3 检查环境</title><link>https://before80.github.io/prgms/tools/uv/pip/4.3-inspection/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/pip/4.3-inspection/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/pip/inspection/"&gt;https://docs.astral.sh/uv/pip/inspection/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="43-检查环境"&gt;4.3 检查环境&lt;/h1&gt;
+&lt;h2 id="列出已安装的包"&gt;列出已安装的包&lt;/h2&gt;
+&lt;p&gt;列出环境中的所有包：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;$&lt;/span&gt; uv pip list
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;以 JSON 格式列出包：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;$&lt;/span&gt; uv pip list --format json
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;以 &lt;code&gt;requirements.txt&lt;/code&gt; 格式列出环境中的所有包：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;$&lt;/span&gt; uv pip freeze
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="检查某个包"&gt;检查某个包&lt;/h2&gt;
+&lt;p&gt;要显示已安装包的信息，例如 &lt;code&gt;numpy&lt;/code&gt;：&lt;/p&gt;</description></item><item><title>4.4 声明依赖</title><link>https://before80.github.io/prgms/tools/uv/pip/4.4-dependencies/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/pip/4.4-dependencies/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/pip/dependencies/"&gt;https://docs.astral.sh/uv/pip/dependencies/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="44-声明依赖"&gt;4.4 声明依赖&lt;/h1&gt;
+&lt;p&gt;最佳实践是在静态文件中声明依赖，而不是通过临时安装来修改环境。依赖定义好之后，可以&lt;a href="./4.5-compile/"&gt;锁定&lt;/a&gt;它们，以创建一致且可复现的环境。&lt;/p&gt;
+&lt;h2 id="使用-pyprojecttoml"&gt;使用 &lt;code&gt;pyproject.toml&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;pyproject.toml&lt;/code&gt; 文件是定义项目配置的 Python 标准。&lt;/p&gt;
+&lt;p&gt;要在 &lt;code&gt;pyproject.toml&lt;/code&gt; 文件中定义项目依赖：&lt;/p&gt;</description></item><item><title>4.5 锁定环境</title><link>https://before80.github.io/prgms/tools/uv/pip/4.5-compile/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/pip/4.5-compile/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/pip/compile/"&gt;https://docs.astral.sh/uv/pip/compile/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="45-锁定环境"&gt;4.5 锁定环境&lt;/h1&gt;
+&lt;p&gt;锁定就是把某个依赖（例如 &lt;code&gt;ruff&lt;/code&gt;）要使用的确切版本写入文件。处理大量依赖时，锁定确切版本很有用，这样可以复现环境。不锁定的话，依赖版本可能随着时间推移、使用不同工具或跨平台而发生变化。&lt;/p&gt;</description></item><item><title>4.6 与 pip 和 pip-tools 的兼容性</title><link>https://before80.github.io/prgms/tools/uv/pip/4.6-compatibility/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/pip/4.6-compatibility/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/pip/compatibility/"&gt;https://docs.astral.sh/uv/pip/compatibility/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="46-与-pip-和-pip-tools-的兼容性"&gt;4.6 与 pip 和 pip-tools 的兼容性&lt;/h1&gt;
+&lt;p&gt;uv 被设计为常用 &lt;code&gt;pip&lt;/code&gt; 和 &lt;code&gt;pip-tools&lt;/code&gt; 工作流的即插即用替代品。&lt;/p&gt;
+&lt;p&gt;非正式地说，其意图是让现有的 &lt;code&gt;pip&lt;/code&gt; 和 &lt;code&gt;pip-tools&lt;/code&gt; 用户无需对打包工作流做实质性改动即可切换到 uv；在大多数情况下，把 &lt;code&gt;pip install&lt;/code&gt; 换成 &lt;code&gt;uv pip install&lt;/code&gt; 应“直接可用”。&lt;/p&gt;</description></item></channel></rss>

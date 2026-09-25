@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>5 参考 on 编程那些事儿</title><link>https://before80.github.io/prgms/tools/uv/reference/</link><description>Recent content in 5 参考 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 25 Sep 2026 21:01:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/tools/uv/reference/index.xml" rel="self" type="application/rss+xml"/><item><title>5.1 CLI 参考</title><link>https://before80.github.io/prgms/tools/uv/reference/5.1-cli/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/reference/5.1-cli/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/reference/cli/"&gt;https://docs.astral.sh/uv/reference/cli/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="cli-reference"&gt;CLI Reference&lt;/h1&gt;
+&lt;h2 id="uv"&gt;uv&lt;/h2&gt;
+&lt;p&gt;An extremely fast Python package manager.&lt;/p&gt;
+&lt;h3 id="usage"&gt;Usage&lt;/h3&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;uv [OPTIONS] &amp;lt;COMMAND&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id="commands"&gt;Commands&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;uv auth&lt;/code&gt;&lt;/strong&gt;
+Manage authentication&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;uv run&lt;/code&gt;&lt;/strong&gt;
+Run a command or script&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;uv init&lt;/code&gt;&lt;/strong&gt;
+Create a new project&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;uv add&lt;/code&gt;&lt;/strong&gt;
+Add dependencies to the project&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;uv remove&lt;/code&gt;&lt;/strong&gt;
+Remove dependencies from the project&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;uv version&lt;/code&gt;&lt;/strong&gt;
+Read or update the project&amp;rsquo;s version&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;uv sync&lt;/code&gt;&lt;/strong&gt;
+Update the project&amp;rsquo;s environment&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;uv lock&lt;/code&gt;&lt;/strong&gt;
+Update the project&amp;rsquo;s lockfile&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;uv export&lt;/code&gt;&lt;/strong&gt;
+Export the project&amp;rsquo;s lockfile to an alternate format&lt;/p&gt;</description></item><item><title>5.2 设置</title><link>https://before80.github.io/prgms/tools/uv/reference/5.2-settings/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/reference/5.2-settings/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/reference/settings/"&gt;https://docs.astral.sh/uv/reference/settings/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="settings"&gt;Settings&lt;/h1&gt;
+&lt;h2 id="project-metadata"&gt;Project metadata&lt;/h2&gt;
+&lt;h3 id="build-constraint-dependencies"&gt;&lt;code&gt;build-constraint-dependencies&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;Constraints to apply when solving build dependencies.&lt;/p&gt;
+&lt;p&gt;Build constraints are used to restrict the versions of build dependencies that are selected when building a package during resolution or installation.&lt;/p&gt;
+&lt;p&gt;Including a package as a constraint will &lt;em&gt;not&lt;/em&gt; trigger installation of the package during a build; instead, the package must be requested elsewhere in the project&amp;rsquo;s build dependency graph.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;In &lt;code&gt;uv lock&lt;/code&gt;, &lt;code&gt;uv sync&lt;/code&gt;, and &lt;code&gt;uv run&lt;/code&gt;, uv will only read &lt;code&gt;build-constraint-dependencies&lt;/code&gt; from the &lt;code&gt;pyproject.toml&lt;/code&gt; at the workspace root, and will ignore any declarations in other workspace members or &lt;code&gt;uv.toml&lt;/code&gt; files.&lt;/p&gt;</description></item><item><title>5.3 环境变量</title><link>https://before80.github.io/prgms/tools/uv/reference/5.3-environment/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/reference/5.3-environment/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/reference/environment/"&gt;https://docs.astral.sh/uv/reference/environment/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="environment-variables"&gt;Environment variables&lt;/h1&gt;
+&lt;p&gt;uv defines and respects the following environment variables:&lt;/p&gt;
+&lt;h3 id="uv_astral_mirror_url"&gt;&lt;code&gt;UV_ASTRAL_MIRROR_URL&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;自 &lt;code&gt;0.11.14&lt;/code&gt; 起新增&lt;/p&gt;
+&lt;p&gt;Replaces the &lt;code&gt;https://releases.astral.sh&lt;/code&gt; base URL for all Astral-mirrored metadata and artifact downloads.&lt;/p&gt;
+&lt;p&gt;When set, uv uses only the configured mirror URL and does not fall back to GitHub or raw GitHub. Path components in the URL are preserved: only trailing slashes are trimmed before appending the normal path suffix (e.g., &lt;code&gt;/github/versions/main/v1/uv.ndjson&lt;/code&gt;).&lt;/p&gt;</description></item><item><title>5.4 存储</title><link>https://before80.github.io/prgms/tools/uv/reference/5.4-storage/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/reference/5.4-storage/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/reference/storage/"&gt;https://docs.astral.sh/uv/reference/storage/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="54-存储"&gt;5.4 存储&lt;/h1&gt;
+&lt;h2 id="存储目录"&gt;存储目录&lt;/h2&gt;
+&lt;p&gt;uv 使用以下高层目录进行存储。&lt;/p&gt;
+&lt;p&gt;对于每个位置，uv 会按给定顺序检查环境变量是否存在，并使用找到的第一个路径。&lt;/p&gt;
+&lt;p&gt;存储目录的路径与平台相关。uv 在 Linux 和 macOS 上遵循 &lt;a href="https://specifications.freedesktop.org/basedir-spec/latest/"&gt;XDG&lt;/a&gt; 约定，在 Windows 上遵循 &lt;a href="https://learn.microsoft.com/en-us/windows/win32/shell/known-folders"&gt;Known Folder&lt;/a&gt; 方案。&lt;/p&gt;</description></item><item><title>5.5 安装器选项</title><link>https://before80.github.io/prgms/tools/uv/reference/5.5-installer/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/reference/5.5-installer/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/reference/installer/"&gt;https://docs.astral.sh/uv/reference/installer/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="55-安装器选项"&gt;5.5 安装器选项&lt;/h1&gt;
+&lt;h2 id="更改安装路径"&gt;更改安装路径&lt;/h2&gt;
+&lt;p&gt;默认情况下，uv 安装在用户的&lt;a href="./5.4-storage/#executable-directory"&gt;可执行文件目录&lt;/a&gt;中。&lt;/p&gt;
+&lt;p&gt;要更改安装路径，请使用 &lt;code&gt;UV_INSTALL_DIR&lt;/code&gt;：&lt;/p&gt;
+
+
+
+
+
+
+&lt;ul class="nav nav-tabs" id="tabs-0" role="tablist"&gt;
+ &lt;li class="nav-item"&gt;
+ &lt;button class="nav-link active"
+ id="tabs-00-00-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-00" role="tab"
+ aria-controls="tabs-00-00" aria-selected="true"&gt;
+ macOS 和 Linux
+ &lt;/button&gt;
+ &lt;/li&gt;&lt;li class="nav-item"&gt;
+ &lt;button class="nav-link"
+ id="tabs-00-01-tab" data-bs-toggle="tab" data-bs-target="#tabs-00-01" role="tab"
+ aria-controls="tabs-00-01" aria-selected="false"&gt;
+ Windows
+ &lt;/button&gt;
+ &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class="tab-content" id="tabs-0-content"&gt;
+ &lt;div class="tab-body tab-pane fade show active"
+ id="tabs-00-00" role="tabpanel" aria-labelled-by="tabs-00-00-tab" tabindex="0"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#a6e22e"&gt;$&lt;/span&gt; curl -LsSf https://astral.sh/uv/install.sh &lt;span style="color:#abb2bf"&gt;|&lt;/span&gt; env &lt;span style="color:#dcaeea"&gt;UV_INSTALL_DIR&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;=&lt;/span&gt;&lt;span style="color:#63c381"&gt;&amp;#34;/custom/path&amp;#34;&lt;/span&gt; sh
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+ &lt;div class="tab-body tab-pane fade"
+ id="tabs-00-01" role="tabpanel" aria-labelled-by="tabs-00-01-tab" tabindex="0"&gt;
+ &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-pwsh" data-lang="pwsh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;PS&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;powershell&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;-ExecutionPolicy&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;ByPass&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;-c&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;&lt;span style="color:#dcaeea"&gt;$env:UV_INSTALL_DIR&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;=&lt;/span&gt; &lt;span style="color:#63c381"&gt;&amp;#34;C:\Custom\Path&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;irm &lt;/span&gt;&lt;span style="color:#aa89ea"&gt;https&lt;/span&gt;:&lt;span style="color:#abb2bf"&gt;//&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;astral&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;sh&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;/&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;uv&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;/&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;install&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#cebc3a"&gt;ps1&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;|&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;iex&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>5.7 贡献</title><link>https://before80.github.io/prgms/tools/uv/reference/5.7-contributing/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/reference/5.7-contributing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/reference/contributing/"&gt;https://docs.astral.sh/uv/reference/contributing/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="57-贡献"&gt;5.7 贡献&lt;/h1&gt;
+&lt;h2 id="寻找可以帮忙的地方"&gt;寻找可以帮忙的地方&lt;/h2&gt;
+&lt;p&gt;我们给认为是适合后续贡献的 issue 打上 &lt;a href="https://github.com/astral-sh/uv/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22"&gt;&lt;code&gt;help wanted&lt;/code&gt;&lt;/a&gt; 标签。它们对 Rust 和 uv 的经验要求各不相同。我们常常希望完成这些任务，但没有足够的资源自己来做。&lt;/p&gt;</description></item><item><title>5.10 基准测试</title><link>https://before80.github.io/prgms/tools/uv/reference/5.10-benchmarks/</link><pubDate>Fri, 25 Sep 2026 19:02:24 +0800</pubDate><guid>https://before80.github.io/prgms/tools/uv/reference/5.10-benchmarks/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://docs.astral.sh/uv/reference/benchmarks/"&gt;https://docs.astral.sh/uv/reference/benchmarks/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="510-基准测试"&gt;5.10 基准测试&lt;/h1&gt;
+&lt;p&gt;uv 的性能会持续与此前版本做基准对比，并定期与该领域的其他工具（如 pip 和 Poetry）比较。&lt;/p&gt;
+&lt;p&gt;最新的基准测试以及基准测试流程的细节可以在 &lt;a href="https://github.com/astral-sh/uv/blob/main/BENCHMARKS.md"&gt;GitHub 仓库&lt;/a&gt;中找到。&lt;/p&gt;</description></item></channel></rss>
