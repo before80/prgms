@@ -352,7 +352,12 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 {{% /tab %}}
 
 {{< /tabpane >}}
+
+
+
 3. 使用 Android Studio 中的 SDK Manager 安装以下内容：
+
+   
 
 - Android SDK Platform
 - Android SDK Platform-Tools
@@ -363,6 +368,8 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 在 SDK Manager 中勾选 “Show Package Details” 即可安装旧版本包。仅在必要时安装旧版本，因为它们可能引入兼容性问题或安全风险。
 
 4. 设置 `ANDROID_HOME` 和 `NDK_HOME` 环境变量。
+
+   
 
 {{< tabpane text=true persist=disabled >}}
 {{% tab header="Linux" %}}
@@ -403,7 +410,12 @@ $VERSION = Get-ChildItem -Name "$env:LocalAppData\Android\Sdk\ndk" | Select-Obje
 {{% /tab %}}
 
 {{< /tabpane >}}
+
+
+
 5. 使用 `rustup` 添加 Android 目标：
+
+   
 
 ```sh
 rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
