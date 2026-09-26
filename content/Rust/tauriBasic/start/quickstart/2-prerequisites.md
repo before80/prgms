@@ -432,19 +432,19 @@ iOS 开发需要 Xcode，且仅在 macOS 上可用。请确认你安装的是 Xc
 1. 在终端中使用 `rustup` 添加 iOS 目标：
 
 ```sh
-rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+rustup target add aarch64-apple-ios x86_64-apple-ios aarch64-apple-ios-sim
 ```
 
 2. 安装 [Homebrew](https://brew.sh)：
 
 ```sh
-rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
 3. 使用 Homebrew 安装 [Cocoapods](https://cocoapods.org)：
 
 ```sh
-rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+brew install cocoapods
 ```
 
 下一步：[创建项目](../3-createaproject/)。
