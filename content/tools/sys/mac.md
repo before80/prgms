@@ -69,7 +69,7 @@ MacOS快捷键
 
 ​	参见[CheatSheet/macShortcutKey](/CheatSheet/macShortcutKey/)
 
-## 安装`Homebrew`
+## 安装 `Homebrew`
 
 ```bash
 # 国内需要科学上网才可以
@@ -179,7 +179,7 @@ OpenInTerminal 支持的终端列表在不断更新中，以下是它兼容的�
 - **主流第三方终端**：**iTerm2**, **Hyper**, **Alacritty**, **kitty**, **Warp**, **WezTerm**, **Tabby**
 - **其他**：**Ghostty**, **cmux** 等
 
-> 注意
+> **注意**
 >
 > ​	前提是需要自己提前安装这些终端（除了系统内置的 Teminal ）。
 >
@@ -191,7 +191,7 @@ brew install --cask openinterminal
 # 在设置中启用 Finder 扩展
 # 依次进入 系统设置 -> 通用 -> 登录项与扩展 -> OpenInTerminal Extensions，然后启用 File Provider。
 # 在访达工具栏点击“显示” -> “自定义工具栏”将 “Open in Termimal”图标拖拽到访达窗口中工具栏位置上。
-# 这样在访达中，右键会出现“终端”， 工具栏也可以打开“终端”！
+# 这样在访达中，右键会出现“终端”， 窗口中的工具栏也可以打开“终端”！
 ```
 
 ## 覆盖默认`git`
@@ -203,7 +203,7 @@ brew install --cask openinterminal
 ```bash
 brew install git
 
-# 若之前在安装 brew 之后有在.zshrc中添加 eval "$(/opt/homebrew/bin/brew shellenv)"
+# 若之前在安装 brew 之后有在 ~/.zshrc 中添加 eval "$(/opt/homebrew/bin/brew shellenv)"
 # 则，当前的git命令就是使用 通过brew安装的git
 
 # 查看 git 版本
@@ -265,6 +265,162 @@ go env -w GOPROXY=“https://goproxy.cn,direct”
 # 2. 撤销 GOPROXY 的设置，恢复为官方默认值
 go env -u GOPROXY
 ```
+
+## 安装 `Rust`
+
+```bash
+# 安装 rustup，即 Rust 官方的工具链管理器
+# 不推荐使用 brew install rust 来安装 rustc+cargo+rustup
+curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
+
+# 安装后，重开终端，才能使用相关命令： rustup、 cargo、rustc
+
+# 卸载
+rustup self uninstall
+
+```
+
+> ```bash
+> [9:16:01] lx@lxdeMacBook-Pro ~ % curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+> info: downloading installer
+> 
+> Welcome to Rust!
+> 
+> This will download and install the official compiler for the Rust
+> programming language, and its package manager, Cargo.
+> 
+> Rustup metadata and toolchains will be installed into the Rustup
+> home directory, located at:
+> 
+>   /Users/lx/.rustup
+> 
+> This can be modified with the RUSTUP_HOME environment variable.
+> 
+> The Cargo home directory is located at:
+> 
+>   /Users/lx/.cargo
+> 
+> This can be modified with the CARGO_HOME environment variable.
+> 
+> The cargo, rustc, rustup and other commands will be added to
+> Cargo's bin directory, located at:
+> 
+>   /Users/lx/.cargo/bin
+> 
+> This path will then be added to your PATH environment variable by
+> modifying the profile files located at:
+> 
+>   /Users/lx/.profile
+>   /Users/lx/.zshenv
+>   /Users/lx/.tcshrc
+> 
+> You can uninstall at any time with rustup self uninstall and
+> these changes will be reverted.
+> 
+> Current installation options:
+> 
+> 
+>     default host tuple: aarch64-apple-darwin
+>      default toolchain: stable (default)
+>                profile: default
+>   modify PATH variable: yes
+> 
+> 1) Proceed with standard installation (default - just press enter)
+> 2) Customize installation
+> 3) Cancel installation
+> >1
+> 
+> info: profile set to default
+> info: default host tuple is aarch64-apple-darwin
+> info: syncing channel updates for stable-aarch64-apple-darwin
+> info: latest update on 2026-09-03 for version 1.98.1 (48a229cea 2026-09-01)
+> info: downloading 6 components
+>         cargo installed                        8.49 MiB                                                                        clippy installed                        2.78 MiB                                                                     rust-docs installed                       23.01 MiB                                                                      rust-std installed                       28.38 MiB                                                                         rustc installed                       46.68 MiB                                                                       rustfmt installed                        1.43 MiB                                                                 info: default toolchain set to stable-aarch64-apple-darwin
+> 
+>   stable-aarch64-apple-darwin installed - rustc 1.98.1 (48a229cea 2026-09-01)
+> 
+> 
+> Rust is installed now. Great!
+> 
+> To get started you may need to restart your current shell.
+> This would reload your PATH environment variable to include
+> Cargo's bin directory ($HOME/.cargo/bin).
+> 
+> To configure your current shell, you need to source the
+> corresponding env file under $HOME/.cargo.
+> 
+> Consider running the right command for your shell (note the leading DOT):
+> . "$HOME/.cargo/env"           # For sh/ash/dash/pdksh/zsh
+> source "$HOME/.cargo/env.tcsh" # For tcsh
+> ```
+>
+> **重开终端**后
+>
+> ```bash
+> Last login: Sat Sep 26 09:16:01 on ttys003
+> [9:26:54] lx@lxdeMacBook-Pro ~ % rustup --version
+> rustup 1.29.1 (d95a37b6a 2026-08-13)
+> info: This is the version for the rustup toolchain manager, not the rustc compiler.
+> info: the currently active `rustc` version is `rustc 1.98.1 (48a229cea 2026-09-01)`
+> [9:27:03] lx@lxdeMacBook-Pro ~ % cargo --version     
+> cargo 1.98.1 (797e8a9bc 2026-08-05)
+> [9:29:30] lx@lxdeMacBook-Pro ~ % rustc --version 
+> rustc 1.98.1 (48a229cea 2026-09-01)
+> [9:29:36] lx@lxdeMacBook-Pro ~ % 
+> ```
+>
+> **不重开终端**也可以这样：
+>
+> ```bash
+> source ~/.zshenv
+> ```
+>
+> ​	原因在于，执行`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`后，会在 `~/.zshenv` 文件的末尾添加一行：
+>
+> ```bash
+> . "$HOME/.cargo/env"
+> ```
+>
+> 
+
+
+
+> `rustup self uninstall`执行后会提示确认，输入 `y` 回车即可。 这条命令会自动删除：
+>
+> - rustup 程序
+> - Rust、cargo、所有已安装的工具链 (stable/beta/nightly)
+> - `~/.cargo`、`~/.rustup` 目录
+>
+> ```bash
+> [9:11:47] lx@lxdeMacBook-Pro ~ % rustup self uninstall
+> 
+> 
+> Thanks for hacking in Rust!
+> 
+> This will uninstall all Rust toolchains and data, and remove
+> $HOME/.cargo/bin from your PATH environment variable.
+> 
+> Continue? (y/N) y
+> 
+> info: removing toolchains
+> info: uninstalling toolchain stable-aarch64-apple-darwin
+> info: toolchain stable-aarch64-apple-darwin uninstalled
+> info: uninstalling toolchain nightly-aarch64-apple-darwin
+> info: toolchain nightly-aarch64-apple-darwin uninstalled
+> info: removing rustup home
+> info: removing cargo home
+> info: removing rustup binaries
+> info: rustup is uninstalled
+> [9:12:42] lx@lxdeMacBook-Pro ~ % 
+> [9:13:25] lx@lxdeMacBook-Pro ~ % rustup --version     
+> zsh: command not found: rustup
+> [9:15:02] lx@lxdeMacBook-Pro ~ % rustc --version 
+> zsh: command not found: rustc
+> [9:15:33] lx@lxdeMacBook-Pro ~ % cargo --version     
+> zsh: command not found: cargo
+> ```
+>
+> 
 
 ## 安装 `python`
 
@@ -722,7 +878,7 @@ source my-env/bin/activate
 
 
 
-## 安装Nginx
+## 安装 `Nginx`
 
 ```bash
 brew install nginx
@@ -793,7 +949,7 @@ cat /etc/hosts
 127.0.0.1	prgm.cn
 ```
 
-## 安装`hugo`
+## 安装 `hugo`
 
 ```bash
 # 默认安装最新的 extended 版本，该版本支持 Sass，是做 Hugo 站点的首选
