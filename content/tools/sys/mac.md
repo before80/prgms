@@ -1000,6 +1000,53 @@ open -a "Visual Studio Code"
 code ~/.zshrc
 ```
 
+## 安装 `Xcode`
+
+​	进入 `App Store`, 搜索 `Xcode`,进行安装!
+
+## 安装 `Android Studio`
+
+```bash
+# 到 https://developer.android.com/studio?hl=zh-cn 下载最新版 Android Studio
+# 点击 Android Studio.dmg 打开后拖入 Applications
+# 执行以下命令，递归删除 Android Studio 整个 App 包里所有文件的网络隔离标记
+xattr -rd com.apple.quarantine /Applications/Android\ Studio.app 
+
+# 之后打开，同意协议，安装一些组件
+Preparing "Install Sources for Android 37.0 (revision 2)".
+Downloading https://dl.google.com/android/repository/source-37.0_r02.zip
+"Install Sources for Android 37.0 (revision 2)" ready.
+Installing Sources for Android 37.0 in /Users/lx/Library/Android/sdk/sources/android-37.0
+"Install Sources for Android 37.0 (revision 2)" complete.
+"Install Sources for Android 37.0 (revision 2)" finished.
+Preparing "Install Android SDK Build-Tools 36 v.36.0.0".
+Downloading https://dl.google.com/android/repository/build-tools_r36_macosx.zip
+"Install Android SDK Build-Tools 36 v.36.0.0" ready.
+Installing Android SDK Build-Tools 36 in /Users/lx/Library/Android/sdk/build-tools/36.0.0
+"Install Android SDK Build-Tools 36 v.36.0.0" complete.
+"Install Android SDK Build-Tools 36 v.36.0.0" finished.
+Preparing "Install Android SDK Platform 37.0 (revision 2)".
+Downloading https://dl.google.com/android/repository/platform-37.0_r02.zip
+"Install Android SDK Platform 37.0 (revision 2)" ready.
+Installing Android SDK Platform 37.0 in /Users/lx/Library/Android/sdk/platforms/android-37.0
+"Install Android SDK Platform 37.0 (revision 2)" complete.
+"Install Android SDK Platform 37.0 (revision 2)" finished.
+Preparing "Install Android SDK Platform-Tools v.37.0.1".
+Downloading https://dl.google.com/android/repository/platform-tools_r37.0.1-darwin.zip
+"Install Android SDK Platform-Tools v.37.0.1" ready.
+Installing Android SDK Platform-Tools in /Users/lx/Library/Android/sdk/platform-tools
+"Install Android SDK Platform-Tools v.37.0.1" complete.
+"Install Android SDK Platform-Tools v.37.0.1" finished.
+Preparing "Install Android Emulator v.37.1.11".
+Downloading https://dl.google.com/android/repository/emulator-darwin_aarch64-15917651.zip
+"Install Android Emulator v.37.1.11" ready.
+Installing Android Emulator in /Users/lx/Library/Android/sdk/emulator
+"Install Android Emulator v.37.1.11" complete.
+"Install Android Emulator v.37.1.11" finished.
+SDK Manager found the following installed packages: build-tools;36.0.0 emulator platform-tools platforms;android-37.0 sources;android-37.0
+Android SDK is up to date.
+```
+
 
 
 ## 安装 Easydict
