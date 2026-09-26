@@ -24,9 +24,7 @@ draft = false
 
 ## 设置
 
-{{< tabpane text=true persist=disabled >}}
-
-{{% tab header="自动" %}}
+### 自动
 
 使用你的项目包管理器添加依赖：
 
@@ -82,9 +80,7 @@ cargo tauri add biometric
 
 {{< /tabpane >}}
 
-{{% /tab %}}
-
-{{% tab header="手动" %}}
+### 手动
 
 1. 在 `src-tauri` 文件夹中运行以下命令，把插件加入 `Cargo.toml` 里的项目依赖：
 
@@ -154,9 +150,6 @@ bun add @tauri-apps/plugin-biometric
 
 {{< /tabpane >}}
 
-{{% /tab %}}
-
-{{< /tabpane >}}
 
 ## 配置
 

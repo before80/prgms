@@ -12,9 +12,7 @@ draft = false
 
 **发行类型**
 
-{{< tabpane text=true persist=disabled >}}
-
-{{% tab header="开源" %}}
+### 开源
 
 1. 获取所需工具。
 
@@ -214,9 +212,7 @@ git checkout -b your_app_name
 
 **_6. 你的应用现在会进入审核流程，期间可能会被要求对项目做修改。_**
 
-{{% /tab %}}
-
-{{% tab header="闭源" %}}
+### 闭源
 
 关于 Flatpak 工作原理的详细信息，你可以阅读[构建你的第一个 Flatpak](https://docs.flatpak.org/en/latest/first-build.html)。
 
@@ -412,6 +408,3 @@ git checkout -b your_app_name
 
 你可以[在 flatpak 文档中](https://docs.flatpak.org/en/latest/dependencies.html#bundling)了解更多内容。
 
-{{% /tab %}}
-
-{{< /tabpane >}}

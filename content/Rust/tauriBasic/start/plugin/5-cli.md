@@ -27,9 +27,7 @@ Tauri 通过 [clap](https://github.com/clap-rs/clap)（一个健壮的命令行�
 
 ## 设置
 
-{{< tabpane text=true persist=disabled >}}
-
-{{% tab header="自动" %}}
+### 自动
 
 使用你的项目包管理器添加依赖：
 
@@ -85,9 +83,7 @@ cargo tauri add cli
 
 {{< /tabpane >}}
 
-{{% /tab %}}
-
-{{% tab header="手动" %}}
+### 手动
 
 1. 在 `src-tauri` 文件夹中运行以下命令，把插件加入 `Cargo.toml` 里的项目依赖：
 
@@ -157,9 +153,6 @@ bun add @tauri-apps/plugin-cli
 
 {{< /tabpane >}}
 
-{{% /tab %}}
-
-{{< /tabpane >}}
 
 ## 基础配置
 

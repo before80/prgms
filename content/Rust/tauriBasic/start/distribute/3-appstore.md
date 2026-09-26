@@ -199,6 +199,7 @@ cargo tauri ios build --open
 ```
 
 然后在为 App Store 打包 Tauri 应用时，把该配置文件与主配置合并：
+{{% /alert %}}
 
 **包管理器**
 
@@ -261,8 +262,6 @@ cargo tauri bundle --bundles app --target universal-apple-darwin --config src-ta
 {{< /tabpane >}}
 
 当你在 CI/CD 中把应用上传到 App Store，而本地不需要描述文件，或者还要为 App Store 之外的分发编译应用时，这尤其有用。
-
-{{% /alert %}}
 
 - 分类
 

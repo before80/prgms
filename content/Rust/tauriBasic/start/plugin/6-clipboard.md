@@ -28,8 +28,7 @@ draft = false
 
 **安装方式**
 
-{{< tabpane text=true persist=disabled >}}
-{{% tab header="自动" %}}
+### 自动
 
 使用你的项目包管理器添加依赖：
 
@@ -83,9 +82,8 @@ cargo tauri add clipboard-manager
 {{% /tab %}}
 
 {{< /tabpane >}}
-{{% /tab %}}
 
-{{% tab header="手动" %}}
+### 手动
 
 1. 在 `src-tauri` 文件夹中运行以下命令，把插件加入 `Cargo.toml` 里的项目依赖：
 
@@ -149,9 +147,7 @@ bun add @tauri-apps/plugin-clipboard-manager
 {{% /tab %}}
 
 {{< /tabpane >}}
-{{% /tab %}}
 
-{{< /tabpane >}}
 ## 用法
 
 剪贴板插件在 JavaScript 和 Rust 中都可以使用。

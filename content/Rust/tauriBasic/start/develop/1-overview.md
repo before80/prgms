@@ -324,6 +324,7 @@ cargo tauri [android|ios] dev --open
 {{% alert title="注意" %}}
 如果你打算在 iOS 真机上运行应用，还必须提供 `--host` 参数，并且你的开发服务器必须把 `process.env.TAURI_DEV_HOST` 的值用作 host。
 更多信息请查阅你所使用框架的配置指南。
+{{% /alert %}}
 
 {{< tabpane text=true persist=disabled >}}
 {{% tab header="npm" %}}
@@ -375,7 +376,6 @@ cargo tauri [android|ios] dev --open --host
 {{% /tab %}}
 
 {{< /tabpane >}}
-{{% /alert %}}
 
 {{% alert title="警告" color="warning" %}}
 要使用 Xcode 或 Android Studio，Tauri CLI 进程**必须**保持运行，**不能**被结束。

@@ -50,6 +50,7 @@ keytool -genkey -v -keystore $env:USERPROFILE\upload-keystore.jks -storetype JKS
 
 - `keytool` 命令可能不在你的 PATH 中。
   你可能会在 Android Studio 附带的 JDK 中找到它：
+{{% /alert %}}
 
 **操作系统**
 
@@ -82,8 +83,6 @@ C:\\Program Files\\Android\\Android Studio\\jbr\\bin\\keytool.exe ...args
 {{% /tab %}}
 
 {{< /tabpane >}}
-
-{{% /alert %}}
 
 {{% alert title="安全警告" color="warning" %}}
 
