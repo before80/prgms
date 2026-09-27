@@ -24,7 +24,7 @@ Tauri 不是虚拟机或虚拟化环境。它是一个应用工具包，用来�
 
 ## 核心生态
 
-![Tauri 架构的简化表示](./images/architecture.svg)
+![Tauri 架构的简化表示](images/architecture.svg)
 
 *图：Tauri 架构的简化表示。*
 
