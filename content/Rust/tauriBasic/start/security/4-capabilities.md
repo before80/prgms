@@ -33,6 +33,8 @@ Tauri 为应用和插件开发者提供了能力（capabilities）系统，用�
 
 下面的 JSON 示例定义了一个能力，允许主窗口使用核心插件的默认功能以及 `window.setTitle` API。
 
+`src-tauri/capabilities/default.json`
+
 ```json
 {
   "$schema": "../gen/schemas/desktop-schema.json",
@@ -58,6 +60,8 @@ Tauri 为应用和插件开发者提供了能力（capabilities）系统，用�
 
 这要求在 `capabilities` 目录中有定义良好的能力文件。
 
+`src-tauri/tauri.conf.json`
+
 ```json
 {
   "app": {
@@ -69,6 +73,8 @@ Tauri 为应用和插件开发者提供了能力（capabilities）系统，用�
 ```
 
 内联能力可以与预定义能力混用。
+
+`src-tauri/tauri.conf.json`
 
 ```json
 {
@@ -88,13 +94,9 @@ Tauri 为应用和插件开发者提供了能力（capabilities）系统，用�
 }
 ```
 
-默认情况下，你在应用中注册的所有命令
-（通过
-[`tauri::Builder::invoke_handler`](https://docs.rs/tauri/2.0.0/tauri/struct.Builder.html#method.invoke_handler)
-函数）
-都允许被应用的所有窗口和 webview 使用。
-若要改变这一点，可以考虑使用
-[`AppManifest::commands`](https://docs.rs/tauri-build/2.0.0/tauri_build/struct.AppManifest.html#method.commands)。
+默认情况下，你在应用中注册的所有命令（通过[`tauri::Builder::invoke_handler`](https://docs.rs/tauri/2.0.0/tauri/struct.Builder.html#method.invoke_handler)函数）都允许被应用的所有窗口和 webview 使用。若要改变这一点，可以考虑使用 [`AppManifest::commands`](https://docs.rs/tauri-build/2.0.0/tauri_build/struct.AppManifest.html#method.commands)。
+
+`src-tauri/build.rs`
 
 ```rust
 fn main() {
@@ -114,6 +116,8 @@ fn main() {
 例如一个用于桌面操作系统的能力。
 注意它启用的是仅在桌面端可用的插件权限：
 
+`src-tauri/capabilities/desktop.json`
+
 ```json
 {
   "$schema": "../gen/schemas/desktop-schema.json",
@@ -126,6 +130,8 @@ fn main() {
 
 再看一个用于移动端的能力示例。
 注意它启用的是仅在移动端可用的插件权限：
+
+`src-tauri/capabilities/mobile.json`
 
 ```json
 {
@@ -147,6 +153,8 @@ fn main() {
 若要允许远程来源访问某些 Tauri 命令，可以在能力配置文件中定义。
 
 下面这个示例允许从 `tauri.app` 的所有子域扫描 NFC 标签并使用条码扫描器。
+
+`src-tauri/capabilities/remote-tags.json`
 
 ```json
 {

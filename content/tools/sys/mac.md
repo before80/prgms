@@ -194,7 +194,7 @@ brew install --cask openinterminal
 # 这样在访达中，右键会出现“终端”， 窗口中的工具栏也可以打开“终端”！
 ```
 
-## 覆盖默认`git`
+## 覆盖默认 `git`
 
 ​	在 macOS 上，**不建议直接卸载系统自带的 Git**。因为它与 Xcode 命令行工具（Command Line Tools）深度绑定，位于受系统完整性保护（SIP）的 `/usr/bin/git` 目录，强行删除可能会破坏系统其他功能。
 
@@ -223,9 +223,55 @@ where git
 # [11:02:23] lx@lxdeMacBook-Pro ~ % /usr/bin/git --version
 # git version 2.54.0 (Apple Git-157)
 
+
+# 生成用于 GitHub 的 SSH Key
+#
+ssh-keygen -t ed25519 -C "your_email@example.com"
+# 1. `Enter file in which to save the key (/Users/lx/.ssh/id_ed25519):`
+# 可以直接回车，使用默认路径。
+# 2. `Enter passphrase (empty for no passphrase):`
+#
+# > 
+# > **密钥密码（可选，强烈建议设置密码）**：输入密码，每次使用该密钥需要输入；直接回车代表无密码。
+# 3. `Enter same passphrase again:` 再次确认密码。
+# 完成后在 `~/.ssh` 生成两个文件：
+#- `id_ed25519`：**私钥，务必保密，不要泄露**
+#- `id_ed25519.pub`：**公钥，复制内容粘贴到 GitHub**
+
+
+# 将私钥加入 ssh‑agent（Mac）
+# 启动 ssh‑agent：
+# ```
+eval "$(ssh-agent -s)"
+# ```
+
+# > 
+# > 如果设置了 passphrase，mac 可以把密钥密码存入钥匙串，避免每次手动输入：
+# ```
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519
+# ```
+
+# 获取公钥内容
+#
+# 复制公钥：
+# ```
+cat ~/.ssh/id_ed25519.pub
+# ```
+# 复制全部输出，以 `ssh‑ed25519` 开头，结尾是你的邮箱。
+
+# GitHub 添加公钥
+# GitHub 网页右上角头像 → Settings -> 左侧菜单 SSH and GPG keys -> New SSH key -> Title：随便写 -> 
+# 将复制的公钥完整粘贴到大框，点击 Add SSH key
+
+# 测试连通性
+ssh -T git@github.com
+# [7:13:13] lx@lxdeMacBook-Pro RustPrjs % ssh -T git@github.com
+# Hi before80! You've successfully authenticated, but GitHub does not provide shell access.
 ```
 
 ## 安装 `tree`命令
+
+​	**以树形结构打印目录和文件层级关系**，非常适合看项目目录结构、写文档贴目录树。
 
 ```bash
 brew install tree
@@ -235,6 +281,24 @@ tree --version
 
 # 卸载
 brew uninstall tree
+
+# 查看当前目录完整树
+tree
+
+# 只展示2层（最常用，避免输出太多）
+tree -L 2
+
+# 只显示文件夹，不显示文件
+tree -d
+
+# 忽略 node_modules 和 .git
+tree -I "node_modules|.git"
+
+# 包含隐藏文件
+tree -a
+
+# 把目录树输出保存到 README.md
+tree -L 2 > README.md
 ```
 
 
@@ -1104,7 +1168,7 @@ xattr -rd com.apple.quarantine /Applications/Google\ Chrome.app
 
 
 
-## 撤销`git commit -m "提交信息"`
+## 撤销 `git commit -m "提交信息"`
 
 ```bash
 # 前提没有提交到远程仓库
@@ -1125,7 +1189,7 @@ git commit --amend -m "正确的提交信息"
 
 
 
-## 撤销`git add -A`
+## 撤销 `git add -A`
 
 ​	`git add -A`：把**所有修改、删除、新增文件**全部加入暂存区（index）。撤销的本质：**取消暂存，代码保留在本地文件，不会丢失**。
 

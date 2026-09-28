@@ -25,6 +25,8 @@ Tauri 会限制你 HTML 页面的[内容安全策略](https://developer.mozilla.
 
 下面这个 CSP 配置示例取自 Tauri 的 [`api`](https://github.com/tauri-apps/tauri/blob/dev/examples/api/src-tauri/tauri.conf.json#L22) 示例，但每个应用开发者都需要根据自己的应用需求做调整。
 
+`tauri/examples/api/src-tauri/tauri.conf.json`
+
 ```json
   "csp": {
         "default-src": "'self' customprotocol: asset:",

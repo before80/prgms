@@ -28,6 +28,8 @@ Tauri 可以通过 **asset** 自定义协议把磁盘文件提供给 WebView（�
 
 当你只需要一份固定的允许清单，且默认的 glob 行为已足够时，使用列表：
 
+`src-tauri/tauri.conf.json`
+
 ```json
 {
   "app": {
@@ -46,6 +48,8 @@ Tauri 可以通过 **asset** 自定义协议把磁盘文件提供给 WebView（�
 ### 对象形式（`allow`、`deny`、`requireLiteralLeadingDot`）
 
 当你需要 **deny** 规则，或想改变**前导点**的匹配方式时，使用对象形式：
+
+`src-tauri/tauri.conf.json`
 
 ```json
 {
@@ -72,6 +76,8 @@ Tauri 可以通过 **asset** 自定义协议把磁盘文件提供给 WebView（�
 因此像 `$HOME/**` 这样的模式可以允许 `/home/user/Documents/file.png`，但**不会**允许 `/home/user/.cache/myapp/preview.png`，因为 `.cache` 是点开头的组件。字面写出该段的模式（例如 `$HOME/.cache/myapp/**`）则**可以**匹配。
 
 若要在宽泛的 glob 下允许点开头的组件，你可以在**对象**形式的 `scope` 中把 **`requireLiteralLeadingDot`** 设为 **`false`**（这会放宽 WebView 能加载的内容，请仔细评估）：
+
+`src-tauri/tauri.conf.json`
 
 ```json
 {
@@ -102,6 +108,8 @@ Tauri 可以通过 **asset** 自定义协议把磁盘文件提供给 WebView（�
 ## 高度宽松的配置（务必极其谨慎）
 
 如果你确实需要最宽泛的访问权限**并且**需要点开头的路径段，维护者建议的形式如下。**这不是默认推荐**；它会增加隐藏文件和敏感文件的暴露风险。
+
+`src-tauri/tauri.conf.json`
 
 ```json
 {

@@ -58,6 +58,8 @@ draft = false
 
 ### 示例
 
+`src-tauri/tauri.conf.json`
+
 ```javascript
 {
  //...
@@ -120,6 +122,8 @@ timing-allow-origin: https://developer.mozilla.org, https://example.com
 
 对于使用构建工具 **Vite** 的项目（包括 **Qwik、React、Solid、Svelte 和 Vue**），把想要的头加入 `vite.config.ts`。
 
+`vite.config.ts`
+
 ```typescript
 import { defineConfig } from 'vite';
 
@@ -138,8 +142,9 @@ export default defineConfig({
 })
 ```
 
-有时 `vite.config.ts` 会集成到框架的配置文件中，但设置方式不变。
-如果是 **Angular**，请把它们加入 `angular.json`。
+有时 `vite.config.ts` 会集成到框架的配置文件中，但设置方式不变。如果是 **Angular**，请把它们加入 `angular.json`。
+
+`angular.json`
 
 ```json
 {
@@ -171,6 +176,8 @@ export default defineConfig({
 
 如果是 **Nuxt**，请把它们加入 `nuxt.config.ts`。
 
+`nuxt.config.ts`
+
 ```typescript
 export default defineNuxtConfig({
   //...
@@ -190,9 +197,9 @@ export default defineNuxtConfig({
 });
 ```
 
-**Next.js** 不依赖 **Vite**，所以做法不同。
-更多信息请[见这里 ↗](https://nextjs.org/docs/pages/api-reference/next-config-js/headers)。
-这些头在 `next.config.js` 中定义。
+**Next.js** 不依赖 **Vite**，所以做法不同。更多信息请[见这里 ↗](https://nextjs.org/docs/pages/api-reference/next-config-js/headers)。这些头在 `next.config.js` 中定义。
+
+`next.config.js`
 
 ```javascript
 module.exports = {
@@ -232,6 +239,8 @@ module.exports = {
 #### Rust
 
 对于 **Yew** 和 **Leptos**，请把这些头加入 `Trunk.toml`。
+
+`Trunk.toml`
 
 ```toml
 [serve]
