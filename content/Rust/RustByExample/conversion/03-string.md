@@ -16,7 +16,7 @@ draft = false
 
 ## `ToString` {#tostring}
 
-要把任何类型转换成 `String`，只需要实现那个类型的 [`ToString`] trait。然而不要直接这么做，您应该实现[`fmt::Display`][Display] trait，它会自动提供 [`ToString`]，并且还可以用来打印类型，就像 [`print!`][print] 一节中讨论的那样。
+​	要把任何类型转换成 `String`，只需要实现那个类型的 [`ToString`] trait。然而不要直接这么做，您应该实现[`fmt::Display`][Display] trait，它会自动提供 [`ToString`]，并且还可以用来打印类型，就像 [`print!`][print] 一节中讨论的那样。
 
 ```rust
 use std::fmt;
@@ -33,7 +33,7 @@ impl fmt::Display for Circle {
 
 fn main() {
     let circle = Circle { radius: 6 };
-    println!("{}", circle.to_string());
+    println!("{}", circle.to_string());//Circle of radius 6
 }
 ```
 译注：一个实现 `ToString` 的例子
@@ -53,16 +53,14 @@ impl ToString for Circle {
 
 fn main() {
     let circle = Circle { radius: 6 };
-    println!("{}", circle.to_string());
+    println!("{}", circle.to_string());//Circle of radius 6
 }
 ```
 ## 解析字符串 {#解析字符串}
 
-我们经常需要把字符串转成数字。完成这项工作的标准手段是用 [`parse`] 函数。我们得提供要转换到的类型，这可以通过使用类型推断，或者用 “涡轮鱼” 语法（turbo fish，`<>`）实现。
+​	将字符串转换为多种类型是很有用的，但字符串操作中比较常见的一种是将字符串转换为数字。实现这一操作的惯用方法是使用[`parse`](https://doc.rust-lang.org/std/primitive.str.html#method.parse)函数，要么通过类型推断来实现，要么使用“涡轮鱼”语法指定要解析的类型。以下示例展示了这两种方法。
 
-只要对目标类型实现了 [`FromStr`] trait，就可以用 `parse` 把字符串转换成目标类型。
-标准库中已经给无数种类型实现了 `FromStr`。如果要转换到用户定义类型，只要手动实现
- `FromStr` 就行。
+​	只要为目标类型实现了 [`FromStr`](https://doc.rust-lang.org/std/str/trait.FromStr.html) trait，该方法就会将字符串转换为指定类型。标准库中已为众多类型实现了这一trait。
 
 ```rust
 fn main() {
@@ -70,9 +68,39 @@ fn main() {
     let turbo_parsed = "10".parse::<i32>().unwrap();
 
     let sum = parsed + turbo_parsed;
-    println!{"Sum: {:?}", sum};
+    println!{"Sum: {:?}", sum};//Sum: 15
 }
 ```
+​	要在用户定义的类型上实现此功能，只需为该类型实现[`FromStr`](https://doc.rust-lang.org/std/str/trait.FromStr.html) trait 即可。
+
+```rust
+use std::num::ParseIntError;
+use std::str::FromStr;
+
+#[derive(Debug)]
+struct Circle {
+    radius: i32,
+}
+
+impl FromStr for Circle {
+    type Err = ParseIntError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.trim().parse() {
+            Ok(num) => Ok(Circle{ radius: num }),
+            Err(e) => Err(e),
+        }
+    }
+}
+
+fn main() {
+    let radius = "    3 ";
+    let circle: Circle = radius.parse().unwrap();
+    println!("{:?}", circle);//Circle { radius: 3 }
+}
+```
+
+
+
 [`ToString`]: https://rustwiki.org/zh-CN/std/string/trait.ToString.html
 [Display]: https://rustwiki.org/zh-CN/std/fmt/trait.Display.html
 [print]: ../hello/02-print/

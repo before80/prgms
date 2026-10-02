@@ -28,7 +28,7 @@ fn main() {
         a_binding = x * x;
     }
 
-    println!("a binding: {}", a_binding);
+    println!("a binding: {}", a_binding); // a binding: 4
 
     let another_binding;
 
@@ -38,7 +38,7 @@ fn main() {
 
     another_binding = 1;
 
-    println!("another binding: {}", another_binding);
+    println!("another binding: {}", another_binding); // another binding: 1
 }
 ```
 编译器禁止使用未经初始化的变量，因为这会产生未定义行为（undefined behavior）。

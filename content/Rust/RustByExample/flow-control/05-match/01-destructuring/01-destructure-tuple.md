@@ -14,7 +14,7 @@ draft = false
 
 # 元组
 
-元组可以在 `match` 中解构，如下所示：
+​	元组可以在 `match` 中解构，如下所示：
 
 ```rust
 fn main() {
@@ -32,6 +32,8 @@ fn main() {
         // `_` 表示不将值绑定到变量
     }
 }
+//Tell me about (0, -2, 3)
+//First is `0`, `y` is -2, and `z` is 3
 ```
 ### 参见： {#参见}
 

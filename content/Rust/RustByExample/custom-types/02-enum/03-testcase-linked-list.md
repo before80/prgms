@@ -80,9 +80,10 @@ fn main() {
     list = list.prepend(3);
 
     // 显示链表的最后状态
-    println!("linked list has length: {}", list.len());
-    println!("{}", list.stringify());
+    println!("linked list has length: {}", list.len()); // linked list has length: 3
+    println!("{}", list.stringify()); // 3, 2, 1, Nil
 }
+
 ```
 ### 参见： {#参见}
 

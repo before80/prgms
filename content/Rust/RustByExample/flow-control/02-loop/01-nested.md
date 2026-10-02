@@ -14,7 +14,7 @@ draft = false
 
 # 嵌套循环和标签
 
-在处理嵌套循环的时候可以 `break` 或 `continue` 外层循环。在这类情形中，循环必须用一些 `'label`（标签）来注明，并且标签必须传递给 `break`/`continue` 语句。
+​	在处理嵌套循环的时候可以 `break` 或 `continue` 外层循环。在这类情形中，循环必须用一些 `'label`（标签）来注明，并且标签必须传递给 `break`/`continue` 语句。
 
 ```rust
 #![allow(unreachable_code)]
@@ -38,4 +38,7 @@ fn main() {
 
     println!("Exited the outer loop");
 }
+//Entered the outer loop
+//Entered the inner loop
+//Exited the outer loop
 ```

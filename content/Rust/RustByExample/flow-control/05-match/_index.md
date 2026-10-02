@@ -46,4 +46,8 @@ fn main() {
 
     println!("{} -> {}", boolean, binary);
 }
+//
+Tell me about 13
+A teen
+true -> 1
 ```

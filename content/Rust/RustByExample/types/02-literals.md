@@ -30,11 +30,11 @@ fn main() {
     let f = 1.0;
 
     // `size_of_val` 返回一个变量所占的字节数
-    println!("size of `x` in bytes: {}", std::mem::size_of_val(&x));
-    println!("size of `y` in bytes: {}", std::mem::size_of_val(&y));
-    println!("size of `z` in bytes: {}", std::mem::size_of_val(&z));
-    println!("size of `i` in bytes: {}", std::mem::size_of_val(&i));
-    println!("size of `f` in bytes: {}", std::mem::size_of_val(&f));
+    println!("size of `x` in bytes: {}", std::mem::size_of_val(&x)); // size of `x` in bytes: 1
+    println!("size of `y` in bytes: {}", std::mem::size_of_val(&y)); // size of `y` in bytes: 4
+    println!("size of `z` in bytes: {}", std::mem::size_of_val(&z)); // size of `z` in bytes: 4
+    println!("size of `i` in bytes: {}", std::mem::size_of_val(&i)); // size of `i` in bytes: 4
+    println!("size of `f` in bytes: {}", std::mem::size_of_val(&f)); // size of `f` in bytes: 8
 }
 ```
 上面的代码使用了一些还没有讨论过的概念。心急的读者可以看看下面的简短解释：

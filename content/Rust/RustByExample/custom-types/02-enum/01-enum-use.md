@@ -44,12 +44,12 @@ fn main() {
     match status {
         // 注意这里没有用完整路径，因为上面显式地使用了 `use`。
         Rich => println!("The rich have lots of money!"),
-        Poor => println!("The poor have no money..."),
+        Poor => println!("The poor have no money..."), // The poor have no money...
     }
 
     match work {
         // 再次注意到没有用完整路径。
-        Civilian => println!("Civilians work!"),
+        Civilian => println!("Civilians work!"), // Civilians work!
         Soldier  => println!("Soldiers fight!"),
     }
 }

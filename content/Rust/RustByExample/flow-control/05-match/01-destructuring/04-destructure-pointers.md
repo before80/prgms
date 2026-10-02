@@ -14,7 +14,7 @@ draft = false
 
 # 指针和引用
 
-对指针来说，解构（destructure）和解引用（dereference）要区分开，因为这两者的概念是不同的，和 `C` 那样的语言用法不一样。
+​	对指针来说，解构（destructure）和解引用（dereference）要区分开，因为这两者的概念是不同的，和 `C` 那样的语言用法不一样。
 
 - 解引用使用 `*`
 - 解构使用 `&`、`ref`、和 `ref mut`
@@ -68,6 +68,11 @@ fn main() {
         },
     }
 }
+//
+Got a value via destructuring: 4
+Got a value via dereferencing: 4
+Got a reference to a value: 5
+We added 10. `mut_value`: 16
 ```
 ### 参见： {#参见}
 

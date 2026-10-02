@@ -28,12 +28,12 @@ fn main() {
         // 此绑定只存在于本代码块
         let short_lived_binding = 2;
 
-        println!("inner short: {}", short_lived_binding);
+        println!("inner short: {}", short_lived_binding); // inner short: 2
 
         // 此绑定*遮蔽*了外面的绑定
         let long_lived_binding = 5_f32;
 
-        println!("inner long: {}", long_lived_binding);
+        println!("inner long: {}", long_lived_binding); // inner long: 5
     }
     // 代码块结束
 
@@ -41,12 +41,12 @@ fn main() {
     println!("outer short: {}", short_lived_binding);
     // 改正 ^ 注释掉这行
 
-    println!("outer long: {}", long_lived_binding);
+    println!("outer long: {}", long_lived_binding); // outer long: 1
 
     // 此绑定同样*遮蔽*了前面的绑定
     let long_lived_binding = 'a';
 
-    println!("outer long: {}", long_lived_binding);
+    println!("outer long: {}", long_lived_binding); // outer long: a
 }
 ```
 [variable-shadow]: https://en.wikipedia.org/wiki/Variable_shadowing

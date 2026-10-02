@@ -36,11 +36,11 @@ enum Color {
 
 fn main() {
     // `enum` 可以转成整型。
-    println!("zero is {}", Number::Zero as i32);
-    println!("one is {}", Number::One as i32);
+    println!("zero is {}", Number::Zero as i32); // zero is 0
+    println!("one is {}", Number::One as i32); // one is 1
 
-    println!("roses are #{:06x}", Color::Red as i32);
-    println!("violets are #{:06x}", Color::Blue as i32);
+    println!("roses are #{:06x}", Color::Red as i32); // roses are #ff0000
+    println!("violets are #{:06x}", Color::Blue as i32); // violets are #0000ff
 }
 ```
 ### 参考： {#参考}

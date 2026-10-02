@@ -53,6 +53,7 @@ fn main() {
         ),
     }
 }
+//array[0] = 1, array[2] = 6 and array[1] was ignored
 ```
 ### 参见： {#参见}
 [数组和切片](../../../primitives/03-array/) 与 `@` 符号用法[绑定](../03-binding/)

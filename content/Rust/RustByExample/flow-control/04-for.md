@@ -16,9 +16,9 @@ draft = false
 
 ## for 与区间 {#for-与区间}
 
-`for in` 结构可以遍历一个 `Iterator`（迭代器）。创建迭代器的一个最简单的方法是使用区间标记 `a..b`。这会生成从 `a`（包含此值） 到 `b`（不含此值）的，步长为 1 的一系列值。
+​	`for in` 结构可以遍历一个 `Iterator`（迭代器）。创建迭代器的一个最简单的方法是使用区间标记 `a..b`。这会生成从 `a`（包含此值） 到 `b`（不含此值）的，步长为 1 的一系列值。
 
-让我们使用 `for` 代替 `while` 来写 FizzBuzz 程序。
+​	让我们使用 `for` 代替 `while` 来写 FizzBuzz 程序。
 
 ```rust
 fn main() {
@@ -36,7 +36,7 @@ fn main() {
     }
 }
 ```
-或者，可以使用`a..=b`表示两端都包含在内的范围。上面的代码可以写成：
+​	或者，可以使用`a..=b`表示两端都包含在内的范围。上面的代码可以写成：
 
 ```rust
 fn main() {
@@ -54,11 +54,27 @@ fn main() {
     }
 }
 ```
+​	只需记住，即使在 a 大于 b 时代码也能编译，但循环永远不会执行。
+
+```rust
+for i in 10..1{
+	println!("fizzbuzz");
+}
+```
+
+​	如果你想倒序计数，就需要改用 .rev()
+
+```rust
+for i in (1..10).rev(){
+	println!("fizzbuzz");
+}
+```
+
 ## for 与迭代器 {#for-与迭代器}
 
-`for in` 结构能以几种方式与 `Iterator` 互动。在 [迭代器][iter] trait 一节将会谈到，如果没有特别指定，`for` 循环会对给出的集合应用 `into_iter` 函数，把它转换成一个迭代器。这并不是把集合变成迭代器的唯一方法，其他的方法有 `iter` 和`iter_mut` 函数。
+​	`for in` 结构能以几种方式与 `Iterator` 互动。在 [迭代器][iter] trait 一节将会谈到，如果没有特别指定，`for` 循环会对给出的集合应用 `into_iter` 函数，把它转换成一个迭代器。这并不是把集合变成迭代器的唯一方法，其他的方法有 `iter` 和`iter_mut` 函数。
 
-这三个函数会以不同的方式返回集合中的数据。
+​	这三个函数会以不同的方式返回集合中的数据。
 
 - `iter` - 在每次迭代中借用集合中的一个元素。这样集合本身不会被改变，循环之后仍可以使用。
 
@@ -73,10 +89,16 @@ fn main() {
         }
     }
 }
+//
+Hello Bob
+Hello Frank
+There is a rustacean among us!
 ```
 译注：Ferris 是 Rust 的[非官方吉祥物](https://www.rustacean.net/)。
 
 - `into_iter` - 会消耗集合。在每次迭代中，集合中的数据本身会被提供。一旦集合被消耗了，之后就无法再使用了，因为它已经在循环中被 “移除”（move）了。
+
+> 个人注释： `Vec<T>::iter_mut()` 产出 **`&mut T`**，这里 `T = &str`，所以每个 `name` 的类型是 **`&mut &str`**—— 一个 " 可变引用，指向一个 `&str`"
 
 ```rust
 fn main() {
@@ -88,7 +110,12 @@ fn main() {
             _ => println!("Hello {}", name),
         }
     }
+    println!("names: {:?}", names);//报错：error[E0382]: borrow of moved value: `names`
 }
+//
+Hello Bob
+Hello Frank
+There is a rustacean among us!
 ```
 - `iter_mut` - 可变地（mutably）借用集合中的每个元素，从而允许集合被就地修改。
 
@@ -102,10 +129,10 @@ fn main() {
             _ => "Hello",
         }
     }
-    println!("names: {:?}", names);
+    println!("names: {:?}", names);//names: ["Hello", "Hello", "There is a rustacean among us!"]
 }
 ```
-在上面这些代码中，注意 `match` 的分支中所写的类型不同，这是不同迭代方式的关键区别。因为类型不同，能够执行的操作当然也不同。
+​	在上面这些代码中，注意 `match` 的分支中所写的类型不同，这是不同迭代方式的关键区别。因为类型不同，能够执行的操作当然也不同。
 
 ### 参见： {#参见}
 

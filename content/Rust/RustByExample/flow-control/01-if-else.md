@@ -14,7 +14,7 @@ draft = false
 
 # if/else
 
-`if`-`else` 分支判断和其他语言类似。不同的是，Rust 语言中的布尔判断条件不必使用小括号包裹，且每个条件后面都跟着一个代码块。`if`-`else` 条件选择是一个表达式，并且所有分支都必须返回相同的类型。
+​	`if`-`else` 分支判断和其他语言类似。不同的是，Rust 语言中的布尔判断条件不必使用小括号包裹，且每个条件后面都跟着一个代码块。`if`-`else` 条件选择是一个表达式，并且所有分支都必须返回相同的类型。
 
 ```rust
 fn main() {
@@ -23,14 +23,14 @@ fn main() {
     if n < 0 {
         print!("{} is negative", n);
     } else if n > 0 {
-        print!("{} is positive", n);
+        print!("{} is positive", n); // 5 is positive
     } else {
         print!("{} is zero", n);
     }
 
     let big_n =
         if n < 10 && n > -10 {
-            println!(", and is a small number, increase ten-fold");
+            println!(", and is a small number, increase ten-fold"); // , and is a small number, increase ten-fold
 
             // 这个表达式返回一个 `i32` 类型。
             10 * n
@@ -43,6 +43,6 @@ fn main() {
         };
     //   ^ 不要忘记在这里加上一个分号！所有的 `let` 绑定都需要它。
 
-    println!("{} -> {}", n, big_n);
+    println!("{} -> {}", n, big_n); // 5 -> 50
 }
 ```

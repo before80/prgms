@@ -37,14 +37,14 @@ enum WebEvent {
 // 此函数将一个 `WebEvent` enum 作为参数，无返回值。
 fn inspect(event: WebEvent) {
     match event {
-        WebEvent::PageLoad => println!("page loaded"),
-        WebEvent::PageUnload => println!("page unloaded"),
+        WebEvent::PageLoad => println!("page loaded"), // page loaded
+        WebEvent::PageUnload => println!("page unloaded"), // page unloaded
         // 从 `enum` 里解构出 `c`。
-        WebEvent::KeyPress(c) => println!("pressed '{}'.", c),
-        WebEvent::Paste(s) => println!("pasted \"{}\".", s),
+        WebEvent::KeyPress(c) => println!("pressed '{}'.", c), // pressed 'x'.
+        WebEvent::Paste(s) => println!("pasted \"{}\".", s), // pasted "my text".
         // 把 `Click` 解构给 `x` and `y`。
         WebEvent::Click { x, y } => {
-            println!("clicked at x={}, y={}.", x, y);
+            println!("clicked at x={}, y={}.", x, y); // clicked at x=20, y=80.
         },
     }
 }

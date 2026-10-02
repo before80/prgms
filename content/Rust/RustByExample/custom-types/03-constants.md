@@ -36,9 +36,9 @@ fn main() {
     let n = 16;
 
     // 在 main 函数（主函数）中访问常量
-    println!("This is {}", LANGUAGE);
-    println!("The threshold is {}", THRESHOLD);
-    println!("{} is {}", n, if is_big(n) { "big" } else { "small" });
+    println!("This is {}", LANGUAGE); // This is Rust
+    println!("The threshold is {}", THRESHOLD); // The threshold is 10
+    println!("{} is {}", n, if is_big(n) { "big" } else { "small" }); // 16 is big
 
     // 报错！不能修改一个 `const` 常量。
     THRESHOLD = 5;

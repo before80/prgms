@@ -14,9 +14,9 @@ draft = false
 
 # loop 循环
 
-Rust 提供了 `loop` 关键字来表示一个无限循环。
+​	Rust 提供了 `loop` 关键字来表示一个无限循环。
 
-可以使用 `break` 语句在任何时候退出一个循环，还可以使用 `continue` 跳过循环体的剩余部分并开始下一轮循环。
+​	可以使用 `break` 语句在任何时候退出一个循环，还可以使用 `continue` 跳过循环体的剩余部分并开始下一轮循环。
 
 ```rust
 fn main() {
@@ -45,4 +45,12 @@ fn main() {
         }
     }
 }
+//Let's count until infinity!
+//1
+//2
+//three
+//4
+//5
+//OK, that's enough
+
 ```
