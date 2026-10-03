@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第8章 流程控制 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/RustByExample/flow-control/</link><description>Recent content in 第8章 流程控制 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 02 Oct 2026 23:23:54 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/RustByExample/flow-control/index.xml" rel="self" type="application/rss+xml"/><item><title>01-if/else</title><link>https://before80.github.io/prgms/Rust/RustByExample/flow-control/01-if-else/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/flow-control/01-if-else/</guid><description>&lt;blockquote&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第8章 流程控制 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/RustByExample/flow-control/</link><description>Recent content in 第8章 流程控制 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sat, 03 Oct 2026 17:01:26 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/RustByExample/flow-control/index.xml" rel="self" type="application/rss+xml"/><item><title>01-if/else</title><link>https://before80.github.io/prgms/Rust/RustByExample/flow-control/01-if-else/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/flow-control/01-if-else/</guid><description>&lt;blockquote&gt;
 &lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/"&gt;Rust By Example&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;blockquote&gt;
@@ -277,7 +277,7 @@
 &lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/flow_control/if_let.html"&gt;https://doc.rust-lang.org/stable/rust-by-example/flow_control/if_let.html&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;h1 id="if-let"&gt;if let&lt;/h1&gt;
-&lt;p&gt;在一些场合下，用 &lt;code&gt;match&lt;/code&gt; 匹配枚举类型并不优雅。比如：&lt;/p&gt;
+&lt;p&gt;​	在一些场合下，用 &lt;code&gt;match&lt;/code&gt; 匹配枚举类型并不优雅。比如：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
 &lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
@@ -292,6 +292,7 @@
 &lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
 &lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
 &lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
 &lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
 &lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 将 `optional` 定为 `Option&amp;lt;i32&amp;gt;` 类型
@@ -306,9 +307,10 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;_&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{},&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// ^ 必须有，因为 `match` 需要覆盖全部情况。不觉得这行很多余吗？
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;};&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;//This is a really long string and `7`
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;&lt;code&gt;if let&lt;/code&gt; 在这样的场合要简洁得多，并且允许指明数种失败情形下的选项：&lt;/p&gt;</description></item><item><title>07-let-else</title><link>https://before80.github.io/prgms/Rust/RustByExample/flow-control/07-let-else/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/flow-control/07-let-else/</guid><description>&lt;blockquote&gt;
+&lt;/div&gt;&lt;p&gt;​	&lt;code&gt;if let&lt;/code&gt; 在这样的场合要简洁得多，并且允许指明数种失败情形下的选项：&lt;/p&gt;</description></item><item><title>07-let-else</title><link>https://before80.github.io/prgms/Rust/RustByExample/flow-control/07-let-else/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/flow-control/07-let-else/</guid><description>&lt;blockquote&gt;
 &lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/"&gt;Rust By Example&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;blockquote&gt;
@@ -320,14 +322,14 @@
 &lt;p&gt;🛈 可通过如下方式指定 edition 进行编译：
 &lt;code&gt;rustc --edition=2021 main.rs&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;借助 &lt;code&gt;let&lt;/code&gt;-&lt;code&gt;else&lt;/code&gt;，可反驳模式（refutable pattern）可以像普通 &lt;code&gt;let&lt;/code&gt; 一样在外层作用域中匹配并绑定变量；若模式不匹配，则执行发散操作（例如 &lt;code&gt;break&lt;/code&gt;、&lt;code&gt;return&lt;/code&gt;、&lt;code&gt;panic!&lt;/code&gt;）。&lt;/p&gt;</description></item><item><title>08-while let</title><link>https://before80.github.io/prgms/Rust/RustByExample/flow-control/08-while-let/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/flow-control/08-while-let/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;​	借助 &lt;code&gt;let&lt;/code&gt;-&lt;code&gt;else&lt;/code&gt;，可反驳模式（refutable pattern）可以像普通 &lt;code&gt;let&lt;/code&gt; 一样在外层作用域中匹配并绑定变量；若模式不匹配，则执行发散操作（例如 &lt;code&gt;break&lt;/code&gt;、&lt;code&gt;return&lt;/code&gt;、&lt;code&gt;panic!&lt;/code&gt;）。&lt;/p&gt;</description></item><item><title>08-while let</title><link>https://before80.github.io/prgms/Rust/RustByExample/flow-control/08-while-let/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/flow-control/08-while-let/</guid><description>&lt;blockquote&gt;
 &lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/"&gt;Rust By Example&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;blockquote&gt;
 &lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/flow_control/while_let.html"&gt;https://doc.rust-lang.org/stable/rust-by-example/flow_control/while_let.html&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;h1 id="while-let"&gt;while let&lt;/h1&gt;
-&lt;p&gt;和 &lt;code&gt;if let&lt;/code&gt; 类似，&lt;code&gt;while let&lt;/code&gt; 也可以把别扭的 &lt;code&gt;match&lt;/code&gt; 改写得好看一些。考虑下面这段使 &lt;code&gt;i&lt;/code&gt; 不断增加的代码：&lt;/p&gt;
+&lt;p&gt;​	和 &lt;code&gt;if let&lt;/code&gt; 类似，&lt;code&gt;while let&lt;/code&gt; 也可以把别扭的 &lt;code&gt;match&lt;/code&gt; 改写得好看一些。考虑下面这段使 &lt;code&gt;i&lt;/code&gt; 不断增加的代码：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
 &lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
@@ -352,6 +354,18 @@
 &lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;20
 &lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;21
 &lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;22
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;23
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;24
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;25
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;26
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;27
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;28
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;29
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;30
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;31
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;32
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;33
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;34
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
 &lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
 &lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// 将 `optional` 设为 `Option&amp;lt;i32&amp;gt;` 类型
@@ -376,6 +390,18 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// ^ 为什么必须写这样的语句呢？肯定有更优雅的处理方式！
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;//
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;`&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;` &lt;span style="color:#aa89ea"&gt;is&lt;/span&gt; `&lt;span style="color:#d19a66"&gt;0&lt;/span&gt;`&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Try&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;again&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;`&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;` &lt;span style="color:#aa89ea"&gt;is&lt;/span&gt; `&lt;span style="color:#d19a66"&gt;1&lt;/span&gt;`&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Try&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;again&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;`&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;` &lt;span style="color:#aa89ea"&gt;is&lt;/span&gt; `&lt;span style="color:#d19a66"&gt;2&lt;/span&gt;`&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Try&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;again&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;`&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;` &lt;span style="color:#aa89ea"&gt;is&lt;/span&gt; `&lt;span style="color:#d19a66"&gt;3&lt;/span&gt;`&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Try&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;again&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;`&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;` &lt;span style="color:#aa89ea"&gt;is&lt;/span&gt; `&lt;span style="color:#d19a66"&gt;4&lt;/span&gt;`&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Try&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;again&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;`&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;` &lt;span style="color:#aa89ea"&gt;is&lt;/span&gt; `&lt;span style="color:#d19a66"&gt;5&lt;/span&gt;`&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Try&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;again&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;`&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;` &lt;span style="color:#aa89ea"&gt;is&lt;/span&gt; `&lt;span style="color:#d19a66"&gt;6&lt;/span&gt;`&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Try&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;again&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;`&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;` &lt;span style="color:#aa89ea"&gt;is&lt;/span&gt; `&lt;span style="color:#d19a66"&gt;7&lt;/span&gt;`&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Try&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;again&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;`&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;` &lt;span style="color:#aa89ea"&gt;is&lt;/span&gt; `&lt;span style="color:#d19a66"&gt;8&lt;/span&gt;`&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Try&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;again&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;`&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;` &lt;span style="color:#aa89ea"&gt;is&lt;/span&gt; `&lt;span style="color:#d19a66"&gt;9&lt;/span&gt;`&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Try&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;again&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;Greater&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;than&lt;/span&gt; &lt;span style="color:#d19a66"&gt;9&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;quit&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;!&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;使用 &lt;code&gt;while let&lt;/code&gt; 可以使这段代码变得更加优雅：&lt;/p&gt;</description></item></channel></rss>
+&lt;/div&gt;&lt;p&gt;​	使用 &lt;code&gt;while let&lt;/code&gt; 可以使这段代码变得更加优雅：&lt;/p&gt;</description></item></channel></rss>

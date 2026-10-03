@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第9章 函数 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/RustByExample/fn/</link><description>Recent content in 第9章 函数 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 21 Aug 2026 22:34:20 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/RustByExample/fn/index.xml" rel="self" type="application/rss+xml"/><item><title>01-方法</title><link>https://before80.github.io/prgms/Rust/RustByExample/fn/01-methods/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/fn/01-methods/</guid><description>&lt;blockquote&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>第9章 函数 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/RustByExample/fn/</link><description>Recent content in 第9章 函数 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sat, 03 Oct 2026 17:01:26 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/RustByExample/fn/index.xml" rel="self" type="application/rss+xml"/><item><title>01-方法</title><link>https://before80.github.io/prgms/Rust/RustByExample/fn/01-methods/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/fn/01-methods/</guid><description>&lt;blockquote&gt;
 &lt;p&gt;译文 · 基于 &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/"&gt;Rust By Example&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;blockquote&gt;
 &lt;p&gt;原文链接: &lt;a href="https://doc.rust-lang.org/stable/rust-by-example/fn/methods.html"&gt;https://doc.rust-lang.org/stable/rust-by-example/fn/methods.html&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;h1 id="方法"&gt;方法&lt;/h1&gt;
-&lt;p&gt;方法（method）是依附于对象的函数。这些方法通过关键字 &lt;code&gt;self&lt;/code&gt; 来访问对象中的数据和其他。方法在 &lt;code&gt;impl&lt;/code&gt; 代码块中定义。&lt;/p&gt;
+&lt;p&gt;​	方法（method）是依附于对象的函数。这些方法通过关键字 &lt;code&gt;self&lt;/code&gt; 来访问对象中的数据和其他。方法在 &lt;code&gt;impl&lt;/code&gt; 代码块中定义。&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
 &lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
@@ -113,6 +113,10 @@
 &lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;103
 &lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;104
 &lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;105
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;106
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;107
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;108
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;109
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
 &lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
 &lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Point&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
@@ -220,6 +224,10 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;//pair.destroy();
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// 试一试 ^ 将此行注释去掉
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;//
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;Rectangle&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;perimeter&lt;/span&gt;: &lt;span style="color:#d19a66"&gt;14&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;Rectangle&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;area&lt;/span&gt;: &lt;span style="color:#d19a66"&gt;12&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;Destroying&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Pair&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;2&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>03-高阶函数</title><link>https://before80.github.io/prgms/Rust/RustByExample/fn/03-hof/</link><pubDate>Thu, 20 Aug 2026 21:20:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/RustByExample/fn/03-hof/</guid><description>&lt;blockquote&gt;
