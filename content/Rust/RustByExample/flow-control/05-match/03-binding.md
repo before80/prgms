@@ -14,7 +14,7 @@ draft = false
 
 # 绑定
 
-在 `match` 中，若间接地访问一个变量，则不经过重新绑定就无法在分支中再使用它。`match` 提供了 `@` 符号来绑定变量到名称：
+​	在 `match` 中，若间接地访问一个变量，则不经过重新绑定就无法在分支中再使用它。`match` 提供了 `@` 符号来绑定变量到名称：
 
 ```rust
 // `age` 函数，返回一个 `u32` 值。
@@ -35,8 +35,11 @@ fn main() {
         n             => println!("I'm an old person of age {:?}", n),
     }
 }
+//
+Tell me what type of person you are
+I'm a teen of age 15
 ```
-你也可以使用绑定来“解构” `enum` 变体，例如 `Option`:
+​	你也可以使用绑定来“解构” `enum` 变体，例如 `Option`:
 
 ```rust
 fn some_number() -> Option<u32> {
@@ -53,6 +56,7 @@ fn main() {
         _            => (),
     }
 }
+//The Answer: 42!
 ```
 ### 参见： {#参见}
 

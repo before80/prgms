@@ -14,7 +14,7 @@ draft = false
 
 # 方法
 
-方法（method）是依附于对象的函数。这些方法通过关键字 `self` 来访问对象中的数据和其他。方法在 `impl` 代码块中定义。
+​	方法（method）是依附于对象的函数。这些方法通过关键字 `self` 来访问对象中的数据和其他。方法在 `impl` 代码块中定义。
 
 ```rust
 struct Point {
@@ -122,4 +122,8 @@ fn main() {
     //pair.destroy();
     // 试一试 ^ 将此行注释去掉
 }
+//
+Rectangle perimeter: 14
+Rectangle area: 12
+Destroying Pair(1, 2)
 ```

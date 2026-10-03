@@ -14,7 +14,7 @@ draft = false
 
 # if let
 
-在一些场合下，用 `match` 匹配枚举类型并不优雅。比如：
+​	在一些场合下，用 `match` 匹配枚举类型并不优雅。比如：
 
 ```rust
 // 将 `optional` 定为 `Option<i32>` 类型
@@ -29,9 +29,9 @@ match optional {
     _ => {},
     // ^ 必须有，因为 `match` 需要覆盖全部情况。不觉得这行很多余吗？
 };
-
+//This is a really long string and `7`
 ```
-`if let` 在这样的场合要简洁得多，并且允许指明数种失败情形下的选项：
+​	`if let` 在这样的场合要简洁得多，并且允许指明数种失败情形下的选项：
 
 ```rust
 fn main() {
@@ -67,8 +67,11 @@ fn main() {
         println!("I don't like letters. Let's go with an emoticon :)!");
     };
 }
+//Matched 7!
+//Didn't match a number. Let's go with a letter!
+//I don't like letters. Let's go with an emoticon :)!
 ```
-同样，可以用 `if let` 匹配任何枚举值：
+​	同样，可以用 `if let` 匹配任何枚举值：
 
 ```rust
 // 以这个 enum 类型为例
@@ -99,10 +102,12 @@ fn main() {
         println!("c is {}", value);
     }
 }
+//a is foobar
+//c is 100
 ```
-另一个好处是：`if let` 允许匹配枚举非参数化的变量，即枚举未注明 `#[derive(PartialEq)]`，我们也没有为其实现 `PartialEq`。在这种情况下，通常 `if Foo::Bar==a` 会出错，因为此类枚举的实例不具有可比性。但是，`if let` 是可行的。
+​	另一个好处是：`if let` 允许匹配枚举非参数化的变量，即枚举未注明 `#[derive(PartialEq)]`，我们也没有为其实现 `PartialEq`。在这种情况下，通常 `if Foo::Bar==a` 会出错，因为此类枚举的实例不具有可比性。但是，`if let` 是可行的。
 
-你想挑战一下吗？使用 `if let`修复以下示例：
+​	你想挑战一下吗？使用 `if let`修复以下示例：
 
 ```rust
 // 该枚举故意未注明 `#[derive(PartialEq)]`，
@@ -119,6 +124,26 @@ fn main() {
     }
 }
 ```
+​	修复如下：
+
+```rust
+// 该枚举故意未注明 `#[derive(PartialEq)]`，
+// 并且也没为其实现 `PartialEq`。这就是为什么下面比较 `Foo::Bar==a` 会失败的原因。
+enum Foo {Bar}
+
+fn main() {
+    let a = Foo::Bar;
+
+    // 变量匹配 Foo::Bar
+    if let Foo::Bar = a {
+        // ^-- 这就是编译时发现的错误。使用 `if let` 来替换它。
+        println!("a is foobar");
+    }
+}
+```
+
+
+
 ### 参见： {#参见}
 
 [`枚举`][enum]，[`Option`][option]，和相关的 [RFC][if_let_rfc]

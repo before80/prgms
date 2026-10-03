@@ -14,13 +14,13 @@ draft = false
 
 # 捕获
 
-闭包本质上很灵活，能做功能要求的事情，使闭包在没有类型标注的情况下运行。这使得捕获（capture）能够灵活地适应用例，既可移动（move），又可借用（borrow）。闭包可以通过以下方式捕获变量：
+​	闭包本质上很灵活，能做功能要求的事情，使闭包在没有类型标注的情况下运行。这使得捕获（capture）能够灵活地适应用例，既可移动（move），又可借用（borrow）。闭包可以通过以下方式捕获变量：
 
 - 通过引用：`&T`
 - 通过可变引用：`&mut T`
 - 通过值：`T`
 
-闭包优先通过引用来捕获变量，并且仅在需要时使用其他方式。
+​	闭包优先通过引用来捕获变量，并且仅在需要时使用其他方式。
 
 ```rust
 fn main() {
@@ -86,8 +86,13 @@ fn main() {
     //consume();
     // ^ 试一试：将此行注释去掉。
 }
+//`color`: green
+//`color`: green
+//`count`: 1
+//`count`: 2
+//`movable`: 3
 ```
-在竖线 `|` 之前使用 `move` 会强制闭包取得被捕获变量的所有权：
+​	在竖线 `|` 之前使用 `move` 会强制闭包取得被捕获变量的所有权：
 
 ```rust
 fn main() {
@@ -96,8 +101,8 @@ fn main() {
 
     let contains = move |needle| haystack.contains(needle);
 
-    println!("{}", contains(&1));
-    println!("{}", contains(&4));
+    println!("{}", contains(&1));//true
+    println!("{}", contains(&4));//false
 
     //println!("There're {} elements in vec", haystack.len());
     // ^ 取消上面一行的注释将导致编译时错误，因为借用检查不允许在变量被移动走

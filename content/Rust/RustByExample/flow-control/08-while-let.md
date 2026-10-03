@@ -14,7 +14,7 @@ draft = false
 
 # while let
 
-和 `if let` 类似，`while let` 也可以把别扭的 `match` 改写得好看一些。考虑下面这段使 `i` 不断增加的代码：
+​	和 `if let` 类似，`while let` 也可以把别扭的 `match` 改写得好看一些。考虑下面这段使 `i` 不断增加的代码：
 
 ```rust
 // 将 `optional` 设为 `Option<i32>` 类型
@@ -39,8 +39,20 @@ loop {
         // ^ 为什么必须写这样的语句呢？肯定有更优雅的处理方式！
     }
 }
+//
+`i` is `0`. Try again.
+`i` is `1`. Try again.
+`i` is `2`. Try again.
+`i` is `3`. Try again.
+`i` is `4`. Try again.
+`i` is `5`. Try again.
+`i` is `6`. Try again.
+`i` is `7`. Try again.
+`i` is `8`. Try again.
+`i` is `9`. Try again.
+Greater than 9, quit!
 ```
-使用 `while let` 可以使这段代码变得更加优雅：
+​	使用 `while let` 可以使这段代码变得更加优雅：
 
 ```rust
 fn main() {
@@ -62,6 +74,18 @@ fn main() {
     // ^ `if let` 有可选的 `else`/`else if` 分句，
     // 而 `while let` 没有。
 }
+//
+`i` is `0`. Try again.
+`i` is `1`. Try again.
+`i` is `2`. Try again.
+`i` is `3`. Try again.
+`i` is `4`. Try again.
+`i` is `5`. Try again.
+`i` is `6`. Try again.
+`i` is `7`. Try again.
+`i` is `8`. Try again.
+`i` is `9`. Try again.
+Greater than 9, quit!
 ```
 ### 参见： {#参见}
 

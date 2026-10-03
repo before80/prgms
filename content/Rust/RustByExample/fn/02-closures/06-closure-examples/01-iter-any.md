@@ -14,19 +14,20 @@ draft = false
 
 # Iterator::any
 
-`Iterator::any` 是一个函数，若传给它一个迭代器（iterator），当其中任一元素满足谓词（predicate）时它将返回 `true`，否则返回 `false`（译注：谓词是闭包规定的， `true`/`false` 是闭包作用在元素上的返回值）。它的签名如下：
+​	`Iterator::any` 是一个函数，若传给它一个迭代器（iterator），当其中任一元素满足谓词（predicate）时它将返回 `true`，否则返回 `false`（译注：谓词是闭包规定的， `true`/`false` 是闭包作用在元素上的返回值）。它的签名如下：
 
 ```rust
 pub trait Iterator {
-    // 被迭代的类型。
+    // 被迭代的元素类型。
     type Item;
 
-    // `any` 接受 `&mut self` 参数（译注：回想一下，这是 `self: &mut Self` 的简写）
-    // 表明函数的调用者可以被借用和修改，但不会被消耗。
+    // `any` 接受 `&mut self`，意味着调用者可能被借用并修改，
+    // 但不会被消费（不会失去所有权）。
     fn any<F>(&mut self, f: F) -> bool where
-        // `FnMut` 表示被捕获的变量最多只能被修改，而不能被消耗。
-        // `Self::Item` 表明变量是通过值传递给闭包（译注：是迭代器对应的元素的类型）
-        F: FnMut(Self::Item) -> bool {}
+        // `FnMut` 意味着任何被捕获的变量至多可以被修改，不会被消费。
+        // `Self::Item` 是闭包参数的类型，由迭代器决定
+        // （例如 `.iter()` 产生 `&T`，`.into_iter()` 产生 `T`）。
+        F: FnMut(Self::Item) -> bool;
 }
 ```
 ```rust
@@ -34,20 +35,25 @@ fn main() {
     let vec1 = vec![1, 2, 3];
     let vec2 = vec![4, 5, 6];
 
-    // 对 vec 的 `iter()` 举出 `&i32`。（通过用 `&x` 匹配）把它解构成 `i32`。
-    // 译注：注意 `any` 方法会自动地把 `vec.iter()` 举出的迭代器的元素一个个地
-    // 传给闭包。因此闭包接收到的参数是 `&i32` 类型的。
-    println!("2 in vec1: {}", vec1.iter()     .any(|&x| x == 2));
-    // 对 vec 的 `into_iter()` 举出 `i32` 类型。无需解构。
-    println!("2 in vec2: {}", vec2.into_iter().any(| x| x == 2));
+    // 对 vec 调用 `iter()` 会举出 `&i32`。通过 `&x` 模式解构为 `i32`。
+    println!("2 in vec1: {}", vec1.iter()     .any(|&x| x == 2)); // 2 in vec1: true
+    // 对 vec 调用 `into_iter()` 会举出 `i32`。无需解构。
+    println!("2 in vec2: {}", vec2.into_iter().any(|x| x == 2)); // 2 in vec2: false
+    // `iter()` 只是借用 `vec1` 及其元素，所以之后仍可使用它们
+    println!("vec1 len: {}", vec1.len()); // vec1 len: 3
+    println!("First element of vec1 is: {}", vec1[0]); // First element of vec1 is: 1
 
+    // `into_iter()` 会移动 `vec2` 及其元素，因此之后不能再使用它们
+    // println!("First element of vec2 is: {}", vec2[0]);
+    // println!("vec2 len: {}", vec2.len());
+
+    // TODO：取消上面两行的注释，观察编译错误。
     let array1 = [1, 2, 3];
     let array2 = [4, 5, 6];
-
-    // 对数组的 `iter()` 举出 `&i32`。
-    println!("2 in array1: {}", array1.iter()     .any(|&x| x == 2));
-    // 对数组的 `into_iter()` 举出 `i32`。
-    println!("2 in array2: {}", array2.into_iter().any(|x| x == 2));
+    // 对数组调用 `iter()` 会举出 `&i32`。
+    println!("2 in array1: {}", array1.iter()     .any(|&x| x == 2)); // 2 in array1: true
+    // 对数组调用 `into_iter()` 会举出 `i32`。
+    println!("2 in array2: {}", array2.into_iter().any(|x| x == 2)); // 2 in array2: false
 }
 ```
 ### 参见： {#参见}
