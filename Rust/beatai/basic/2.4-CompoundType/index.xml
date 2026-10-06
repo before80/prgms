@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>复合类型 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/beatai/basic/2.4-CompoundType/</link><description>Recent content in 复合类型 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 06 Oct 2026 20:22:31 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/beatai/basic/2.4-CompoundType/index.xml" rel="self" type="application/rss+xml"/><item><title>字符串与切片</title><link>https://before80.github.io/prgms/Rust/beatai/basic/2.4-CompoundType/2.4.1-StringSlice/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/basic/2.4-CompoundType/2.4.1-StringSlice/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/basic/compound-type/string-slice"&gt;https://beatai.org/rust-course/basic/compound-type/string-slice&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="字符串与切片"&gt;字符串与切片&lt;/h1&gt;
+&lt;p&gt;　在其他语言中，字符串往往是送分题，因为实在是太简单了，例如 &lt;code&gt;&amp;quot;hello, world&amp;quot;&lt;/code&gt; 就是字符串章节的几乎全部内容了，但是如果你带着同样的想法来学 Rust，我保证，绝对会栽跟头，&lt;strong&gt;因此这一章大家一定要重视，仔细阅读，这里有很多其它 Rust 书籍中没有的内容&lt;/strong&gt;。&lt;/p&gt;</description></item><item><title>元组</title><link>https://before80.github.io/prgms/Rust/beatai/basic/2.4-CompoundType/2.4.2-Tuple/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/basic/2.4-CompoundType/2.4.2-Tuple/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/basic/compound-type/tuple"&gt;https://beatai.org/rust-course/basic/compound-type/tuple&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="元组"&gt;元组&lt;/h1&gt;
+&lt;p&gt;　元组是由多种类型组合到一起形成的，因此它是复合类型，元组的长度是固定的，元组中元素的顺序也是固定的。&lt;/p&gt;
+&lt;p&gt;　可以通过以下语法创建一个元组：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;main&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;tup&lt;/span&gt;: &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;i32&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;f64&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#d19a66"&gt;500&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;6.4&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　变量 &lt;code&gt;tup&lt;/code&gt; 被绑定了一个元组值 &lt;code&gt;(500, 6.4, 1)&lt;/code&gt;，该元组的类型是 &lt;code&gt;(i32, f64, u8)&lt;/code&gt;，看到没？元组是用括号将多个类型组合到一起，简单吧？&lt;/p&gt;</description></item><item><title>结构体</title><link>https://before80.github.io/prgms/Rust/beatai/basic/2.4-CompoundType/2.4.3-Struct/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/basic/2.4-CompoundType/2.4.3-Struct/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/basic/compound-type/struct"&gt;https://beatai.org/rust-course/basic/compound-type/struct&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="结构体"&gt;结构体&lt;/h1&gt;
+&lt;p&gt;　上一节中提到需要一个更高级的数据结构来帮助我们更好的抽象问题，结构体 &lt;code&gt;struct&lt;/code&gt; 恰恰就是这样的复合数据结构，它是由其它数据类型组合而来。 其它语言也有类似的数据结构，不过可能有不同的名称，例如 &lt;code&gt;object&lt;/code&gt;、 &lt;code&gt;record&lt;/code&gt; 等。&lt;/p&gt;</description></item><item><title>枚举</title><link>https://before80.github.io/prgms/Rust/beatai/basic/2.4-CompoundType/2.4.4-Enum/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/basic/2.4-CompoundType/2.4.4-Enum/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/basic/compound-type/enum"&gt;https://beatai.org/rust-course/basic/compound-type/enum&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="枚举"&gt;枚举&lt;/h1&gt;
+&lt;p&gt;　枚举(enum 或 enumeration)允许你通过列举可能的成员来定义一个&lt;strong&gt;枚举类型&lt;/strong&gt;，例如扑克牌花色：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;enum&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;PokerSuit&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Clubs&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Spades&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Diamonds&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Hearts&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　如果在此之前你没有在其它语言中使用过枚举，那么可能需要花费一些时间来理解这些概念，一旦上手，就会发现枚举的强大，甚至对它爱不释手，枚举虽好，可不要滥用哦。&lt;/p&gt;</description></item><item><title>数组</title><link>https://before80.github.io/prgms/Rust/beatai/basic/2.4-CompoundType/2.4.5-Array/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/basic/2.4-CompoundType/2.4.5-Array/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/basic/compound-type/array"&gt;https://beatai.org/rust-course/basic/compound-type/array&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="数组"&gt;数组&lt;/h1&gt;
+&lt;p&gt;　在日常开发中，使用最广的数据结构之一就是数组，在 Rust 中，最常用的数组有两种，第一种是速度很快但是长度固定的 &lt;code&gt;array&lt;/code&gt;，第二种是可动态增长的但是有性能损耗的 &lt;code&gt;Vector&lt;/code&gt;，在本书中，我们称 &lt;code&gt;array&lt;/code&gt; 为数组，&lt;code&gt;Vector&lt;/code&gt; 为动态数组。&lt;/p&gt;</description></item></channel></rss>

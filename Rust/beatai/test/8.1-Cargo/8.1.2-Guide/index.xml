@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>基础指南 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/</link><description>Recent content in 基础指南 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 06 Oct 2026 20:22:31 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/index.xml" rel="self" type="application/rss+xml"/><item><title>为何会有 Cargo</title><link>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.1-WhyExist/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.1-WhyExist/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/cargo/guide/why-exist"&gt;https://beatai.org/rust-course/cargo/guide/why-exist&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="为何会有-cargo"&gt;为何会有 Cargo&lt;/h1&gt;
+&lt;p&gt;　根据之前学习的知识，Rust 有两种类型的包: 库包和二进制包，前者是我们经常使用的依赖包，用于被其它包所引入，而后者是一个应用服务，可以编译成二进制可执行文件进行运行。&lt;/p&gt;</description></item><item><title>下载并构建 Package</title><link>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.2-DownloadPackage/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.2-DownloadPackage/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/cargo/guide/download-package"&gt;https://beatai.org/rust-course/cargo/guide/download-package&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="下载并构建-package"&gt;下载并构建 Package&lt;/h1&gt;
+&lt;p&gt;　如果看中 &lt;code&gt;GitHub&lt;/code&gt; 上的某个开源 Rust 项目，那下载并构建它将是非常简单的。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ git clone https://github.com/rust-lang/regex.git
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ &lt;span style="color:#e5c07b"&gt;cd&lt;/span&gt; regex
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　如上所示，直接从 &lt;code&gt;GitHub&lt;/code&gt; 上克隆下来想要的项目，然后使用 &lt;code&gt;cargo build&lt;/code&gt; 进行构建即可：&lt;/p&gt;</description></item><item><title>添加依赖</title><link>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.3-Dependencies/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.3-Dependencies/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/cargo/guide/dependencies"&gt;https://beatai.org/rust-course/cargo/guide/dependencies&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="添加依赖"&gt;添加依赖&lt;/h1&gt;
+&lt;p&gt;　&lt;a href="https://crates.io"&gt;&lt;code&gt;crates.io&lt;/code&gt;&lt;/a&gt; 是 Rust 社区维护的中心化注册服务，用户可以在其中寻找和下载所需的包。对于 &lt;code&gt;cargo&lt;/code&gt; 来说，默认就是从这里下载依赖。&lt;/p&gt;
+&lt;p&gt;　下面我们来添加一个 &lt;code&gt;time&lt;/code&gt; 依赖包，若你的 &lt;code&gt;Cargo.toml&lt;/code&gt; 文件中没有 &lt;code&gt;[dependencies]&lt;/code&gt; 部分，就手动添加一个，并添加目标包名和版本号:&lt;/p&gt;</description></item><item><title>Package 目录结构</title><link>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.4-PackageLayout/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.4-PackageLayout/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/cargo/guide/package-layout"&gt;https://beatai.org/rust-course/cargo/guide/package-layout&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="package-目录结构"&gt;Package 目录结构&lt;/h1&gt;
+&lt;p&gt;　一个典型的 &lt;code&gt;Package&lt;/code&gt; 目录结构如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;18
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;19
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;20
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;21
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;22
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;23
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;24
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;25
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;26
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;27
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;.
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── Cargo.lock
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── Cargo.toml
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── src/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ ├── lib.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ ├── main.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ └── bin/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ ├── named-executable.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ ├── another-executable.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ └── multi-file-executable/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ ├── main.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ └── some_module.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── benches/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ ├── large-input.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ └── multi-file-bench/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ ├── main.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ └── bench_module.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;├── examples/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ ├── simple.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ └── multi-file-example/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ ├── main.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;│ └── ex_module.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;└── tests/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; ├── some-integration-tests.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; └── multi-file-test/
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; ├── main.rs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; └── test_module.rs
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　这也是 &lt;code&gt;Cargo&lt;/code&gt; 推荐的目录结构，解释如下：&lt;/p&gt;</description></item><item><title>Cargo.toml vs Cargo.lock</title><link>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.5-CargoTomlLock/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.5-CargoTomlLock/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/cargo/guide/cargo-toml-lock"&gt;https://beatai.org/rust-course/cargo/guide/cargo-toml-lock&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="cargotoml-vs-cargolock"&gt;Cargo.toml vs Cargo.lock&lt;/h1&gt;
+&lt;p&gt;　&lt;code&gt;Cargo.toml&lt;/code&gt; 和 &lt;code&gt;Cargo.lock&lt;/code&gt; 是 &lt;code&gt;Cargo&lt;/code&gt; 的两个元配置文件，但是它们拥有不同的目的:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;前者从用户的角度出发来描述项目信息和依赖管理，因此它是由用户来编写&lt;/li&gt;
+&lt;li&gt;后者包含了依赖的精确描述信息，它是由 &lt;code&gt;Cargo&lt;/code&gt; 自行维护，因此不要去手动修改&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;　它们的关系跟 &lt;code&gt;package.json&lt;/code&gt; 和 &lt;code&gt;package-lock.json&lt;/code&gt; 非常相似，从 JavaScript 过来的同学应该会比较好理解。&lt;/p&gt;</description></item><item><title>测试和 CI</title><link>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.6-TestsCi/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.6-TestsCi/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/cargo/guide/tests-ci"&gt;https://beatai.org/rust-course/cargo/guide/tests-ci&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="测试和-ci"&gt;测试和 CI&lt;/h1&gt;
+&lt;p&gt;　Cargo 可以通过 &lt;code&gt;cargo test&lt;/code&gt; 命令运行项目中的测试文件：它会在 &lt;code&gt;src/&lt;/code&gt; 底下的文件寻找单元测试，也会在 &lt;code&gt;tests/&lt;/code&gt; 目录下寻找集成测试。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;$&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;cargo&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;test&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Compiling&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;regex&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;v1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#d19a66"&gt;5.0&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;https&lt;/span&gt;:&lt;span style="color:#8a93a5;font-style:italic"&gt;//github.com/rust-lang/regex.git#9f9f693)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Compiling&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;hello_world&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;v0&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#d19a66"&gt;1.0&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;file&lt;/span&gt;:&lt;span style="color:#7e97c3"&gt;///path/to/package/hello_world)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Running&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;target&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;/&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;test&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;/&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;hello_world&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;-&lt;/span&gt;&lt;span style="color:#d19a66"&gt;9&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;c2b65bbb79eabce&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;running&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;tests&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#aa89ea"&gt;test&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;result&lt;/span&gt;: &lt;span style="color:#ca72ff"&gt;ok&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;passed&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;failed&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;ignored&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;measured&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;filtered&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;out&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　从上面结果可以看出，项目中实际上还没有任何测试代码。&lt;/p&gt;</description></item><item><title>Cargo 缓存</title><link>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.7-CargoCache/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.7-CargoCache/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/cargo/guide/cargo-cache"&gt;https://beatai.org/rust-course/cargo/guide/cargo-cache&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="cargo-缓存"&gt;Cargo 缓存&lt;/h1&gt;
+&lt;p&gt;　Cargo 使用了缓存的方式提升构建效率，当构建时，Cargo 会将已下载的依赖包放在 &lt;code&gt;CARGO_HOME&lt;/code&gt; 目录下，下面一起来看看。&lt;/p&gt;
+&lt;h2 id="cargo-home"&gt;Cargo Home&lt;/h2&gt;
+&lt;p&gt;　默认情况下，Cargo Home 所在的目录是 &lt;code&gt;$HOME/.cargo/&lt;/code&gt;，例如在 &lt;code&gt;macos&lt;/code&gt; ，对应的目录是:&lt;/p&gt;</description></item><item><title>Build 缓存</title><link>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.8-BuildCache/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/test/8.1-Cargo/8.1.2-Guide/8.1.2.8-BuildCache/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/cargo/guide/build-cache"&gt;https://beatai.org/rust-course/cargo/guide/build-cache&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="build-缓存"&gt;Build 缓存&lt;/h1&gt;
+&lt;p&gt;　&lt;code&gt;cargo build&lt;/code&gt; 的结果会被放入项目根目录下的 &lt;code&gt;target&lt;/code&gt; 文件夹中，当然，这个位置可以三种方式更改：设置 &lt;code&gt;CARGO_TARGET_DIR&lt;/code&gt; &lt;a href="https://doc.rust-lang.org/stable/cargo/reference/environment-variables.html"&gt;环境变量&lt;/a&gt;、&lt;a href="../../8.1.3-Reference/8.1.3.8-Configuration/#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E6%A6%82%E8%A7%88"&gt;&lt;code&gt;build.target-dir&lt;/code&gt;&lt;/a&gt; 配置项以及 &lt;code&gt;--target-dir&lt;/code&gt; 命令行参数。&lt;/p&gt;
+&lt;h2 id="target-目录结构"&gt;target 目录结构&lt;/h2&gt;
+&lt;p&gt;　&lt;code&gt;target&lt;/code&gt; 目录的结构取决于是否使用 &lt;code&gt;--target&lt;/code&gt; 标志为特定的平台构建。&lt;/p&gt;</description></item></channel></rss>

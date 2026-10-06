@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>泛型和特征 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/beatai/basic/2.8-Trait/</link><description>Recent content in 泛型和特征 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 06 Oct 2026 20:22:31 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/beatai/basic/2.8-Trait/index.xml" rel="self" type="application/rss+xml"/><item><title>泛型 Generics</title><link>https://before80.github.io/prgms/Rust/beatai/basic/2.8-Trait/2.8.1-Generic/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/basic/2.8-Trait/2.8.1-Generic/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/basic/trait/generic"&gt;https://beatai.org/rust-course/basic/trait/generic&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="泛型-generics"&gt;泛型 Generics&lt;/h1&gt;
+&lt;p&gt;　Go 语言在 2022 年，就要正式引入泛型，被视为在 1.0 版本后，语言特性发展迈出的一大步，为什么泛型这么重要？到底什么是泛型？Rust 的泛型有几种？
+本章将一一为你讲解。&lt;/p&gt;</description></item><item><title>特征 Trait</title><link>https://before80.github.io/prgms/Rust/beatai/basic/2.8-Trait/2.8.2-Trait/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/basic/2.8-Trait/2.8.2-Trait/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/basic/trait/trait"&gt;https://beatai.org/rust-course/basic/trait/trait&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="特征-trait"&gt;特征 Trait&lt;/h1&gt;
+&lt;p&gt;　如果我们想定义一个文件系统，那么把该系统跟底层存储解耦是很重要的。文件操作主要包含四个：&lt;code&gt;open&lt;/code&gt; 、&lt;code&gt;write&lt;/code&gt;、&lt;code&gt;read&lt;/code&gt;、&lt;code&gt;close&lt;/code&gt;，这些操作可以发生在硬盘，可以发生在内存，还可以发生在网络 IO 甚至（&amp;hellip;我实在编不下去了，大家来帮帮我）。总之如果你要为每一种情况都单独实现一套代码，那这种实现将过于繁杂，而且也没那个必要。&lt;/p&gt;</description></item><item><title>特征对象</title><link>https://before80.github.io/prgms/Rust/beatai/basic/2.8-Trait/2.8.3-TraitObject/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/basic/2.8-Trait/2.8.3-TraitObject/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/basic/trait/trait-object"&gt;https://beatai.org/rust-course/basic/trait/trait-object&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="特征对象"&gt;特征对象&lt;/h1&gt;
+&lt;p&gt;　在上一节中有一段代码无法通过编译：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;returns_summarizable&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;switch&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;bool&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#ca72ff"&gt;impl&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Summary&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;if&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;switch&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Post&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;else&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Weibo&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　其中 &lt;code&gt;Post&lt;/code&gt; 和 &lt;code&gt;Weibo&lt;/code&gt; 都实现了 &lt;code&gt;Summary&lt;/code&gt; 特征，因此上面的函数试图通过返回 &lt;code&gt;impl Summary&lt;/code&gt; 来返回这两个类型，但是编译器却无情地报错了，原因是 &lt;code&gt;impl Trait&lt;/code&gt; 的返回值类型并不支持多种不同的类型返回，那如果我们想返回多种类型，该怎么办？&lt;/p&gt;</description></item><item><title>进一步深入特征</title><link>https://before80.github.io/prgms/Rust/beatai/basic/2.8-Trait/2.8.4-AdvanceTrait/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/basic/2.8-Trait/2.8.4-AdvanceTrait/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/basic/trait/advance-trait"&gt;https://beatai.org/rust-course/basic/trait/advance-trait&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="进一步深入特征"&gt;进一步深入特征&lt;/h1&gt;
+&lt;p&gt;　特征之于 Rust 更甚于接口之于其他语言，因此特征在 Rust 中很重要也相对较为复杂，我们决定把特征分为两篇进行介绍，&lt;a href="../2.8.2-Trait/"&gt;第一篇&lt;/a&gt;在之前已经讲过，现在就是第二篇：关于特征的进阶篇，会讲述一些不常用到但是你该了解的特性。&lt;/p&gt;
+&lt;h2 id="关联类型"&gt;关联类型&lt;/h2&gt;
+&lt;p&gt;　在方法一章中，我们讲到了&lt;a href="../../2.7-Method/#%E5%85%B3%E8%81%94%E5%87%BD%E6%95%B0"&gt;关联函数&lt;/a&gt;，但是实际上关联类型和关联函数并没有任何交集，虽然它们的名字有一半的交集。&lt;/p&gt;</description></item></channel></rss>

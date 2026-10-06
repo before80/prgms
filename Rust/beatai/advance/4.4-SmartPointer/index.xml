@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>智能指针 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/beatai/advance/4.4-SmartPointer/</link><description>Recent content in 智能指针 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 06 Oct 2026 22:28:29 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/beatai/advance/4.4-SmartPointer/index.xml" rel="self" type="application/rss+xml"/><item><title>Box T 堆对象分配</title><link>https://before80.github.io/prgms/Rust/beatai/advance/4.4-SmartPointer/4.4.1-Box/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/advance/4.4-SmartPointer/4.4.1-Box/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/advance/smart-pointer/box"&gt;https://beatai.org/rust-course/advance/smart-pointer/box&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="boxt-堆对象分配"&gt;Box&amp;lt;T&amp;gt; 堆对象分配&lt;/h1&gt;
+&lt;p&gt;　关于作者帅不帅，估计争议还挺多的，但是如果说 &lt;code&gt;Box&amp;lt;T&amp;gt;&lt;/code&gt; 是不是 Rust 中最常见的智能指针，那估计没有任何争议。因为 &lt;code&gt;Box&amp;lt;T&amp;gt;&lt;/code&gt; 允许你将一个值分配到堆上，然后在栈上保留一个智能指针指向堆上的数据。&lt;/p&gt;</description></item><item><title>Deref 解引用</title><link>https://before80.github.io/prgms/Rust/beatai/advance/4.4-SmartPointer/4.4.2-Deref/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/advance/4.4-SmartPointer/4.4.2-Deref/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/advance/smart-pointer/deref"&gt;https://beatai.org/rust-course/advance/smart-pointer/deref&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="deref-解引用"&gt;Deref 解引用&lt;/h1&gt;
+&lt;p&gt;　在开始之前，我们先来看一段代码：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[derive(Debug)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;struct&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Person&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;name&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;String&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;age&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;impl&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Person&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;new&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;name&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;String&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;age&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#ca72ff"&gt;Self&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Person&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;name&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;age&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;display&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#ca72ff"&gt;mut&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Person&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;age&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Person&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;name&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;age&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　以上代码有一个很奇怪的地方：在 &lt;code&gt;display&lt;/code&gt; 方法中，&lt;code&gt;self&lt;/code&gt; 是 &lt;code&gt;&amp;amp;mut Person&lt;/code&gt; 的类型，接着我们对其取了一次引用 &lt;code&gt;&amp;amp;self&lt;/code&gt;，此时 &lt;code&gt;&amp;amp;self&lt;/code&gt; 的类型是 &lt;code&gt;&amp;amp;&amp;amp;mut Person&lt;/code&gt;，然后我们又将其和 &lt;code&gt;Person&lt;/code&gt; 类型进行匹配，取出其中的值。&lt;/p&gt;</description></item><item><title>Drop 释放资源</title><link>https://before80.github.io/prgms/Rust/beatai/advance/4.4-SmartPointer/4.4.3-Drop/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/advance/4.4-SmartPointer/4.4.3-Drop/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/advance/smart-pointer/drop"&gt;https://beatai.org/rust-course/advance/smart-pointer/drop&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="drop-释放资源"&gt;Drop 释放资源&lt;/h1&gt;
+&lt;p&gt;　在 Rust 中，我们之所以可以一拳打跑 GC 的同时一脚踢翻手动资源回收，主要就归功于 &lt;code&gt;Drop&lt;/code&gt; 特征，同时它也是智能指针的必备特征之一。&lt;/p&gt;
+&lt;h2 id="学习目标"&gt;学习目标&lt;/h2&gt;
+&lt;p&gt;　如何自动和手动释放资源及执行指定的收尾工作&lt;/p&gt;</description></item><item><title>Rc 与 Arc 实现 1vN 所有权机制</title><link>https://before80.github.io/prgms/Rust/beatai/advance/4.4-SmartPointer/4.4.4-RcArc/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/advance/4.4-SmartPointer/4.4.4-RcArc/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/advance/smart-pointer/rc-arc"&gt;https://beatai.org/rust-course/advance/smart-pointer/rc-arc&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="rc-与-arc-实现-1vn-所有权机制"&gt;Rc 与 Arc 实现 1vN 所有权机制&lt;/h1&gt;
+&lt;p&gt;　Rust 所有权机制要求一个值只能有一个所有者，在大多数情况下，都没有问题，但是考虑以下情况：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在图数据结构中，多个边可能会拥有同一个节点，该节点直到没有边指向它时，才应该被释放清理&lt;/li&gt;
+&lt;li&gt;在多线程中，多个线程可能会持有同一个数据，但是你受限于 Rust 的安全机制，无法同时获取该数据的可变引用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;　以上场景不是很常见，但是一旦遇到，就非常棘手，为了解决此类问题，Rust 在所有权机制之外又引入了额外的措施来简化相应的实现：通过引用计数的方式，允许一个数据资源在同一时刻拥有多个所有者。&lt;/p&gt;</description></item><item><title>Cell 与 RefCell 内部可变性</title><link>https://before80.github.io/prgms/Rust/beatai/advance/4.4-SmartPointer/4.4.5-CellRefcell/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/advance/4.4-SmartPointer/4.4.5-CellRefcell/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/advance/smart-pointer/cell-refcell"&gt;https://beatai.org/rust-course/advance/smart-pointer/cell-refcell&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="cell-与-refcell-内部可变性"&gt;Cell 与 RefCell 内部可变性&lt;/h1&gt;
+&lt;p&gt;　Rust 的编译器之严格，可以说是举世无双。特别是在所有权方面，Rust 通过严格的规则来保证所有权和借用的正确性，最终为程序的安全保驾护航。&lt;/p&gt;</description></item></channel></rss>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>还可以的单向链表 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.3-OkStack/</link><description>Recent content in 还可以的单向链表 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 06 Oct 2026 20:22:31 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.3-OkStack/index.xml" rel="self" type="application/rss+xml"/><item><title>优化类型定义</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.3-OkStack/9.3.3.1-TypeOptimizing/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.3-OkStack/9.3.3.1-TypeOptimizing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/ok-stack/type-optimizing"&gt;https://beatai.org/rust-course/too-many-lists/ok-stack/type-optimizing&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="优化类型定义"&gt;优化类型定义&lt;/h1&gt;
+&lt;p&gt;　首先，我们需要优化下类型的定义，可能一部分同学已经觉得之前的类型定义相当不错了，但是如果大家仔细观察下 &lt;code&gt;Link&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;enum&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Link&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;Empty&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;More&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;Box&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;Node&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;),&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　会发现，它其实跟 &lt;code&gt;Option&amp;lt;Box&amp;lt;Node&amp;gt;&amp;gt;&lt;/code&gt; 非常类似。&lt;/p&gt;</description></item><item><title>定义 Peek 函数</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.3-OkStack/9.3.3.2-Peek/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.3-OkStack/9.3.3.2-Peek/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/ok-stack/peek"&gt;https://beatai.org/rust-course/too-many-lists/ok-stack/peek&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="定义-peek-函数"&gt;定义 Peek 函数&lt;/h1&gt;
+&lt;p&gt;　在之前章节中，我们定义了 &lt;code&gt;push&lt;/code&gt;、&lt;code&gt;pop&lt;/code&gt; 等基础操作，下面一起添加几个进阶操作，让我们的链表有用起来。&lt;/p&gt;
+&lt;p&gt;　首先实现的就是 &lt;code&gt;peek&lt;/code&gt; 函数，它会返回链表的表头元素的引用:&lt;/p&gt;</description></item><item><title>IntoIter 和 Iter</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.3-OkStack/9.3.3.3-Iter/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.3-OkStack/9.3.3.3-Iter/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/ok-stack/iter"&gt;https://beatai.org/rust-course/too-many-lists/ok-stack/iter&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="intoiter-和-iter"&gt;IntoIter 和 Iter&lt;/h1&gt;
+&lt;p&gt;　集合类型可以通过 &lt;code&gt;Iterator&lt;/code&gt; 特征进行迭代，该特征看起来比 &lt;code&gt;Drop&lt;/code&gt; 要复杂点：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;trait&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;Iterator&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;type&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;Item&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;next&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#76a9f9"&gt;mut&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#e5c07b"&gt;Option&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;Self&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;Item&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　这里的 &lt;code&gt;Item&lt;/code&gt; 是&lt;a href="../../../../basic/2.8-Trait/2.8.4-AdvanceTrait/#%E5%85%B3%E8%81%94%E7%B1%BB%E5%9E%8B"&gt;关联类型&lt;/a&gt;，用来指代迭代器中具体的元素类型，&lt;code&gt;next&lt;/code&gt; 方法返回的也是该类型。&lt;/p&gt;</description></item><item><title>IterMut 以及完整代码</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.3-OkStack/9.3.3.4-Itermut/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.3-OkStack/9.3.3.4-Itermut/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/ok-stack/itermut"&gt;https://beatai.org/rust-course/too-many-lists/ok-stack/itermut&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="itermut-以及完整代码"&gt;IterMut 以及完整代码&lt;/h1&gt;
+&lt;p&gt;　上一章节中我们讲到了要为 &lt;code&gt;List&lt;/code&gt; 实现三种类型的迭代器并实现了其中两种: &lt;code&gt;IntoIter&lt;/code&gt; 和 &lt;code&gt;Iter&lt;/code&gt;。下面再来看看最后一种 &lt;code&gt;IterMut&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;　再来回顾下 &lt;code&gt;Iter&lt;/code&gt; 的实现：&lt;/p&gt;</description></item></channel></rss>

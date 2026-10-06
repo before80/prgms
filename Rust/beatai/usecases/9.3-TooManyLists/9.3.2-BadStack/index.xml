@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>不太优秀的单向链表：栈 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.2-BadStack/</link><description>Recent content in 不太优秀的单向链表：栈 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 06 Oct 2026 20:22:31 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.2-BadStack/index.xml" rel="self" type="application/rss+xml"/><item><title>数据布局</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.2-BadStack/9.3.2.1-Layout/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.2-BadStack/9.3.2.1-Layout/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/bad-stack/layout"&gt;https://beatai.org/rust-course/too-many-lists/bad-stack/layout&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="数据布局"&gt;数据布局&lt;/h1&gt;
+&lt;p&gt;　发现一件尴尬的事情，之前介绍了这么多，但是竟然没有介绍链表是什么&amp;hellip;亡羊补牢未为晚也，链表就是一系列存储在堆上的连续数据，大家是不是发现这个定义跟动态数据 &lt;code&gt;Vector&lt;/code&gt; 非常相似，那么区别在于什么呢？&lt;/p&gt;</description></item><item><title>基本操作</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.2-BadStack/9.3.2.2-BasicOperations/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.2-BadStack/9.3.2.2-BasicOperations/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/bad-stack/basic-operations"&gt;https://beatai.org/rust-course/too-many-lists/bad-stack/basic-operations&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="基本操作"&gt;基本操作&lt;/h1&gt;
+&lt;p&gt;　这个章节我们一起来为新创建的 &lt;code&gt;List&lt;/code&gt; 定义一些基本操作，首先从创建链表开始。&lt;/p&gt;
+&lt;h2 id="new"&gt;New&lt;/h2&gt;
+&lt;p&gt;　为了将实际的代码跟类型关联在一起，我们需要使用 &lt;code&gt;impl&lt;/code&gt; 语句块：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;impl&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;List&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// TODO
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　下一步就是创建一个关联函数，用于构建 &lt;code&gt;List&lt;/code&gt; 的新实例，该函数的作用类似于其他语言的构造函数。&lt;/p&gt;</description></item><item><title>最后实现</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.2-BadStack/9.3.2.3-FinalCode/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.2-BadStack/9.3.2.3-FinalCode/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/bad-stack/final-code"&gt;https://beatai.org/rust-course/too-many-lists/bad-stack/final-code&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="最后实现"&gt;最后实现&lt;/h1&gt;
+&lt;p&gt;　在之前的章节中，我们完成了 Bad 单链表栈的数据定义和基本操作，下面一起来写一些测试代码。&lt;/p&gt;
+&lt;h2 id="单元测试"&gt;单元测试&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;关于如何编写测试，请参见&lt;a href="../../../../test/8.1-WriteTests/"&gt;自动化测试章节&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　首先，单元测试代码要放在待测试的目标代码旁边，也就是同一个文件中:&lt;/p&gt;</description></item></channel></rss>

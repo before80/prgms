@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>生产级的双向 unsafe 队列 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/</link><description>Recent content in 生产级的双向 unsafe 队列 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 06 Oct 2026 20:22:31 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/index.xml" rel="self" type="application/rss+xml"/><item><title>数据布局</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.1-Layout/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.1-Layout/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/layout"&gt;https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/layout&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="数据布局"&gt;数据布局&lt;/h1&gt;
+&lt;p&gt;　首先，让我们来研究一下敌人的结构。双向链接列表在概念上很简单，但它就是这样欺骗和操纵你的。这是我们反复研究过的同一种链接列表，但链接是双向的。双倍链接，双倍邪恶。&lt;/p&gt;</description></item><item><title>型变与子类型</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.2-VarianceAndPhantomData/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.2-VarianceAndPhantomData/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/variance-and-phantomData"&gt;https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/variance-and-phantomData&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="型变与子类型"&gt;型变与子类型&lt;/h1&gt;
+&lt;p&gt;　如果现在不做，等以后再修，会很麻烦，所以我们现在要做的是硬核布局。&lt;/p&gt;
+&lt;p&gt;　建造 Rust collections 时，有这五个可怕的难题：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;a href="https://doc.rust-lang.org/nightly/nomicon/subtyping.html"&gt;Variance&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://doc.rust-lang.org/nightly/nomicon/dropck.html"&gt;Drop Check&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://doc.rust-lang.org/nightly/std/ptr/struct.NonNull.html"&gt;NonNull Optimizations&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://doc.rust-lang.org/nightly/nomicon/vec/vec-alloc.html"&gt;The isize::MAX Allocation Rule&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://doc.rust-lang.org/nightly/nomicon/vec/vec-zsts.html"&gt;Zero-Sized Types&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;　幸好，后面2个对我们来说都不是问题。&lt;/p&gt;</description></item><item><title>基础结构</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.3-Basics/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.3-Basics/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/basics"&gt;https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/basics&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="基础结构"&gt;基础结构&lt;/h1&gt;
+&lt;p&gt;　好了，这就是本书最烂的部分，也是我花了 7 年时间才写完这一章的原因！是时候把我们已经做过 5 次的枯燥乏味的东西再写一遍了，但因为我们必须使用 &lt;code&gt;Option&amp;lt;NonNull&amp;lt;Node&amp;lt;T&amp;gt;&amp;gt;&lt;/code&gt; 把每件事都做两遍，所以显得格外冗长！&lt;/p&gt;</description></item><item><title>恐慌与安全</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.4-DropAndPanicSafety/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.4-DropAndPanicSafety/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/drop-and-panic-safety"&gt;https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/drop-and-panic-safety&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="恐慌与安全"&gt;恐慌与安全&lt;/h1&gt;
+&lt;p&gt;　嘿，你注意到这些注释了吗：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// Note that we don&amp;#39;t need to mess around with `take` anymore
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// because everything is Copy and there are no dtors that will
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;// run if we mess up... right? :) Riiiight? :)))
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　这对吗？&lt;/p&gt;
+&lt;p&gt;　你忘记你正在读那本书了吗？当然这是错误的（部分上是）。&lt;/p&gt;</description></item><item><title>无聊的组合</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.5-BoringCombinatorics/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.5-BoringCombinatorics/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/boring-combinatorics"&gt;https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/boring-combinatorics&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="无聊的组合"&gt;无聊的组合&lt;/h1&gt;
+&lt;p&gt;　好了，回到我们的常规链接列表！&lt;/p&gt;
+&lt;p&gt;　首先，让我们来解决 &lt;code&gt;Drop&lt;/code&gt; 的问题：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;impl&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;T&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;Drop&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;for&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;LinkedList&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;T&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;drop&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#76a9f9"&gt;mut&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// Pop until we have to stop
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;while&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;Some&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;_&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;pop_front&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　我们必须填写一堆非常无聊的组合实现，如 front、front_mut、back、back_mut、iter、iter_mut、into_iter&amp;hellip;&amp;hellip;&lt;/p&gt;</description></item><item><title>其它特征</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.6-FillingInRandomBits/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.6-FillingInRandomBits/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/filling-in-random-bits"&gt;https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/filling-in-random-bits&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="其它特征"&gt;其它特征&lt;/h1&gt;
+&lt;p&gt;　嘿，你不是说要做成精品吗？&lt;/p&gt;
+&lt;p&gt;　为了成为一个 &amp;ldquo;好 &amp;ldquo;系列，这里还有一些乱七八糟的东西：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;impl&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;T&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;LinkedList&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;lt;&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;T&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;gt;&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;is_empty&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; -&amp;gt; &lt;span style="color:#e5c07b"&gt;bool&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;len&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;==&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;pub&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;clear&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#76a9f9"&gt;mut&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;// Oh look it&amp;#39;s drop again
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;while&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;Some&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;_&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;self&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;pop_front&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　现在，我们已经有了一大堆大家都期待的特性需要实现：&lt;/p&gt;</description></item><item><title>测试</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.7-Testing/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.7-Testing/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/testing"&gt;https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/testing&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="测试"&gt;测试&lt;/h1&gt;
+&lt;p&gt;　好吧，我推迟了一段时间测试，因为我们都知道，我们现在是 Rust 的主人，不会再犯错了！另外，这是对一个旧 crate 的重写，所以我已经有了所有的测试。你已经看过很多测试了。它们就在这里：&lt;/p&gt;</description></item><item><title>Send,Sync和编译测试</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.8-SendSyncAndCompileTests/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.8-SendSyncAndCompileTests/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/send-sync-and-compile-tests"&gt;https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/send-sync-and-compile-tests&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="sendsync和编译测试"&gt;Send,Sync和编译测试&lt;/h1&gt;
+&lt;p&gt;　好吧，其实我们还有一对特征需要考虑，但它们很特别。我们必须对付 Rust 的神圣罗马帝国： unsafe 的 Opt-in Built-out 特征（OIBITs）： Send 和 Sync，它们实际上是（opt-out）和（built-out）（3 个中有 1 个已经很不错了！）。&lt;/p&gt;</description></item><item><title>实现游标</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.9-ImplementingCursors/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.9-ImplementingCursors/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/implementing-cursors"&gt;https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/implementing-cursors&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="实现游标"&gt;实现游标&lt;/h1&gt;
+&lt;p&gt;　好了，我们现在讨论 CursorMut。就像我最初的设计一样，它有一个包含 None 的 &amp;ldquo;幽灵 &amp;ldquo;元素，用来指示列表的开始/结束，你可以 &amp;ldquo;跨过它&amp;rdquo;，绕到列表的另一边。要实现它，我们需要&lt;/p&gt;</description></item><item><title>测试游标</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.10-TestingCursors/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.10-TestingCursors/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/testing-cursors"&gt;https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/testing-cursors&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="测试游标"&gt;测试游标&lt;/h1&gt;
+&lt;p&gt;　是时候找出我在上一节中犯了多少令人尴尬的错误了！&lt;/p&gt;
+&lt;p&gt;　哦，天哪，我们的 API 既不像标准版，也不像旧版。好吧，那我打算从这两个地方拼凑一些东西吧。是的，让我们 &amp;ldquo;借用 &amp;quot; 标准版中的这些测试：&lt;/p&gt;</description></item><item><title>最终代码</title><link>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.11-FinalCode/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/usecases/9.3-TooManyLists/9.3.7-ProductionUnsafeDeque/9.3.7.11-FinalCode/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/final-code"&gt;https://beatai.org/rust-course/too-many-lists/production-unsafe-deque/final-code&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="最终代码"&gt;最终代码&lt;/h1&gt;
+&lt;p&gt;　我真不敢相信，我居然让你坐在那里，听我从头开始重新实现 std::collections::LinkedList，一路上我犯了很多繁琐的小错误。&lt;/p&gt;</description></item></channel></rss>

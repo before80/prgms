@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Rust 历次版本更新解读 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/</link><description>Recent content in Rust 历次版本更新解读 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 06 Oct 2026 20:22:31 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/index.xml" rel="self" type="application/rss+xml"/><item><title>1.58</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.1-1.58/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.1-1.58/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.58"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.58&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="158"&gt;1.58&lt;/h1&gt;
+&lt;p&gt;　众所周知，Rust 小版本发布非常频繁，6 周就发布一次，因此通常不会有特别值得普通用户关注的内容，但是这次 1.58 版本不同，新增了(stable 化了)一个非常好用的功能： &lt;strong&gt;在格式化字符串时捕获环境中的值&lt;/strong&gt;。&lt;/p&gt;</description></item><item><title>1.59</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.2-1.59/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.2-1.59/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.59"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.59&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="159"&gt;1.59&lt;/h1&gt;
+&lt;p&gt;　Rust 团队于今天凌晨( 2022-02-25 )发布了最新的 1.59 版本，其中最引人瞩目的特性应该就是支持在代码中内联汇编了，一起来看看。&lt;/p&gt;
+&lt;h2 id="内联汇编-inline-assembly-"&gt;内联汇编( inline assembly )&lt;/h2&gt;
+&lt;p&gt;　该特性对于需要底层控制的应用非常有用，例如想要控制底层执行、访问特定的机器指令等。&lt;/p&gt;</description></item><item><title>1.60</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.3-1.60/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.3-1.60/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.60"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.60&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="160"&gt;1.60&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://blog.rust-lang.org/2022/04/07/Rust-1.60.0.html"&gt;https://blog.rust-lang.org/2022/04/07/Rust-1.60.0.html&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.60 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="基于源码的代码覆盖"&gt;基于源码的代码覆盖&lt;/h2&gt;
+&lt;p&gt;　rustc 新增了基于 LLVM 的代码覆盖率测量，想要测试的同学可以通过以下方式重新构建你的项目:&lt;/p&gt;</description></item><item><title>1.61</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.4-1.61/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.4-1.61/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.61"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.61&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="161"&gt;1.61&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://blog.rust-lang.org/2022/05/19/Rust-1.61.0.html"&gt;https://blog.rust-lang.org/2022/05/19/Rust-1.61.0.html&lt;/a&gt;
+翻译 by ：&lt;a href="https://github.com/AllanDowney"&gt;AllanDowney&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.61 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="支持自定义-main-函数-exitcode"&gt;支持自定义 main 函数 ExitCode&lt;/h2&gt;
+&lt;p&gt;　一开始， Rust &lt;code&gt;main&lt;/code&gt; 函数只能返回单元类型 &lt;code&gt;()&lt;/code&gt;（隐式或显式），总是指示成功的退出状态，如果您要你想要其它的，必须调用 &lt;code&gt;process::exit(code)&lt;/code&gt;。从 Rust 1.26 开始， &lt;code&gt;main&lt;/code&gt; 允许返回一个 &lt;code&gt;Result&lt;/code&gt; ，其中 &lt;code&gt;Ok&lt;/code&gt; 转换为 &lt;code&gt;C EXIT_SUCCESS&lt;/code&gt;，&lt;code&gt;Err&lt;/code&gt; 转换为 &lt;code&gt;EXIT_FAILURE&lt;/code&gt;（也调试打印错误）。在底层，这些返回类型统一使用不稳定的 &lt;code&gt;Termination&lt;/code&gt; 特征。&lt;/p&gt;</description></item><item><title>1.62</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.5-1.62/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.5-1.62/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.62"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.62&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="162"&gt;1.62&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://blog.rust-lang.org/2022/06/30/Rust-1.62.0.html"&gt;https://blog.rust-lang.org/2022/06/30/Rust-1.62.0.html&lt;/a&gt;
+翻译 by ：&lt;a href="https://github.com/AllanDowney"&gt;AllanDowney&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.62 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="cargo-add"&gt;Cargo add&lt;/h2&gt;
+&lt;p&gt;　现在可以使用 &lt;code&gt;cargo add&lt;/code&gt; 直接从命令行添加新的依赖项。此命令支持指定功能和版本。它还可以用来修改现有的依赖关系。&lt;/p&gt;</description></item><item><title>1.63</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.6-1.63/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.6-1.63/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.63"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.63&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="163"&gt;1.63&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.63 官方 release doc: &lt;a href="https://blog.rust-lang.org/2022/08/11/Rust-1.63.0.html"&gt;Announcing Rust 1.63.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.63 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="区域线程-scoped-threads"&gt;区域线程 Scoped threads&lt;/h2&gt;
+&lt;p&gt;　Rust 从 1.0 版本起，就可以使用 &lt;code&gt;std::thread::spawn&lt;/code&gt; 来创建一个线程，但是这个函数要求了其生成的线程必须拥有任何传递进去的参数的所有权，也就是说你不能把引用数据传递进去。在一些线程会在方法末尾退出的情况下（通常使用 &lt;code&gt;join()&lt;/code&gt; 方法），这个严格的约束显得不必要，在此之前也通常使用 &lt;code&gt;Arc&lt;/code&gt; 包裹数据的的方法来妥协。&lt;/p&gt;</description></item><item><title>1.64</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.7-1.64/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.7-1.64/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.64"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.64&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="164"&gt;1.64&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.64 官方 release doc: &lt;a href="https://blog.rust-lang.org/2022/09/22/Rust-1.64.0.html"&gt;Announcing Rust 1.64.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.64 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="使用-intofuture-增强-await"&gt;使用 &lt;code&gt;IntoFuture&lt;/code&gt; 增强 &lt;code&gt;.await&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;　1.64 稳定了 &lt;code&gt;IntoFuture&lt;/code&gt; trait，不同于用在 &lt;code&gt;for ... in ...&lt;/code&gt; 的 &lt;code&gt;IntoIterator&lt;/code&gt; trait，&lt;code&gt;IntoFuture&lt;/code&gt; 增强了 &lt;code&gt;.awiat&lt;/code&gt; 关键字。现在 &lt;code&gt;.await&lt;/code&gt; 可以 await 除了 futures 外，还可以 await 任何实现了 &lt;code&gt;IntoFuture&lt;/code&gt; trait 并经此转换成 &lt;code&gt;Future&lt;/code&gt; 的对象。这可以让你的 api 对用户更加优化。&lt;/p&gt;</description></item><item><title>1.65</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.8-1.65/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.8-1.65/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.65"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.65&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="165"&gt;1.65&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.65 官方 release doc: &lt;a href="https://blog.rust-lang.org/2022/11/03/Rust-1.65.0.html"&gt;Announcing Rust 1.65.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.65 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="泛型关联类型-generic-associated-types-gats"&gt;泛型关联类型 Generic associated types (GATs)&lt;/h2&gt;
+&lt;p&gt;　关联类型（associated types）里现在可以加上生命周期、类型、const泛型了，类似于：&lt;/p&gt;</description></item><item><title>1.66</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.9-1.66/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.9-1.66/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.66"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.66&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="166"&gt;1.66&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.66 官方 release doc: &lt;a href="https://blog.rust-lang.org/2022/12/15/Rust-1.66.0.html"&gt;Announcing Rust 1.66.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.66 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="对有字段枚举的显示判别"&gt;对有字段枚举的显示判别&lt;/h2&gt;
+&lt;p&gt;　枚举的显示判别在跨语言传递值时很关键，需要两个语言里每个枚举值的判别是一致的，比如：&lt;/p&gt;</description></item><item><title>1.67</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.10-1.67/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.10-1.67/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.67"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.67&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="167"&gt;1.67&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.67 官方 release doc: &lt;a href="https://blog.rust-lang.org/2023/01/26/Rust-1.67.0.html"&gt;Announcing Rust 1.67.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.67 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　2023新年好！大年初五更新的新版本，来看看有什么新变化~&lt;/p&gt;</description></item><item><title>1.68</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.11-1.68/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.11-1.68/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.68"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.68&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="168"&gt;1.68&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.68 官方 release doc: &lt;a href="https://blog.rust-lang.org/2023/03/09/Rust-1.68.0.html"&gt;Announcing Rust 1.68.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.68 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="cargo-稀疏注册协议-sparse-protocol"&gt;Cargo 稀疏注册协议 （sparse protocol）&lt;/h2&gt;
+&lt;p&gt;　Cargo的“稀疏”注册协议已经稳定，它是用来读取注册在 crates.io 上的 crates 的索引的基础设施。以前的 git 协议（目前仍然是默认协议）会克隆一个包括所有 crates 的索引的仓库，但这已经开始遇到扩展限制问题，在更新该仓库时会出现明显的延迟。新协议应在访问 crates.io 时提供显着的性能提升，因为它只会下载有关实际用到的 crates 的索引。&lt;/p&gt;</description></item><item><title>1.69</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.12-1.69/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.12-1.69/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.69"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.69&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="169"&gt;1.69&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.69 官方 release doc: &lt;a href="https://blog.rust-lang.org/2023/04/20/Rust-1.69.0.html"&gt;Announcing Rust 1.69.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.69 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="cargo-提供自动修复建议"&gt;Cargo 提供自动修复建议&lt;/h2&gt;
+&lt;p&gt;　在 Rust 1.29.0 版本添加的 &lt;code&gt;cargo fix&lt;/code&gt; 子命令，能够自动修复一些简单的编译错误。从那以后，能够自动修复的错误/警告原因的数量一直在稳步增加。此外，还增加了对自动修复一些简单的 Clippy 警告的支持。&lt;/p&gt;</description></item><item><title>1.70</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.13-1.70/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.13-1.70/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.70"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.70&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="170"&gt;1.70&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.70 官方 release doc: &lt;a href="https://blog.rust-lang.org/2023/06/01/Rust-1.70.0.html"&gt;Announcing Rust 1.70.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.70 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="cratesio-默认使用稀疏注册协议-sparse-protocol"&gt;crates.io 默认使用稀疏注册协议 （sparse protocol）&lt;/h2&gt;
+&lt;p&gt;　在 Rust 1.68.0 版本里稳定但需要手动配置来启用的特性，在这个版本中作为默认值了。如今在拉取 crates.io 索引信息时，应该能够观察到大幅性能提升。&lt;/p&gt;</description></item><item><title>1.71</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.14-1.71/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.14-1.71/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.71"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.71&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="171"&gt;1.71&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.71 官方 release doc: &lt;a href="https://blog.rust-lang.org/2023/07/13/Rust-1.71.0.html"&gt;Announcing Rust 1.71.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.71 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="c-unwind-api"&gt;C-unwind API&lt;/h2&gt;
+&lt;p&gt;　1.71.0 稳定了 &lt;code&gt;C-unwind&lt;/code&gt; 和其他 &lt;code&gt;-unwind&lt;/code&gt; 后缀的ABI，具体见&lt;a href="https://github.com/rust-lang/rust/issues/74990#issuecomment-1363473645"&gt;列表&lt;/a&gt;&lt;/p&gt;</description></item><item><title>1.72</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.15-1.72/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.15-1.72/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.72"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.72&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="172"&gt;1.72&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.72 官方 release doc: &lt;a href="https://blog.rust-lang.org/2023/08/24/Rust-1.72.0.html"&gt;Announcing Rust 1.72.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.72 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="警告可能有用的-cfg-禁用项"&gt;警告可能有用的 &lt;code&gt;cfg&lt;/code&gt; 禁用项&lt;/h2&gt;
+&lt;p&gt;　一直以来都支持的通过 &lt;code&gt;cfg&lt;/code&gt; 条件编译部分代码，例如在开启特定 feature 时的函数，或者针对特定平台的逻辑。之前编译器会直接无视掉这些代码，现在会记录这些符号名称和对应的 &lt;code&gt;cfg&lt;/code&gt; 条件，因此可以警告你正在调用一个特定 feature 下的函数，需要启用 feature：&lt;/p&gt;</description></item><item><title>1.73</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.16-1.73/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.16-1.73/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.73"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.73&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="173"&gt;1.73&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.73 官方 release doc: &lt;a href="https://blog.rust-lang.org/2023/10/05/Rust-1.73.0.html"&gt;Announcing Rust 1.73.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.73 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="更简洁的-panic-报错信息"&gt;更简洁的 panic 报错信息&lt;/h2&gt;
+&lt;p&gt;　默认的 panic handler 会把报错信息单独列出一行，当报错信息很长、包含多行或者嵌套结构的时候可读性会更强。&lt;/p&gt;</description></item><item><title>1.74</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.17-1.74/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.17-1.74/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.74"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.74&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="174"&gt;1.74&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.74 官方 release doc: &lt;a href="https://blog.rust-lang.org/2023/11/16/Rust-1.74.0.html"&gt;Announcing Rust 1.74.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.74 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="通过-cargo-配置-lint"&gt;通过 Cargo 配置 Lint&lt;/h2&gt;
+&lt;p&gt;　如 &lt;a href="https://rust-lang.github.io/rfcs/3389-manifest-lint.html"&gt;RFC 3389&lt;/a&gt; 提案，如今 &lt;code&gt;Cargo.toml&lt;/code&gt; 支持通过 &lt;code&gt;[lints]&lt;/code&gt; 表格来配置来自编译器或其它检查工具的 lints 的警告等级（forbid,deny,warn,allow）。等效于之前 crate 级别的属性：&lt;/p&gt;</description></item><item><title>1.75</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.18-1.75/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.18-1.75/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.75"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.75&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="175"&gt;1.75&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.75 官方 release doc: &lt;a href="https://blog.rust-lang.org/2023/12/28/Rust-1.75.0.html"&gt;Announcing Rust 1.75.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.75 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="在-traits-里使用-async-fn-和--impl-trait-形式的返回值"&gt;在 traits 里使用 &lt;code&gt;async fn&lt;/code&gt; 和 &lt;code&gt;impl Trait&lt;/code&gt; 形式的返回值&lt;/h2&gt;
+&lt;p&gt;　之前的&lt;a href="https://blog.rust-lang.org/2023/12/21/async-fn-rpit-in-traits.html"&gt;文章&lt;/a&gt;里也提到了，Rust 1.75 将支持在 traits 里使用 &lt;code&gt;async fn&lt;/code&gt; 和 &lt;code&gt;impl Trait&lt;/code&gt; 形式的返回值。不过如同前文所说这个版本还是有一些限制。&lt;/p&gt;</description></item><item><title>1.76</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.19-1.76/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.19-1.76/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.76"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.76&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="176"&gt;1.76&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.76 官方 release doc: &lt;a href="https://blog.rust-lang.org/2024/02/08/Rust-1.76.0.html"&gt;Announcing Rust 1.76.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.76 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　2024 新年好！&lt;/p&gt;
+&lt;h2 id="abi-兼容性更新"&gt;ABI 兼容性更新&lt;/h2&gt;
+&lt;p&gt;　函数指针文档中新的 &lt;a href="https://doc.rust-lang.org/stable/std/primitive.fn.html#abi-compatibility"&gt;ABI 兼容性部分&lt;/a&gt;描述了函数签名与 ABI 兼容的含义，并包括一份当前 Rust 中参数和返回值类型符合 ABI 兼容的列表。在大多数情况下，本文档不会添加任何新的保证，仅描述现有的兼容性状态。&lt;/p&gt;</description></item><item><title>1.77</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.20-1.77/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.20-1.77/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.77"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.77&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="177"&gt;1.77&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.77 官方 release doc: &lt;a href="https://blog.rust-lang.org/2024/03/21/Rust-1.77.0.html"&gt;Announcing Rust 1.77.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.77 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="c-字符串字面量"&gt;C 字符串字面量&lt;/h2&gt;
+&lt;p&gt;　Rust 现在支持 C 字符串字面量（&lt;code&gt;c&amp;quot;abc&amp;quot;&lt;/code&gt;），这些字面量会在内存中扩展为类型为 &lt;code&gt;&amp;amp;'static CStr&lt;/code&gt; 的字符串，且有 &lt;code&gt;\0&lt;/code&gt; (nul-byte) 作为终止符。&lt;/p&gt;</description></item><item><title>1.78</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.21-1.78/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.21-1.78/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.78"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.78&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="178"&gt;1.78&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.78 官方 release doc: &lt;a href="https://blog.rust-lang.org/2024/05/02/Rust-1.78.0.html"&gt;Announcing Rust 1.78.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.78 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="诊断属性宏"&gt;诊断属性宏&lt;/h2&gt;
+&lt;p&gt;　Rust 现在支持 &lt;code&gt;#[diagnostic]&lt;/code&gt; 属性命名空间，用于影响编译器错误消息。这些被视为提示，编译器不需要使用它们，也不会因为提供了编译器不认识的诊断而报错。这种灵活性允许源代码提供诊断，即使不是所有编译器都支持，无论是不同版本还是完全不同的实现。&lt;/p&gt;</description></item><item><title>1.79</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.22-1.79/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.22-1.79/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.79"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.79&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="179"&gt;1.79&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.79 官方 release doc: &lt;a href="https://blog.rust-lang.org/2024/06/13/Rust-1.79.0.html"&gt;Announcing Rust 1.79.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.79 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="内联-const-表达式"&gt;内联 &lt;code&gt;const&lt;/code&gt; 表达式&lt;/h2&gt;
+&lt;p&gt;　如今可以写内联 const 块 &lt;code&gt;const {...}&lt;/code&gt; 作为表达式，显式地进入 const 上下文，而不需要额外的声明（例如，定义 &lt;code&gt;const&lt;/code&gt; 常量或 Trait 的关联常量）。&lt;/p&gt;</description></item><item><title>1.80</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.23-1.80/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.23-1.80/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.80"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.80&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="180"&gt;1.80&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.80 官方 release doc: &lt;a href="https://blog.rust-lang.org/2024/07/25/Rust-1.80.0.html"&gt;Announcing Rust 1.80.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.80 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="lazycell-和-lazylock"&gt;&lt;code&gt;LazyCell&lt;/code&gt; 和 &lt;code&gt;LazyLock&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;　这两个 &amp;ldquo;lazy&amp;rdquo; 类型会延迟数据的初始化直到第一次访问。它们类似于 1.70 版本中稳定的 &lt;code&gt;OnceCell&lt;/code&gt; 和 &lt;code&gt;OnceLock&lt;/code&gt; 类型，但是初始化函数包含在 cell 中。这完成了吸纳流行的 &lt;a href="https://crates.io/crates/lazy-static"&gt;&lt;code&gt;lazy_static&lt;/code&gt;&lt;/a&gt; 和 &lt;a href="https://crates.io/crates/once_cell"&gt;&lt;code&gt;once_cell&lt;/code&gt;&lt;/a&gt; crates 中的功能到标准库中。&lt;/p&gt;</description></item><item><title>1.81</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.24-1.81/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.24-1.81/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.81"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.81&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="181"&gt;1.81&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.81 官方 release doc: &lt;a href="https://blog.rust-lang.org/2024/09/05/Rust-1.81.0.html"&gt;Announcing Rust 1.81.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.81 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="coreerrorerror"&gt;&lt;code&gt;core::error::Error&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;　1.81 版本稳定了 &lt;code&gt;core::error::Error&lt;/code&gt; trait，允许在 core 中使用 Error trait，使得库可以在 #![no_std] 环境中使用。这主要是为了让 Rust 生态系统能够在不同的环境中标准化相同的 Error trait，无论库的目标环境是什么。&lt;/p&gt;</description></item><item><title>1.82</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.25-1.82/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.25-1.82/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.82"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.82&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="182"&gt;1.82&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.82 官方 release doc: &lt;a href="https://blog.rust-lang.org/2024/09/05/Rust-1.82.0.html"&gt;Announcing Rust 1.82.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.82 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="cargo-info-命令"&gt;&lt;code&gt;cargo info&lt;/code&gt; 命令&lt;/h2&gt;
+&lt;p&gt;　Cargo 现在有一个 &lt;a href="https://doc.rust-lang.org/nightly/cargo/commands/cargo-info.html"&gt;&lt;code&gt;info&lt;/code&gt; 子命令&lt;/a&gt;，用于显示注册表中包的信息，满足了&lt;a href="https://github.com/rust-lang/cargo/issues/948"&gt;长期以来的请求&lt;/a&gt;，距离其十周年纪念日仅差一点！多年来，已经编写了许多类似的第三方扩展，这个实现最初是作为 &lt;a href="https://crates.io/crates/cargo-information"&gt;cargo-information&lt;/a&gt; 开发的，现合并到 Cargo 本身中。&lt;/p&gt;</description></item><item><title>1.83</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.26-1.83/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.26-1.83/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.83"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.83&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="183"&gt;1.83&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.83 官方 release doc: &lt;a href="https://blog.rust-lang.org/2024/11/28/Rust-1.83.0.html"&gt;Announcing Rust 1.83.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.83 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="新的常量能力"&gt;新的常量能力&lt;/h2&gt;
+&lt;p&gt;　此版本包含了对 &lt;code&gt;const&lt;/code&gt; 上下文中运行的代码的几个重大扩展。这指的是编译器必须在编译时求值的代码：包括 &lt;code&gt;const&lt;/code&gt; 和 &lt;code&gt;static&lt;/code&gt; 项的初始值、数组长度、枚举判别值、&lt;code&gt;const&lt;/code&gt; 泛型参数，以及可从这些上下文中调用的函数（&lt;code&gt;const fn&lt;/code&gt;）。&lt;/p&gt;</description></item><item><title>1.84</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.27-1.84/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.27-1.84/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.84"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.84&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="184"&gt;1.84&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.84 官方 release doc: &lt;a href="https://blog.rust-lang.org/2025/01/09/Rust-1.84.0.html"&gt;Announcing Rust 1.84.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.84 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="cargo-在依赖版本选择中考虑-rust-版本"&gt;Cargo 在依赖版本选择中考虑 Rust 版本&lt;/h2&gt;
+&lt;p&gt;　1.84.0 稳定了支持最低 Rust 版本（MSRV, minimum supported Rust version）的解析器，该解析器优先选择与项目声明的 MSRV （&lt;code&gt;Cargo.toml&lt;/code&gt; 里的 &lt;code&gt;package.rust_version&lt;/code&gt;） 兼容的依赖版本。通过支持 MSRV 的版本选择，维护者可以减少支持旧工具链的工作量，因为不再需要为每个依赖手动选择旧版本。&lt;/p&gt;</description></item><item><title>1.85</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.28-1.85/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.28-1.85/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.85"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.85&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="185"&gt;1.85&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.85 官方 release doc: &lt;a href="https://blog.rust-lang.org/2025/02/20/Rust-1.85.0.html"&gt;Announcing Rust 1.85.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.85 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="rust-2024"&gt;Rust 2024&lt;/h2&gt;
+&lt;p&gt;　我们很高兴地宣布，Rust 2024 版现已稳定！
+大的新版本也是一种用于选择可能带来向后兼容性风险的更改的机制。有关如何实现此目标的详细信息以及迁移的详细说明，请参阅&lt;a href="https://doc.rust-lang.org/edition-guide/editions/index.html"&gt;版本指南&lt;/a&gt;。&lt;/p&gt;</description></item><item><title>1.86</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.29-1.86/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.29-1.86/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.86"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.86&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="186"&gt;1.86&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.86 官方 release doc: &lt;a href="https://blog.rust-lang.org/2025/04/03/Rust-1.86.0/"&gt;Announcing Rust 1.86.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.86 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="特征向上转型trait-upcasting"&gt;特征向上转型(Trait upcasting)&lt;/h2&gt;
+&lt;p&gt;　本次更新包含了一个期待已久的功能————特征对象的向上转型能力。如果一个特征拥有 &lt;a href="https://doc.rust-lang.org/reference/items/traits.html#supertraits"&gt;supertrait&lt;/a&gt;，你可以将指向该特征对象的引用强制转换为指向 supertrait 对象的引用：&lt;/p&gt;</description></item><item><title>1.87</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.30-1.87/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.30-1.87/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.87"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.87&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="187"&gt;1.87&lt;/h1&gt;
+&lt;p&gt;　&lt;a href="https://blog.rust-lang.org/2015/05/15/Rust-1.0/"&gt;Rust 1.0&lt;/a&gt; 十周年🎉&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.87 官方 release doc: &lt;a href="https://blog.rust-lang.org/2025/05/15/Rust-1.87.0/"&gt;Announcing Rust 1.87.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.87 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="匿名管道"&gt;匿名管道&lt;/h2&gt;
+&lt;p&gt;　1.87 版本为标准库添加了匿名管道支持，包括与 &lt;code&gt;std::process::Command&lt;/code&gt; 输入/输出方法的集成。例如，现在可以相对简单地合并标准输出和标准错误流，如下所示，而过去需要额外线程或平台特定函数才能实现。&lt;/p&gt;</description></item><item><title>1.88</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.31-1.88/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.31-1.88/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.88"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.88&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="188"&gt;1.88&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.88 官方 release doc: &lt;a href="https://blog.rust-lang.org/2025/06/26/Rust-1.88.0/"&gt;Announcing Rust 1.88.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.88 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="let-链式表达式"&gt;let 链式表达式&lt;/h2&gt;
+&lt;p&gt;　该特性允许在 &lt;code&gt;if&lt;/code&gt; 和 &lt;code&gt;while&lt;/code&gt; 条件中使用 &lt;code&gt;&amp;amp;&amp;amp;&lt;/code&gt; 连接的 &lt;code&gt;let&lt;/code&gt; 语句，甚至可以与布尔表达式混合使用，从而减少 &lt;code&gt;if&lt;/code&gt;/&lt;code&gt;if let&lt;/code&gt; 和 &lt;code&gt;while&lt;/code&gt;/&lt;code&gt;while let&lt;/code&gt; 之间的差异。&lt;code&gt;let&lt;/code&gt; 子表达式中的模式可以是不可反驳或可反驳的，绑定变量可以在链式后续部分和代码体中使用。&lt;/p&gt;</description></item><item><title>1.89</title><link>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.32-1.89/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/appendix/12.6-RustVersions/12.6.32-1.89/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/appendix/rust-versions/1.89"&gt;https://beatai.org/rust-course/appendix/rust-versions/1.89&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="189"&gt;1.89&lt;/h1&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Rust 1.89 官方 release doc: &lt;a href="https://blog.rust-lang.org/2025/08/07/Rust-1.89.0/"&gt;Announcing Rust 1.89.0 | Rust Blog&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;　通过 &lt;a href="https://www.rust-lang.org/tools/install"&gt;rustup&lt;/a&gt; 安装的同学可以使用以下命令升级到 1.89 版本:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ rustup update stable
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id="常量泛型的显式推断参数"&gt;常量泛型的显式推断参数&lt;/h2&gt;
+&lt;p&gt;　Rust现在支持在常量泛型参数中使用 &lt;code&gt;_&lt;/code&gt;，从上下文推断其值：&lt;/p&gt;</description></item></channel></rss>

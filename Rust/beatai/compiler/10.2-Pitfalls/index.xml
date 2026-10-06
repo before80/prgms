@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Rust 常见陷阱 on 编程那些事儿</title><link>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/</link><description>Recent content in Rust 常见陷阱 on 编程那些事儿</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 06 Oct 2026 20:22:31 +0800</lastBuildDate><atom:link href="https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/index.xml" rel="self" type="application/rss+xml"/><item><title>for 循环中使用外部数组</title><link>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.1-UseVecInFor/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.1-UseVecInFor/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/compiler/pitfalls/use-vec-in-for"&gt;https://beatai.org/rust-course/compiler/pitfalls/use-vec-in-for&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="for-循环中使用外部数组"&gt;for 循环中使用外部数组&lt;/h1&gt;
+&lt;p&gt;　一般来说，&lt;code&gt;for&lt;/code&gt;循环能做到的，&lt;code&gt;while&lt;/code&gt;也可以，反之亦然，但是有一种情况，还真不行，先来看代码:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;mut&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;v&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;vec!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;[&lt;/span&gt;&lt;span style="color:#d19a66"&gt;1&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;&lt;span style="color:#d19a66"&gt;2&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;&lt;span style="color:#d19a66"&gt;3&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;];&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;for&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;i&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;in&lt;/span&gt; &lt;span style="color:#d19a66"&gt;0&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;..&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;v&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;len&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;()&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;v&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;push&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;i&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#98c379"&gt;{:?}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;v&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　我们的目的是创建一个无限增长的数组，往里面插入&lt;code&gt;0..&lt;/code&gt;(看不懂该表达式的同学请查阅&lt;a href="../../../basic/2.5-FlowControl/"&gt;流程控制&lt;/a&gt;)的数值序列。&lt;/p&gt;</description></item><item><title>线程类型导致的栈溢出</title><link>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.2-StackOverflow/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.2-StackOverflow/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/compiler/pitfalls/stack-overflow"&gt;https://beatai.org/rust-course/compiler/pitfalls/stack-overflow&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="线程类型导致的栈溢出"&gt;线程类型导致的栈溢出&lt;/h1&gt;
+&lt;p&gt;　在 Rust 中，我们不太容易遇到栈溢出，因为默认栈还挺大的，而且大的数据往往存在堆上(动态增长)，但是一旦遇到该如何处理？先来看段代码：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;12
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#![feature(test)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;extern&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;crate&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;test&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8a93a5;font-style:italic"&gt;#[cfg(test)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;mod&lt;/span&gt; &lt;span style="color:#ca72ff"&gt;tests&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;use&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;test&lt;/span&gt;::&lt;span style="color:#aa89ea"&gt;Bencher&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8a93a5;font-style:italic"&gt;#[bench]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#76a9f9"&gt;fn&lt;/span&gt; &lt;span style="color:#00b1f7"&gt;it_works&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;: &lt;span style="color:#76a9f9"&gt;&amp;amp;&lt;/span&gt;&lt;span style="color:#ca72ff"&gt;mut&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;Bencher&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#aa89ea"&gt;b&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;.&lt;/span&gt;&lt;span style="color:#aa89ea"&gt;iter&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#54b1c7"&gt;||&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;{&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;stack&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;[[[&lt;/span&gt;&lt;span style="color:#d19a66"&gt;0.0&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt; &lt;span style="color:#d19a66"&gt;2&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;];&lt;/span&gt; &lt;span style="color:#d19a66"&gt;512&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;];&lt;/span&gt; &lt;span style="color:#d19a66"&gt;512&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;];&lt;/span&gt; &lt;span style="color:#abb2bf"&gt;});&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#abb2bf"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　以上代码是一个测试模块，它在堆上生成了一个数组&lt;code&gt;stack&lt;/code&gt;，初步看起来数组挺大的，先尝试运行下&lt;code&gt;cargo test&lt;/code&gt;:&lt;/p&gt;</description></item><item><title>算术溢出导致的 panic</title><link>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.3-ArithmeticOverflow/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.3-ArithmeticOverflow/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/compiler/pitfalls/arithmetic-overflow"&gt;https://beatai.org/rust-course/compiler/pitfalls/arithmetic-overflow&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="算术溢出导致的-panic"&gt;算术溢出导致的 panic&lt;/h1&gt;
+&lt;p&gt;　在 Rust 中，溢出后的数值被截断是很正常的:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#58626f"&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#b0c4de;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"&gt;&lt;code class="language-rust" data-lang="rust"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;x&lt;/span&gt;: &lt;span style="color:#e5c07b"&gt;u16&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#d19a66"&gt;65535&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#76a9f9"&gt;let&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;v&lt;/span&gt; &lt;span style="color:#54b1c7"&gt;=&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;x&lt;/span&gt; &lt;span style="color:#76a9f9"&gt;as&lt;/span&gt; &lt;span style="color:#e5c07b"&gt;u8&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#00b1f7"&gt;println!&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;(&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#98c379"&gt;{}&lt;/span&gt;&lt;span style="color:#98c379"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;,&lt;/span&gt; &lt;span style="color:#aa89ea"&gt;v&lt;/span&gt;&lt;span style="color:#abb2bf"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;　最终程序会输出&lt;code&gt;255&lt;/code&gt;, 因此大家可能会猜测算术溢出在 Rust 中也会只导致截断。但是实际上，如果在 debug 模式下运行，算术溢出会引发 panic:&lt;/p&gt;</description></item><item><title>闭包中奇怪的生命周期</title><link>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.4-ClosureWithLifetime/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.4-ClosureWithLifetime/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/compiler/pitfalls/closure-with-lifetime"&gt;https://beatai.org/rust-course/compiler/pitfalls/closure-with-lifetime&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="闭包中奇怪的生命周期"&gt;闭包中奇怪的生命周期&lt;/h1&gt;
+&lt;p&gt;　Rust 一道独特的靓丽风景就是生命周期，也是反复折磨新手的最大黑手，就连老手，可能一不注意就会遇到一些生命周期上的陷阱，例如闭包上使用引用。&lt;/p&gt;</description></item><item><title>可变变量不可变？</title><link>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.5-TheDisabledMutability/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.5-TheDisabledMutability/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/compiler/pitfalls/the-disabled-mutability"&gt;https://beatai.org/rust-course/compiler/pitfalls/the-disabled-mutability&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="可变变量不可变"&gt;可变变量不可变？&lt;/h1&gt;
+&lt;p&gt;　众所周知 Rust 是一门安全性非常强的系统级语言，其中，显式的设置变量可变性，是安全性的重要组成部分。按理来说，变量可变不可变在设置时就已经决定了，但是你遇到过可变变量在某些情况失效，变成不可变吗？&lt;/p&gt;</description></item><item><title>可变借用失败引发的深入思考</title><link>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.6-MultipleMutableReferences/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.6-MultipleMutableReferences/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/compiler/pitfalls/multiple-mutable-references"&gt;https://beatai.org/rust-course/compiler/pitfalls/multiple-mutable-references&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="可变借用失败引发的深入思考"&gt;可变借用失败引发的深入思考&lt;/h1&gt;
+&lt;p&gt;　相信大家都听说过&lt;strong&gt;重构一时爽，一直重构一直爽&lt;/strong&gt;的说法，私以为这种说法是很有道理的，不然技术团队绩效从何而来？但是，在 Rust 中，重构可能就不是那么爽快的事了，不信？咱们来看看。&lt;/p&gt;</description></item><item><title>不太勤快的迭代器</title><link>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.7-LazyIterators/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.7-LazyIterators/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/compiler/pitfalls/lazy-iterators"&gt;https://beatai.org/rust-course/compiler/pitfalls/lazy-iterators&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="不太勤快的迭代器"&gt;不太勤快的迭代器&lt;/h1&gt;
+&lt;p&gt;　迭代器，在 Rust 中是一个非常耀眼的存在，它光鲜亮丽，它让 Rust 大道至简，它备受用户的喜爱。可是，它也是懒惰的，不信？一起来看看。&lt;/p&gt;
+&lt;h2 id="for-循环-vs-迭代器"&gt;for 循环 vs 迭代器&lt;/h2&gt;
+&lt;p&gt;　在迭代器学习中，我们提到过迭代器在功能上可以替代循环，性能上略微优于循环(避免边界检查),安全性上优于循环，因此在 Rust 中，迭代器往往都是更优的选择，前提是迭代器得发挥作用。&lt;/p&gt;</description></item><item><title>奇怪的序列 x..y</title><link>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.8-WeirdRanges/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.8-WeirdRanges/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/compiler/pitfalls/weird-ranges"&gt;https://beatai.org/rust-course/compiler/pitfalls/weird-ranges&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="奇怪的序列-xy"&gt;奇怪的序列 x..y&lt;/h1&gt;
+&lt;p&gt;　@todo&lt;/p&gt;
+&lt;p&gt;　https://www.reddit.com/r/rust/comments/rrgxr0/a_critique_of_rusts_range_types/&lt;/p&gt;</description></item><item><title>无处不在的迭代器</title><link>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.9-IteratorEverywhere/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.9-IteratorEverywhere/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/compiler/pitfalls/iterator-everywhere"&gt;https://beatai.org/rust-course/compiler/pitfalls/iterator-everywhere&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="无处不在的迭代器"&gt;无处不在的迭代器&lt;/h1&gt;
+&lt;p&gt;　Rust 的迭代器无处不在，直至你在它上面栽了跟头，经过深入调查才发现：哦，原来是迭代器的锅。不信的话，看看这个报错你能想到是迭代器的问题吗: &lt;code&gt;borrow of moved value: words&lt;/code&gt;.&lt;/p&gt;</description></item><item><title>线程间传递消息导致主线程无法结束</title><link>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.10-MainWithChannelBlocked/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.10-MainWithChannelBlocked/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/compiler/pitfalls/main-with-channel-blocked"&gt;https://beatai.org/rust-course/compiler/pitfalls/main-with-channel-blocked&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="线程间传递消息导致主线程无法结束"&gt;线程间传递消息导致主线程无法结束&lt;/h1&gt;
+&lt;p&gt;　本篇陷阱较短，主要解决新手在多线程间传递消息时可能会遇到的一个问题：主线程会一直阻塞，无法结束。&lt;/p&gt;
+&lt;p&gt;　Rust 标准库中提供了一个消息通道，非常好用，也相当简单明了，但是但是在使用起来还是可能存在坑：&lt;/p&gt;</description></item><item><title>警惕 UTF-8 引发的性能隐患</title><link>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.11-Utf8Performance/</link><pubDate>Tue, 06 Oct 2026 16:45:00 +0800</pubDate><guid>https://before80.github.io/prgms/Rust/beatai/compiler/10.2-Pitfalls/10.2.11-Utf8Performance/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;原文链接: &lt;a href="https://beatai.org/rust-course/compiler/pitfalls/utf8-performance"&gt;https://beatai.org/rust-course/compiler/pitfalls/utf8-performance&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id="警惕-utf-8-引发的性能隐患"&gt;警惕 UTF-8 引发的性能隐患&lt;/h1&gt;
+&lt;p&gt;　大家应该都知道, 虽然 Rust 的字符串 &lt;code&gt;&amp;amp;str&lt;/code&gt;、&lt;code&gt;String&lt;/code&gt; 在底层是通过 &lt;code&gt;Vec&amp;lt;u8&amp;gt;&lt;/code&gt; 实现的：字符串数据以字节数组的形式存在堆上，但在使用时，它们都是 UTF-8 编码的，例如:&lt;/p&gt;</description></item></channel></rss>
