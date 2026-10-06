@@ -14,7 +14,7 @@ draft = false
 
 # `use` 声明
 
-`use` 声明可以将一个完整的路径绑定到一个新的名字，从而更容易访问。
+​	`use` 声明可以将一个完整的路径绑定到一个新的名字，从而更容易访问。
 
 ```rust
 // 将 `deeply::nested::function` 路径绑定到 `other_function`。

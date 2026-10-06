@@ -14,7 +14,7 @@ draft = false
 
 # `super` 和 `self`
 
-可以在路径中使用 `super` （父级）和 `self`（自身）关键字，从而在访问项时消除歧义，以及防止不必要的路径硬编码。
+​	可以在路径中使用 `super` （父级）和 `self`（自身）关键字，从而在访问项时消除歧义，以及防止不必要的路径硬编码。
 
 ```rust
 fn function() {
@@ -66,4 +66,12 @@ mod my {
 fn main() {
     my::indirect_call();
 }
+//called `my::indirect_call()`, that
+//> called `my::function()`
+//called `my::function()`
+//called `my::cool::function()`
+//called `function()`
+//called `cool::function()`
+
+
 ```

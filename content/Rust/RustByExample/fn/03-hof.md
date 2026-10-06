@@ -14,7 +14,7 @@ draft = false
 
 # 高阶函数
 
-Rust 提供了高阶函数（Higher Order Function, HOF），指那些输入一个或多个函数，并且/或者产生一个更有用的函数的函数。HOF 和惰性迭代器（lazy iterator）给 Rust 带来了函数式（functional）编程的风格。
+​	Rust 提供了高阶函数（Higher Order Function, HOF），指那些输入一个或多个函数，并且/或者产生一个更有用的函数的函数。HOF 和惰性迭代器（lazy iterator）给 Rust 带来了函数式（functional）编程的风格。
 
 ```rust
 fn is_odd(n: u32) -> bool {
@@ -51,8 +51,11 @@ fn main() {
              .fold(0, |sum, i| sum + i); // 最后加起来
     println!("functional style: {}", sum_of_squared_odd_numbers);
 }
+//Find the sum of all the squared odd numbers under 1000
+//imperative style: 5456
+//functional style: 5456
 ```
-[Option][option] 和 [迭代器][iter] 都实现了不少高阶函数。
+​	[Option][option] 和 [迭代器][iter] 都实现了不少高阶函数。
 
 [option]: https://rustwiki.org/zh-CN/core/option/enum.Option.html
 [iter]: https://rustwiki.org/zh-CN/core/iter/trait.Iterator.html

@@ -14,7 +14,7 @@ draft = false
 
 # 文件分层
 
-模块可以分配到文件/目录的层次结构中。让我们将《可见性》一节中的[例子][visibility]的代码拆分到多个文件中：
+​	模块可以分配到文件/目录的层次结构中。让我们将《可见性》一节中的[例子][visibility]的代码拆分到多个文件中：
 
 ```bash
 $ tree .
@@ -25,7 +25,7 @@ $ tree .
 |   `-- nested.rs
 `-- split.rs
 ```
-`split.rs` 的内容：
+​	`split.rs` 的内容：
 
 ```rust
 // 此声明将会查找名为 `my.rs` 或 `my/mod.rs` 的文件，并将该文件的内容放到
@@ -46,7 +46,7 @@ fn main() {
     my::nested::function();
 }
 ```
-`my/mod.rs` 的内容：
+​	`my/mod.rs` 的内容：
 
 ```rust
 // 类似地，`mod inaccessible` 和 `mod nested` 将找到 `nested.rs` 和
@@ -80,7 +80,7 @@ fn private_function() {
     println!("called `my::nested::private_function()`");
 }
 ```
-`my/inaccessible.rs` 的内容：
+​	`my/inaccessible.rs` 的内容：
 
 ```rust
 #[allow(dead_code)]
@@ -88,7 +88,7 @@ pub fn public_function() {
     println!("called `my::inaccessible::public_function()`");
 }
 ```
-我们看到代码仍然正常运行，就和前面的一样：
+​	我们看到代码仍然正常运行，就和前面的一样：
 
 ```bash
 $ rustc split.rs && ./split

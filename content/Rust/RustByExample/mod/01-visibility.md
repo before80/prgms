@@ -14,7 +14,7 @@ draft = false
 
 # 可见性
 
-默认情况下，模块中的项拥有私有的可见性（private visibility），不过可以加上 `pub` 修饰语来重载这一行为。模块中只有公有的（public）项可以从模块外的作用域访问。
+​	默认情况下，模块中的项拥有私有的可见性（private visibility），不过可以加上 `pub` 修饰语来重载这一行为。模块中只有公有的（public）项可以从模块外的作用域访问。
 
 ```rust
 // 一个名为 `my_mod` 的模块
@@ -121,4 +121,15 @@ fn main() {
     //my_mod::private_nested::function();
     // 试一试 ^ 取消此行的注释
 }
+//called `function()`
+//called `my_mod::function()`
+//called `my_mod::indirect_access()`, that
+//> called `my_mod::private_function()`
+//called `my_mod::nested::function()`
+//called `my_mod::call_public_funcion_in_my_mod()`, that
+//> called `my_mod::nested::public_function_in_my_mod()`, that
+// > called `my_mod::nested::public_function_in_nested
+//> called my_mod::nested::public_function_in_super_mod
+//called `my_mod::public_function_in_crate()
+
 ```
