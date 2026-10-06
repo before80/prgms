@@ -1,7 +1,7 @@
 +++
 title = "常用工具链"
 date = 2026-10-06T16:45:00+08:00
-weight = 1
+weight = 80
 type = "docs"
 description = ""
 isCJKLanguage = true

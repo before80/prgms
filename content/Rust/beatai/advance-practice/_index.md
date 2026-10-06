@@ -1,7 +1,7 @@
 +++
 title = "第六部分：进阶实战2 - 实现Redis"
 date = 2026-10-06T16:45:00+08:00
-weight = 1
+weight = 60
 type = "docs"
 description = ""
 isCJKLanguage = true

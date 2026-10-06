@@ -1,7 +1,7 @@
 +++
 title = "第三部分：入门实战"
 date = 2026-10-06T16:45:00+08:00
-weight = 1
+weight = 30
 type = "docs"
 description = ""
 isCJKLanguage = true

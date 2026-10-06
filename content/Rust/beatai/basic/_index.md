@@ -1,7 +1,7 @@
 +++
 title = "第二部分：Rust 基础入门"
 date = 2026-10-06T16:45:00+08:00
-weight = 1
+weight = 20
 type = "docs"
 description = ""
 isCJKLanguage = true

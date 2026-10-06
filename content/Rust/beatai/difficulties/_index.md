@@ -1,7 +1,7 @@
 +++
 title = "Rust 难点攻关"
 date = 2026-10-06T16:45:00+08:00
-weight = 1
+weight = 70
 type = "docs"
 description = ""
 isCJKLanguage = true
