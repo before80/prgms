@@ -1,0 +1,24 @@
++++
+title = "Rust 难点攻关"
+date = 2026-10-06T16:45:00+08:00
+weight = 1
+type = "docs"
+description = ""
+isCJKLanguage = true
+draft = false
++++
+
+> 原文链接: [https://beatai.org/rust-course/difficulties/intro](https://beatai.org/rust-course/difficulties/intro)
+
+# Rust 难点攻关
+
+　当大家一路看到这里时，我敢说 90% 的人还是云里雾里的，例如你能说清楚:
+
+- 切片和切片引用的区别吗？
+- 各种字符串之间的区别吗？
+- 各种指针、引用的区别吗？
+- 所有权转移、拷贝、克隆的区别吗？
+
+　以及到底该用它们之中哪一个吗？
+
+　如果不行，就跟随我一起来看看吧，本章的目标就是帮大家彻底理清这些概念，为后面的进一步学习和实战打好坚实的基础。

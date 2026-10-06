@@ -1,0 +1,23 @@
++++
+title = "监控"
+date = 2026-10-06T16:45:00+08:00
+weight = 7
+type = "docs"
+description = ""
+isCJKLanguage = true
+draft = false
++++
+
+> 原文链接: [https://beatai.org/rust-course/logs/observe/intro](https://beatai.org/rust-course/logs/observe/intro)
+
+# 监控
+
+　监控是一个很大的领域，大到老板、前端开发、后端开发理解的监控可能都不相同。
+
+- 老板眼中的监控：业务大数据实时展示
+- 前端眼中的监控：手机 APP 收集上来的异常、崩溃、用户操作日志等
+- 后端眼中的监控：请求链路跟踪、一段时间内的请求错误率、QPS 过高、异常日志等
+
+　正是因为这些复杂性，导致很多同学难以准确的说出监控到底是什么。
+
+　下面，我们将试图解释清楚监控的概念，并引入一个全新的概念：可观测性。
