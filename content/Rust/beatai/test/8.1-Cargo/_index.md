@@ -18,4 +18,4 @@ draft = false
 
 > 本章内容是基于 [Cargo Book](https://doc.rust-lang.org/stable/cargo/index.html) 翻译，并做了一些内容优化和目录组织上的调整
 
-<img src="./images/CargoLogoSmall.png" />
+![](./images/CargoLogoSmall.png)

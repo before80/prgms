@@ -12,7 +12,7 @@ draft = false
 
 # 关于本书
 
-<img src="./images/Banner.jpg" />
+![](./images/Banner.jpg)
 
 　Rust 语言真的好：连续多年成为全世界最受欢迎的语言、没有 GC 也无需手动内存管理、性能比肩 C++/C 还能直接调用它们的代码、安全性极高 - 总有公司说使用 Rust 后以前的大部分 bug 都将自动消失、全世界最好的包管理工具 Cargo 等等。但...
 
@@ -43,7 +43,7 @@ draft = false
 　能与大家在茫茫人海中相识，这感觉真好！
 
 
-<img width="2452" height="744" alt="1780625980773" src="./images/988797beC88645ac99d6569fae654dfe.jpg" />
+![1780625980773](./images/988797beC88645ac99d6569fae654dfe.jpg)
 
 
 
