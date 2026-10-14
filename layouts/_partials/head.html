@@ -40,9 +40,15 @@
 {{ range .AlternativeOutputFormats -}}
 <link rel="{{ .Rel }}" type="{{ .MediaType.Type }}" href="{{ .Permalink | safeURL }}">
 {{ end -}}
+{{/* llms.txt spec v2 discovery link. The alternates loop above can't supply
+  it: it lists this page's own formats, and LLMS is `notAlternative` (llms.txt
+  describes the site; it isn't a version of this page). */ -}}
+{{ with (partialCached "td/root-page.html" site site.Home.Permalink).OutputFormats.Get "LLMS" -}}
+<link rel="describedby" href="{{ .Permalink | safeURL }}">
+{{ end -}}
 
 {{ $outputFormat := partial "outputformat.html" . -}}
-{{ if and hugo.IsProduction (ne $outputFormat "print") (ne .Site.Language.Lang "xx") -}}
+{{ if and hugo.IsProduction (ne $outputFormat "print") (ne .Site.Language.Name "xx") -}}
 <meta name="robots" content="index, follow">
 {{ else -}}
 <meta name="robots" content="noindex, nofollow">
@@ -62,10 +68,6 @@
 {{ partial "schema.html" . -}}
 {{ partial "twitter_cards.html" . -}}
 {{ partialCached "head-css.html" . "head-css-cache-key" -}}
-<script
-  src="https://code.jquery.com/jquery-3.7.1.min.js"
-  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-  crossorigin="anonymous"></script>
 {{ if .Site.Params.offlineSearch -}}
 <script defer
   src="https://unpkg.com/lunr@2.3.9/lunr.min.js"
@@ -77,26 +79,11 @@
 <link rel="stylesheet" href="{{ "css/prism.css" | relURL }}"/>
 {{ end -}}
 
-{{ template "algolia/head" . -}}
+{{ partial "algolia/head.html" . -}}
 
 {{ partial "hooks/head-end.html" . -}}
 
 {{/* To comply with GDPR, cookie consent scripts places in head-end must execute before Google Analytics is enabled */ -}}
 {{ if hugo.IsProduction -}}
   {{ partial "google_analytics.html" . -}}
-{{ end -}}
-
-{{ define "algolia/head" -}}
-
-{{ if and .Site.Params.search (isset .Site.Params.search "algolia") -}}
-<link rel="stylesheet" href="https://unpkg.com/@docsearch/css@3.8.2/dist/style.css"
-  integrity="sha512-l7pkV1dOURFyHCeH8I4fK9lCkQKuqhlsTCqRl3zktifDlB8oTUJ+mJPgYkK9kHpUut8j1iPquTv32t6hvTPv3g=="
-  crossorigin="anonymous" />  
-{{ end -}}
-
-{{ if ne .Site.Params.algolia_docsearch nil -}}
-{{ warnf `Config 'params.algolia_docsearch' is deprecated: use 'params.search.algolia'
-      For details, see https://www.docsy.dev/docs/content/search/#algolia-docsearch.` -}}
-{{ end -}}
-
 {{ end -}}

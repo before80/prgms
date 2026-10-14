@@ -24,20 +24,19 @@ jobs:
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
         with:
-          hugo-version: '0.155.3'
+          hugo-version: '0.166.0'
           extended: true
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
 
       - run: npm ci
-      - run: >-
-          hugo --baseURL https://${REPO_OWNER}.github.io/${REPO_NAME}
-          --minify
+      - run: |
+          npm run hugo -- --minify --baseURL "https://${REPO_OWNER}.github.io/${REPO_NAME}"
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
