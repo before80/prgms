@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main # <-- specify the branch you want to deploy from
+      - main
   pull_request:
 
 env:
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
+          fetch-depth: 0
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
@@ -35,12 +35,14 @@ jobs:
           cache-dependency-path: '**/package-lock.json'
 
       - run: npm ci
-      - run: >-
-          hugo --baseURL https://${REPO_OWNER}.github.io/${REPO_NAME}
-          --minify
+
+      - name: Build Hugo site
+        run: |
+          hugo --minify --baseURL "https://${REPO_OWNER}.github.io/${REPO_NAME}"
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
-        if: ${{ github.ref == 'refs/heads/main' }} # <-- specify same branch as above here
+        if: ${{ github.ref == 'refs/heads/main' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
