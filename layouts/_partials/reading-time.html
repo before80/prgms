@@ -1,1 +1,29 @@
 <p class="reading-time"><i class="fa-solid fa-clock" style="color: #ee9900" aria-hidden="true"></i>&nbsp;{{ if gt .ReadingTime 1 }} <span style="font-size: 3rem;color:darkgreen" id="advice-reading-time">{{ .ReadingTime }} </span>{{ T "post_reading_time" }} {{ else }} <span style="font-size: 1.2rem;color:darkgreen">{{ T "post_less_than_a_minute_read" }} </span> {{ end }}&nbsp;</p>
+{{- $page := .Page -}}
+{{- $htmlContent := $page.Content -}}
+
+{{/* 删除代码块 */}}
+{{- $noCode := $htmlContent | replaceRE `(?s)<pre[\s\S]*?</pre>` "" -}}
+{{- $noInlineCode := $noCode | replaceRE `<code[\s\S]*?</code>` "" -}}
+{{/* 删除链接文本（Typora不计链接文字） */}}
+{{- $noLink := $noInlineCode | replaceRE `(?s)<a [^>]*>[\s\S]*?</a>` "" -}}
+
+{{- $plain := $noLink | plainify | htmlUnescape -}}
+{{- $clean := $plain | replaceRE `[^\p{Han}a-zA-Z0-9]` " " -}}
+{{- $tokens := split $clean `\s+` | complement (slice "") -}}
+
+{{- $typoraWordCount := 0 -}}
+{{- range $tokens -}}
+{{- $token := . -}}
+{{- $hasCN := findRE `\p{Han}` $token -}}
+{{- if $hasCN -}}
+    {{/* 包含中文：只统计汉字，英文数字不算独立词 */}}
+    {{ $cnList := findRE `\p{Han}` $token }}
+    {{ $typoraWordCount = add $typoraWordCount (len $cnList) }}
+{{- else -}}
+    {{/* 纯英文/数字串，计1词 */}}
+    {{ $typoraWordCount = add $typoraWordCount 1 }}
+{{- end -}}
+{{- end -}}
+
+<div>Typora风格词数（不含代码块和标点符号）：{{ $typoraWordCount }}</div>
