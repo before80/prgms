@@ -103,7 +103,7 @@ draft = false
 
 　　Git 支持是内置的，但你可以为 Subversion 或 Mercurial 等其他版本控制系统[安装扩展](https://marketplace.visualstudio.com/search?target=VSCode&category=SCM%20Providers&sortBy=Installs)。托管在 Azure DevOps 上的 Git 仓库使用内置 Git 集成。
 
-　　在扩展视图（`Ctrl + Shift + X`）中搜索 `@category:"scm providers"`，浏览可用的 SCM 提供程序扩展。
+　　在扩展视图（`Ctrl + Shift + X`，macOS：`Cmd + Shift + X`）中搜索 `@category:"scm providers"`，浏览可用的 SCM 提供程序扩展。
 
 ## 后续步骤 {#next-steps}
 
