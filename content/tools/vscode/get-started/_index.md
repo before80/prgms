@@ -107,9 +107,9 @@ draft = false
 
 　　在 VS Code 中使用 AI 不需要 GitHub Copilot 订阅。你可以自带模型，或使用其他提供商的智能体：
 
-* **自带密钥（BYOK）：**[2.3.1 选择和配置模型](../ai-in-vs-code/choose-models-and-agents/2.3.1-ChooseAndConfigureModels/#bring-your-own-language-model-key)，或[2.3.2 选择智能体运行框架](../ai-in-vs-code/choose-models-and-agents/2.3.2-ChooseAnAgentHarness/#use-claude-without-github-sign-in)。
-* **提供商订阅：**使用[2.3.2 选择智能体运行框架](../ai-in-vs-code/choose-models-and-agents/2.3.2-ChooseAnAgentHarness/#codex)。
-* **本地模型：**[2.3.1 选择和配置模型](../ai-in-vs-code/choose-models-and-agents/2.3.1-ChooseAndConfigureModels/#bring-your-own-language-model-key)，包括离线运行。
+* **自带密钥（BYOK）：** [2.3.1 选择和配置模型](../ai-in-vs-code/choose-models-and-agents/2.3.1-ChooseAndConfigureModels/#bring-your-own-language-model-key)，或[2.3.2 选择智能体运行框架](../ai-in-vs-code/choose-models-and-agents/2.3.2-ChooseAnAgentHarness/#use-claude-without-github-sign-in)。
+* **提供商订阅：** 使用[2.3.2 选择智能体运行框架](../ai-in-vs-code/choose-models-and-agents/2.3.2-ChooseAnAgentHarness/#codex)。
+* **本地模型：** [2.3.1 选择和配置模型](../ai-in-vs-code/choose-models-and-agents/2.3.1-ChooseAndConfigureModels/#bring-your-own-language-model-key)，包括离线运行。
 
 > **注意**：当 [7.2 管理 AI 设置](../enterprise/7.2-ManageAISettings/#claude-and-codex-availability)时，即使使用自己的 API 密钥或提供商账户，Claude 和 Codex 运行框架也会被禁用。请联系部署这些设置的 IT 团队，讨论访问权限。
 
@@ -133,15 +133,15 @@ draft = false
 
 　　对于键盘、屏幕阅读器和低视力工作流，请了解如何使用[3.3.9.1 辅助功能](../editor/3.3-ConfigureTheEditor/3.3.9-Accessibility/3.3.9.1-Accessibility/#accessible-view)。
 
-* **资源管理器和编辑器：**浏览项目文件，并使用 IntelliSense、重构和多光标支持编辑代码。
+* **资源管理器和编辑器：** 浏览项目文件，并使用 IntelliSense、重构和多光标支持编辑代码。
 
-* **运行、调试和测试：**运行应用程序、设置断点、检查程序状态并运行测试，无需离开编辑器。
+* **运行、调试和测试：** 运行应用程序、设置断点、检查程序状态并运行测试，无需离开编辑器。
 
-* **源代码管理：**通过内置源代码管理界面查看更改并使用 Git 仓库。
+* **源代码管理：** 通过内置源代码管理界面查看更改并使用 Git 仓库。
 
-* **扩展和设置：**添加对编程语言和工具的支持，然后个性化界面和编辑器行为。
+* **扩展和设置：** 添加对编程语言和工具的支持，然后个性化界面和编辑器行为。
 
-* **AI 聊天和智能体：**提出编程问题，或将任务委派给能够编辑文件、运行命令并验证其工作的智能体。
+* **AI 聊天和智能体：** 提出编程问题，或将任务委派给能够编辑文件、运行命令并验证其工作的智能体。
 
 ## 后续步骤 {#next-steps}
 

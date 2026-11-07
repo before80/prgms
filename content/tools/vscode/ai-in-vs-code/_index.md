@@ -72,9 +72,9 @@ draft = false
 
 　　AI 可能生成错误代码或误解你的意图。你仍然负责决定哪些更改进入代码库。
 
-* **整合前审查。**智能体可以直接将编辑保存到会话文件夹或工作树。提交或合并更改之前，请[2.2.8 审查和还原更改](work-with-ai/2.2.8-ReviewAndRevertChanges/)。
-* **控制操作并重定向工作。**使用[2.2.12.1 审批和权限](work-with-ai/permissions-and-security/2.2.12.1-ApprovalsAndPermissions/)决定哪些操作需要确认。可以[2.2.5 使用聊天](work-with-ai/2.2.5-UseChat/#send-messages-while-a-request-is-running)，但停止不会撤销已完成的操或对外部服务的更改。
-* **理解隔离。**Git 工作树可将代码更改分开，但不是安全边界。有关智能体运行终端命令的文件系统和网络限制，请参阅[2.2.12.2 智能体沙盒](work-with-ai/permissions-and-security/2.2.12.2-AgentSandboxing/)。
+* **整合前审查。** 智能体可以直接将编辑保存到会话文件夹或工作树。提交或合并更改之前，请[2.2.8 审查和还原更改](work-with-ai/2.2.8-ReviewAndRevertChanges/)。
+* **控制操作并重定向工作。** 使用[2.2.12.1 审批和权限](work-with-ai/permissions-and-security/2.2.12.1-ApprovalsAndPermissions/)决定哪些操作需要确认。可以[2.2.5 使用聊天](work-with-ai/2.2.5-UseChat/#send-messages-while-a-request-is-running)，但停止不会撤销已完成的操或对外部服务的更改。
+* **理解隔离。** Git 工作树可将代码更改分开，但不是安全边界。有关智能体运行终端命令的文件系统和网络限制，请参阅[2.2.12.2 智能体沙盒](work-with-ai/permissions-and-security/2.2.12.2-AgentSandboxing/)。
 
 　　在现有项目中使用智能体之前，请查看[2.2.12.3 AI 安全](work-with-ai/permissions-and-security/2.2.12.3-AISecurity/#recommended-security-baseline)。在受管理设备上，组织可能通过[7.2 管理 AI 设置](../enterprise/7.2-ManageAISettings/)限制可用的智能体、模型和工具。如果智能体未出现在聊天中，请查看[2.8.2.4 常见问题](reference-and-help/troubleshooting/2.8.2.4-FAQ/#agents-are-not-available-in-chat)。
 
