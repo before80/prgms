@@ -167,7 +167,7 @@ source ~/.zshrc
 
 
 
-## 安装 `openInTerminal`
+## 安装 `openInTerminal-lite`
 
 ​	**在 Finder（访达）和终端（或代码编辑器）之间建立快捷通道**，让你无需手动输入冗长的 `cd` 路径命令，就能直接在终端或编辑器中打开当前所在的文件夹。
 
@@ -183,15 +183,14 @@ OpenInTerminal 支持的终端列表在不断更新中，以下是它兼容的�
 >
 > ​	前提是需要自己提前安装这些终端（除了系统内置的 Teminal ）。
 >
-> ​	点击打开 `OpenInTerminal.app` 可选择使用哪个终端！
+> ​	点击打开 `OpenInTerminal-Lite.app` 可选择使用哪个终端！
 
 ```bash
-brew install --cask openinterminal
+brew install --cask openinterminal-lite
 
-# 在设置中启用 Finder 扩展
-# 依次进入 系统设置 -> 通用 -> 登录项与扩展 -> OpenInTerminal Extensions，然后启用 File Provider。
-# 在访达工具栏点击“显示” -> “自定义工具栏”将 “Open in Termimal”图标拖拽到访达窗口中工具栏位置上。
-# 这样在访达中，右键会出现“终端”， 窗口中的工具栏也可以打开“终端”！
+# 安装完必须先手动启动一次 OpenInTerminal-Lite（启动台双击打开，允许权限），再去拖拽图标，否则系统不认。
+# 在访达工具栏点击“显示” -> “自定义工具栏”将应用程序中的 “OpenInTermimal-Lite.app”图标拖拽到访达窗口中工具栏位置上。
+# 这样在访达中， 窗口中的工具栏也可以打开“终端”！
 ```
 
 ## 覆盖默认 `git`

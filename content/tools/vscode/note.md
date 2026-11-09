@@ -9,9 +9,47 @@ draft = false
 
 +++
 
+# 设置
 
+## 安装UI 语言
 
+​	在扩展市场搜索`Chinese`
 
+![image-20261109092848163](./images/image-20261109092840876.png)
+
+## 切换UI 语言
+
+​	按 `Ctrl + Shift + P`（macOS：`Cmd + Shift + P`） 打开**命令面板**，输入`display`筛选并显示 `Configure Display Language`命令。
+
+​	选择另一种语言以更改显示语言。
+
+​	![image-20261109100658215](./images/image-20261109100658215.png)
+
+## 用户和工作区的设置的区别
+
+​	`工作区 settings.json` 里面没有写这个键 = 不覆盖，直接继承上一级（用户设置）。
+
+​	故，平常使用时，只设置`用户`的设置就可以！
+
+​	但，并非所有用户设置都可用作工作区设置。例如，与更新和安全相关的应用程序级设置不能被工作区设置覆盖。
+
+​	打开命令面板，输入：`Preferences:Open User Settings(JSON)` 可以查看到`用户`的`settings.json`。
+
+​	打开命令面板，输入：`Preferences:Open Workspace Settings(JSON)` 可以查看到`工作区`的`settings.json`。
+
+> 注意：
+>
+> ​	VS Code 会在更改设置时直接应用。可以通过设置左侧的彩色条识别已修改设置，类似编辑器中的已修改行。
+
+## 自动保存
+
+​	进入设置，输入：`files.autoSave`
+
+​	选择：`afterDelay`,   默认延迟为 1000毫秒， 即 1秒。
+
+​	Controls auto save of editors that have unsaved changes.
+
+​	控制具有未保存更改的编辑器的 自动保存。
 
 ## 新开标签
 
@@ -51,7 +89,7 @@ Controls whether editors opened from Quick Open show as preview editors. Preview
 
 
 
-## 隐藏编辑器icon
+## 隐藏编辑器标签icon
 
 ​	去掉icon可以在一行上显示更多打开的文件名。
 
@@ -65,5 +103,24 @@ Controls whether opened editors should show with an icon or not. This requires a
 
 
 
-设置编辑区字体和字号
+## 设置编辑区字体和字号
 
+
+
+# 常用快捷键
+
+## 打开命令面板
+
+​	`Ctrl + Shift + P`，macOS：`Cmd + Shift + P`。
+
+## 选中文本内查找
+
+​	默认情况下，查找操作在整个文件中运行。要将搜索限制为选中文本，请选择查找控件中的 **在选择中查找** 图标，或按 `Ctrl + F`（macOS：`Cmd + F`） 后按 `Alt + L`（macOS：`Cmd + Option + L`）。
+
+## 查找换行
+
+​	可以通过将文本粘贴到查找和替换输入框来搜索多行文本。按 `Ctrl + Enter` 在输入框中插入新行。
+
+## 跨文件搜索
+
+​	VS Code 可以快速搜索当前打开文件夹中的所有文件。按 `Ctrl + Shift + F`（macOS：`Cmd + Shift + F`） 并输入搜索词。搜索结果按包含搜索词的文件分组，显示每个文件的命中数和位置。展开文件查看其中所有命中的预览。单击命中项在编辑器中查看。
